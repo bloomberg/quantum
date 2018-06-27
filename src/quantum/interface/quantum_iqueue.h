@@ -32,7 +32,7 @@ namespace quantum {
 struct IQueue : public ITerminate
 {
     //Typedefs and enum definitions
-    using ptr = std::shared_ptr<IQueue>;
+    using Ptr = std::shared_ptr<IQueue>;
     enum class QueueType : int { Coro, IO, All };
     enum class QueueId : int { Any = -1, Same = -2, All = -3 };
     
@@ -41,9 +41,9 @@ struct IQueue : public ITerminate
     
     virtual void run() = 0;
     
-    virtual void enqueue(ITask::ptr task) = 0;
+    virtual void enQueue(ITask::Ptr task) = 0;
     
-    virtual ITask::ptr dequeue() = 0;
+    virtual ITask::Ptr deQueue() = 0;
     
     virtual size_t size() const = 0;
     

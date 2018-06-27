@@ -41,14 +41,14 @@ template <class RET> class Promise;
 struct Util
 {
     template<class RET, class FUNC, class ...ARGS>
-    static constexpr std::function<void(Traits::yield_t& yield)>
+    static constexpr std::function<void(Traits::Yield& yield)>
     BindCaller(std::shared_ptr<Context<RET>> ctx, FUNC&& func0, ARGS&& ...args0);
     
     template<class RET, class FUNC, class ...ARGS>
     static constexpr std::function<int()>
     BindIoCaller(std::shared_ptr<Promise<RET>> promise, FUNC&& func0, ARGS&& ...args0);
     
-#ifdef _QUANTUM_PRINT_DEBUG_
+#ifdef __QUANTUM_PRINT_DEBUG
     //Synchronize logging
     static std::mutex& LogMutex();
 #endif

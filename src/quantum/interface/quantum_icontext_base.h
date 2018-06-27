@@ -23,13 +23,13 @@ namespace Bloomberg {
 namespace quantum {
 
 //==============================================================================================
-//                                      interface IContextBase
+//                                  interface IContextBase
 //==============================================================================================
 /// @interface IContextBase
 /// @brief This interface exposes shared functionality between IThreadContext and ICoroContext.
 struct IContextBase
 {
-    using ptr = std::shared_ptr<IContextBase>;
+    using Ptr = std::shared_ptr<IContextBase>;
     
     /// @brief Virtual destructor.
     virtual ~IContextBase() = default;

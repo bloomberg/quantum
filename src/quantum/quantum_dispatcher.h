@@ -52,7 +52,7 @@ public:
     /// @tparam RET Type of future returned by this coroutine.
     /// @tparam FUNC Callable object type which will be wrapped in a coroutine. Can be a standalone function, a method,
     ///              an std::function, a functor generated via std::bind or a lambda. The signature of the callable
-    ///              object must strictly be 'int f(CoroContext<RET>::ptr, ...)'.
+    ///              object must strictly be 'int f(CoroContext<RET>::Ptr, ...)'.
     /// @tparam ARGS Argument types passed to FUNC.
     /// @param[in] func Callable object.
     /// @param[in] args Variable list of arguments passed to the callable object.
@@ -60,14 +60,14 @@ public:
     /// @note This function is non-blocking and returns immediately. The returned thread context cannot be used to chain
     ///       further coroutines.
     template <class RET = int, class FUNC, class ... ARGS>
-    typename ThreadContext<RET>::ptr
+    typename ThreadContext<RET>::Ptr
     post(FUNC&& func, ARGS&&... args);
     
     /// @brief Post a coroutine to run asynchronously on a specific queue (thread).
     /// @tparam RET Type of future returned by this coroutine.
     /// @tparam FUNC Callable object type which will be wrapped in a coroutine. Can be a standalone function, a method,
     ///              an std::function, a functor generated via std::bind or a lambda. The signature of the callable
-    ///              object must strictly be 'int f(CoroContext<RET>::ptr, ...)'.
+    ///              object must strictly be 'int f(CoroContext<RET>::Ptr, ...)'.
     /// @tparam ARGS Argument types passed to FUNC.
     /// @param[in] queueId Id of the queue where this coroutine should run. Note that the user can specify IQueue::QueueId::Any
     ///                    as a value, which is equivalent to running the simpler version of post() above. Valid range is
@@ -80,14 +80,14 @@ public:
     /// @note This function is non-blocking and returns immediately. The returned thread context cannot be used to chain
     ///       further coroutines.
     template <class RET = int, class FUNC, class ... ARGS>
-    typename ThreadContext<RET>::ptr
+    typename ThreadContext<RET>::Ptr
     post(int queueId, bool isHighPriority, FUNC&& func, ARGS&&... args);
     
     /// @brief Post the first coroutine in a continuation chain to run asynchronously.
     /// @tparam RET Type of future returned by this coroutine.
     /// @tparam FUNC Callable object type which will be wrapped in a coroutine. Can be a standalone function, a method,
     ///              an std::function, a functor generated via std::bind or a lambda. The signature of the callable
-    ///              object must strictly be 'int f(CoroContext<RET>::ptr, ...)'.
+    ///              object must strictly be 'int f(CoroContext<RET>::Ptr, ...)'.
     /// @tparam ARGS Argument types passed to FUNC.
     /// @param[in] func Callable object.
     /// @param[in] args Variable list of arguments passed to the callable object.
@@ -95,14 +95,14 @@ public:
     /// @note This function is non-blocking and returns immediately. The returned context can be used to chain other
     ///       coroutines which will run sequentially.
     template <class RET = int, class FUNC, class ... ARGS>
-    typename ThreadContext<RET>::ptr
+    typename ThreadContext<RET>::Ptr
     postFirst(FUNC&& func, ARGS&&... args);
     
     /// @brief Post the first coroutine in a continuation chain to run asynchronously on a specific queue (thread).
     /// @tparam RET Type of future returned by this coroutine.
     /// @tparam FUNC Callable object type which will be wrapped in a coroutine. Can be a standalone function, a method,
     ///              an std::function, a functor generated via std::bind or a lambda. The signature of the callable
-    ///              object must strictly be 'int f(CoroContext<RET>::ptr, ...)'.
+    ///              object must strictly be 'int f(CoroContext<RET>::Ptr, ...)'.
     /// @tparam ARGS Argument types passed to FUNC.
     /// @param[in] queueId Id of the queue where this coroutine should run. Note that the user can specify IQueue::QueueId::Any
     ///                    as a value, which is equivalent to running the simpler version of post() above. Valid range is
@@ -115,28 +115,28 @@ public:
     /// @note This function is non-blocking and returns immediately. The returned context can be used to chain other
     ///       coroutines which will run sequentially.
     template <class RET = int, class FUNC, class ... ARGS>
-    typename ThreadContext<RET>::ptr
+    typename ThreadContext<RET>::Ptr
     postFirst(int queueId, bool isHighPriority, FUNC&& func, ARGS&&... args);
     
     /// @brief Post a blocking IO (or long running) task to run asynchronously on the IO thread pool.
     /// @tparam RET Type of future returned by this task.
     /// @tparam FUNC Callable object type. Can be a standalone function, a method, an std::function,
     ///              a functor generated via std::bind or a lambda. The signature of the callable
-    ///              object must strictly be 'int f(ThreadPromise<RET>::ptr, ...)'.
+    ///              object must strictly be 'int f(ThreadPromise<RET>::Ptr, ...)'.
     /// @tparam ARGS Argument types passed to FUNC.
     /// @param[in] func Callable object.
     /// @param[in] args Variable list of arguments passed to the callable object.
     /// @return A pointer to a thread future object.
     /// @note This function is non-blocking and returns immediately. The passed function will not be wrapped in a coroutine.
     template <class RET = int, class FUNC, class ... ARGS>
-    typename ThreadFuture<RET>::ptr
+    typename ThreadFuture<RET>::Ptr
     postAsyncIo(FUNC&& func, ARGS&&... args);
     
     /// @brief Post a blocking IO (or long running) task to run asynchronously on a specific thread in the IO thread pool.
     /// @tparam RET Type of future returned by this task.
     /// @tparam FUNC Callable object type. Can be a standalone function, a method, an std::function,
     ///              a functor generated via std::bind or a lambda. The signature of the callable
-    ///              object must strictly be 'int f(ThreadPromise<RET>::ptr, ...)'.
+    ///              object must strictly be 'int f(ThreadPromise<RET>::Ptr, ...)'.
     /// @tparam ARGS Argument types passed to FUNC.
     /// @param[in] queueId Id of the queue where this task should run. Note that the user can specify IQueue::QueueId::Any
     ///                    as a value, which is equivalent to running the simpler version of postAsyncIo() above. Valid range is
@@ -147,7 +147,7 @@ public:
     /// @return A pointer to a thread future object.
     /// @note This function is non-blocking and returns immediately. The passed function will not be wrapped in a coroutine.
     template <class RET = int, class FUNC, class ... ARGS>
-    typename ThreadFuture<RET>::ptr
+    typename ThreadFuture<RET>::Ptr
     postAsyncIo(int queueId, bool isHighPriority, FUNC&& func, ARGS&&... args);
     
     /// @brief Signal all threads to immediately terminate and exit. All other pending coroutines and IO tasks will not complete.
@@ -195,11 +195,11 @@ public:
     
 private:
     template <class RET, class FUNC, class ... ARGS>
-    typename ThreadContext<RET>::ptr
+    typename ThreadContext<RET>::Ptr
     postImpl(int queueId, bool isHighPriority, ITask::Type type, FUNC&& func, ARGS&&... args);
     
     template <class RET, class FUNC, class ... ARGS>
-    typename ThreadFuture<RET>::ptr
+    typename ThreadFuture<RET>::Ptr
     postAsyncIoImpl(int queueId, bool isHighPriority, FUNC&& func, ARGS&&... args);
     
     //Members

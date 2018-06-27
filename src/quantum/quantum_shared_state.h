@@ -44,49 +44,49 @@ public:
     int set(V&& value);
     
     template <class V = T>
-    int set(ICoroSync::ptr sync, V&& value);
+    int set(ICoroSync::Ptr sync, V&& value);
     
     //Moves value out of the shared state
     T get();
     
-    T get(ICoroSync::ptr sync);
+    T get(ICoroSync::Ptr sync);
     
     const T& getRef() const;
     
-    const T& getRef(ICoroSync::ptr sync) const;
+    const T& getRef(ICoroSync::Ptr sync) const;
     
     void breakPromise();
     
     void wait() const;
     
-    void wait(ICoroSync::ptr sync) const;
+    void wait(ICoroSync::Ptr sync) const;
     
     template<class REP, class PERIOD>
     std::future_status waitFor(const std::chrono::duration<REP, PERIOD> &time) const;
     
     template<class REP, class PERIOD>
-    std::future_status waitFor(ICoroSync::ptr sync,
+    std::future_status waitFor(ICoroSync::Ptr sync,
                                const std::chrono::duration<REP, PERIOD> &time) const;
     
     int setException(std::exception_ptr ex);
     
-    int setException(ICoroSync::ptr sync,
+    int setException(ICoroSync::Ptr sync,
                      std::exception_ptr ex);
     
     //=========================================================================
     //                         Buffered future access
     //=========================================================================
-    template <class BUF = T, class V = typename std::enable_if_t<Traits::IsBuffer<BUF>::value, BUF>::value_type>
+    template <class BUF = T, class V = typename std::enable_if_t<Traits::IsBuffer<BUF>::value, BUF>::ValueType>
     void push(V&& value);
     
-    template <class BUF = T, class V = typename std::enable_if_t<Traits::IsBuffer<BUF>::value, BUF>::value_type>
-    void push(ICoroSync::ptr sync, V&& value);
+    template <class BUF = T, class V = typename std::enable_if_t<Traits::IsBuffer<BUF>::value, BUF>::ValueType>
+    void push(ICoroSync::Ptr sync, V&& value);
     
-    template <class BUF = T, class V = typename std::enable_if_t<Traits::IsBuffer<BUF>::value, BUF>::value_type>
+    template <class BUF = T, class V = typename std::enable_if_t<Traits::IsBuffer<BUF>::value, BUF>::ValueType>
     V pull(bool& isBufferClosed);
     
-    template <class BUF = T, class V = typename std::enable_if_t<Traits::IsBuffer<BUF>::value, BUF>::value_type>
-    V pull(ICoroSync::ptr sync, bool& isBufferClosed);
+    template <class BUF = T, class V = typename std::enable_if_t<Traits::IsBuffer<BUF>::value, BUF>::ValueType>
+    V pull(ICoroSync::Ptr sync, bool& isBufferClosed);
     
     template <class BUF = T, class = std::enable_if_t<Traits::IsBuffer<BUF>::value>>
     int closeBuffer();
@@ -96,7 +96,7 @@ private:
     
     void conditionWait() const;
     
-    void conditionWait(ICoroSync::ptr sync) const;
+    void conditionWait(ICoroSync::Ptr sync) const;
     
     void checkPromiseState() const;
     

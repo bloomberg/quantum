@@ -31,8 +31,8 @@ namespace quantum {
 /// @brief Interface to a task. For internal use only.
 struct ITask : public ITerminate
 {
-    using ptr = std::shared_ptr<ITask>;
-    using wptr = std::weak_ptr<ITask>;
+    using Ptr = std::shared_ptr<ITask>;
+    using WeakPtr = std::weak_ptr<ITask>;
     
     enum class Type : int
     {

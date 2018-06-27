@@ -18,6 +18,7 @@
 //##############################################################################################
 //#################################### IMPLEMENTATIONS #########################################
 //##############################################################################################
+#include <quantum/quantum_stack_allocator.h>
 
 namespace Bloomberg {
 namespace quantum {
@@ -29,21 +30,21 @@ template <template<class> class PROMISE, class T>
 template <class V>
 int IThreadPromise<PROMISE, T>::set(V&& value)
 {
-    return static_cast<impl*>(this)->template set<V>(std::forward<V>(value));
+    return static_cast<Impl*>(this)->template set<V>(std::forward<V>(value));
 }
 
 template <template<class> class PROMISE, class T>
 template <class BUF, class V>
 void IThreadPromise<PROMISE, T>::push(V &&value)
 {
-    static_cast<impl*>(this)->template push<BUF>(std::forward<V>(value));
+    static_cast<Impl*>(this)->template push<BUF>(std::forward<V>(value));
 }
 
 template <template<class> class PROMISE, class T>
 template <class BUF, class>
 int IThreadPromise<PROMISE, T>::closeBuffer()
 {
-    return static_cast<impl*>(this)->template closeBuffer<BUF>();
+    return static_cast<Impl*>(this)->template closeBuffer<BUF>();
 }
 
 //==============================================================================================
@@ -51,28 +52,37 @@ int IThreadPromise<PROMISE, T>::closeBuffer()
 //==============================================================================================
 template <template<class> class PROMISE, class T>
 template <class V>
-int ICoroPromise<PROMISE, T>::set(ICoroSync::ptr sync, V&& value)
+int ICoroPromise<PROMISE, T>::set(ICoroSync::Ptr sync, V&& value)
 {
-    return static_cast<impl*>(this)->template set<V>(sync, std::forward<V>(value));
+    return static_cast<Impl*>(this)->template set<V>(sync, std::forward<V>(value));
 }
 
 template <template<class> class PROMISE, class T>
 template <class BUF, class V>
-void ICoroPromise<PROMISE, T>::push(ICoroSync::ptr sync, V &&value)
+void ICoroPromise<PROMISE, T>::push(ICoroSync::Ptr sync, V &&value)
 {
-    static_cast<impl*>(this)->template push<BUF>(sync, std::forward<V>(value));
+    static_cast<Impl*>(this)->template push<BUF>(sync, std::forward<V>(value));
 }
 
 template <template<class> class PROMISE, class T>
 template <class BUF, class>
 int ICoroPromise<PROMISE, T>::closeBuffer()
 {
-    return static_cast<impl*>(this)->template closeBuffer<BUF>();
+    return static_cast<Impl*>(this)->template closeBuffer<BUF>();
 }
 
 //==============================================================================================
 //                                class Promise
 //==============================================================================================
+#ifndef __QUANTUM_PROMISE_ALLOC
+#define __QUANTUM_PROMISE_ALLOC __QUANTUM_DEFAULT_STACK_ALLOC_SIZE
+#endif
+
+using PromiseAllocator = StackAllocator<Promise<int>, __QUANTUM_PROMISE_ALLOC>;
+inline PromiseAllocator& GetPromiseAllocator() {
+    static PromiseAllocator allocator;
+    return allocator;
+}
 
 template <class T>
 Promise<T>::Promise() :
@@ -111,17 +121,17 @@ int Promise<T>::setException(std::exception_ptr ex)
 }
 
 template <class T>
-IThreadFutureBase::ptr Promise<T>::getIThreadFutureBase() const
+IThreadFutureBase::Ptr Promise<T>::getIThreadFutureBase() const
 {
     if (!_sharedState) ThrowFutureException(FutureState::NoState);
-    return std::shared_ptr<Future<T>>(new Future<T>(_sharedState));
+    return typename Future<T>::Ptr(new Future<T>(_sharedState), Future<T>::deleter);
 }
 
 template <class T>
-ICoroFutureBase::ptr Promise<T>::getICoroFutureBase() const
+ICoroFutureBase::Ptr Promise<T>::getICoroFutureBase() const
 {
     if (!_sharedState) ThrowFutureException(FutureState::NoState);
-    return std::shared_ptr<Future<T>>(new Future<T>(_sharedState));
+    return typename Future<T>::Ptr(new Future<T>(_sharedState), Future<T>::deleter);
 }
 
 template <class T>
@@ -133,25 +143,25 @@ int Promise<T>::set(V&& value)
 }
 
 template <class T>
-typename IThreadFuture<T>::ptr Promise<T>::getIThreadFuture() const
+typename IThreadFuture<T>::Ptr Promise<T>::getIThreadFuture() const
 {
     if (!_sharedState) ThrowFutureException(FutureState::NoState);
-    return std::shared_ptr<Future<T>>(new Future<T>(_sharedState));
+    return typename Future<T>::Ptr(new Future<T>(_sharedState), Future<T>::deleter);
 }
 
 template <class T>
 template <class V>
-int Promise<T>::set(ICoroSync::ptr sync, V&& value)
+int Promise<T>::set(ICoroSync::Ptr sync, V&& value)
 {
     if (!_sharedState) ThrowFutureException(FutureState::NoState);
     return _sharedState->set(sync, std::forward<V>(value));
 }
 
 template <class T>
-typename ICoroFuture<T>::ptr Promise<T>::getICoroFuture() const
+typename ICoroFuture<T>::Ptr Promise<T>::getICoroFuture() const
 {
     if (!_sharedState) ThrowFutureException(FutureState::NoState);
-    return std::shared_ptr<Future<T>>(new Future<T>(_sharedState));
+    return typename Future<T>::Ptr(new Future<T>(_sharedState), Future<T>::deleter);
 }
 
 template <class T>
@@ -164,7 +174,7 @@ void Promise<T>::push(V &&value)
 
 template <class T>
 template <class BUF, class V>
-void Promise<T>::push(ICoroSync::ptr sync, V &&value)
+void Promise<T>::push(ICoroSync::Ptr sync, V &&value)
 {
     if (!_sharedState) ThrowFutureException(FutureState::NoState);
     _sharedState->template push<BUF>(sync, std::forward<V>(value));
@@ -178,5 +188,22 @@ int Promise<T>::closeBuffer()
     return _sharedState->template closeBuffer<BUF>();
 }
 
+template <class T>
+void* Promise<T>::operator new(size_t)
+{
+    return GetPromiseAllocator().allocate();
+}
+
+template <class T>
+void Promise<T>::operator delete(void* p)
+{
+    GetPromiseAllocator().deallocate(static_cast<Promise<int>*>(p));
+}
+
+template <class T>
+void Promise<T>::deleter(Promise<T>* p)
+{
+    GetPromiseAllocator().dispose(reinterpret_cast<Promise<int>*>(p));
+}
 
 }}

@@ -35,17 +35,17 @@ struct IThreadPromise : public Traits::DerivedFrom<PROMISE<T>,
                                                    IThreadPromise<PROMISE, T>,
                                                    IPromiseBase>
 {
-    using ptr = std::shared_ptr<IThreadPromise<PROMISE, T>>;
-    using impl = PROMISE<T>;
+    using Ptr = std::shared_ptr<IThreadPromise<PROMISE, T>>;
+    using Impl = PROMISE<T>;
     
     /// @brief Constructor.
     /// @param[in] derived A pointer to the concrete implementation of this class.
     /// @note The constructor parameter is only used for template deduction at compile time.
-    IThreadPromise(impl* derived){ UNUSED(derived); }
+    IThreadPromise(Impl* derived){ UNUSED(derived); }
     
     /// @brief Get the associated thread future.
     /// @return An interface to the associated future object sharing a common state.
-    virtual typename IThreadFuture<T>::ptr getIThreadFuture() const = 0;
+    virtual typename IThreadFuture<T>::Ptr getIThreadFuture() const = 0;
     
     /// @brief Set the promised value.
     /// @tparam V The type of the value. Must be implicitly deduced by the compiler and should always be == T.
@@ -60,7 +60,7 @@ struct IThreadPromise : public Traits::DerivedFrom<PROMISE<T>,
     /// @param[in] value Value to push at the end of the buffer.
     /// @note Method available for buffered futures only. Once the buffer is closed, no more Push
     ///       operations are allowed.
-    template <class BUF = T, class V = typename std::enable_if_t<Traits::IsBuffer<BUF>::value, BUF>::value_type>
+    template <class BUF = T, class V = typename std::enable_if_t<Traits::IsBuffer<BUF>::value, BUF>::ValueType>
     void push(V &&value);
     
     /// @brief Close a promise buffer.
@@ -74,7 +74,7 @@ struct IThreadPromise : public Traits::DerivedFrom<PROMISE<T>,
 
 template <class T> class Promise;
 
-template <class T = int>
+template <class T>
 using ThreadPromise = IThreadPromise<Promise, T>;
 
 }}

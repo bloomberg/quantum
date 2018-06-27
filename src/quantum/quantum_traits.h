@@ -35,29 +35,9 @@ class Buffer; //fwd declaration
 /// @brief Contains definitions for various traits used by this library. For internal use only.
 struct Traits
 {
-    using coro_t    = boost::coroutines2::coroutine<int &>;
-    using yield_t   = typename coro_t::pull_type;
-    using context_t = typename coro_t::push_type;
-    
-    //ITERATABLE TRAIT
-    template <class T>
-    static auto IsIteratableImpl(int)->decltype (
-        std::begin(std::declval<T&>()) != std::end(std::declval<T&>()), // begin/end and operator!=
-        ++std::declval<decltype(std::begin(std::declval<T&>()))&>(), // operator++
-        void(*std::begin(std::declval<T&>())), // operator*
-        std::true_type{}
-    );
-    
-    template <class T>
-    static std::false_type IsIteratableImpl(...);
-    
-    template <class T>
-    struct IsReferenceWrapper : std::false_type
-    {};
-    
-    template <class U>
-    struct IsReferenceWrapper<std::reference_wrapper<U>> : std::true_type
-    {};
+    using BoostCoro = boost::coroutines2::coroutine<int&>;
+    using Yield     = typename BoostCoro::pull_type;
+    using Coroutine = typename BoostCoro::push_type;
     
     //FUTURE BUFFER TRAIT
     template <class T>
@@ -76,9 +56,6 @@ struct Traits
         operator B&() { return static_cast<D&>(static_cast<THIS&>(*this)); }
     };
 };
-
-template <typename T>
-using IsIteratable = decltype(Traits::IsIteratableImpl<T>(0));
 
 }}
 

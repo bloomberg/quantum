@@ -38,7 +38,7 @@ class Future : public IThreadFuture<T>,
 {
 public:
     template <class F> friend class Promise;
-    using ptr = std::shared_ptr<Future<T>>;
+    using Ptr = std::shared_ptr<Future<T>>;
     
     //Default constructor with empty state
     Future() = default;
@@ -47,25 +47,32 @@ public:
     
     //IThreadFutureBase
     void wait() const final;
-    std::future_status waitFor(size_t timeMs) const final;
+    std::future_status waitFor(std::chrono::milliseconds timeMs) const final;
     
     //IThreadFuture
     T get() final;
     const T& getRef() const final;
     
-    template <class BUF = T, class V = typename std::enable_if_t<Traits::IsBuffer<BUF>::value, BUF>::value_type>
+    template <class BUF = T, class V = typename std::enable_if_t<Traits::IsBuffer<BUF>::value, BUF>::ValueType>
     V pull(bool& isBufferClosed);
     
     //ICoroFutureBase
-    void wait(ICoroSync::ptr sync) const final;
-    std::future_status waitFor(ICoroSync::ptr sync, size_t timeMs) const final;
+    void wait(ICoroSync::Ptr sync) const final;
+    std::future_status waitFor(ICoroSync::Ptr sync, std::chrono::milliseconds timeMs) const final;
     
     //ICoroFuture
-    T get(ICoroSync::ptr sync) final;
-    const T& getRef(ICoroSync::ptr sync) const final;
+    T get(ICoroSync::Ptr sync) final;
+    const T& getRef(ICoroSync::Ptr sync) const final;
     
-    template <class BUF = T, class V = typename std::enable_if_t<Traits::IsBuffer<BUF>::value, BUF>::value_type>
-    V pull(ICoroSync::ptr sync, bool& isBufferClosed);
+    template <class BUF = T, class V = typename std::enable_if_t<Traits::IsBuffer<BUF>::value, BUF>::ValueType>
+    V pull(ICoroSync::Ptr sync, bool& isBufferClosed);
+    
+    //===================================
+    //           NEW / DELETE
+    //===================================
+    static void* operator new(size_t size);
+    static void operator delete(void* p);
+    static void deleter(Future<T>* p);
     
 private:
     explicit Future(std::shared_ptr<SharedState<T>> sharedState);

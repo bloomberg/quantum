@@ -17,7 +17,7 @@
 #define QUANTUM_FIXTURE_H
 
 #include <gtest/gtest.h>
-#include <quantum/quantum_dispatcher.h>
+#include <quantum/quantum.h>
 
 namespace quantum = Bloomberg::quantum;
 
@@ -25,7 +25,7 @@ namespace quantum = Bloomberg::quantum;
 class Dispatcher
 {
 public:
-    static void CreateInstance(int numCoro, int numIo, bool pin)
+    static void createInstance(int numCoro, int numIo, bool pin)
     {
         if (_dispatcher == nullptr)
         {
@@ -33,16 +33,16 @@ public:
         }
     }
     
-    static quantum::TaskDispatcher& Instance()
+    static quantum::TaskDispatcher& instance()
     {
         if (_dispatcher == nullptr)
         {
-            CreateInstance(5, 5, false);
+            createInstance(5, 5, false);
         }
         return *_dispatcher;
     }
     
-    static void DeleteInstance()
+    static void deleteInstance()
     {
         delete _dispatcher;
         _dispatcher = nullptr;
@@ -59,13 +59,13 @@ public:
     /// @brief Create a dispatcher object with equal number of coroutine and IO threads
     void SetUp()
     {
-        Dispatcher::CreateInstance(5, 5, false);
-        _dispatcher = &Dispatcher::Instance();
+        Dispatcher::createInstance(5, 5, false);
+        _dispatcher = &Dispatcher::instance();
     }
     
     void TearDown()
     {
-        Dispatcher::DeleteInstance();
+        Dispatcher::deleteInstance();
     }
 protected:
     quantum::TaskDispatcher*  _dispatcher;

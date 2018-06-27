@@ -31,7 +31,7 @@ namespace std {
     template<typename _Tp, _Tp... _Idx>
     struct integer_sequence
     {
-        typedef _Tp value_type;
+        using value_type = _Tp;
         static constexpr size_t size() { return sizeof...(_Idx); }
     };
 
@@ -43,7 +43,7 @@ namespace std {
     struct _Make_integer_sequence<_Tp, _Num, _Index_tuple<_Idx...>>
     {
         static_assert( _Num >= 0, "Cannot make integer sequence of negative length" );
-        typedef integer_sequence<_Tp, static_cast<_Tp>(_Idx)...> __type;
+        using __type = integer_sequence<_Tp, static_cast<_Tp>(_Idx)...>;
     };
     
     template<typename _Tp, _Tp _Num>
@@ -67,17 +67,20 @@ namespace quantum {
     template <typename RET, typename... ARGS, size_t...I>
     RET apply_impl(const std::function<RET(ARGS...)>& func,
                    std::tuple<ARGS...>& tuple,
-                   std::index_sequence<I...>) {
+                   std::index_sequence<I...>)
+    {
         return func(std::forward<ARGS>(std::get<I>(tuple))...);
     }
     
     template <typename RET, typename... ARGS>
-    RET apply(const std::function<RET(ARGS...)>& func, std::tuple<ARGS...>& tuple) {
+    RET apply(const std::function<RET(ARGS...)>& func, std::tuple<ARGS...>& tuple)
+    {
         return apply_impl(func, tuple, std::index_sequence_for<ARGS...>{});
     }
 #else
     template <typename RET, typename... ARGS>
-    RET apply(const std::function<RET(ARGS...)>& func, std::tuple<ARGS...>& tuple) {
+    RET apply(const std::function<RET(ARGS...)>& func, std::tuple<ARGS...>& tuple)
+    {
         return std::apply(func, tuple);
     }
 #endif

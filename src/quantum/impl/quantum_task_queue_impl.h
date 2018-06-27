@@ -56,9 +56,9 @@ void TaskQueue::pinToCore(int coreId)
 inline
 void TaskQueue::run()
 {
-    try
+    while (true)
     {
-        while (true)
+        try
         {
             if (_isEmpty)
             {
@@ -72,17 +72,15 @@ void TaskQueue::run()
             {
                 break;
             }
-
-            //Iterate to the next runnable task
-            advance();
             
-            if (_queueIt == _queue.end())
+            //Iterate to the next runnable task
+            if (advance() == _queue.end())
             {
                 continue;
             }
             
             //Process current task
-            ITaskContinuation::ptr task = *_queueIt;
+            ITaskContinuation::Ptr task = *_queueIt;
             if (task->isBlocked())
             {
                 continue;
@@ -96,7 +94,7 @@ void TaskQueue::run()
             
             if (rc != (int)ITask::RetCode::Running) //Coroutine ended
             {
-                ITaskContinuation::ptr nextTask;
+                ITaskContinuation::Ptr nextTask;
                 if (rc == (int)ITask::RetCode::Success)
                 {
                     //Coroutine ended normally with "return 0" statement
@@ -116,7 +114,7 @@ void TaskQueue::run()
                     //Coroutine ended with explicit user error
                     _stats.incErrorCount();
                     
-#ifdef _QUANTUM_PRINT_DEBUG_
+#ifdef __QUANTUM_PRINT_DEBUG
                     std::lock_guard<std::mutex> guard(Util::LogMutex());
                     if (rc == (int)ITask::RetCode::Exception)
                     {
@@ -128,37 +126,41 @@ void TaskQueue::run()
                     }
 #endif
                     //Check to see interfaces we have a final task to run
-                    nextTask = task->getErrorHandlderOrFinalTask();
+                    nextTask = task->getErrorHandlerOrFinalTask();
                 }
                 
-                if (nextTask)
-                {
-                    //queue it
-                    enqueue(nextTask);
-                }
-                
-                task->terminate(); //terminate current task
-                
-                SpinLock::Guard lock(_spinlock);
-                //========================= LOCKED SCOPE =========================
-                //Remove completed task from the queue
-                _queueIt = _queue.erase(_queueIt);
+                //queue next task and de-queue current one
+                deQueue();
+                enQueue(nextTask);
             }
         }
-    }
-    catch (std::exception& ex)
-    {
-        UNUSED(ex);
-#ifdef _QUANTUM_PRINT_DEBUG_
-        std::lock_guard<std::mutex> guard(Util::LogMutex());
-        std::cerr << "Caught exception: " << ex.what() << std::endl;
+        catch (std::exception& ex)
+        {
+            UNUSED(ex);
+            deQueue(); //remove error task
+#ifdef __QUANTUM_PRINT_DEBUG
+            std::lock_guard<std::mutex> guard(Util::LogMutex());
+            std::cerr << "Caught exception: " << ex.what() << std::endl;
 #endif
-    }
+        }
+        catch (...)
+        {
+            deQueue(); //remove error task
+#ifdef __QUANTUM_PRINT_DEBUG
+            std::lock_guard<std::mutex> guard(Util::LogMutex());
+            std::cerr << "Caught unknown exception." << std::endl;
+#endif
+        }
+    } //while(true)
 }
 
 inline
-void TaskQueue::enqueue(ITask::ptr task)
+void TaskQueue::enQueue(ITask::Ptr task)
 {
+    if (!task)
+    {
+        return; //nothing to do
+    }
     //========================= LOCKED SCOPE =========================
     SpinLock::Guard lock(_spinlock);
     _stats.incPostedCount();
@@ -181,9 +183,16 @@ void TaskQueue::enqueue(ITask::ptr task)
 }
 
 inline
-ITask::ptr TaskQueue::dequeue()
+ITask::Ptr TaskQueue::deQueue()
 {
-    //not supported
+    if (_queueIt != _queue.end())
+    {
+        (*_queueIt)->terminate();
+        //========================= LOCKED SCOPE =========================
+        SpinLock::Guard lock(_spinlock);
+        //Remove error task from the queue
+        _queueIt = _queue.erase(_queueIt);
+    }
     return nullptr;
 }
 
@@ -246,7 +255,7 @@ void TaskQueue::signalEmptyCondition(bool value)
 }
 
 inline
-void TaskQueue::advance()
+TaskQueue::TaskListIter TaskQueue::advance()
 {
     //========================= LOCKED SCOPE =========================
     SpinLock::Guard lock(_spinlock);
@@ -259,6 +268,7 @@ void TaskQueue::advance()
     {
         signalEmptyCondition(true);
     }
+    return _queueIt;
 }
 
 inline

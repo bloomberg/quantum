@@ -29,20 +29,20 @@ namespace quantum {
 /// @brief Interface to a task continuation. For internal use only.
 struct ITaskContinuation : public ITask
 {
-    using ptr = std::shared_ptr<ITaskContinuation>;
-    using wptr = std::weak_ptr<ITaskContinuation>;
+    using Ptr = std::shared_ptr<ITaskContinuation>;
+    using WeakPtr = std::weak_ptr<ITaskContinuation>;
     
-    virtual ptr getNextTask() = 0;
+    virtual Ptr getNextTask() = 0;
     
-    virtual void setNextTask(ptr nextTask) = 0;
+    virtual void setNextTask(Ptr nextTask) = 0;
     
-    virtual ptr getPrevTask() = 0;
+    virtual Ptr getPrevTask() = 0;
     
-    virtual void setPrevTask(ptr nextTask) = 0;
+    virtual void setPrevTask(Ptr nextTask) = 0;
     
-    virtual ptr getFirstTask() = 0;
+    virtual Ptr getFirstTask() = 0;
     
-    virtual ptr getErrorHandlderOrFinalTask() = 0;
+    virtual Ptr getErrorHandlerOrFinalTask() = 0;
 };
 
 }}

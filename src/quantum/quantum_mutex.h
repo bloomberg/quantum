@@ -55,7 +55,7 @@ public:
     /// @details The mutex object yields the current coroutine until locking succeeds.
     /// @param[in] sync Pointer to a coroutine synchronization object.
     /// @note Must be called from a coroutine.
-    void lock(ICoroSync::ptr sync);
+    void lock(ICoroSync::Ptr sync);
     
     /// @brief Tries to lock the mutex object.
     /// @return True if succeeds, false otherwise.
@@ -89,7 +89,7 @@ public:
         /// @param[in] tryLock If set to true, tries to lock the mutex instead of unconditionally locking it.
         /// @note If tryLock is set to true, ownership of the mutex may fail in which case it can be verified
         ///       with ownsLock(). This constructor must be used in a coroutine context.
-        Guard(ICoroSync::ptr sync,
+        Guard(ICoroSync::Ptr sync,
               Mutex& mutex,
               bool tryLock = false);
         
@@ -126,7 +126,7 @@ public:
         /// @param[in] sync Pointer to a coroutine synchronization object.
         /// @param[in] mutex Mutex which remains unlocked during the lifetime of this object.
         /// @note This constructor must be used in a coroutine context.
-        ReverseGuard(ICoroSync::ptr sync,
+        ReverseGuard(ICoroSync::Ptr sync,
                      Mutex& mutex);
         
         /// @brief Destroys this object and locks the underlying mutex.
@@ -135,7 +135,7 @@ public:
     private:
         //Members
         Mutex&              _mutex;
-        ICoroSync::ptr      _sync;
+        ICoroSync::Ptr      _sync;
     };
     
 private:

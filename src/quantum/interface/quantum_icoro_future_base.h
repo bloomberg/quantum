@@ -18,6 +18,7 @@
 
 #include <memory>
 #include <future>
+#include <chrono>
 #include <quantum/interface/quantum_icoro_sync.h>
 
 namespace Bloomberg {
@@ -30,7 +31,7 @@ namespace quantum {
 /// @brief Exposes methods to access a coroutine-compatible future
 struct ICoroFutureBase
 {
-    using ptr = std::shared_ptr<ICoroFutureBase>;
+    using Ptr = std::shared_ptr<ICoroFutureBase>;
     
     /// @brief Virtual destructor.
     virtual ~ICoroFutureBase() = default;
@@ -42,15 +43,15 @@ struct ICoroFutureBase
     /// @brief Waits for the future value.
     /// @param[in] sync A pointer to a coroutine synchronization object.
     /// @note This method blocks until the future is ready or until an exception is thrown.
-    virtual void wait(ICoroSync::ptr sync) const = 0;
+    virtual void wait(ICoroSync::Ptr sync) const = 0;
     
     /// @brief Waits for the future value up to a maximum 'timeMs' milliseconds.
     /// @param[in] sync A pointer to a coroutine synchronization object.
     /// @param[in] timeMs The maximum amount of milliseconds to wait until the future value becomes ready.
     /// @return 'ready' if value was posted before duration expired or 'timeout' otherwise.
     /// @note Blocks until the value is ready, until 'timeMs' duration expires or until an exception is thrown.
-    virtual std::future_status waitFor(ICoroSync::ptr sync,
-                                       size_t timeMs) const = 0;
+    virtual std::future_status waitFor(ICoroSync::Ptr sync,
+                                       std::chrono::milliseconds timeMs) const = 0;
 };
 
 }}

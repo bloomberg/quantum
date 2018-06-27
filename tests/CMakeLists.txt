@@ -1,35 +1,30 @@
-file(GLOB SOURCE_FILES
-    *.cpp
-    *.c
-)
-
+include(GoogleTest)
+set(TEST_TARGET quantum_tests)
+file(GLOB SOURCE_FILES *.cpp)
 include_directories(AFTER
     ${PROJECT_SOURCE_DIR}/src
     ${PROJECT_SOURCE_DIR}/tests
-    ${DPKG_REFROOT_INCLUDE}
+    ${BOOST_ROOT}
+    ${GTEST_ROOT}
 )
-
 link_directories(
-    ${DPKG_REFROOT_LIB}
+    ${BOOST_ROOT}
+    ${GTEST_ROOT}
 )
-
-add_executable(tests ${SOURCE_FILES})
-
-target_link_libraries(tests
-    boost_context
+add_executable(${TEST_TARGET} ${SOURCE_FILES})
+gtest_discover_tests(${TEST_TARGET}
+                     WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR})
+target_link_libraries(${TEST_TARGET}
+    ${Boost_LIBRARIES}
+    GTest::GTest
+    GTest::Main
     pthread
-    gtest
-    gmock
-    gtest_main
-    gmock_main
 )
-
-set_target_properties(tests
+set_target_properties(${TEST_TARGET}
     PROPERTIES
-    RUNTIME_OUTPUT_DIRECTORY "${PROJECT_SOURCE_DIR}/${PROJECT_NAME}/tests"
-    RUNTIME_OUTPUT_NAME "${PROJECT_NAME}.${CMAKE_SYSTEM_NAME}${MODE}.tests.tsk"
+    RUNTIME_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/tests"
+    RUNTIME_OUTPUT_NAME "${TEST_TARGET}.${CMAKE_SYSTEM_NAME}${MODE}"
 )
-
 if (QUANTUM_VERBOSE_MAKEFILE)
     message(STATUS "SOURCE_FILES = ${SOURCE_FILES}")
     get_property(inc_dirs DIRECTORY PROPERTY INCLUDE_DIRECTORIES)

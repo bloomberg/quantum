@@ -53,9 +53,9 @@ void IoQueue::pinToCore(int)
 inline
 void IoQueue::run()
 {
-    try
+    while (true)
     {
-        while (true)
+        try
         {
             if (_isEmpty)
             {
@@ -71,7 +71,7 @@ void IoQueue::run()
             }
 
             //Iterate to the next runnable task
-            ITask::ptr task = grabWorkItem();
+            ITask::Ptr task = grabWorkItem();
             if (!task)
             {
                 continue;
@@ -122,7 +122,7 @@ void IoQueue::run()
                     _stats.incErrorCount();
                 }
 
-#ifdef _QUANTUM_PRINT_DEBUG_
+#ifdef __QUANTUM_PRINT_DEBUG
                 std::lock_guard<std::mutex> guard(Util::LogMutex());
                 if (rc == (int)ITask::RetCode::Exception)
                 {
@@ -135,20 +135,31 @@ void IoQueue::run()
 #endif
             }
         }
-    }
-    catch (std::exception& ex)
-    {
-        UNUSED(ex);
-#ifdef _QUANTUM_PRINT_DEBUG_
-        std::lock_guard<std::mutex> guard(Util::LogMutex());
-        std::cerr << "Caught exception: " << ex.what() << std::endl;
+        catch (std::exception& ex)
+        {
+            UNUSED(ex);
+#ifdef __QUANTUM_PRINT_DEBUG
+            std::lock_guard<std::mutex> guard(Util::LogMutex());
+            std::cerr << "Caught exception: " << ex.what() << std::endl;
 #endif
-    }
+        }
+        catch (...)
+        {
+#ifdef __QUANTUM_PRINT_DEBUG
+            std::lock_guard<std::mutex> guard(Util::LogMutex());
+            std::cerr << "Caught unknown exception." << std::endl;
+#endif
+        }
+    } //while
 }
 
 inline
-void IoQueue::enqueue(ITask::ptr task)
+void IoQueue::enQueue(ITask::Ptr task)
 {
+    if (!task)
+    {
+        return; //nothing to do
+    }
     //========================= LOCKED SCOPE =========================
     SpinLock::Guard lock(_spinlock);
     _stats.incPostedCount();
@@ -166,13 +177,13 @@ void IoQueue::enqueue(ITask::ptr task)
 
 //Must be called from within a locked context
 inline
-ITask::ptr IoQueue::dequeue()
+ITask::Ptr IoQueue::deQueue()
 {
     if (_queue.empty())
     {
         return nullptr;
     }
-    ITask::ptr task = std::move(_queue.front());
+    ITask::Ptr task = std::move(_queue.front());
     _queue.pop_front();
     return task;
 }
@@ -232,18 +243,18 @@ void IoQueue::signalEmptyCondition(bool value)
 }
 
 inline
-ITask::ptr IoQueue::grabWorkItem()
+ITask::Ptr IoQueue::grabWorkItem()
 {
     //========================= LOCKED SCOPE =========================
     SpinLock::Guard lock(_spinlock);
-    ITask::ptr task = dequeue();
+    ITask::Ptr task = deQueue();
     if (!task)
     {
         if (_sharedIoQueue)
         {
             //========================= LOCKED SCOPE (MAIN QUEUE) =========================
             SpinLock::Guard lock(_sharedIoQueue->getLock());
-            task = _sharedIoQueue->dequeue();
+            task = _sharedIoQueue->deQueue();
             if (!task)
             {
                 signalEmptyCondition(true);

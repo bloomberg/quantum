@@ -29,12 +29,12 @@ namespace quantum {
 #if (__cplusplus == 201103L)
 
 template<class RET, class FUNC, class ...ARGS>
-constexpr std::function<void(Traits::yield_t& yield)>
+constexpr std::function<void(Traits::Yield& yield)>
 Util::BindCaller(std::shared_ptr<Context<RET>> ctx, FUNC&& func, ARGS&& ...args0)
 {
     auto func0{std::forward<FUNC>(func)};
     std::tuple<ARGS...> tuple0{std::forward<ARGS>(args0)...};
-    return [ctx, func0, tuple0] (Traits::yield_t& yield)
+    return [ctx, func0, tuple0] (Traits::Yield& yield)
     {
         std::function<void(ARGS...)> func1 = [ctx, &func0, &yield] (ARGS&&...args1)
         {
@@ -47,18 +47,20 @@ Util::BindCaller(std::shared_ptr<Context<RET>> ctx, FUNC&& func, ARGS&& ...args0
             catch(std::exception& ex)
             {
                 UNUSED(ex);
-#ifdef _QUANTUM_PRINT_DEBUG_
+#ifdef __QUANTUM_PRINT_DEBUG
                 std::lock_guard<std::mutex> guard(Util::LogMutex());
                 std::cerr << "Caught exception " << ex.what() << std::endl;
 #endif
+                ctx->setException(std::current_exception());
                 yield.get() = (int)ITask::RetCode::Exception;
             }
             catch(...)
             {
-#ifdef _QUANTUM_PRINT_DEBUG_
+#ifdef __QUANTUM_PRINT_DEBUG
                 std::lock_guard<std::mutex> guard(Util::LogMutex());
                 std::cerr << "Caught unknown exception." << std::endl;
 #endif
+                ctx->setException(std::current_exception());
                 yield.get() = (int)ITask::RetCode::Exception;
             }
         };
@@ -84,18 +86,20 @@ Util::BindIoCaller(std::shared_ptr<Promise<RET>> promise, FUNC&& func, ARGS&& ..
             catch(std::exception& ex)
             {
                 UNUSED(ex);
-#ifdef _QUANTUM_PRINT_DEBUG_
+#ifdef __QUANTUM_PRINT_DEBUG
                 std::lock_guard<std::mutex> guard(Util::LogMutex());
                 std::cerr << "Caught exception : " << ex.what() << std::endl;
 #endif
+                promise->setException(std::current_exception());
                 return (int)ITask::RetCode::Exception;
             }
             catch(...)
             {
-#ifdef _QUANTUM_PRINT_DEBUG_
+#ifdef __QUANTUM_PRINT_DEBUG
                 std::lock_guard<std::mutex> guard(Util::LogMutex());
                 std::cerr << "Caught unknown exception." << std::endl;
 #endif
+                promise->setException(std::current_exception());
                 return (int)ITask::RetCode::Exception;
             }
         };
@@ -106,12 +110,12 @@ Util::BindIoCaller(std::shared_ptr<Promise<RET>> promise, FUNC&& func, ARGS&& ..
 #else //(__cplusplus > 201103L)
 
 template<class RET, class FUNC, class ...ARGS>
-constexpr std::function<void(Traits::yield_t& yield)>
+constexpr std::function<void(Traits::Yield& yield)>
 Util::BindCaller(std::shared_ptr<Context<RET>> ctx, FUNC&& func0, ARGS&& ...args0)
 {
     return [ctx,
             func1{std::forward<FUNC>(func0)},
-            tuple{std::tuple<ARGS...>(std::forward<ARGS>(args0)...)}] (Traits::yield_t& yield)
+            tuple{std::tuple<ARGS...>(std::forward<ARGS>(args0)...)}] (Traits::Yield& yield)
     {
         std::function<void(ARGS...)> func2 = [ctx, &func1, &yield] (ARGS&&...args1)
         {
@@ -124,18 +128,20 @@ Util::BindCaller(std::shared_ptr<Context<RET>> ctx, FUNC&& func0, ARGS&& ...args
             catch(std::exception& ex)
             {
                 UNUSED(ex);
-#ifdef _QUANTUM_PRINT_DEBUG_
+#ifdef __QUANTUM_PRINT_DEBUG
                 std::lock_guard<std::mutex> guard(Util::LogMutex());
                 std::cerr << "Caught exception : " << ex.what() << std::endl;
 #endif
+                ctx->setException(std::current_exception());
                 yield.get() = (int)ITask::RetCode::Exception;
             }
             catch(...)
             {
-#ifdef _QUANTUM_PRINT_DEBUG_
+#ifdef __QUANTUM_PRINT_DEBUG
                 std::lock_guard<std::mutex> guard(Util::LogMutex());
                 std::cerr << "Caught unknown exception." << std::endl;
 #endif
+                ctx->setException(std::current_exception());
                 yield.get() = (int)ITask::RetCode::Exception;
             }
         };
@@ -161,18 +167,20 @@ Util::BindIoCaller(std::shared_ptr<Promise<RET>> promise, FUNC&& func0, ARGS&& .
             catch(std::exception& ex)
             {
                 UNUSED(ex);
-#ifdef _QUANTUM_PRINT_DEBUG_
+#ifdef __QUANTUM_PRINT_DEBUG
                 std::lock_guard<std::mutex> guard(Util::LogMutex());
                 std::cerr << "Caught exception : " << ex.what() << std::endl;
 #endif
+                promise->setException(std::current_exception());
                 return (int)ITask::RetCode::Exception;
             }
             catch(...)
             {
-#ifdef _QUANTUM_PRINT_DEBUG_
+#ifdef __QUANTUM_PRINT_DEBUG
                 std::lock_guard<std::mutex> guard(Util::LogMutex());
                 std::cerr << "Caught unknown exception." << std::endl;
 #endif
+                promise->setException(std::current_exception());
                 return (int)ITask::RetCode::Exception;
             }
         };
@@ -182,7 +190,7 @@ Util::BindIoCaller(std::shared_ptr<Promise<RET>> promise, FUNC&& func0, ARGS&& .
 
 #endif
 
-#ifdef _QUANTUM_PRINT_DEBUG_
+#ifdef __QUANTUM_PRINT_DEBUG
 std::mutex& Util::LogMutex()
 {
     static std::mutex m;

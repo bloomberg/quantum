@@ -36,7 +36,7 @@ class Promise : public IPromiseBase,
                 public ICoroPromise<Promise, T>
 {
 public:
-    using ptr = std::shared_ptr<Promise<T>>;
+    using Ptr = std::shared_ptr<Promise<T>>;
     
     //Constructor
     Promise();
@@ -45,10 +45,10 @@ public:
     ~Promise();
     
     //Future interface accessors
-    IThreadFutureBase::ptr getIThreadFutureBase() const final;
-    ICoroFutureBase::ptr getICoroFutureBase() const final;
-    typename IThreadFuture<T>::ptr getIThreadFuture() const;
-    typename ICoroFuture<T>::ptr getICoroFuture() const;
+    IThreadFutureBase::Ptr getIThreadFutureBase() const final;
+    ICoroFutureBase::Ptr getICoroFutureBase() const final;
+    typename IThreadFuture<T>::Ptr getIThreadFuture() const;
+    typename ICoroFuture<T>::Ptr getICoroFuture() const;
     
     //ITerminate
     void terminate() final;
@@ -61,18 +61,25 @@ public:
     template <class V = T>
     int set(V&& value);
     
-    template <class BUF = T, class V = typename std::enable_if_t<Traits::IsBuffer<BUF>::value, BUF>::value_type>
+    template <class BUF = T, class V = typename std::enable_if_t<Traits::IsBuffer<BUF>::value, BUF>::ValueType>
     void push(V &&value);
     
     //ICoroPromise
     template <class V = T>
-    int set(ICoroSync::ptr sync, V&& value);
+    int set(ICoroSync::Ptr sync, V&& value);
     
-    template <class BUF = T, class V = typename std::enable_if_t<Traits::IsBuffer<BUF>::value, BUF>::value_type>
-    void push(ICoroSync::ptr sync, V &&value);
+    template <class BUF = T, class V = typename std::enable_if_t<Traits::IsBuffer<BUF>::value, BUF>::ValueType>
+    void push(ICoroSync::Ptr sync, V &&value);
     
     template <class BUF = T, class = std::enable_if_t<Traits::IsBuffer<BUF>::value>>
     int closeBuffer();
+    
+    //===================================
+    //           NEW / DELETE
+    //===================================
+    static void* operator new(size_t size);
+    static void operator delete(void* p);
+    static void deleter(Promise<T>* p);
     
 private:
     std::shared_ptr<SharedState<T>> _sharedState;

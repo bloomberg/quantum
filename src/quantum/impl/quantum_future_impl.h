@@ -18,9 +18,20 @@
 //##############################################################################################
 //#################################### IMPLEMENTATIONS #########################################
 //##############################################################################################
+#include <quantum/quantum_stack_allocator.h>
 
 namespace Bloomberg {
 namespace quantum {
+
+#ifndef __QUANTUM_FUTURE_ALLOC
+#define __QUANTUM_FUTURE_ALLOC __QUANTUM_DEFAULT_STACK_ALLOC_SIZE
+#endif
+
+using FutureAllocator = StackAllocator<Future<int>, __QUANTUM_FUTURE_ALLOC>;
+inline FutureAllocator& GetFutureAllocator() {
+    static FutureAllocator allocator;
+    return allocator;
+}
 
 //==============================================================================================
 //                                class IThreadFuture
@@ -29,7 +40,7 @@ template <class T>
 template <class BUF, class V>
 V IThreadFuture<T>::pull(bool& isBufferClosed)
 {
-    return static_cast<impl*>(this)->template pull<BUF>(isBufferClosed);
+    return static_cast<Impl*>(this)->template pull<BUF>(isBufferClosed);
 }
 
 //==============================================================================================
@@ -37,9 +48,9 @@ V IThreadFuture<T>::pull(bool& isBufferClosed)
 //==============================================================================================
 template <class T>
 template <class BUF, class V>
-V ICoroFuture<T>::pull(ICoroSync::ptr sync, bool& isBufferClosed)
+V ICoroFuture<T>::pull(ICoroSync::Ptr sync, bool& isBufferClosed)
 {
-    return static_cast<impl*>(this)->template pull<BUF>(sync, isBufferClosed);
+    return static_cast<Impl*>(this)->template pull<BUF>(sync, isBufferClosed);
 }
 
 //==============================================================================================
@@ -78,39 +89,39 @@ void Future<T>::wait() const
 }
 
 template <class T>
-std::future_status Future<T>::waitFor(size_t timeMs) const
+std::future_status Future<T>::waitFor(std::chrono::milliseconds timeMs) const
 {
     if (!_sharedState) ThrowFutureException(FutureState::NoState);
-    return _sharedState->waitFor(std::chrono::milliseconds(timeMs));
+    return _sharedState->waitFor(timeMs);
 }
 
 template <class T>
-T Future<T>::get(ICoroSync::ptr sync)
+T Future<T>::get(ICoroSync::Ptr sync)
 {
     if (!_sharedState) ThrowFutureException(FutureState::NoState);
     return _sharedState->get(sync);
 }
 
 template <class T>
-const T& Future<T>::getRef(ICoroSync::ptr sync) const
+const T& Future<T>::getRef(ICoroSync::Ptr sync) const
 {
     if (!_sharedState) ThrowFutureException(FutureState::NoState);
     return _sharedState->getRef(sync);
 }
 
 template <class T>
-void Future<T>::wait(ICoroSync::ptr sync) const
+void Future<T>::wait(ICoroSync::Ptr sync) const
 {
     if (!_sharedState) ThrowFutureException(FutureState::NoState);
     return _sharedState->wait(sync);
 }
 
 template <class T>
-std::future_status Future<T>::waitFor(ICoroSync::ptr sync,
-                                      size_t timeMs) const
+std::future_status Future<T>::waitFor(ICoroSync::Ptr sync,
+                                      std::chrono::milliseconds timeMs) const
 {
     if (!_sharedState) ThrowFutureException(FutureState::NoState);
-    return _sharedState->waitFor(sync, std::chrono::milliseconds(timeMs));
+    return _sharedState->waitFor(sync, timeMs);
 }
 
 template <class T>
@@ -123,12 +134,29 @@ V Future<T>::pull(bool& isBufferClosed)
 
 template <class T>
 template <class BUF, class V>
-V Future<T>::pull(ICoroSync::ptr sync, bool& isBufferClosed)
+V Future<T>::pull(ICoroSync::Ptr sync, bool& isBufferClosed)
 {
     if (!_sharedState) ThrowFutureException(FutureState::NoState);
     return _sharedState->template pull<BUF>(sync, isBufferClosed);
 }
 
+template <class T>
+void* Future<T>::operator new(size_t)
+{
+    return GetFutureAllocator().allocate();
+}
+
+template <class T>
+void Future<T>::operator delete(void* p)
+{
+    GetFutureAllocator().deallocate(static_cast<Future<int>*>(p));
+}
+
+template <class T>
+void Future<T>::deleter(Future<T>* p)
+{
+    GetFutureAllocator().dispose(reinterpret_cast<Future<int>*>(p));
+}
 
 }}
 

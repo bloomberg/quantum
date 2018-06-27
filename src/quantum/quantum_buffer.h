@@ -48,7 +48,7 @@ template <class T>
 class Buffer
 {
 public:
-    using value_type = T; ///< Type definition for the contained value.
+    using ValueType = T; ///< Type definition for the contained value.
     
     /// @brief Constructor
     Buffer();

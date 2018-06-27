@@ -26,9 +26,9 @@ inline
 DispatcherCore::DispatcherCore(int numCoroutineThreads,
                                int numIoThreads,
                                bool pinCoroutineThreadsToCores) :
-    _coroQueues((numCoroutineThreads == -1) ? std::thread::hardware_concurrency() : numCoroutineThreads),
-    _sharedIoQueue(nullptr),
-    _ioQueues(numIoThreads, IoQueue(&_sharedIoQueue)),
+    _coroQueues((numCoroutineThreads == -1) ? std::thread::hardware_concurrency() :
+                (numCoroutineThreads == 0) ? 1 : numCoroutineThreads),
+    _ioQueues((numIoThreads <= 0) ? 1 : numIoThreads, IoQueue(&_sharedIoQueue)),
     _terminated(ATOMIC_FLAG_INIT)
 {
     if (pinCoroutineThreadsToCores)
@@ -254,7 +254,7 @@ void DispatcherCore::resetStats()
 }
 
 inline
-void DispatcherCore::post(Task::ptr task)
+void DispatcherCore::post(Task::Ptr task)
 {
     if (!task)
     {
@@ -291,12 +291,12 @@ void DispatcherCore::post(Task::ptr task)
         }
     }
     
-    _coroQueues[task->getQueueId()].enqueue(task);
+    _coroQueues[task->getQueueId()].enQueue(task);
     
 }
 
 inline
-void DispatcherCore::postAsyncIo(IoTask::ptr task)
+void DispatcherCore::postAsyncIo(IoTask::Ptr task)
 {
     if (!task)
     {
@@ -306,7 +306,7 @@ void DispatcherCore::postAsyncIo(IoTask::ptr task)
     if (task->getQueueId() == (int)IQueue::QueueId::Any)
     {
         //insert the task into the main queue
-        _sharedIoQueue.enqueue(task);
+        _sharedIoQueue.enQueue(task);
         
         //Signal all threads there is work to do
         for (auto&& queue : _ioQueues)
@@ -322,7 +322,7 @@ void DispatcherCore::postAsyncIo(IoTask::ptr task)
         }
         
         //Run on specific queue
-        _ioQueues[task->getQueueId()].enqueue(task);
+        _ioQueues[task->getQueueId()].enQueue(task);
     }
 }
 

@@ -68,7 +68,7 @@ void ConditionVariable::wait(Mutex& mutex)
 }
 
 inline
-void ConditionVariable::wait(ICoroSync::ptr sync, Mutex& mutex)
+void ConditionVariable::wait(ICoroSync::Ptr sync, Mutex& mutex)
 {
     waitImpl(sync->getYieldHandle(), mutex, sync->signal());
 }
@@ -81,7 +81,7 @@ void ConditionVariable::wait(Mutex& mutex,
 }
 
 template <class PREDICATE>
-void ConditionVariable::wait(ICoroSync::ptr sync,
+void ConditionVariable::wait(ICoroSync::Ptr sync,
                              Mutex& mutex,
                              PREDICATE predicate)
 {
@@ -96,7 +96,7 @@ bool ConditionVariable::waitFor(Mutex& mutex,
 }
 
 template <class REP, class PERIOD>
-bool ConditionVariable::waitFor(ICoroSync::ptr sync,
+bool ConditionVariable::waitFor(ICoroSync::Ptr sync,
                                 Mutex& mutex,
                                 const std::chrono::duration<REP, PERIOD>& time)
 {
@@ -112,7 +112,7 @@ bool ConditionVariable::waitFor(Mutex& mutex,
 }
 
 template <class REP, class PERIOD, class PREDICATE>
-bool ConditionVariable::waitFor(ICoroSync::ptr sync,
+bool ConditionVariable::waitFor(ICoroSync::Ptr sync,
                                 Mutex& mutex,
                                 const std::chrono::duration<REP, PERIOD>& time,
                                 PREDICATE predicate)
@@ -125,8 +125,7 @@ void ConditionVariable::waitImpl(YIELDING&& yield,
                                  Mutex& mutex,
                                  std::atomic_int& signal)
 {
-    //LOCKED SCOPE
-    {
+    {//========= LOCKED SCOPE =========
         Mutex::Guard lock(_thisLock);
         if (_destroyed)
         {
@@ -135,10 +134,8 @@ void ConditionVariable::waitImpl(YIELDING&& yield,
         signal = 0; //clear signal flag
         _waiters.push_back(&signal);
     }
-    
+    //========= UNLOCKED SCOPE =========
     Mutex::ReverseGuard unlock(mutex);
-    
-    //UNLOCKED SCOPE
     while ((signal == 0) && !_destroyed)
     {
         yield();
@@ -164,8 +161,7 @@ bool ConditionVariable::waitForImpl(YIELDING&& yield,
                                     std::chrono::duration<REP, PERIOD>& time,
                                     std::atomic_int& signal)
 {
-    //LOCKED SCOPE
-    {
+    {//========= LOCKED SCOPE =========
         Mutex::Guard lock(_thisLock);
         if (_destroyed)
         {
@@ -178,10 +174,8 @@ bool ConditionVariable::waitForImpl(YIELDING&& yield,
         signal = 0; //clear signal flag
         _waiters.push_back(&signal);
     }
-    
+    //========= UNLOCKED SCOPE =========
     Mutex::ReverseGuard unlock(mutex);
-    
-    //UNLOCKED SCOPE
     auto start = std::chrono::high_resolution_clock::now();
     auto elapsed = std::chrono::duration<REP, PERIOD>::zero();
     bool timeout = false;

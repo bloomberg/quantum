@@ -36,7 +36,7 @@ void Mutex::lock()
 }
 
 inline
-void Mutex::lock(ICoroSync::ptr sync)
+void Mutex::lock(ICoroSync::Ptr sync)
 {
     lockImpl(sync->getYieldHandle());
 }
@@ -82,7 +82,7 @@ Mutex::Guard::Guard(Mutex& mutex,
 }
 
 inline
-Mutex::Guard::Guard(ICoroSync::ptr sync,
+Mutex::Guard::Guard(ICoroSync::Ptr sync,
                     Mutex& mutex,
                     bool tryLock) :
     _mutex(mutex)
@@ -121,7 +121,7 @@ Mutex::ReverseGuard::ReverseGuard(Mutex& mutex) :
 }
 
 inline
-Mutex::ReverseGuard::ReverseGuard(ICoroSync::ptr sync,
+Mutex::ReverseGuard::ReverseGuard(ICoroSync::Ptr sync,
                                   Mutex& mutex) :
     _mutex(mutex),
     _sync(sync)

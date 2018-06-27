@@ -31,7 +31,7 @@ namespace quantum {
 /// @brief Exposes methods to manipulate and access a promise.
 struct IPromiseBase : public ITerminate
 {
-    using ptr = std::shared_ptr<IPromiseBase>;
+    using Ptr = std::shared_ptr<IPromiseBase>;
     
     /// @brief Determines if this promise still has a shared state with the corresponding future object.
     /// @return True if valid, false otherwise.
@@ -47,11 +47,11 @@ struct IPromiseBase : public ITerminate
     
     /// @brief Get a thread-compatible interface used to access the associated future.
     /// @return An interface to the associated future.
-    virtual IThreadFutureBase::ptr getIThreadFutureBase() const = 0;
+    virtual IThreadFutureBase::Ptr getIThreadFutureBase() const = 0;
     
     /// @brief Get a coroutine-compatible interface used to access the associated future.
     /// @return An interface to the associated future.
-    virtual ICoroFutureBase::ptr getICoroFutureBase() const = 0;
+    virtual ICoroFutureBase::Ptr getICoroFutureBase() const = 0;
 };
 
 }}

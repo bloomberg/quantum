@@ -18,9 +18,20 @@
 //##############################################################################################
 //#################################### IMPLEMENTATIONS #########################################
 //##############################################################################################
+#include <quantum/quantum_stack_allocator.h>
 
 namespace Bloomberg {
 namespace quantum {
+
+#ifndef __QUANTUM_TASK_ALLOC
+#define __QUANTUM_TASK_ALLOC __QUANTUM_DEFAULT_STACK_ALLOC_SIZE
+#endif
+
+using TaskAllocator = StackAllocator<Task, __QUANTUM_TASK_ALLOC>;
+inline TaskAllocator& GetTaskAllocator() {
+    static TaskAllocator allocator;
+    return allocator;
+}
 
 template <class RET, class FUNC, class ... ARGS>
 Task::Task(std::shared_ptr<Context<RET>> ctx,
@@ -98,25 +109,25 @@ inline
 ITask::Type Task::getType() const { return _type; }
 
 inline
-ITaskContinuation::ptr Task::getNextTask() { return _next; }
+ITaskContinuation::Ptr Task::getNextTask() { return _next; }
 
 inline
-void Task::setNextTask(ITaskContinuation::ptr nextTask) { _next = nextTask; }
+void Task::setNextTask(ITaskContinuation::Ptr nextTask) { _next = nextTask; }
 
 inline
-ITaskContinuation::ptr Task::getPrevTask() { return _prev.lock(); }
+ITaskContinuation::Ptr Task::getPrevTask() { return _prev.lock(); }
 
 inline
-void Task::setPrevTask(ITaskContinuation::ptr prevTask) { _prev = prevTask; }
+void Task::setPrevTask(ITaskContinuation::Ptr prevTask) { _prev = prevTask; }
 
 inline
-ITaskContinuation::ptr Task::getFirstTask()
+ITaskContinuation::Ptr Task::getFirstTask()
 {
     return (_type == Type::First) ? shared_from_this() : getPrevTask()->getFirstTask();
 }
 
 inline
-ITaskContinuation::ptr Task::getErrorHandlderOrFinalTask()
+ITaskContinuation::Ptr Task::getErrorHandlerOrFinalTask()
 {
     if ((_type == Type::ErrorHandler) || (_type == Type::Final))
     {
@@ -124,7 +135,7 @@ ITaskContinuation::ptr Task::getErrorHandlderOrFinalTask()
     }
     else if (_next)
     {
-        ITaskContinuation::ptr task = _next->getErrorHandlderOrFinalTask();
+        ITaskContinuation::Ptr task = _next->getErrorHandlerOrFinalTask();
         if ((_next->getType() != Type::ErrorHandler) && (_next->getType() != Type::Final))
         {
             _next->terminate();
@@ -145,6 +156,24 @@ inline
 bool Task::isHighPriority() const
 {
     return _isHighPriority;
+}
+
+inline
+void* Task::operator new(size_t)
+{
+    return GetTaskAllocator().allocate();
+}
+
+inline
+void Task::operator delete(void* p)
+{
+    GetTaskAllocator().deallocate(static_cast<Task*>(p));
+}
+
+inline
+void Task::deleter(Task* p)
+{
+    GetTaskAllocator().dispose(p);
 }
 
 }}

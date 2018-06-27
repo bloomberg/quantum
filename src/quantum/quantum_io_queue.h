@@ -16,6 +16,7 @@
 #ifndef QUANTUM_IO_QUEUE_H
 #define QUANTUM_IO_QUEUE_H
 
+#include <list>
 #include <thread>
 #include <condition_variable>
 #include <iostream>
@@ -38,10 +39,10 @@ namespace quantum {
 class IoQueue : public IQueue
 {
 public:
-    using TaskList = std::list<IoTask::ptr>;
-    using TaskListIter = std::list<IoTask::ptr>::iterator;
+    using TaskList = std::list<IoTask::Ptr>;
+    using TaskListIter = TaskList::iterator;
     
-    explicit IoQueue(IoQueue* mainIoQueue);
+    explicit IoQueue(IoQueue* mainIoQueue = nullptr);
     
     IoQueue(const IoQueue& other);
     
@@ -53,9 +54,9 @@ public:
     
     void run() final;
     
-    void enqueue(ITask::ptr task) final;
+    void enQueue(ITask::Ptr task) final;
     
-    ITask::ptr dequeue() final;
+    ITask::Ptr deQueue() final;
     
     size_t size() const final;
     
@@ -70,7 +71,7 @@ public:
     bool isIdle() const final;
     
 private:
-    ITask::ptr grabWorkItem();
+    ITask::Ptr grabWorkItem();
     
     //async IO queue
     IoQueue*                        _sharedIoQueue;

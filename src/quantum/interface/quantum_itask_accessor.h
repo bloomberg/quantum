@@ -30,11 +30,11 @@ namespace quantum {
 /// @brief Interface to a task accessor. For internal use only.
 struct ITaskAccessor : public ITerminate
 {
-    using ptr = std::shared_ptr<ITaskAccessor>;
+    using Ptr = std::shared_ptr<ITaskAccessor>;
     
-    virtual void setTask(ITask::ptr task) = 0;
+    virtual void setTask(ITask::Ptr task) = 0;
     
-    virtual ITask::ptr getTask() const = 0;
+    virtual ITask::Ptr getTask() const = 0;
     
     virtual bool isBlocked() = 0;
 };

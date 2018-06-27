@@ -34,22 +34,22 @@ class Context;
 template <class RET>
 struct ICoroContext : public ICoroContextBase
 {
-    using ptr = std::shared_ptr<ICoroContext<RET>>;
-    using impl = Context<RET>;
+    using Ptr = std::shared_ptr<ICoroContext<RET>>;
+    using Impl = Context<RET>;
     
     /// @brief Get the future value associated with this context.
     /// @param[in] sync Pointer to the coroutine synchronization object.
     /// @return The future value.
     /// @note Blocks until the future is ready or until an exception is thrown. Once this function returns, the future
     ///       becomes invalidated (i.e. cannot be read again).
-    virtual RET get(ICoroSync::ptr sync) = 0;
+    virtual RET get(ICoroSync::Ptr sync) = 0;
     
     /// @brief Get a reference the future value associated with this context.
     /// @param[in] sync Pointer to the coroutine synchronization object.
     /// @return A reference to the future value.
     /// @note Blocks until the future is ready or until an exception is thrown. Contrary to get(), this function does
     ///       not invalidate the future and as such may be read again.
-    virtual const RET& getRef(ICoroSync::ptr sync) const = 0;
+    virtual const RET& getRef(ICoroSync::Ptr sync) const = 0;
     
     /// @brief Get the future value associated with the previous coroutine context in the continuation chain.
     /// @tparam OTHER_RET The type of the future value of the previous context.
@@ -80,7 +80,7 @@ struct ICoroContext : public ICoroContextBase
     ///       is invalidated (i.e. cannot be read again).
     template <class OTHER_RET>
     OTHER_RET getAt(int num,
-                    ICoroSync::ptr sync);
+                    ICoroSync::Ptr sync);
     
     /// @brief Get a reference to the future value from the 'num-th' continuation context.
     /// @details Allowed range for num is [-1, total_continuations). -1 is equivalent of calling get() or
@@ -94,7 +94,7 @@ struct ICoroContext : public ICoroContextBase
     ///       not invalidate the future and as such it can be read again.
     template <class OTHER_RET>
     const OTHER_RET& getRefAt(int num,
-                              ICoroSync::ptr sync) const;
+                              ICoroSync::Ptr sync) const;
     
     /// @brief Set the promised value associated with this context.
     /// @tparam V Type of the promised value. This should be implicitly deduced by the compiler and should always == RET.
@@ -110,7 +110,7 @@ struct ICoroContext : public ICoroContextBase
     /// @param[in] value Value to push at the end of the buffer.
     /// @note Method available for buffered futures only. Never blocks. Once the buffer is closed, no more Push
     ///       operations are allowed.
-    template <class BUF = RET, class V = typename std::enable_if_t<Traits::IsBuffer<BUF>::value, BUF>::value_type>
+    template <class BUF = RET, class V = typename std::enable_if_t<Traits::IsBuffer<BUF>::value, BUF>::ValueType>
     void push(V &&value);
     
     /// @brief Pull a single value from the future buffer.
@@ -120,8 +120,8 @@ struct ICoroContext : public ICoroContextBase
     /// @param[out] isBufferClosed Indicates if this buffer is closed and no more Pull operations are allowed on it.
     /// @return The next value pulled out from the front of the buffer.
     /// @note Method available for buffered futures only. Blocks until one value is retrieved from the buffer.
-    template <class BUF = RET, class V = typename std::enable_if_t<Traits::IsBuffer<BUF>::value, BUF>::value_type>
-    V pull(ICoroSync::ptr sync, bool& isBufferClosed);
+    template <class BUF = RET, class V = typename std::enable_if_t<Traits::IsBuffer<BUF>::value, BUF>::ValueType>
+    V pull(ICoroSync::Ptr sync, bool& isBufferClosed);
     
     /// @brief Close a promise buffer.
     /// @tparam BUF Represents a class of type Buffer.
@@ -140,7 +140,7 @@ struct ICoroContext : public ICoroContextBase
     /// whereas then() may be called zero or more times.
     ///
     /// @code
-    ///    ICoroContext<RET>::ptr ctx = ICoroContext::postFirst()->then()->...->then()->onError()->finally()->end();
+    ///    ICoroContext<RET>::Ptr ctx = ICoroContext::postFirst()->then()->...->then()->onError()->finally()->end();
     /// @endcode
     ///
     /// @note post() methods are standalone and do not allow continuations.
@@ -152,7 +152,7 @@ struct ICoroContext : public ICoroContextBase
     /// @tparam OTHER_RET Type of future returned by this coroutine.
     /// @tparam FUNC Callable object type which will be wrapped in a coroutine. Can be a standalone function, a method,
     ///              an std::function, a functor generated via std::bind or a lambda. The signature of the callable
-    ///              object must strictly be 'int f(CoroContext<RET>::ptr, ...)'.
+    ///              object must strictly be 'int f(CoroContext<RET>::Ptr, ...)'.
     /// @tparam ARGS Argument types passed to FUNC.
     /// @param[in] func Callable object.
     /// @param[in] args Variable list of arguments passed to the callable object.
@@ -160,7 +160,7 @@ struct ICoroContext : public ICoroContextBase
     /// @note This function is non-blocking and returns immediately. The returned context cannot be used to chain
     ///       further coroutines.
     template <class OTHER_RET = int, class FUNC, class ... ARGS>
-    typename ICoroContext<OTHER_RET>::ptr
+    typename ICoroContext<OTHER_RET>::Ptr
     post(FUNC&& func, ARGS&&... args);
     
     /// @brief Post a coroutine to run asynchronously.
@@ -168,7 +168,7 @@ struct ICoroContext : public ICoroContextBase
     /// @tparam OTHER_RET Type of future returned by this coroutine.
     /// @tparam FUNC Callable object type which will be wrapped in a coroutine. Can be a standalone function, a method,
     ///              an std::function, a functor generated via std::bind or a lambda. The signature of the callable
-    ///              object must strictly be 'int f(CoroContext<RET>::ptr, ...)'.
+    ///              object must strictly be 'int f(CoroContext<RET>::Ptr, ...)'.
     /// @tparam ARGS Argument types passed to FUNC.
     /// @param[in] queueId Id of the queue where this coroutine should run. Note that the user can specify IQueue::QueueId::Any
     ///                    as a value, which is equivalent to running the simpler version of post() above. Valid range is
@@ -183,7 +183,7 @@ struct ICoroContext : public ICoroContextBase
     /// @note This function is non-blocking and returns immediately. The returned context cannot be used to chain
     ///       further coroutines.
     template <class OTHER_RET = int, class FUNC, class ... ARGS>
-    typename ICoroContext<OTHER_RET>::ptr
+    typename ICoroContext<OTHER_RET>::Ptr
     post(int queueId, bool isHighPriority, FUNC&& func, ARGS&&... args);
     
     /// @brief Posts a coroutine to run asynchronously.
@@ -191,7 +191,7 @@ struct ICoroContext : public ICoroContextBase
     /// @tparam OTHER_RET Type of future returned by this coroutine.
     /// @tparam FUNC Callable object type which will be wrapped in a coroutine. Can be a standalone function, a method,
     ///              an std::function, a functor generated via std::bind or a lambda. The signature of the callable
-    ///              object must strictly be 'int f(CoroContext<RET>::ptr, ...)'.
+    ///              object must strictly be 'int f(CoroContext<RET>::Ptr, ...)'.
     /// @tparam ARGS Argument types passed to FUNC.
     /// @param[in] func Callable object.
     /// @param[in] args Variable list of arguments passed to the callable object.
@@ -199,7 +199,7 @@ struct ICoroContext : public ICoroContextBase
     /// @note This function is non-blocking and returns immediately. The returned context can be used to chain
     ///       further coroutines. Possible method calls following this are then(), onError(), finally() and end().
     template <class OTHER_RET = int, class FUNC, class ... ARGS>
-    typename ICoroContext<OTHER_RET>::ptr
+    typename ICoroContext<OTHER_RET>::Ptr
     postFirst(FUNC&& func, ARGS&&... args);
     
     /// @brief Posts a coroutine to run asynchronously.
@@ -207,7 +207,7 @@ struct ICoroContext : public ICoroContextBase
     /// @tparam OTHER_RET Type of future returned by this coroutine.
     /// @tparam FUNC Callable object type which will be wrapped in a coroutine. Can be a standalone function, a method,
     ///              an std::function, a functor generated via std::bind or a lambda. The signature of the callable
-    ///              object must strictly be 'int f(CoroContext<RET>::ptr, ...)'.
+    ///              object must strictly be 'int f(CoroContext<RET>::Ptr, ...)'.
     /// @tparam ARGS Argument types passed to FUNC.
     /// @param[in] queueId Id of the queue where this coroutine should run. Note that the user can specify IQueue::QueueId::Any
     ///                    as a value, which is equivalent to running the simpler version of post() above. Valid range is
@@ -222,7 +222,7 @@ struct ICoroContext : public ICoroContextBase
     /// @note This function is non-blocking and returns immediately. The returned context can be used to chain
     ///       further coroutines. Possible method calls following this are then(), onError(), finally() and end().
     template <class OTHER_RET = int, class FUNC, class ... ARGS>
-    typename ICoroContext<OTHER_RET>::ptr
+    typename ICoroContext<OTHER_RET>::Ptr
     postFirst(int queueId, bool isHighPriority, FUNC&& func, ARGS&&... args);
     
     /// @brief Posts a coroutine to run asynchronously.
@@ -231,7 +231,7 @@ struct ICoroContext : public ICoroContextBase
     /// @tparam OTHER_RET Type of future returned by this coroutine.
     /// @tparam FUNC Callable object type which will be wrapped in a coroutine. Can be a standalone function, a method,
     ///              an std::function, a functor generated via std::bind or a lambda. The signature of the callable
-    ///              object must strictly be 'int f(CoroContext<RET>::ptr, ...)'.
+    ///              object must strictly be 'int f(CoroContext<RET>::Ptr, ...)'.
     /// @tparam ARGS Argument types passed to FUNC.
     /// @param[in] func Callable object.
     /// @param[in] args Variable list of arguments passed to the callable object.
@@ -240,7 +240,7 @@ struct ICoroContext : public ICoroContextBase
     ///       The returned context can be used to chain further coroutines. Possible method calls following this
     ///       are then(), onError(), finally() and end().
     template <class OTHER_RET = int, class FUNC, class ... ARGS>
-    typename ICoroContext<OTHER_RET>::ptr
+    typename ICoroContext<OTHER_RET>::Ptr
     then(FUNC&& func, ARGS&&... args);
     
     /// @brief Posts a coroutine to run asynchronously. This is the error handler for a continuation chain and acts as
@@ -253,7 +253,7 @@ struct ICoroContext : public ICoroContextBase
     /// @tparam OTHER_RET Type of future returned by this coroutine.
     /// @tparam FUNC Callable object type which will be wrapped in a coroutine. Can be a standalone function, a method,
     ///              an std::function, a functor generated via std::bind or a lambda. The signature of the callable
-    ///              object must strictly be 'int f(CoroContext<RET>::ptr, ...)'.
+    ///              object must strictly be 'int f(CoroContext<RET>::Ptr, ...)'.
     /// @tparam ARGS Argument types passed to FUNC.
     /// @param[in] func Callable object.
     /// @param[in] args Variable list of arguments passed to the callable object.
@@ -261,7 +261,7 @@ struct ICoroContext : public ICoroContextBase
     /// @note The function is non-blocking. The returned context can be used to chain further coroutines.
     ///       Possible method calls following this are finally() and end().
     template <class OTHER_RET = int, class FUNC, class ... ARGS>
-    typename ICoroContext<OTHER_RET>::ptr
+    typename ICoroContext<OTHER_RET>::Ptr
     onError(FUNC&& func, ARGS&&... args);
     
     /// @brief Posts a coroutine to run asynchronously. This coroutine is always guaranteed to run.
@@ -271,14 +271,14 @@ struct ICoroContext : public ICoroContextBase
     /// @tparam OTHER_RET Type of future returned by this coroutine.
     /// @tparam FUNC Callable object type which will be wrapped in a coroutine. Can be a standalone function, a method,
     ///              an std::function, a functor generated via std::bind or a lambda. The signature of the callable
-    ///              object must strictly be 'int f(CoroContext<RET>::ptr, ...)'.
+    ///              object must strictly be 'int f(CoroContext<RET>::Ptr, ...)'.
     /// @tparam ARGS Argument types passed to FUNC.
     /// @param[in] func Callable object.
     /// @param[in] args Variable list of arguments passed to the callable object.
     /// @return A pointer to a coroutine context object.
     /// @note This function is non-blocking and returns immediately. After this coroutine, the end() method must be called.
     template <class OTHER_RET = int, class FUNC, class ... ARGS>
-    typename ICoroContext<OTHER_RET>::ptr
+    typename ICoroContext<OTHER_RET>::Ptr
     finally(FUNC&& func, ARGS&&... args);
     
     /// @brief This is the last method in a continuation chain.
@@ -286,20 +286,20 @@ struct ICoroContext : public ICoroContextBase
     ///          respecting the 'queueId' and priority specified at the beginning of the chain (see postFirst()).
     /// @return Pointer to this context.
     /// @note This method does not take any functions as parameter as it is strictly used for scheduling purposes.
-    ptr end();
+    Ptr end();
     
     /// @brief Posts an IO method to run asynchronously on the IO thread pool.
     /// @tparam OTHER_RET Type of future returned by this function.
     /// @tparam FUNC Callable object type. Can be a standalone function, a method, an std::function, a functor
     ///              generated via std::bind or a lambda. The signature of the callable object must strictly be
-    ///              'int f(ThreadPromise<RET>::ptr, ...)'.
+    ///              'int f(ThreadPromise<RET>::Ptr, ...)'.
     /// @tparam ARGS Argument types passed to FUNC.
     /// @param[in] func Callable object.
     /// @param[in] args Variable list of arguments passed to the callable object.
     /// @return A pointer to a coroutine future object which may be used to retrieve the result of the IO operation.
     /// @note This method does not block. The passed function will not be wrapped in a coroutine.
     template <class OTHER_RET = int, class FUNC, class ... ARGS>
-    typename ICoroFuture<OTHER_RET>::ptr
+    typename ICoroFuture<OTHER_RET>::Ptr
     postAsyncIo(FUNC&& func, ARGS&&... args);
     
     /// @brief Posts an IO function to run asynchronously on the IO thread pool.
@@ -307,7 +307,7 @@ struct ICoroContext : public ICoroContextBase
     /// @tparam OTHER_RET Type of future returned by this function.
     /// @tparam FUNC Callable object type. Can be a standalone function, a method, an std::function, a functor
     ///              generated via std::bind or a lambda. The signature of the callable object must strictly be
-    ///              'int f(ThreadPromise<RET>::ptr, ...)'.
+    ///              'int f(ThreadPromise<RET>::Ptr, ...)'.
     /// @tparam ARGS Argument types passed to FUNC.
     /// @param[in] queueId Id of the queue where this function should run. Note that the user can specify IQueue::QueueId::Any
     ///                    as a value, which is equivalent to running the simpler version of postAsyncIo() above. Valid range is
@@ -319,11 +319,11 @@ struct ICoroContext : public ICoroContextBase
     /// @return A pointer to a coroutine future object which may be used to retrieve the result of the IO operation.
     /// @note This method does not block. The passed function will not be wrapped in a coroutine.
     template <class OTHER_RET = int, class FUNC, class ... ARGS>
-    typename ICoroFuture<OTHER_RET>::ptr
+    typename ICoroFuture<OTHER_RET>::Ptr
     postAsyncIo(int queueId, bool isHighPriority, FUNC&& func, ARGS&&... args);
 };
 
-template <class RET = int>
+template <class RET>
 using CoroContext = ICoroContext<RET>;
 
 }}

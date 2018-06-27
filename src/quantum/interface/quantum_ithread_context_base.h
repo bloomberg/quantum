@@ -17,6 +17,7 @@
 #define QUANTUM_ITHREAD_CONTEXT_BASE_H
 
 #include <future>
+#include <chrono>
 #include <quantum/interface/quantum_icontext_base.h>
 
 namespace Bloomberg {
@@ -32,7 +33,7 @@ class Context;
 /// @brief Exposes methods to manipulate the thread context, especially future wait methods.
 struct IThreadContextBase : public virtual IContextBase
 {
-    using ptr = std::shared_ptr<IThreadContextBase>;
+    using Ptr = std::shared_ptr<IThreadContextBase>;
     
     /// @brief Waits for the future associated with this context to be ready.
     /// @note Blocks until the future is ready or until an exception is thrown.
@@ -42,7 +43,7 @@ struct IThreadContextBase : public virtual IContextBase
     /// @param[in] timeMs The maximum amount of milliseconds to wait until the future value becomes ready.
     /// @return 'ready' if value was posted before duration expired or 'timeout' otherwise.
     /// @note Blocks until the value is ready, until 'timeMs' duration expires or until an exception is thrown.
-    virtual std::future_status waitFor(size_t timeMs) const = 0;
+    virtual std::future_status waitFor(std::chrono::milliseconds timeMs) const = 0;
     
     /// @brief Waits for the future in the 'num-th' continuation context to be ready.
     /// @details Allowed range for num is [-1, total_continuations). -1 is equivalent of calling wait() or
@@ -60,7 +61,7 @@ struct IThreadContextBase : public virtual IContextBase
     /// @param[in] timeMs The maximum amount of milliseconds to wait until the future value becomes ready.
     /// @return 'ready' if value was posted before duration expired or 'timeout' otherwise.
     /// @note Blocks until the value is ready, until 'timeMs' duration expires or until an exception is thrown.
-    virtual std::future_status waitForAt(int num, size_t timeMs) const = 0;
+    virtual std::future_status waitForAt(int num, std::chrono::milliseconds timeMs) const = 0;
     
     /// @brief Wait for all the futures in the continuation chain to be ready.
     /// @note Blocks until all future values are ready. If any future throws, the exception is swallowed.

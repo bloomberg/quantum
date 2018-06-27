@@ -18,9 +18,20 @@
 //##############################################################################################
 //#################################### IMPLEMENTATIONS #########################################
 //##############################################################################################
+#include <quantum/quantum_stack_allocator.h>
 
 namespace Bloomberg {
 namespace quantum {
+
+#ifndef __QUANTUM_IO_TASK_ALLOC
+#define __QUANTUM_IO_TASK_ALLOC __QUANTUM_DEFAULT_STACK_ALLOC_SIZE
+#endif
+
+using IoTaskAllocator = StackAllocator<IoTask, __QUANTUM_IO_TASK_ALLOC>;
+inline IoTaskAllocator& GetIoTaskAllocator() {
+    static IoTaskAllocator allocator;
+    return allocator;
+}
 
 template <class RET, class FUNC, class ... ARGS>
 IoTask::IoTask(std::shared_ptr<Promise<RET>> promise,
@@ -48,6 +59,12 @@ IoTask::IoTask(std::shared_ptr<Promise<RET>> promise,
     _queueId(queueId),
     _isHighPriority(isHighPriority)
 {
+}
+
+inline
+IoTask::~IoTask()
+{
+    terminate();
 }
 
 inline
@@ -93,6 +110,24 @@ inline
 bool IoTask::isHighPriority() const
 {
     return _isHighPriority;
+}
+
+inline
+void* IoTask::operator new(size_t)
+{
+    return GetIoTaskAllocator().allocate();
+}
+
+inline
+void IoTask::operator delete(void* p)
+{
+    GetIoTaskAllocator().deallocate(static_cast<IoTask*>(p));
+}
+
+inline
+void IoTask::deleter(IoTask* p)
+{
+    GetIoTaskAllocator().dispose(p);
 }
 
 }}

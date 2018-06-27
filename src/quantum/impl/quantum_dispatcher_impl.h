@@ -39,7 +39,7 @@ TaskDispatcher::~TaskDispatcher()
 }
 
 template <class RET, class FUNC, class ... ARGS>
-typename ThreadContext<RET>::ptr
+typename ThreadContext<RET>::Ptr
 TaskDispatcher::post(FUNC&& func,
                      ARGS&&... args)
 {
@@ -47,7 +47,7 @@ TaskDispatcher::post(FUNC&& func,
 }
 
 template <class RET, class FUNC, class ... ARGS>
-typename ThreadContext<RET>::ptr
+typename ThreadContext<RET>::Ptr
 TaskDispatcher::post(int queueId,
                      bool isHighPriority,
                      FUNC&& func,
@@ -57,7 +57,7 @@ TaskDispatcher::post(int queueId,
 }
 
 template <class RET, class FUNC, class ... ARGS>
-typename ThreadContext<RET>::ptr
+typename ThreadContext<RET>::Ptr
 TaskDispatcher::postFirst(FUNC&& func,
                           ARGS&&... args)
 {
@@ -65,7 +65,7 @@ TaskDispatcher::postFirst(FUNC&& func,
 }
 
 template <class RET, class FUNC, class ... ARGS>
-typename ThreadContext<RET>::ptr
+typename ThreadContext<RET>::Ptr
 TaskDispatcher::postFirst(int queueId,
                           bool isHighPriority,
                           FUNC&& func,
@@ -75,7 +75,7 @@ TaskDispatcher::postFirst(int queueId,
 }
 
 template <class RET, class FUNC, class ... ARGS>
-typename ThreadFuture<RET>::ptr
+typename ThreadFuture<RET>::Ptr
 TaskDispatcher::postAsyncIo(FUNC&& func,
                             ARGS&&... args)
 {
@@ -83,7 +83,7 @@ TaskDispatcher::postAsyncIo(FUNC&& func,
 }
 
 template <class RET, class FUNC, class ... ARGS>
-typename ThreadFuture<RET>::ptr
+typename ThreadFuture<RET>::Ptr
 TaskDispatcher::postAsyncIo(int queueId,
                             bool isHighPriority,
                             FUNC&& func,
@@ -127,7 +127,7 @@ void TaskDispatcher::drain()
         yield();
     }
     
-#ifdef _QUANTUM_PRINT_DEBUG_
+#ifdef __QUANTUM_PRINT_DEBUG
     std::lock_guard<std::mutex> guard(Util::LogMutex());
     std::cout << "All queues have drained." << std::endl;
 #endif
@@ -148,7 +148,7 @@ void TaskDispatcher::resetStats()
 }
 
 template <class RET, class FUNC, class ... ARGS>
-typename ThreadContext<RET>::ptr
+typename ThreadContext<RET>::Ptr
 TaskDispatcher::postImpl(int queueId,
                          bool isHighPriority,
                          ITask::Type type,
@@ -163,13 +163,15 @@ TaskDispatcher::postImpl(int queueId,
     {
         throw std::runtime_error("Invalid queue id");
     }
-    auto ctx = std::shared_ptr<Context<RET>>(new Context<RET>(_dispatcher));
-    auto task = std::make_shared<Task>(ctx,
-                                       queueId,
-                                       isHighPriority,
-                                       type,
-                                       std::forward<FUNC>(func),
-                                       std::forward<ARGS>(args)...);
+    auto ctx = typename Context<RET>::Ptr(new Context<RET>(_dispatcher),
+                                          Context<RET>::deleter);
+    auto task = Task::Ptr(new Task(ctx,
+                                   queueId,
+                                   isHighPriority,
+                                   type,
+                                   std::forward<FUNC>(func),
+                                   std::forward<ARGS>(args)...),
+                          Task::deleter);
     ctx->setTask(task);
     if (type == ITask::Type::Standalone)
     {
@@ -179,7 +181,7 @@ TaskDispatcher::postImpl(int queueId,
 }
 
 template <class RET, class FUNC, class ... ARGS>
-typename ThreadFuture<RET>::ptr
+typename ThreadFuture<RET>::Ptr
 TaskDispatcher::postAsyncIoImpl(int queueId,
                                bool isHighPriority,
                                FUNC&& func,
@@ -193,12 +195,13 @@ TaskDispatcher::postAsyncIoImpl(int queueId,
     {
         throw std::runtime_error("Invalid queue id");
     }
-    auto promise = std::make_shared<Promise<RET>>();
-    auto task = std::make_shared<IoTask>(promise,
-                                         queueId,
-                                         isHighPriority,
-                                         std::forward<FUNC>(func),
-                                         std::forward<ARGS>(args)...);
+    auto promise = typename Promise<RET>::Ptr(new Promise<RET>(), Promise<RET>::deleter);
+    auto task = IoTask::Ptr(new IoTask(promise,
+                                       queueId,
+                                       isHighPriority,
+                                       std::forward<FUNC>(func),
+                                       std::forward<ARGS>(args)...),
+                            IoTask::deleter);
     _dispatcher.postAsyncIo(task);
     return promise->getIThreadFuture();
 }

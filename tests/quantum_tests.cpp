@@ -21,22 +21,59 @@
 #include <map>
 
 using namespace quantum;
+using ms = std::chrono::milliseconds;
 
 TaskDispatcher* Dispatcher::_dispatcher = nullptr;
 
-int DummyCoro(CoroContext<int>::ptr ctx)
+//==============================================================================
+//                           TEST HELPERS
+//==============================================================================
+int DummyCoro(CoroContext<int>::Ptr ctx)
 {
     UNUSED(ctx);
     return 0;
 }
 
-int DummyIoTask(ThreadPromise<int>::ptr promise)
+int DummyIoTask(ThreadPromise<int>::Ptr promise)
 {
     UNUSED(promise);
-    std::this_thread::sleep_for(std::chrono::milliseconds(10));
+    std::this_thread::sleep_for(ms(10));
     return 0;
 }
 
+int fibInput = 20;
+std::map<int, int> fibValues{{10, 55}, {20, 6765}, {25, 75025}, {30, 832040}};
+
+int sequential_fib(CoroContext<size_t>::Ptr ctx, size_t fib)
+{
+    size_t a = 0, b = 1, c, i;
+    for (i = 2; i <= fib; i++)
+    {
+        c = a + b;
+        a = b;
+        b = c;
+    }
+    return ctx->set(c);
+}
+
+int recursive_fib(CoroContext<size_t>::Ptr ctx, size_t fib)
+{
+    if (fib <= 2)
+    {
+        return ctx->set(1);
+    }
+    else
+    {
+        //Post both branches of the Fibonacci series before blocking on get().
+        auto ctx1 = ctx->post<size_t>(recursive_fib, fib - 2);
+        auto ctx2 = ctx->post<size_t>(recursive_fib, fib - 1);
+        return ctx->set(ctx1->get(ctx) + ctx2->get(ctx));
+    }
+}
+
+//==============================================================================
+//                             TEST CASES
+//==============================================================================
 TEST_F(DispatcherFixture, Constructor)
 {
     //Check if we have 0 coroutines and IO tasks running
@@ -133,7 +170,7 @@ TEST_F(DispatcherFixture, CheckIoQueuing)
 
 TEST_F(DispatcherFixture, CheckQueuingFromSameCoroutine)
 {
-    _dispatcher->post(0, false, [](CoroContext<int>::ptr ctx)->int {
+    _dispatcher->post(0, false, [](CoroContext<int>::Ptr ctx)->int {
         ctx->postFirst(1, true, DummyCoro)->then(DummyCoro)->finally(DummyCoro)->end();
         return 0;
     });
@@ -152,7 +189,7 @@ TEST_F(DispatcherFixture, CheckQueuingFromSameCoroutine)
 
 TEST_F(DispatcherFixture, CheckIoQueuingFromACoroutine)
 {
-    _dispatcher->post(0, false, [](CoroContext<int>::ptr ctx)->int {
+    _dispatcher->post(0, false, [](CoroContext<int>::Ptr ctx)->int {
         ctx->postAsyncIo(1, true, DummyIoTask);
         ctx->postAsyncIo(2, false, DummyIoTask);
         ctx->postAsyncIo(3, true, DummyIoTask);
@@ -184,29 +221,29 @@ TEST_F(DispatcherFixture, CheckCoroutineErrors)
 {
     std::string s("original"); //string must remain unchanged
     
-    _dispatcher->post([](CoroContext<int>::ptr ctx, std::string& str)->int {
+    _dispatcher->post([](CoroContext<int>::Ptr ctx, std::string& str)->int {
         ctx->yield();
         return 1; //error! coroutine must stop here
         str = "changed";
         return 0;
     }, s);
     
-    _dispatcher->post([](CoroContext<int>::ptr ctx, std::string& str)->int {
+    _dispatcher->post([](CoroContext<int>::Ptr ctx, std::string& str)->int {
         ctx->yield();
         throw std::exception(); //error! coroutine must stop here
         str = "changed";
         return 0;
     }, s);
     
-    _dispatcher->postAsyncIo([](ThreadPromise<int>::ptr, std::string& str)->int {
-        std::this_thread::sleep_for(std::chrono::milliseconds(10));
+    _dispatcher->postAsyncIo([](ThreadPromise<int>::Ptr, std::string& str)->int {
+        std::this_thread::sleep_for(ms(10));
         return 1; //error! coroutine must stop here
         str = "changed";
         return 0;
     }, s);
     
-    _dispatcher->postAsyncIo([](ThreadPromise<int>::ptr, std::string& str)->int {
-        std::this_thread::sleep_for(std::chrono::milliseconds(10));
+    _dispatcher->postAsyncIo([](ThreadPromise<int>::Ptr, std::string& str)->int {
+        std::this_thread::sleep_for(ms(10));
         throw std::exception(); //error! coroutine must stop here
         str = "changed";
         return 0;
@@ -241,7 +278,7 @@ TEST(ParamtersTest, CheckParameterPassingInCoroutines)
     NonCopyable nc("move");
     double dbl = 4.321;
     
-    auto func = [&](CoroContext<int>::ptr, int byVal, std::string& byRef, std::tuple<NonCopyable&&>& byRvalue, double* byAddress)->int {
+    auto func = [&](CoroContext<int>::Ptr, int byVal, std::string& byRef, std::tuple<NonCopyable&&>& byRvalue, double* byAddress)->int {
         //modify all passed-in values
         byVal = 6; UNUSED(byVal);
         byRef = "changed";
@@ -253,7 +290,7 @@ TEST(ParamtersTest, CheckParameterPassingInCoroutines)
     };
     
     auto t = std::forward_as_tuple(std::move(nc));
-    TaskDispatcher& dispatcher = Dispatcher::Instance();
+    TaskDispatcher& dispatcher = Dispatcher::instance();
     dispatcher.post(func, a, str, t, &dbl);
     dispatcher.drain();
     
@@ -267,7 +304,7 @@ TEST(ParamtersTest, CheckParameterPassingInCoroutines)
 TEST(ExecutionTest, DrainAllTasks)
 {
     //Turn the drain on and make sure we cannot queue any tasks
-    TaskDispatcher& dispatcher = Dispatcher::Instance();
+    TaskDispatcher& dispatcher = Dispatcher::instance();
     
     //Post a bunch of coroutines to run and wait for completion.
     for (int i = 0; i < 100; ++i)
@@ -285,7 +322,7 @@ TEST(ExecutionTest, YieldingBetweenTwoCoroutines)
     //Basic test which verifies cooperation between two coroutines.
     //This also outlines lock-free coding.
     
-    auto func = [](CoroContext<int>::ptr ctx, std::set<int>& s)->int {
+    auto func = [](CoroContext<int>::Ptr ctx, std::set<int>& s)->int {
         s.insert(1);
         ctx->yield();
         s.insert(3);
@@ -294,7 +331,7 @@ TEST(ExecutionTest, YieldingBetweenTwoCoroutines)
         return 0;
     };
     
-    auto func2 = [](CoroContext<int>::ptr ctx, std::set<int>& s)->int {
+    auto func2 = [](CoroContext<int>::Ptr ctx, std::set<int>& s)->int {
         s.insert(2);
         ctx->yield();
         s.insert(4);
@@ -305,7 +342,7 @@ TEST(ExecutionTest, YieldingBetweenTwoCoroutines)
     
     std::set<int> testSet; //this will contain [1,6]
     
-    TaskDispatcher& dispatcher = Dispatcher::Instance();
+    TaskDispatcher& dispatcher = Dispatcher::instance();
     
     dispatcher.post(3, false, func, testSet);
     dispatcher.post(3, false, func2, testSet);
@@ -317,12 +354,12 @@ TEST(ExecutionTest, YieldingBetweenTwoCoroutines)
 
 TEST(ExecutionTest, ChainCoroutinesFromDispatcher)
 {
-    TaskDispatcher& dispatcher = Dispatcher::Instance();
+    TaskDispatcher& dispatcher = Dispatcher::instance();
     int i = 1;
     std::vector<int> v;
     std::vector<int> validation{1,2,3,4};
     
-    auto func = [](CoroContext<int>::ptr, std::vector<int>& v, int& i)->int
+    auto func = [](CoroContext<int>::Ptr, std::vector<int>& v, int& i)->int
     {
         v.push_back(i++);
         return 0;
@@ -336,18 +373,18 @@ TEST(ExecutionTest, ChainCoroutinesFromDispatcher)
 
 TEST(ExecutionTest, ChainCoroutinesFromCoroutineContext)
 {
-    TaskDispatcher& dispatcher = Dispatcher::Instance();
+    TaskDispatcher& dispatcher = Dispatcher::instance();
     int i = 1, err = 10, final = 20;
     std::vector<int> v;
     std::vector<int> validation{1,2,3,4,20};
     
-    auto func2 = [](CoroContext<int>::ptr, std::vector<int>& v, int& i)->int
+    auto func2 = [](CoroContext<int>::Ptr, std::vector<int>& v, int& i)->int
     {
         v.push_back(i++);
         return 0;
     };
     
-    auto func = [&](CoroContext<int>::ptr ctx, std::vector<int>& v, int& i)->int
+    auto func = [&](CoroContext<int>::Ptr ctx, std::vector<int>& v, int& i)->int
     {
         ctx->postFirst(func2, v, i)->then(func2, v, i)->then(func2, v, i)->
              then(func2, v, i)->onError(func2, v, err)->finally(func2, v, final)->end(); //OnError *should not* run
@@ -363,19 +400,19 @@ TEST(ExecutionTest, ChainCoroutinesFromCoroutineContext)
 
 TEST(ExecutionTest, OnErrorTaskRuns)
 {
-    TaskDispatcher& dispatcher = Dispatcher::Instance();
+    TaskDispatcher& dispatcher = Dispatcher::instance();
     int i = 1, err = 10, final = 20;
     std::vector<int> v;
     std::vector<int> validation{1,2,10,20}; //includes error
     
-    auto func2 = [](CoroContext<int>::ptr, std::vector<int>& v, int& i)->int
+    auto func2 = [](CoroContext<int>::Ptr, std::vector<int>& v, int& i)->int
     {
         if (i == 3) return -1; //cause an error
         v.push_back(i++);
         return 0;
     };
     
-    auto func = [&](CoroContext<int>::ptr ctx, std::vector<int>& v, int& i)->int
+    auto func = [&](CoroContext<int>::Ptr ctx, std::vector<int>& v, int& i)->int
     {
         ctx->postFirst(func2, v, i)->then(func2, v, i)->then(func2, v, i)->
              then(func2, v, i)->onError(func2, v, err)->finally(func2, v, final)->end(); //OnError *should* run
@@ -391,19 +428,19 @@ TEST(ExecutionTest, OnErrorTaskRuns)
 
 TEST(ExecutionTest, FinallyAlwaysRuns)
 {
-    TaskDispatcher& dispatcher = Dispatcher::Instance();
+    TaskDispatcher& dispatcher = Dispatcher::instance();
     int i = 1, final = 20;
     std::vector<int> v;
     std::vector<int> validation{1,2,20}; //includes error
     
-    auto func2 = [](CoroContext<int>::ptr, std::vector<int>& v, int& i)->int
+    auto func2 = [](CoroContext<int>::Ptr, std::vector<int>& v, int& i)->int
     {
         if (i == 3) return -1; //cause an error
         v.push_back(i++);
         return 0;
     };
     
-    auto func = [&](CoroContext<int>::ptr ctx, std::vector<int>& v, int& i)->int
+    auto func = [&](CoroContext<int>::Ptr ctx, std::vector<int>& v, int& i)->int
     {
         ctx->postFirst(func2, v, i)->then(func2, v, i)->then(func2, v, i)->
              then(func2, v, i)->finally(func2, v, final)->end(); //OnError *should* run
@@ -419,9 +456,9 @@ TEST(ExecutionTest, FinallyAlwaysRuns)
 
 TEST(ExecutionTest, CoroutineSleep)
 {
-    TaskDispatcher& dispatcher = Dispatcher::Instance();
-    IThreadContext<int>::ptr ctx = dispatcher.post([](ICoroContext<int>::ptr ctx)->int{
-        ctx->sleep(100);
+    TaskDispatcher& dispatcher = Dispatcher::instance();
+    IThreadContext<int>::Ptr ctx = dispatcher.post([](ICoroContext<int>::Ptr ctx)->int{
+        ctx->sleep(ms(100));
         return 0;
     });
     
@@ -436,8 +473,8 @@ TEST(ExecutionTest, CoroutineSleep)
 
 TEST(PromiseTest, GetFutureFromCoroutine)
 {
-    TaskDispatcher& dispatcher = Dispatcher::Instance();
-    IThreadContext<int>::ptr ctx = dispatcher.post([](ICoroContext<int>::ptr ctx)->int{
+    TaskDispatcher& dispatcher = Dispatcher::instance();
+    IThreadContext<int>::Ptr ctx = dispatcher.post([](ICoroContext<int>::Ptr ctx)->int{
         return ctx->set(55); //Set the promise
     });
     EXPECT_EQ(55, ctx->get()); //block until value is available
@@ -446,10 +483,10 @@ TEST(PromiseTest, GetFutureFromCoroutine)
 
 TEST(PromiseTest, GetFutureFromIoTask)
 {
-    TaskDispatcher& dispatcher = Dispatcher::Instance();
-    ThreadContext<int>::ptr ctx = dispatcher.post([](CoroContext<int>::ptr ctx)->int{
+    TaskDispatcher& dispatcher = Dispatcher::instance();
+    ThreadContext<int>::Ptr ctx = dispatcher.post([](CoroContext<int>::Ptr ctx)->int{
         //post an IO task and get future from there
-        CoroFuture<double>::ptr fut = ctx->postAsyncIo<double>([](ThreadPromise<double>::ptr promise)->int{
+        CoroFuture<double>::Ptr fut = ctx->postAsyncIo<double>([](ThreadPromise<double>::Ptr promise)->int{
             return promise->set(33.22);
         });
         return ctx->set((int)fut->get(ctx)); //forward the promise
@@ -459,9 +496,10 @@ TEST(PromiseTest, GetFutureFromIoTask)
 
 TEST(PromiseTest, BufferedFuture)
 {
-    TaskDispatcher& dispatcher = Dispatcher::Instance();
-    ThreadContext<Buffer<int>>::ptr ctx = dispatcher.post<Buffer<int>>([](CoroContext<Buffer<int>>::ptr ctx)->int{
-        for (int d = 0; d < 5; d++) {
+    TaskDispatcher& dispatcher = Dispatcher::instance();
+    ThreadContext<Buffer<int>>::Ptr ctx = dispatcher.post<Buffer<int>>([](CoroContext<Buffer<int>>::Ptr ctx)->int{
+        for (int d = 0; d < 5; d++)
+        {
             ctx->push(d);
             ctx->yield(); //simulate some arbitrary delay
         }
@@ -469,7 +507,8 @@ TEST(PromiseTest, BufferedFuture)
     });
     
     std::vector<int> v;
-    while (1) {
+    while (1)
+    {
         bool isBufferClosed = false;
         int value = ctx->pull(isBufferClosed);
         if (isBufferClosed) break;
@@ -483,8 +522,8 @@ TEST(PromiseTest, BufferedFuture)
 
 TEST(PromiseTest, GetFutureReference)
 {
-    TaskDispatcher& dispatcher = Dispatcher::Instance();
-    IThreadContext<int>::ptr ctx = dispatcher.post([](ICoroContext<int>::ptr ctx)->int{
+    TaskDispatcher& dispatcher = Dispatcher::instance();
+    IThreadContext<int>::Ptr ctx = dispatcher.post([](ICoroContext<int>::Ptr ctx)->int{
         return ctx->set(55); //Set the promise
     });
     EXPECT_EQ(55, ctx->getRef()); //block until value is available
@@ -495,14 +534,14 @@ TEST(PromiseTest, GetFutureReference)
 
 TEST(PromiseTest, GetIntermediateFutures)
 {
-    TaskDispatcher& dispatcher = Dispatcher::Instance();
-    auto ctx = dispatcher.postFirst([](CoroContext<int>::ptr ctx)->int {
+    TaskDispatcher& dispatcher = Dispatcher::instance();
+    auto ctx = dispatcher.postFirst([](CoroContext<int>::Ptr ctx)->int {
         return ctx->set(55); //Set the promise
-    })->then<double>([](CoroContext<double>::ptr ctx)->int {
+    })->then<double>([](CoroContext<double>::Ptr ctx)->int {
         return ctx->set(22.33); //Set the promise
-    })->then<std::string>([](CoroContext<std::string>::ptr ctx)->int {
+    })->then<std::string>([](CoroContext<std::string>::Ptr ctx)->int {
         return ctx->set("future"); //Set the promise
-    })->then<std::list<int>>([](CoroContext<std::list<int>>::ptr ctx)->int {
+    })->then<std::list<int>>([](CoroContext<std::list<int>>::Ptr ctx)->int {
         return ctx->set(std::list<int>{1,2,3}); //Set the promise
     })->end();
     
@@ -518,16 +557,16 @@ TEST(PromiseTest, GetIntermediateFutures)
 
 TEST(PromiseTest, GetPreviousFutures)
 {
-    TaskDispatcher& dispatcher = Dispatcher::Instance();
-    auto ctx = dispatcher.postFirst([](CoroContext<int>::ptr ctx)->int {
+    TaskDispatcher& dispatcher = Dispatcher::instance();
+    auto ctx = dispatcher.postFirst([](CoroContext<int>::Ptr ctx)->int {
         return ctx->set(55); //Set the promise
-    })->then<double>([](CoroContext<double>::ptr ctx)->int {
+    })->then<double>([](CoroContext<double>::Ptr ctx)->int {
         EXPECT_EQ(55, ctx->getPrev<int>());
         return ctx->set(22.33); //Set the promise
-    })->then<std::string>([](CoroContext<std::string>::ptr ctx)->int {
+    })->then<std::string>([](CoroContext<std::string>::Ptr ctx)->int {
         EXPECT_DOUBLE_EQ(22.33, ctx->getPrev<double>());
         return ctx->set("future"); //Set the promise
-    })->then<std::list<int>>([](CoroContext<std::list<int>>::ptr ctx)->int {
+    })->then<std::list<int>>([](CoroContext<std::list<int>>::Ptr ctx)->int {
         EXPECT_STREQ("future", ctx->getPrevRef<std::string>().c_str());
         return ctx->set(std::list<int>{1,2,3}); //Set the promise
     })->end();
@@ -539,10 +578,10 @@ TEST(PromiseTest, GetPreviousFutures)
 
 TEST(PromiseTest, BrokenPromiseInAsyncIo)
 {
-    TaskDispatcher& dispatcher = Dispatcher::Instance();
-    ThreadContext<int>::ptr ctx = dispatcher.post([](CoroContext<int>::ptr ctx)->int{
+    TaskDispatcher& dispatcher = Dispatcher::instance();
+    ThreadContext<int>::Ptr ctx = dispatcher.post([](CoroContext<int>::Ptr ctx)->int{
         //post an IO task and get future from there
-        CoroFuture<double>::ptr fut = ctx->postAsyncIo<double>([](ThreadPromise<double>::ptr promise)->int{
+        CoroFuture<double>::Ptr fut = ctx->postAsyncIo<double>([](ThreadPromise<double>::Ptr promise)->int{
             ITerminate::Guard guard(*promise);
             //Do not set the promise so that we break it
             return 0;
@@ -554,35 +593,35 @@ TEST(PromiseTest, BrokenPromiseInAsyncIo)
 
 TEST(PromiseTest, BreakPromiseByThrowingError)
 {
-    TaskDispatcher& dispatcher = Dispatcher::Instance();
-    IThreadContext<int>::ptr ctx = dispatcher.post([](ICoroContext<int>::ptr)->int{
+    TaskDispatcher& dispatcher = Dispatcher::instance();
+    IThreadContext<int>::Ptr ctx = dispatcher.post([](ICoroContext<int>::Ptr)->int{
         throw std::runtime_error("don't set the promise");
     });
-    EXPECT_THROW(ctx->getRef(), BrokenPromiseException);
-    EXPECT_THROW(ctx->get(), BrokenPromiseException);
+    EXPECT_THROW(ctx->getRef(), std::runtime_error);
+    EXPECT_THROW(ctx->get(), std::runtime_error);
 }
 
 TEST(PromiseTest, PromiseBrokenWhenOnError)
 {
-    TaskDispatcher& dispatcher = Dispatcher::Instance();
+    TaskDispatcher& dispatcher = Dispatcher::instance();
     int i = 1;
     
-    auto func2 = [](CoroContext<int>::ptr ctx, int& i)->int
+    auto func2 = [](CoroContext<int>::Ptr ctx, int& i)->int
     {
         UNUSED(ctx);
         if (i == 2) return -1; //cause an error
         return ctx->set(i++);
     };
     
-    auto onErrorFunc = [](CoroContext<int>::ptr ctx)->int
+    auto onErrorFunc = [](CoroContext<int>::Ptr ctx)->int
     {
         EXPECT_THROW(ctx->getPrev<int>(), BrokenPromiseException);
         return ctx->set(77);
     };
     
-    auto func = [&](CoroContext<int>::ptr ctx, int& i)->int
+    auto func = [&](CoroContext<int>::Ptr ctx, int& i)->int
     {
-        CoroContext<int>::ptr chain = ctx->postFirst(func2, i)->then(func2, i)->then(func2, i)->
+        CoroContext<int>::Ptr chain = ctx->postFirst(func2, i)->then(func2, i)->then(func2, i)->
              then(func2, i)->onError(onErrorFunc)->end(); //OnError *should* run
         EXPECT_THROW(chain->getAt<int>(1, ctx), BrokenPromiseException);
         EXPECT_THROW(chain->getAt<int>(2, ctx), BrokenPromiseException);
@@ -598,8 +637,8 @@ TEST(PromiseTest, PromiseBrokenWhenOnError)
 
 TEST(PromiseTest, SetExceptionInPromise)
 {
-    TaskDispatcher& dispatcher = Dispatcher::Instance();
-    IThreadContext<int>::ptr ctx = dispatcher.post([](ICoroContext<int>::ptr ctx)->int{
+    TaskDispatcher& dispatcher = Dispatcher::instance();
+    IThreadContext<int>::Ptr ctx = dispatcher.post([](ICoroContext<int>::Ptr ctx)->int{
         try {
             throw 5;
         }
@@ -614,14 +653,14 @@ TEST(PromiseTest, SetExceptionInPromise)
 
 TEST(PromiseTest, FutureTimeout)
 {
-    TaskDispatcher& dispatcher = Dispatcher::Instance();
-    IThreadContext<int>::ptr ctx = dispatcher.post([](ICoroContext<int>::ptr ctx)->int{
-        ctx->sleep(300);
+    TaskDispatcher& dispatcher = Dispatcher::instance();
+    IThreadContext<int>::Ptr ctx = dispatcher.post([](ICoroContext<int>::Ptr ctx)->int{
+        ctx->sleep(ms(300));
         return 0;
     });
     
     auto start = std::chrono::high_resolution_clock::now();
-    std::future_status status = ctx->waitFor(100); //block until value is available or 100ms have expired
+    std::future_status status = ctx->waitFor(ms(100)); //block until value is available or 100ms have expired
     auto end = std::chrono::high_resolution_clock::now();
     
     //check elapsed time
@@ -632,14 +671,14 @@ TEST(PromiseTest, FutureTimeout)
 
 TEST(PromiseTest, FutureWithoutTimeout)
 {
-    TaskDispatcher& dispatcher = Dispatcher::Instance();
-    IThreadContext<int>::ptr ctx = dispatcher.post([](ICoroContext<int>::ptr ctx)->int{
-        ctx->sleep(100);
+    TaskDispatcher& dispatcher = Dispatcher::instance();
+    IThreadContext<int>::Ptr ctx = dispatcher.post([](ICoroContext<int>::Ptr ctx)->int{
+        ctx->sleep(ms(100));
         return 0;
     });
     
     auto start = std::chrono::high_resolution_clock::now();
-    std::future_status status = ctx->waitFor(300); //block until value is available or 300ms have expired
+    std::future_status status = ctx->waitFor(ms(300)); //block until value is available or 300ms have expired
     auto end = std::chrono::high_resolution_clock::now();
     
     //check elapsed time
@@ -651,9 +690,9 @@ TEST(PromiseTest, FutureWithoutTimeout)
 
 TEST(PromiseTest, WaitForAllFutures)
 {
-    TaskDispatcher& dispatcher = Dispatcher::Instance();
-    auto func = [](CoroContext<int>::ptr ctx)->int {
-        ctx->sleep(50);
+    TaskDispatcher& dispatcher = Dispatcher::instance();
+    auto func = [](CoroContext<int>::Ptr ctx)->int {
+        ctx->sleep(ms(50));
         return 0;
     };
     
@@ -669,7 +708,7 @@ TEST(PromiseTest, WaitForAllFutures)
 
 TEST(MutexTest, LockingAndUnlocking)
 {
-    TaskDispatcher& dispatcher = Dispatcher::Instance();
+    TaskDispatcher& dispatcher = Dispatcher::instance();
     std::vector<int> v;
     
     quantum::Mutex m;
@@ -679,20 +718,20 @@ TEST(MutexTest, LockingAndUnlocking)
     v.push_back(5);
     
     //start a couple of coroutines waiting to access the vector
-    dispatcher.post([](ICoroContext<int>::ptr ctx, Mutex& mu, std::vector<int>& vec)->int{
+    dispatcher.post([](ICoroContext<int>::Ptr ctx, Mutex& mu, std::vector<int>& vec)->int{
         mu.lock(ctx);
         vec.push_back(6);
         mu.unlock();
         return 0;
     }, m, v);
-    dispatcher.post([](ICoroContext<int>::ptr ctx, Mutex& mu, std::vector<int>& vec)->int{
+    dispatcher.post([](ICoroContext<int>::Ptr ctx, Mutex& mu, std::vector<int>& vec)->int{
         mu.lock(ctx);
         vec.push_back(7);
         mu.unlock();
         return 0;
     }, m, v);
     
-    std::this_thread::sleep_for(std::chrono::milliseconds(200));
+    std::this_thread::sleep_for(ms(200));
     m.unlock();
     
     dispatcher.drain(); //wait for completion
@@ -704,7 +743,7 @@ TEST(MutexTest, LockingAndUnlocking)
 
 TEST(MutexTest, SignalWithConditionVariable)
 {
-    TaskDispatcher& dispatcher = Dispatcher::Instance();
+    TaskDispatcher& dispatcher = Dispatcher::instance();
     std::vector<int> v;
     
     quantum::Mutex m;
@@ -714,14 +753,14 @@ TEST(MutexTest, SignalWithConditionVariable)
     m.lock();
     
     //start a couple of coroutines waiting to access the vector
-    dispatcher.post(0, false, [](ICoroContext<int>::ptr ctx, Mutex& mu, std::vector<int>& vec, ConditionVariable& cv)->int{
+    dispatcher.post(0, false, [](ICoroContext<int>::Ptr ctx, Mutex& mu, std::vector<int>& vec, ConditionVariable& cv)->int{
         mu.lock(ctx);
         cv.wait(ctx, mu, [&vec]()->bool{ return !vec.empty(); });
         vec.push_back(6);
         mu.unlock();
         return 0;
     }, m, v, cv);
-    dispatcher.post(0, false, [](ICoroContext<int>::ptr ctx, Mutex& mu, std::vector<int>& vec, ConditionVariable& cv)->int{
+    dispatcher.post(0, false, [](ICoroContext<int>::Ptr ctx, Mutex& mu, std::vector<int>& vec, ConditionVariable& cv)->int{
         mu.lock(ctx);
         cv.wait(ctx, mu, [&vec]()->bool{ return !vec.empty(); });
         vec.push_back(7);
@@ -729,7 +768,7 @@ TEST(MutexTest, SignalWithConditionVariable)
         return 0;
     }, m, v, cv);
     
-    std::this_thread::sleep_for(std::chrono::milliseconds(200));
+    std::this_thread::sleep_for(ms(200));
     v.push_back(5);
     m.unlock();
     
@@ -741,30 +780,16 @@ TEST(MutexTest, SignalWithConditionVariable)
     EXPECT_TRUE((6 == v[1] || 7 == v[1]) && (6 == v[2] || 7 == v[2]));
 }
 
-int fibInput = 20;
-std::map<int, int> fibValues{{10, 55}, {20, 6765}};
-
-int sequential_fib(CoroContext<size_t>::ptr ctx, size_t fib)
-{
-    size_t a = 0, b = 1, c, i;
-    for (i = 2; i <= fib; i++)
-    {
-        c = a + b;
-        a = b;
-        b = c;
-    }
-    return ctx->set(c);
-}
-
 TEST(StressTest, ParallelFibonacciSerie)
 {
-    TaskDispatcher& dispatcher = Dispatcher::Instance();
+    TaskDispatcher& dispatcher = Dispatcher::instance();
     
     for (int i = 0; i < 1; ++i)
     {
-        ThreadContext<size_t>::ptr tctx = dispatcher.post<size_t>(sequential_fib, fibInput);
+        ThreadContext<size_t>::Ptr tctx = dispatcher.post<size_t>(sequential_fib, fibInput);
         
-        if (i == 0) {
+        if (i == 0)
+        {
             //Check once
             size_t num = tctx->get();
             EXPECT_EQ((size_t)fibValues[fibInput], num);
@@ -775,24 +800,16 @@ TEST(StressTest, ParallelFibonacciSerie)
     EXPECT_EQ((size_t)0, dispatcher.size());
 }
 
-int recursive_fib(CoroContext<size_t>::ptr ctx, size_t fib) {
-    if (fib <= 2)
-    {
-        return ctx->set(1);
-    }
-    else
-    {
-        //Post both branches of the Fibonacci serie before blocking on get().
-        auto ctx1 = ctx->post<size_t>(recursive_fib, fib - 2);
-        auto ctx2 = ctx->post<size_t>(recursive_fib, fib - 1);
-        return ctx->set(ctx1->get(ctx) + ctx2->get(ctx));
-    }
-};
-
 TEST(StressTest, RecursiveFibonacciSerie)
 {
-    ThreadContext<size_t>::ptr tctx = Dispatcher::Instance().post<size_t>(recursive_fib, fibInput);
+    ThreadContext<size_t>::Ptr tctx = Dispatcher::instance().post<size_t>(recursive_fib, fibInput);
     EXPECT_EQ((size_t)fibValues[fibInput], tctx->get());
+}
+
+//This test **must** come last to make Valgrind happy.
+TEST(TestCleanup, DeleteDispatcherInstance)
+{
+    Dispatcher::deleteInstance();
 }
 
 

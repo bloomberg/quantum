@@ -18,6 +18,7 @@
 
 #include <memory>
 #include <future>
+#include <chrono>
 #include <quantum/interface/quantum_icoro_sync.h>
 
 namespace Bloomberg {
@@ -30,7 +31,7 @@ namespace quantum {
 /// @brief Exposes methods to access a non-coroutine future (i.e. accessed from a thread)
 struct IThreadFutureBase
 {
-    using ptr = std::shared_ptr<IThreadFutureBase>;
+    using Ptr = std::shared_ptr<IThreadFutureBase>;
     
     /// @brief Virtual destructor
     virtual ~IThreadFutureBase() = default;
@@ -47,7 +48,7 @@ struct IThreadFutureBase
     /// @param[in] timeMs The maximum amount of milliseconds to wait until the future value becomes ready.
     /// @return 'ready' if value was posted before duration expired or 'timeout' otherwise.
     /// @note Blocks until the value is ready, until 'timeMs' duration expires or until an exception is thrown.
-    virtual std::future_status waitFor(size_t timeMs) const = 0;
+    virtual std::future_status waitFor(std::chrono::milliseconds timeMs) const = 0;
 };
 
 }}

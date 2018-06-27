@@ -17,6 +17,8 @@
 #define DISPATCHER_ITHREAD_CONTEXT_H
 
 #include <future>
+#include <chrono>
+#include <quantum/quantum_traits.h>
 #include <quantum/interface/quantum_ithread_context_base.h>
 
 namespace Bloomberg {
@@ -34,8 +36,8 @@ class Context;
 template <class RET>
 struct IThreadContext : public IThreadContextBase
 {
-    using ptr = std::shared_ptr<IThreadContext<RET>>;
-    using impl = Context<RET>;
+    using Ptr = std::shared_ptr<IThreadContext<RET>>;
+    using Impl = Context<RET>;
     
     /// @brief Waits for the future associated with this context to be ready.
     /// @note Blocks until the future is ready or until an exception is thrown.
@@ -45,7 +47,7 @@ struct IThreadContext : public IThreadContextBase
     /// @param[in] timeMs The maximum amount of milliseconds to wait until the future value becomes ready.
     /// @return 'ready' if value was posted before duration expired or 'timeout' otherwise.
     /// @note Blocks until the value is ready, until 'timeMs' duration expires or until an exception is thrown.
-    virtual std::future_status waitFor(size_t timeMs) const = 0;
+    virtual std::future_status waitFor(std::chrono::milliseconds timeMs) const = 0;
     
     /// @brief Waits for the future in the 'num-th' continuation context to be ready.
     /// @details Allowed range for num is [-1, total_continuations). -1 is equivalent of calling wait() or
@@ -63,7 +65,7 @@ struct IThreadContext : public IThreadContextBase
     /// @param[in] timeMs The maximum amount of milliseconds to wait until the future value becomes ready.
     /// @return 'ready' if value was posted before duration expired or 'timeout' otherwise.
     /// @note Blocks until the value is ready, until 'timeMs' duration expires or until an exception is thrown.
-    virtual std::future_status waitForAt(int num, size_t timeMs) const = 0;
+    virtual std::future_status waitForAt(int num, std::chrono::milliseconds timeMs) const = 0;
     
     /// @brief Wait for all the futures in the continuation chain to be ready.
     /// @note Blocks until all future values are ready. If any future throws, the exception is swallowed.
@@ -118,7 +120,7 @@ struct IThreadContext : public IThreadContextBase
     /// @param[in] value Value to push at the end of the buffer.
     /// @note Method available for buffered futures only. Never blocks. Once the buffer is closed, no more Push
     ///       operations are allowed.
-    template <class BUF = RET, class V = typename std::enable_if_t<Traits::IsBuffer<BUF>::value, BUF>::value_type>
+    template <class BUF = RET, class V = typename std::enable_if_t<Traits::IsBuffer<BUF>::value, BUF>::ValueType>
     void push(V &&value);
     
     /// @brief Pull a single value from the future buffer.
@@ -127,7 +129,7 @@ struct IThreadContext : public IThreadContextBase
     /// @param[out] isBufferClosed Indicates if this buffer is closed and no more Pull operations are allowed on it.
     /// @return The next value pulled out from the front of the buffer.
     /// @note Method available for buffered futures only. Blocks until one value is retrieved from the buffer.
-    template <class BUF = RET, class V = typename std::enable_if_t<Traits::IsBuffer<BUF>::value, BUF>::value_type>
+    template <class BUF = RET, class V = typename std::enable_if_t<Traits::IsBuffer<BUF>::value, BUF>::ValueType>
     V pull(bool& isBufferClosed);
     
     /// @brief Close a promise buffer.
@@ -147,7 +149,7 @@ struct IThreadContext : public IThreadContextBase
     /// whereas then() may be called zero or more times.
     ///
     /// @code
-    ///    IThreadContext<RET>::ptr ctx = TaskDispatcher::postFirst()->then()->...->then()->onError()->finally()->end();
+    ///    IThreadContext<RET>::Ptr ctx = TaskDispatcher::postFirst()->then()->...->then()->onError()->finally()->end();
     /// @endcode
     //-----------------------------------------------------------------------------------------
     
@@ -157,7 +159,7 @@ struct IThreadContext : public IThreadContextBase
     /// @tparam OTHER_RET Type of future returned by this function.
     /// @tparam FUNC Callable object type. Can be a standalone function, a method,
     ///              an std::function, a functor generated via std::bind or a lambda. The signature of the callable
-    ///              object must strictly be 'int f(ThreadContext<RET>::ptr, ...)'.
+    ///              object must strictly be 'int f(ThreadContext<RET>::Ptr, ...)'.
     /// @tparam ARGS Argument types passed to FUNC.
     /// @param[in] func Callable object.
     /// @param[in] args Variable list of arguments passed to the callable object.
@@ -165,7 +167,7 @@ struct IThreadContext : public IThreadContextBase
     ///       The returned context can be used to chain further functions. Possible method calls following this
     ///       are then(), onError(), finally() and end().
     template <class OTHER_RET = int, class FUNC, class ... ARGS>
-    typename IThreadContext<OTHER_RET>::ptr
+    typename IThreadContext<OTHER_RET>::Ptr
     then(FUNC&& func, ARGS&&... args);
     
     /// @brief Posts a function to run asynchronously. This is the error handler for a continuation chain and acts as
@@ -178,14 +180,14 @@ struct IThreadContext : public IThreadContextBase
     /// @tparam OTHER_RET Type of future returned by this function.
     /// @tparam FUNC Callable object type. Can be a standalone function, a method,
     ///              an std::function, a functor generated via std::bind or a lambda. The signature of the callable
-    ///              object must strictly be 'int f(ThreadContext<RET>::ptr, ...)'.
+    ///              object must strictly be 'int f(ThreadContext<RET>::Ptr, ...)'.
     /// @tparam ARGS Argument types passed to FUNC.
     /// @param[in] func Callable object.
     /// @param[in] args Variable list of arguments passed to the callable object.
     /// @note The function is non-blocking. The returned context can be used to chain further functions.
     ///       Possible method calls following this are finally() and end().
     template <class OTHER_RET = int, class FUNC, class ... ARGS>
-    typename IThreadContext<OTHER_RET>::ptr
+    typename IThreadContext<OTHER_RET>::Ptr
     onError(FUNC&& func, ARGS&&... args);
     
     /// @brief Posts a function to run asynchronously. This function is always guaranteed to run.
@@ -195,13 +197,13 @@ struct IThreadContext : public IThreadContextBase
     /// @tparam OTHER_RET Type of future returned by this function.
     /// @tparam FUNC Callable object type. Can be a standalone function, a method,
     ///              an std::function, a functor generated via std::bind or a lambda. The signature of the callable
-    ///              object must strictly be 'int f(CoroContext<RET>::ptr, ...)'.
+    ///              object must strictly be 'int f(CoroContext<RET>::Ptr, ...)'.
     /// @tparam ARGS Argument types passed to FUNC.
     /// @param[in] func Callable object.
     /// @param[in] args Variable list of arguments passed to the callable object.
     /// @note This function is non-blocking and returns immediately. After this function, the end() method must be called.
     template <class OTHER_RET = int, class FUNC, class ... ARGS>
-    typename IThreadContext<OTHER_RET>::ptr
+    typename IThreadContext<OTHER_RET>::Ptr
     finally(FUNC&& func, ARGS&&... args);
     
     /// @brief This is the last method in a continuation chain.
@@ -209,10 +211,10 @@ struct IThreadContext : public IThreadContextBase
     ///          respecting the 'queueId' and priority specified at the beginning of the chain (see postFirst()).
     /// @return Pointer to this context.
     /// @note This method does not take any functions as parameter as it is strictly used for scheduling purposes.
-    ptr end();
+    Ptr end();
 };
 
-template <class RET = int>
+template <class RET>
 using ThreadContext = IThreadContext<RET>;
 
 }}

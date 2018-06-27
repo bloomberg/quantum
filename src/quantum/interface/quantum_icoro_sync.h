@@ -18,6 +18,7 @@
 
 #include <memory>
 #include <atomic>
+#include <chrono>
 #include <quantum/quantum_traits.h>
 
 namespace Bloomberg {
@@ -32,19 +33,19 @@ namespace quantum {
 /// @note This class is used internally and as such should not be accessed directly.
 struct ICoroSync
 {
-    using ptr = std::shared_ptr<ICoroSync>;
+    using Ptr = std::shared_ptr<ICoroSync>;
     
     /// @brief Default virtual destructor.
     virtual ~ICoroSync() = default;
     
     /// @brief Sets the underlying boost::coroutine object so that it can be yielded on.
     /// @param[in] yield Reference to the boost::coroutine object.
-    virtual void setYieldHandle(Traits::yield_t& yield) = 0;
+    virtual void setYieldHandle(Traits::Yield& yield) = 0;
     
     /// @brief Retrieve the underlying boost::coroutine object.
     /// @return The associated boost::coroutine object held by this class.
     /// @throws If the underlying boost::coroutine is not set.
-    virtual Traits::yield_t& getYieldHandle() = 0;
+    virtual Traits::Yield& getYieldHandle() = 0;
     
     /// @brief Explicitly yields this coroutine context.
     virtual void yield() = 0;
@@ -56,7 +57,7 @@ struct ICoroSync
     /// @brief Sleeps the coroutine associated with this context for 'timeMs' milliseconds.
     /// @param[in] timeMs Time to sleep.
     /// @note This method repeatedly yields the coroutine until the timer has expired.
-    virtual void sleep(size_t timeMs) = 0;
+    virtual void sleep(std::chrono::milliseconds timeMs) = 0;
 };
 
 }}

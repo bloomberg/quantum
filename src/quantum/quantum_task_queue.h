@@ -44,8 +44,8 @@ namespace quantum {
 class TaskQueue : public IQueue
 {
 public:
-    using TaskList = std::list<Task::ptr>;
-    using TaskListIter = std::list<Task::ptr>::iterator;
+    using TaskList = std::list<Task::Ptr>;
+    using TaskListIter = TaskList::iterator;
     
     TaskQueue();
     
@@ -55,9 +55,9 @@ public:
     
     void run() final;
     
-    void enqueue(ITask::ptr task) final;
+    void enQueue(ITask::Ptr task) final;
     
-    ITask::ptr dequeue() final;
+    ITask::Ptr deQueue() final;
     
     size_t size() const final;
     
@@ -74,7 +74,7 @@ public:
     bool isIdle() const final;
 
 private:
-    void advance();
+    TaskListIter advance();
     
     std::shared_ptr<std::thread>        _thread;
     TaskList                            _queue;

@@ -33,8 +33,8 @@ class Future;
 template <class T>
 struct IThreadFuture : public IThreadFutureBase
 {
-    using ptr = std::shared_ptr<IThreadFuture<T>>;
-    using impl = Future<T>;
+    using Ptr = std::shared_ptr<IThreadFuture<T>>;
+    using Impl = Future<T>;
     
     /// @brief Get the future value.
     /// @return The future value.
@@ -54,11 +54,11 @@ struct IThreadFuture : public IThreadFutureBase
     /// @param[out] isBufferClosed Indicates if this buffer is closed and no more Pull operations are allowed on it.
     /// @return The next value pulled out from the front of the buffer.
     /// @note Method available for buffered futures only. Blocks until one value is retrieved from the buffer.
-    template <class BUF = T, class V = typename std::enable_if_t<Traits::IsBuffer<BUF>::value, BUF>::value_type>
+    template <class BUF = T, class V = typename std::enable_if_t<Traits::IsBuffer<BUF>::value, BUF>::ValueType>
     V pull(bool& isBufferClosed);
 };
 
-template <class T = int>
+template <class T>
 using ThreadFuture = IThreadFuture<T>;
 
 }}

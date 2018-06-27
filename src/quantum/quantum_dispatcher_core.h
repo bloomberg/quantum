@@ -54,9 +54,9 @@ public:
     
     void resetStats();
     
-    void post(Task::ptr task);
+    void post(Task::Ptr task);
     
-    void postAsyncIo(IoTask::ptr task);
+    void postAsyncIo(IoTask::Ptr task);
 
 private:
     DispatcherCore(int numCoroutineThreads,

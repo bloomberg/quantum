@@ -18,6 +18,7 @@
 //##############################################################################################
 //#################################### IMPLEMENTATIONS #########################################
 //##############################################################################################
+#include <quantum/quantum_stack_allocator.h>
 
 namespace Bloomberg {
 namespace quantum {
@@ -29,73 +30,73 @@ template <class RET>
 template <class V>
 int IThreadContext<RET>::set(V&& value)
 {
-    return static_cast<impl*>(this)->template set(std::forward<V>(value));
+    return static_cast<Impl*>(this)->template set(std::forward<V>(value));
 }
 
 template <class RET>
 template <class OTHER_RET>
 OTHER_RET IThreadContext<RET>::getAt(int num)
 {
-    return static_cast<impl*>(this)->template getAt<OTHER_RET>(num);
+    return static_cast<Impl*>(this)->template getAt<OTHER_RET>(num);
 }
 
 template <class RET>
 template <class OTHER_RET>
 const OTHER_RET& IThreadContext<RET>::getRefAt(int num) const
 {
-    return static_cast<const impl*>(this)->template getRefAt<OTHER_RET>(num);
+    return static_cast<const Impl*>(this)->template getRefAt<OTHER_RET>(num);
 }
 
 template <class RET>
 template <class BUF, class V>
 void IThreadContext<RET>::push(V &&value)
 {
-    static_cast<impl*>(this)->template push<BUF>(std::forward<V>(value));
+    static_cast<Impl*>(this)->template push<BUF>(std::forward<V>(value));
 }
 
 template <class RET>
 template <class BUF, class V>
 V IThreadContext<RET>::pull(bool& isBufferClosed)
 {
-    return static_cast<impl*>(this)->template pull<BUF>(isBufferClosed);
+    return static_cast<Impl*>(this)->template pull<BUF>(isBufferClosed);
 }
 
 template <class RET>
 template <class BUF, class>
 int IThreadContext<RET>::closeBuffer()
 {
-    return static_cast<impl*>(this)->template closeBuffer<BUF>();
+    return static_cast<Impl*>(this)->template closeBuffer<BUF>();
 }
 
 template <class RET>
 template <class OTHER_RET, class FUNC, class ... ARGS>
-typename IThreadContext<OTHER_RET>::ptr
+typename IThreadContext<OTHER_RET>::Ptr
 IThreadContext<RET>::then(FUNC&& func, ARGS&&... args)
 {
-    return static_cast<impl*>(this)->template then<OTHER_RET>(std::forward<FUNC>(func), std::forward<ARGS>(args)...);
+    return static_cast<Impl*>(this)->template then<OTHER_RET>(std::forward<FUNC>(func), std::forward<ARGS>(args)...);
 }
 
 template <class RET>
 template <class OTHER_RET, class FUNC, class ... ARGS>
-typename IThreadContext<OTHER_RET>::ptr
+typename IThreadContext<OTHER_RET>::Ptr
 IThreadContext<RET>::onError(FUNC&& func, ARGS&&... args)
 {
-    return static_cast<impl*>(this)->template onError<OTHER_RET>(std::forward<FUNC>(func), std::forward<ARGS>(args)...);
+    return static_cast<Impl*>(this)->template onError<OTHER_RET>(std::forward<FUNC>(func), std::forward<ARGS>(args)...);
 }
 
 template <class RET>
 template <class OTHER_RET, class FUNC, class ... ARGS>
-typename IThreadContext<OTHER_RET>::ptr
+typename IThreadContext<OTHER_RET>::Ptr
 IThreadContext<RET>::finally(FUNC&& func, ARGS&&... args)
 {
-    return static_cast<impl*>(this)->template finally<OTHER_RET>(std::forward<FUNC>(func), std::forward<ARGS>(args)...);
+    return static_cast<Impl*>(this)->template finally<OTHER_RET>(std::forward<FUNC>(func), std::forward<ARGS>(args)...);
 }
 
 template <class RET>
-typename IThreadContext<RET>::ptr
+typename IThreadContext<RET>::Ptr
 IThreadContext<RET>::end()
 {
-    return static_cast<impl*>(this)->end();
+    return static_cast<Impl*>(this)->end();
 }
 
 //==============================================================================================
@@ -105,7 +106,7 @@ template <class RET>
 template <class V>
 int ICoroContext<RET>::set(V&& value)
 {
-    std::shared_ptr<impl> ctx = static_cast<impl*>(this)->shared_from_this();
+    std::shared_ptr<Impl> ctx = static_cast<Impl*>(this)->shared_from_this();
     return ctx->template set(ctx, std::forward<V>(value));
 }
 
@@ -113,7 +114,7 @@ template <class RET>
 template <class OTHER_RET>
 OTHER_RET ICoroContext<RET>::getPrev()
 {
-    std::shared_ptr<impl> ctx = static_cast<impl*>(this)->shared_from_this();
+    std::shared_ptr<Impl> ctx = static_cast<Impl*>(this)->shared_from_this();
     return ctx->template getPrev<OTHER_RET>(ctx);
 }
 
@@ -121,131 +122,141 @@ template <class RET>
 template <class OTHER_RET>
 const OTHER_RET& ICoroContext<RET>::getPrevRef()
 {
-    std::shared_ptr<impl> ctx = static_cast<impl*>(this)->shared_from_this();
+    std::shared_ptr<Impl> ctx = static_cast<Impl*>(this)->shared_from_this();
     return ctx->template getPrevRef<OTHER_RET>(ctx);
 }
 
 template <class RET>
 template <class OTHER_RET>
-OTHER_RET ICoroContext<RET>::getAt(int num, ICoroSync::ptr sync)
+OTHER_RET ICoroContext<RET>::getAt(int num, ICoroSync::Ptr sync)
 {
-    return static_cast<impl*>(this)->template getAt<OTHER_RET>(num, sync);
+    return static_cast<Impl*>(this)->template getAt<OTHER_RET>(num, sync);
 }
 
 template <class RET>
 template <class OTHER_RET>
-const OTHER_RET& ICoroContext<RET>::getRefAt(int num, ICoroSync::ptr sync) const
+const OTHER_RET& ICoroContext<RET>::getRefAt(int num, ICoroSync::Ptr sync) const
 {
-    return static_cast<const impl*>(this)->template getRefAt<OTHER_RET>(num, sync);
+    return static_cast<const Impl*>(this)->template getRefAt<OTHER_RET>(num, sync);
 }
 
 template <class RET>
 template <class BUF, class V>
 void ICoroContext<RET>::push(V &&value)
 {
-    std::shared_ptr<impl> ctx = static_cast<impl*>(this)->shared_from_this();
+    std::shared_ptr<Impl> ctx = static_cast<Impl*>(this)->shared_from_this();
     ctx->template push<BUF>(ctx, std::forward<V>(value));
 }
 
 template <class RET>
 template <class BUF, class V>
-V ICoroContext<RET>::pull(ICoroSync::ptr sync, bool& isBufferClosed)
+V ICoroContext<RET>::pull(ICoroSync::Ptr sync, bool& isBufferClosed)
 {
-    return static_cast<impl*>(this)->template pull<BUF>(sync, isBufferClosed);
+    return static_cast<Impl*>(this)->template pull<BUF>(sync, isBufferClosed);
 }
 
 template <class RET>
 template <class BUF, class>
 int ICoroContext<RET>::closeBuffer()
 {
-    return static_cast<impl*>(this)->template closeBuffer<BUF>();
+    return static_cast<Impl*>(this)->template closeBuffer<BUF>();
 }
 
 template <class RET>
 template <class OTHER_RET, class FUNC, class ... ARGS>
-typename ICoroContext<OTHER_RET>::ptr
+typename ICoroContext<OTHER_RET>::Ptr
 ICoroContext<RET>::post(FUNC&& func, ARGS&&... args)
 {
-    return static_cast<impl*>(this)->template post<OTHER_RET>(std::forward<FUNC>(func), std::forward<ARGS>(args)...);
+    return static_cast<Impl*>(this)->template post<OTHER_RET>(std::forward<FUNC>(func), std::forward<ARGS>(args)...);
 }
 
 template <class RET>
 template <class OTHER_RET, class FUNC, class ... ARGS>
-typename ICoroContext<OTHER_RET>::ptr
+typename ICoroContext<OTHER_RET>::Ptr
 ICoroContext<RET>::post(int queueId, bool isHighPriority, FUNC&& func, ARGS&&... args)
 {
-    return static_cast<impl*>(this)->template post<OTHER_RET>(queueId, isHighPriority, std::forward<FUNC>(func), std::forward<ARGS>(args)...);
+    return static_cast<Impl*>(this)->template post<OTHER_RET>(queueId, isHighPriority, std::forward<FUNC>(func), std::forward<ARGS>(args)...);
 }
 
 template <class RET>
 template <class OTHER_RET, class FUNC, class ... ARGS>
-typename ICoroContext<OTHER_RET>::ptr
+typename ICoroContext<OTHER_RET>::Ptr
 ICoroContext<RET>::postFirst(FUNC&& func, ARGS&&... args)
 {
-    return static_cast<impl*>(this)->template postFirst<OTHER_RET>(std::forward<FUNC>(func), std::forward<ARGS>(args)...);
+    return static_cast<Impl*>(this)->template postFirst<OTHER_RET>(std::forward<FUNC>(func), std::forward<ARGS>(args)...);
 }
 
 template <class RET>
 template <class OTHER_RET, class FUNC, class ... ARGS>
-typename ICoroContext<OTHER_RET>::ptr
+typename ICoroContext<OTHER_RET>::Ptr
 ICoroContext<RET>::postFirst(int queueId, bool isHighPriority, FUNC&& func, ARGS&&... args)
 {
-    return static_cast<impl*>(this)->template postFirst<OTHER_RET>(queueId, isHighPriority, std::forward<FUNC>(func), std::forward<ARGS>(args)...);
+    return static_cast<Impl*>(this)->template postFirst<OTHER_RET>(queueId, isHighPriority, std::forward<FUNC>(func), std::forward<ARGS>(args)...);
 }
 
 template <class RET>
 template <class OTHER_RET, class FUNC, class ... ARGS>
-typename ICoroContext<OTHER_RET>::ptr
+typename ICoroContext<OTHER_RET>::Ptr
 ICoroContext<RET>::then(FUNC&& func, ARGS&&... args)
 {
-    return static_cast<impl*>(this)->template then<OTHER_RET>(std::forward<FUNC>(func), std::forward<ARGS>(args)...);
+    return static_cast<Impl*>(this)->template then<OTHER_RET>(std::forward<FUNC>(func), std::forward<ARGS>(args)...);
 }
 
 template <class RET>
 template <class OTHER_RET, class FUNC, class ... ARGS>
-typename ICoroContext<OTHER_RET>::ptr
+typename ICoroContext<OTHER_RET>::Ptr
 ICoroContext<RET>::onError(FUNC&& func, ARGS&&... args)
 {
-    return static_cast<impl*>(this)->template onError<OTHER_RET>(std::forward<FUNC>(func), std::forward<ARGS>(args)...);
+    return static_cast<Impl*>(this)->template onError<OTHER_RET>(std::forward<FUNC>(func), std::forward<ARGS>(args)...);
 }
 
 template <class RET>
 template <class OTHER_RET, class FUNC, class ... ARGS>
-typename ICoroContext<OTHER_RET>::ptr
+typename ICoroContext<OTHER_RET>::Ptr
 ICoroContext<RET>::finally(FUNC&& func, ARGS&&... args)
 {
-    return static_cast<impl*>(this)->template finally<OTHER_RET>(std::forward<FUNC>(func), std::forward<ARGS>(args)...);
+    return static_cast<Impl*>(this)->template finally<OTHER_RET>(std::forward<FUNC>(func), std::forward<ARGS>(args)...);
 }
 
 template <class RET>
-typename ICoroContext<RET>::ptr
+typename ICoroContext<RET>::Ptr
 ICoroContext<RET>::end()
 {
-    return static_cast<impl*>(this)->end();
+    return static_cast<Impl*>(this)->end();
 }
 
 template <class RET>
 template <class OTHER_RET, class FUNC, class ... ARGS>
-typename ICoroFuture<OTHER_RET>::ptr
+typename ICoroFuture<OTHER_RET>::Ptr
 ICoroContext<RET>::postAsyncIo(FUNC&& func, ARGS&&... args)
 {
-    return static_cast<impl*>(this)->template postAsyncIo<OTHER_RET>(std::forward<FUNC>(func), std::forward<ARGS>(args)...);
+    return static_cast<Impl*>(this)->template postAsyncIo<OTHER_RET>(std::forward<FUNC>(func), std::forward<ARGS>(args)...);
 }
 
 template <class RET>
 template <class OTHER_RET, class FUNC, class ... ARGS>
-typename ICoroFuture<OTHER_RET>::ptr
+typename ICoroFuture<OTHER_RET>::Ptr
 ICoroContext<RET>::postAsyncIo(int queueId, bool isHighPriority, FUNC&& func, ARGS&&... args)
 {
-    return static_cast<impl*>(this)->template postAsyncIo<OTHER_RET>(queueId, isHighPriority, std::forward<FUNC>(func), std::forward<ARGS>(args)...);
+    return static_cast<Impl*>(this)->template postAsyncIo<OTHER_RET>(queueId, isHighPriority, std::forward<FUNC>(func), std::forward<ARGS>(args)...);
 }
 
 //==============================================================================================
 //                                     class Context
 //==============================================================================================
+#ifndef __QUANTUM_CONTEXT_ALLOC
+#define __QUANTUM_CONTEXT_ALLOC __QUANTUM_DEFAULT_STACK_ALLOC_SIZE
+#endif
+
+using ContextAllocator = StackAllocator<Context<int>, __QUANTUM_CONTEXT_ALLOC>;
+inline ContextAllocator&  GetContextAllocator() {
+    static ContextAllocator allocator;
+    return allocator;
+}
+
 template <class RET>
 Context<RET>::Context(DispatcherCore& dispatcher) :
-    _promises(1, std::make_shared<Promise<RET>>()),
+    _promises(1, typename Promise<RET>::Ptr(new Promise<RET>(), Promise<RET>::deleter)),
     _dispatcher(&dispatcher),
     _terminated(ATOMIC_FLAG_INIT),
     _signal(-1),
@@ -261,7 +272,7 @@ Context<RET>::Context(Context<OTHER_RET>& other) :
     _signal(-1),
     _yield(nullptr)
 {
-    _promises.emplace_back(std::make_shared<Promise<RET>>()); //append a new promise
+    _promises.emplace_back(typename Promise<RET>::Ptr(new Promise<RET>(), Promise<RET>::deleter)); //append a new promise
 }
 
 template <class RET>
@@ -363,7 +374,7 @@ void Context<RET>::validateTaskType(ITask::Type type) const
 }
 
 template <class RET>
-void Context<RET>::validateContext(ICoroSync::ptr sync) const
+void Context<RET>::validateContext(ICoroSync::Ptr sync) const
 {
     if (static_cast<const ICoroSync*>(this) == sync.get())
     {
@@ -372,25 +383,25 @@ void Context<RET>::validateContext(ICoroSync::ptr sync) const
 }
 
 template <class RET>
-void Context<RET>::setTask(ITask::ptr task)
+void Context<RET>::setTask(ITask::Ptr task)
 {
     _task = task;
 }
 
 template <class RET>
-ITask::ptr Context<RET>::getTask() const
+ITask::Ptr Context<RET>::getTask() const
 {
     return _task;
 }
 
 template <class RET>
-void Context<RET>::setYieldHandle(Traits::yield_t& yield)
+void Context<RET>::setYieldHandle(Traits::Yield& yield)
 {
     _yield = &yield;
 }
 
 template <class RET>
-Traits::yield_t& Context<RET>::getYieldHandle()
+Traits::Yield& Context<RET>::getYieldHandle()
 {
     if (!_yield) throw std::runtime_error("Yield handle is null");
     return *_yield;
@@ -409,16 +420,15 @@ std::atomic_int& Context<RET>::signal()
 }
 
 template <class RET>
-void Context<RET>::sleep(size_t timeMs)
+void Context<RET>::sleep(std::chrono::milliseconds timeMs)
 {
     auto start = std::chrono::high_resolution_clock::now();
-    auto end = std::chrono::milliseconds(timeMs);
-    
     //wait until signalled or times out
     while (1)
     {
         yield();
-        if (std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::high_resolution_clock::now()-start) >= end)
+        auto elapsed = std::chrono::high_resolution_clock::now() - start;
+        if (std::chrono::duration_cast<std::chrono::milliseconds>(elapsed) >= timeMs)
         {
             break; //timeout expired
         }
@@ -427,16 +437,18 @@ void Context<RET>::sleep(size_t timeMs)
 
 template <class RET>
 template <class OTHER_RET, class FUNC, class ... ARGS>
-typename Context<OTHER_RET>::ptr
+typename Context<OTHER_RET>::Ptr
 Context<RET>::thenImpl(ITask::Type type, FUNC&& func, ARGS&&... args)
 {
-    auto ctx = std::shared_ptr<Context<OTHER_RET>>(new Context<OTHER_RET>(*this));
-    auto task = std::make_shared<Task>(ctx,
-                                       _task->getQueueId(),      //keep current queueId
-                                       _task->isHighPriority(),  //keep current priority
-                                       type,
-                                       std::forward<FUNC>(func),
-                                       std::forward<ARGS>(args)...);
+    auto ctx = typename Context<OTHER_RET>::Ptr(new Context<OTHER_RET>(*this),
+                                                Context<OTHER_RET>::deleter);
+    auto task = Task::Ptr(new Task(ctx,
+                                   _task->getQueueId(),      //keep current queueId
+                                   _task->isHighPriority(),  //keep current priority
+                                   type,
+                                   std::forward<FUNC>(func),
+                                   std::forward<ARGS>(args)...),
+                          Task::deleter);
     ctx->setTask(task);
     
     //Chain tasks
@@ -447,7 +459,7 @@ Context<RET>::thenImpl(ITask::Type type, FUNC&& func, ARGS&&... args)
 
 template <class RET>
 template <class OTHER_RET, class FUNC, class ... ARGS>
-typename Context<OTHER_RET>::ptr
+typename Context<OTHER_RET>::Ptr
 Context<RET>::then(FUNC&& func, ARGS&&... args)
 {
     //Previous task must either be First or Continuation types
@@ -457,7 +469,7 @@ Context<RET>::then(FUNC&& func, ARGS&&... args)
 
 template <class RET>
 template <class OTHER_RET, class FUNC, class ... ARGS>
-typename Context<OTHER_RET>::ptr
+typename Context<OTHER_RET>::Ptr
 Context<RET>::onError(FUNC&& func, ARGS&&... args)
 {
     validateTaskType(ITask::Type::ErrorHandler);
@@ -466,7 +478,7 @@ Context<RET>::onError(FUNC&& func, ARGS&&... args)
 
 template <class RET>
 template <class OTHER_RET, class FUNC, class ... ARGS>
-typename Context<OTHER_RET>::ptr
+typename Context<OTHER_RET>::Ptr
 Context<RET>::finally(FUNC&& func, ARGS&&... args)
 {
     validateTaskType(ITask::Type::Final);
@@ -474,7 +486,7 @@ Context<RET>::finally(FUNC&& func, ARGS&&... args)
 }
 
 template <class RET>
-typename Context<RET>::ptr
+typename Context<RET>::Ptr
 Context<RET>::end()
 {
     validateTaskType(ITask::Type::Termination);
@@ -486,7 +498,7 @@ Context<RET>::end()
 
 template <class RET>
 template <class OTHER_RET, class FUNC, class ... ARGS>
-typename ICoroFuture<OTHER_RET>::ptr
+typename ICoroFuture<OTHER_RET>::Ptr
 Context<RET>::postAsyncIo(FUNC&& func, ARGS&&... args)
 {
     return postAsyncIoImpl<OTHER_RET>((int)IQueue::QueueId::Any, false, std::forward<FUNC>(func), std::forward<ARGS>(args)...);
@@ -494,7 +506,7 @@ Context<RET>::postAsyncIo(FUNC&& func, ARGS&&... args)
 
 template <class RET>
 template <class OTHER_RET, class FUNC, class ... ARGS>
-typename ICoroFuture<OTHER_RET>::ptr
+typename ICoroFuture<OTHER_RET>::Ptr
 Context<RET>::postAsyncIo(int queueId, bool isHighPriority, FUNC&& func, ARGS&&... args)
 {
     return postAsyncIoImpl<OTHER_RET>(queueId, isHighPriority, std::forward<FUNC>(func), std::forward<ARGS>(args)...);
@@ -502,19 +514,20 @@ Context<RET>::postAsyncIo(int queueId, bool isHighPriority, FUNC&& func, ARGS&&.
 
 template <class RET>
 template <class OTHER_RET, class FUNC, class ... ARGS>
-typename ICoroFuture<OTHER_RET>::ptr
+typename ICoroFuture<OTHER_RET>::Ptr
 Context<RET>::postAsyncIoImpl(int queueId, bool isHighPriority, FUNC&& func, ARGS&&... args)
 {
     if (queueId < (int)IQueue::QueueId::Any)
     {
         throw std::runtime_error("Invalid queue id");
     }
-    auto promise = std::make_shared<Promise<OTHER_RET>>();
-    auto task = std::make_shared<IoTask>(promise,
-                                         queueId,
-                                         isHighPriority,
-                                         std::forward<FUNC>(func),
-                                         std::forward<ARGS>(args)...);
+    auto promise = typename Promise<OTHER_RET>::Ptr(new Promise<OTHER_RET>(), Promise<OTHER_RET>::deleter);
+    auto task = IoTask::Ptr(new IoTask(promise,
+                                       queueId,
+                                       isHighPriority,
+                                       std::forward<FUNC>(func),
+                                       std::forward<ARGS>(args)...),
+                            IoTask::deleter);
     _dispatcher->postAsyncIo(task);
     return promise->getICoroFuture();
 }
@@ -535,7 +548,7 @@ void Context<RET>::push(V &&value)
 
 template <class RET>
 template <class BUF, class V>
-void Context<RET>::push(ICoroSync::ptr sync, V &&value)
+void Context<RET>::push(ICoroSync::Ptr sync, V &&value)
 {
     std::static_pointer_cast<Promise<RET>>(_promises.back())->template push<BUF>(sync, std::forward<V>(value));
 }
@@ -549,7 +562,7 @@ V Context<RET>::pull(bool& isBufferClosed)
 
 template <class RET>
 template <class BUF, class V>
-V Context<RET>::pull(ICoroSync::ptr sync, bool& isBufferClosed)
+V Context<RET>::pull(ICoroSync::Ptr sync, bool& isBufferClosed)
 {
     return std::static_pointer_cast<Promise<RET>>(_promises.back())->getICoroFuture()->template pull<BUF>(sync, isBufferClosed);
 }
@@ -594,7 +607,7 @@ void Context<RET>::waitAt(int num) const
 }
 
 template <class RET>
-std::future_status Context<RET>::waitForAt(int num, size_t timeMs) const
+std::future_status Context<RET>::waitForAt(int num, std::chrono::milliseconds timeMs) const
 {
     return _promises[index(num)]->getIThreadFutureBase()->waitFor(timeMs);
 }
@@ -606,7 +619,7 @@ void Context<RET>::wait() const
 }
 
 template <class RET>
-std::future_status Context<RET>::waitFor(size_t timeMs) const
+std::future_status Context<RET>::waitFor(std::chrono::milliseconds timeMs) const
 {
     return waitForAt(-1, timeMs);
 }
@@ -627,7 +640,7 @@ void Context<RET>::waitAll() const
 
 template <class RET>
 template <class V>
-int Context<RET>::set(ICoroSync::ptr sync, V&& value)
+int Context<RET>::set(ICoroSync::Ptr sync, V&& value)
 {
     return std::static_pointer_cast<Promise<RET>>(_promises.back())->set(sync, std::forward<V>(value));
 }
@@ -635,7 +648,7 @@ int Context<RET>::set(ICoroSync::ptr sync, V&& value)
 template <class RET>
 template <class OTHER_RET>
 OTHER_RET Context<RET>::getAt(int num,
-                              ICoroSync::ptr sync)
+                              ICoroSync::Ptr sync)
 {
     validateContext(sync);
     return std::static_pointer_cast<Promise<OTHER_RET>>(_promises[index(num)])->getICoroFuture()->get(sync);
@@ -644,27 +657,27 @@ OTHER_RET Context<RET>::getAt(int num,
 template <class RET>
 template <class OTHER_RET>
 const OTHER_RET& Context<RET>::getRefAt(int num,
-                                        ICoroSync::ptr sync) const
+                                        ICoroSync::Ptr sync) const
 {
     validateContext(sync);
     return std::static_pointer_cast<Promise<OTHER_RET>>(_promises[index(num)])->getICoroFuture()->getRef(sync);
 }
 
 template <class RET>
-RET Context<RET>::get(ICoroSync::ptr sync)
+RET Context<RET>::get(ICoroSync::Ptr sync)
 {
     return getAt<RET>(-1, sync);
 }
 
 template <class RET>
-const RET& Context<RET>::getRef(ICoroSync::ptr sync) const
+const RET& Context<RET>::getRef(ICoroSync::Ptr sync) const
 {
     return getRefAt<RET>(-1, sync);
 }
 
 template <class RET>
 template <class OTHER_RET>
-OTHER_RET Context<RET>::getPrev(ICoroSync::ptr sync)
+OTHER_RET Context<RET>::getPrev(ICoroSync::Ptr sync)
 {
     if (_promises.size() < 2)
     {
@@ -675,7 +688,7 @@ OTHER_RET Context<RET>::getPrev(ICoroSync::ptr sync)
 
 template <class RET>
 template <class OTHER_RET>
-const OTHER_RET& Context<RET>::getPrevRef(ICoroSync::ptr sync)
+const OTHER_RET& Context<RET>::getPrevRef(ICoroSync::Ptr sync)
 {
     if (_promises.size() < 2)
     {
@@ -686,7 +699,7 @@ const OTHER_RET& Context<RET>::getPrevRef(ICoroSync::ptr sync)
 
 template <class RET>
 void Context<RET>::waitAt(int num,
-                          ICoroSync::ptr sync) const
+                          ICoroSync::Ptr sync) const
 {
     validateContext(sync);
     _promises[index(num)]->getICoroFutureBase()->wait(sync);
@@ -694,28 +707,28 @@ void Context<RET>::waitAt(int num,
 
 template <class RET>
 std::future_status Context<RET>::waitForAt(int num,
-                                           ICoroSync::ptr sync,
-                                           size_t timeMs) const
+                                           ICoroSync::Ptr sync,
+                                           std::chrono::milliseconds timeMs) const
 {
     validateContext(sync);
     return _promises[index(num)]->getICoroFutureBase()->waitFor(sync, timeMs);
 }
 
 template <class RET>
-void Context<RET>::wait(ICoroSync::ptr sync) const
+void Context<RET>::wait(ICoroSync::Ptr sync) const
 {
     waitAt(-1, sync);
 }
 
 template <class RET>
-std::future_status Context<RET>::waitFor(ICoroSync::ptr sync,
-                                         size_t timeMs) const
+std::future_status Context<RET>::waitFor(ICoroSync::Ptr sync,
+                                         std::chrono::milliseconds timeMs) const
 {
     return waitForAt(-1, sync, timeMs);
 }
 
 template <class RET>
-void Context<RET>::waitAll(ICoroSync::ptr sync) const
+void Context<RET>::waitAll(ICoroSync::Ptr sync) const
 {
     for (auto&& promise : _promises)
     {
@@ -731,7 +744,7 @@ void Context<RET>::waitAll(ICoroSync::ptr sync) const
 
 template <class RET>
 template <class OTHER_RET, class FUNC, class ... ARGS>
-typename Context<OTHER_RET>::ptr
+typename Context<OTHER_RET>::Ptr
 Context<RET>::post(FUNC&& func, ARGS&&... args)
 {
     return postImpl<OTHER_RET>((int)IQueue::QueueId::Any, false, ITask::Type::Standalone, std::forward<FUNC>(func), std::forward<ARGS>(args)...);
@@ -739,7 +752,7 @@ Context<RET>::post(FUNC&& func, ARGS&&... args)
 
 template <class RET>
 template <class OTHER_RET, class FUNC, class ... ARGS>
-typename Context<OTHER_RET>::ptr
+typename Context<OTHER_RET>::Ptr
 Context<RET>::post(int queueId, bool isHighPriority, FUNC&& func, ARGS&&... args)
 {
     return postImpl<OTHER_RET>(queueId, isHighPriority, ITask::Type::Standalone, std::forward<FUNC>(func), std::forward<ARGS>(args)...);
@@ -747,7 +760,7 @@ Context<RET>::post(int queueId, bool isHighPriority, FUNC&& func, ARGS&&... args
 
 template <class RET>
 template <class OTHER_RET, class FUNC, class ... ARGS>
-typename Context<OTHER_RET>::ptr
+typename Context<OTHER_RET>::Ptr
 Context<RET>::postFirst(FUNC&& func, ARGS&&... args)
 {
     return postImpl<OTHER_RET>((int)IQueue::QueueId::Any, false, ITask::Type::First, std::forward<FUNC>(func), std::forward<ARGS>(args)...);
@@ -755,7 +768,7 @@ Context<RET>::postFirst(FUNC&& func, ARGS&&... args)
 
 template <class RET>
 template <class OTHER_RET, class FUNC, class ... ARGS>
-typename Context<OTHER_RET>::ptr
+typename Context<OTHER_RET>::Ptr
 Context<RET>::postFirst(int queueId, bool isHighPriority, FUNC&& func, ARGS&&... args)
 {
     return postImpl<OTHER_RET>(queueId, isHighPriority, ITask::Type::First, std::forward<FUNC>(func), std::forward<ARGS>(args)...);
@@ -763,20 +776,22 @@ Context<RET>::postFirst(int queueId, bool isHighPriority, FUNC&& func, ARGS&&...
 
 template <class RET>
 template <class OTHER_RET, class FUNC, class ... ARGS>
-typename Context<OTHER_RET>::ptr
+typename Context<OTHER_RET>::Ptr
 Context<RET>::postImpl(int queueId, bool isHighPriority, ITask::Type type, FUNC&& func, ARGS&&... args)
 {
     if (queueId < (int)IQueue::QueueId::Same)
     {
         throw std::runtime_error("Invalid queue id");
     }
-    auto ctx = std::shared_ptr<Context<OTHER_RET>>(new Context<OTHER_RET>(*_dispatcher));
-    auto task = std::make_shared<Task>(ctx,
-                                       (queueId == (int)IQueue::QueueId::Same) ? _task->getQueueId() : queueId,
-                                       isHighPriority,
-                                       type,
-                                       std::forward<FUNC>(func),
-                                       std::forward<ARGS>(args)...);
+    auto ctx = typename Context<OTHER_RET>::Ptr(new Context<OTHER_RET>(*_dispatcher),
+                                                Context<OTHER_RET>::deleter);
+    auto task = Task::Ptr(new Task(ctx,
+                                   (queueId == (int)IQueue::QueueId::Same) ? _task->getQueueId() : queueId,
+                                   isHighPriority,
+                                   type,
+                                   std::forward<FUNC>(func),
+                                   std::forward<ARGS>(args)...),
+                          Task::deleter);
     ctx->setTask(task);
     if (type == ITask::Type::Standalone)
     {
@@ -785,6 +800,23 @@ Context<RET>::postImpl(int queueId, bool isHighPriority, ITask::Type type, FUNC&
     return ctx;
 }
 
+template <class RET>
+void* Context<RET>::operator new(size_t)
+{
+    return GetContextAllocator().allocate();
+}
+
+template <class RET>
+void Context<RET>::operator delete(void* p)
+{
+    GetContextAllocator().deallocate(static_cast<Context<int>*>(p));
+}
+
+template <class RET>
+void Context<RET>::deleter(Context<RET>* p)
+{
+    GetContextAllocator().dispose(reinterpret_cast<Context<int>*>(p));
+}
 
 }}
 

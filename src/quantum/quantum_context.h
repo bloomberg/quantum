@@ -43,9 +43,9 @@ class Context : public IThreadContext<RET>,
     template <class OTHER_RET> friend class Context;
     
 public:
-    using ptr = std::shared_ptr<Context<RET>>;
-    using thread_ctx = IThreadContext<RET>;
-    using coro_ctx = ICoroContext<RET>;
+    using Ptr = std::shared_ptr<Context<RET>>;
+    using ThreadCtx = IThreadContext<RET>;
+    using CoroCtx = ICoroContext<RET>;
     
     //===================================
     //              D'TOR
@@ -60,8 +60,8 @@ public:
     //===================================
     //         ITASKACCESSOR
     //===================================
-    void setTask(ITask::ptr task) final;
-    ITask::ptr getTask() const final;
+    void setTask(ITask::Ptr task) final;
+    ITask::Ptr getTask() const final;
     bool isBlocked() final;
 
     //===================================
@@ -75,9 +75,9 @@ public:
     //        ITHREADCONTEXTBASE
     //===================================
     void waitAt(int num) const final;
-    std::future_status waitForAt(int num, size_t timeMs) const final;
+    std::future_status waitForAt(int num, std::chrono::milliseconds timeMs) const final;
     void wait() const final;
-    std::future_status waitFor(size_t timeMs) const final;
+    std::future_status waitFor(std::chrono::milliseconds timeMs) const final;
     void waitAll() const final;
 
     //===================================
@@ -89,26 +89,26 @@ public:
     //===================================
     //        ICOROCONTEXTBASE
     //===================================
-    void waitAt(int num, ICoroSync::ptr sync) const final;
-    std::future_status waitForAt(int num, ICoroSync::ptr sync, size_t timeMs) const final;
-    void wait(ICoroSync::ptr sync) const final;
-    std::future_status waitFor(ICoroSync::ptr sync, size_t timeMs) const final;
-    void waitAll(ICoroSync::ptr sync) const final;
+    void waitAt(int num, ICoroSync::Ptr sync) const final;
+    std::future_status waitForAt(int num, ICoroSync::Ptr sync, std::chrono::milliseconds timeMs) const final;
+    void wait(ICoroSync::Ptr sync) const final;
+    std::future_status waitFor(ICoroSync::Ptr sync, std::chrono::milliseconds timeMs) const final;
+    void waitAll(ICoroSync::Ptr sync) const final;
     
     //===================================
     //         ICOROCONTEXT
     //===================================
-    RET get(ICoroSync::ptr sync);
-    const RET& getRef(ICoroSync::ptr sync) const final;
+    RET get(ICoroSync::Ptr sync);
+    const RET& getRef(ICoroSync::Ptr sync) const final;
     
     //===================================
     //           ICOROSYNC
     //===================================
-    void setYieldHandle(Traits::yield_t& yield) final;
-    Traits::yield_t& getYieldHandle() final;
+    void setYieldHandle(Traits::Yield& yield) final;
+    Traits::Yield& getYieldHandle() final;
     void yield() final;
     std::atomic_int& signal() final;
-    void sleep(size_t timeMs) final;
+    void sleep(std::chrono::milliseconds timeMs) final;
     
     //===================================
     //   NON-VIRTUAL IMPLEMENTATIONS
@@ -117,19 +117,19 @@ public:
     int set(V&& value);
     
     template <class V = RET>
-    int set(ICoroSync::ptr sync, V&& value);
+    int set(ICoroSync::Ptr sync, V&& value);
     
-    template <class BUF = RET, class V = typename std::enable_if_t<Traits::IsBuffer<BUF>::value, BUF>::value_type>
+    template <class BUF = RET, class V = typename std::enable_if_t<Traits::IsBuffer<BUF>::value, BUF>::ValueType>
     void push(V &&value);
     
-    template <class BUF = RET, class V = typename std::enable_if_t<Traits::IsBuffer<BUF>::value, BUF>::value_type>
-    void push(ICoroSync::ptr sync, V &&value);
+    template <class BUF = RET, class V = typename std::enable_if_t<Traits::IsBuffer<BUF>::value, BUF>::ValueType>
+    void push(ICoroSync::Ptr sync, V &&value);
     
-    template <class BUF = RET, class V = typename std::enable_if_t<Traits::IsBuffer<BUF>::value, BUF>::value_type>
+    template <class BUF = RET, class V = typename std::enable_if_t<Traits::IsBuffer<BUF>::value, BUF>::ValueType>
     V pull(bool& isBufferClosed);
     
-    template <class BUF = RET, class V = typename std::enable_if_t<Traits::IsBuffer<BUF>::value, BUF>::value_type>
-    V pull(ICoroSync::ptr sync, bool& isBufferClosed);
+    template <class BUF = RET, class V = typename std::enable_if_t<Traits::IsBuffer<BUF>::value, BUF>::ValueType>
+    V pull(ICoroSync::Ptr sync, bool& isBufferClosed);
     
     template <class BUF = RET, class = std::enable_if_t<Traits::IsBuffer<BUF>::value>>
     int closeBuffer();
@@ -141,60 +141,67 @@ public:
     const OTHER_RET& getRefAt(int num) const;
     
     template <class OTHER_RET>
-    OTHER_RET getAt(int num, ICoroSync::ptr sync);
+    OTHER_RET getAt(int num, ICoroSync::Ptr sync);
 
     template <class OTHER_RET>
-    const OTHER_RET& getRefAt(int num, ICoroSync::ptr sync) const;
+    const OTHER_RET& getRefAt(int num, ICoroSync::Ptr sync) const;
     
     template <class OTHER_RET>
-    OTHER_RET getPrev(ICoroSync::ptr sync);
+    OTHER_RET getPrev(ICoroSync::Ptr sync);
     
     template <class OTHER_RET>
-    const OTHER_RET& getPrevRef(ICoroSync::ptr sync);
+    const OTHER_RET& getPrevRef(ICoroSync::Ptr sync);
     
     //===================================
     //        TASK CONTINUATIONS
     //===================================
-    template <class OTHER_RET = int, class FUNC, class ... ARGS>
-    typename Context<OTHER_RET>::ptr
+    template <class OTHER_RET, class FUNC, class ... ARGS>
+    typename Context<OTHER_RET>::Ptr
     post(FUNC&& func, ARGS&&... args);
     
-    template <class OTHER_RET = int, class FUNC, class ... ARGS>
-    typename Context<OTHER_RET>::ptr
+    template <class OTHER_RET, class FUNC, class ... ARGS>
+    typename Context<OTHER_RET>::Ptr
     post(int queueId, bool isHighPriority, FUNC&& func, ARGS&&... args);
     
-    template <class OTHER_RET = int, class FUNC, class ... ARGS>
-    typename Context<OTHER_RET>::ptr
+    template <class OTHER_RET, class FUNC, class ... ARGS>
+    typename Context<OTHER_RET>::Ptr
     postFirst(FUNC&& func, ARGS&&... args);
     
-    template <class OTHER_RET = int, class FUNC, class ... ARGS>
-    typename Context<OTHER_RET>::ptr
+    template <class OTHER_RET, class FUNC, class ... ARGS>
+    typename Context<OTHER_RET>::Ptr
     postFirst(int queueId, bool isHighPriority, FUNC&& func, ARGS&&... args);
     
-    template <class OTHER_RET = int, class FUNC, class ... ARGS>
-    typename Context<OTHER_RET>::ptr
+    template <class OTHER_RET, class FUNC, class ... ARGS>
+    typename Context<OTHER_RET>::Ptr
     then(FUNC&& func, ARGS&&... args);
     
-    template <class OTHER_RET = int, class FUNC, class ... ARGS>
-    typename Context<OTHER_RET>::ptr
+    template <class OTHER_RET, class FUNC, class ... ARGS>
+    typename Context<OTHER_RET>::Ptr
     onError(FUNC&& func, ARGS&&... args);
     
-    template <class OTHER_RET = int, class FUNC, class ... ARGS>
-    typename Context<OTHER_RET>::ptr
+    template <class OTHER_RET, class FUNC, class ... ARGS>
+    typename Context<OTHER_RET>::Ptr
     finally(FUNC&& func, ARGS&&... args);
     
-    ptr end();
+    Ptr end();
     
     //===================================
     //           BLOCKING IO
     //===================================
-    template <class OTHER_RET = int, class FUNC, class ... ARGS>
-    typename ICoroFuture<OTHER_RET>::ptr
+    template <class OTHER_RET, class FUNC, class ... ARGS>
+    typename ICoroFuture<OTHER_RET>::Ptr
     postAsyncIo(FUNC&& func, ARGS&&... args);
     
-    template <class OTHER_RET = int, class FUNC, class ... ARGS>
-    typename ICoroFuture<OTHER_RET>::ptr
+    template <class OTHER_RET, class FUNC, class ... ARGS>
+    typename ICoroFuture<OTHER_RET>::Ptr
     postAsyncIo(int queueId, bool isHighPriority, FUNC&& func, ARGS&&... args);
+    
+    //===================================
+    //           NEW / DELETE
+    //===================================
+    static void* operator new(size_t size);
+    static void operator delete(void* p);
+    static void deleter(Context<RET>* p);
     
 private:
     explicit Context(DispatcherCore& dispatcher);
@@ -205,30 +212,30 @@ private:
     Context(IContextBase& other);
     
     template <class OTHER_RET, class FUNC, class ... ARGS>
-    typename Context<OTHER_RET>::ptr
+    typename Context<OTHER_RET>::Ptr
     thenImpl(ITask::Type type, FUNC&& func, ARGS&&... args);
 
     template <class OTHER_RET, class FUNC, class ... ARGS>
-    typename Context<OTHER_RET>::ptr
+    typename Context<OTHER_RET>::Ptr
     postImpl(int queueId, bool isHighPriority, ITask::Type type, FUNC&& func, ARGS&&... args);
     
-    template <class OTHER_RET = int, class FUNC, class ... ARGS>
-    typename ICoroFuture<OTHER_RET>::ptr
+    template <class OTHER_RET, class FUNC, class ... ARGS>
+    typename ICoroFuture<OTHER_RET>::Ptr
     postAsyncIoImpl(int queueId, bool isHighPriority, FUNC&& func, ARGS&&... args);
     
     int index(int num) const;
     
     void validateTaskType(ITask::Type type) const; //throws
     
-    void validateContext(ICoroSync::ptr sync) const; //throws
+    void validateContext(ICoroSync::Ptr sync) const; //throws
     
     //Members
-    ITask::ptr                          _task;
-    std::vector<IPromiseBase::ptr>      _promises;
+    ITask::Ptr                          _task;
+    std::vector<IPromiseBase::Ptr>      _promises;
     DispatcherCore*                     _dispatcher;
     std::atomic_flag                    _terminated;
     std::atomic_int                     _signal;
-    Traits::yield_t*                    _yield;
+    Traits::Yield*                      _yield;
 };
 
 }}

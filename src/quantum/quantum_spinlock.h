@@ -52,47 +52,47 @@ public:
     /// @brief Unlocks the current object.
     /// @note Never blocks.
     void unlock();
-	
+    
     //==============================================================================================
     //                                      class SpinLock::Guard
     //==============================================================================================
     /// @class SpinLock::Guard
     /// @brief RAII-style mechanism for SpinLock ownership.
     ///        Acquires a SpinLock on construction and releases it inside the destructor.
-	class Guard
-	{
-	public:
+    class Guard
+    {
+    public:
         /// @brief Construct this object and lock the passed-in spinlock.
         /// @param[in] lock Spinlock which protects a scope during the lifetime of the Guard.
         /// @note Blocks the current thread until the spinlock is acquired.
-		explicit Guard(SpinLock& lock);
+        explicit Guard(SpinLock& lock);
         
         /// @brief Destroy this object and unlock the underlying spinlock.
-		~Guard();
-	private:
-		SpinLock&	_spinlock;
-	};
-	
+        ~Guard();
+    private:
+        SpinLock&	_spinlock;
+    };
+    
     //==============================================================================================
     //                                 class SpinLock::ReverseGuard
     //==============================================================================================
     /// @class SpinLock::ReverseGuard
     /// @brief Opposite form of RAII-style mechanism for SpinLock ownership.
     ///        Releases a SpinLock on construction and acquires it inside the destructor.
-	class ReverseGuard
-	{
-	public:
+    class ReverseGuard
+    {
+    public:
         /// @brief Release the passed-in spinlock.
         /// @param[in] lock Reference to the spinlock to release.
-		explicit ReverseGuard(SpinLock& lock);
+        explicit ReverseGuard(SpinLock& lock);
         
         /// @brief Acquire the underlying spinlock.
         /// @note This will block the current thread until the spinlock is acquired.
-		~ReverseGuard();
-	private:
-		SpinLock&	_spinlock;
-	};
- 		
+        ~ReverseGuard();
+    private:
+        SpinLock&	_spinlock;
+    };
+    
 private:
     std::atomic_flag 	_flag;
 };

@@ -41,8 +41,8 @@ class Task : public ITaskContinuation,
              public std::enable_shared_from_this<Task>
 {
 public:
-    using ptr = std::shared_ptr<Task>;
-    using wptr = std::weak_ptr<Task>;
+    using Ptr = std::shared_ptr<Task>;
+    using WeakPtr = std::weak_ptr<Task>;
     
     template <class RET, class FUNC, class ... ARGS>
     Task(std::shared_ptr<Context<RET>> ctx,
@@ -77,24 +77,31 @@ public:
     bool isHighPriority() const final;
     
     //ITaskContinuation
-    ITaskContinuation::ptr getNextTask() final;
-    void setNextTask(ITaskContinuation::ptr nextTask) final;
-    ITaskContinuation::ptr getPrevTask() final;
-    void setPrevTask(ITaskContinuation::ptr prevTask) final;
-    ITaskContinuation::ptr getFirstTask() final;
+    ITaskContinuation::Ptr getNextTask() final;
+    void setNextTask(ITaskContinuation::Ptr nextTask) final;
+    ITaskContinuation::Ptr getPrevTask() final;
+    void setPrevTask(ITaskContinuation::Ptr prevTask) final;
+    ITaskContinuation::Ptr getFirstTask() final;
     
     //Returns a final or error handler task in the chain and in the process frees all
     //the subsequent continuation tasks
-    ITaskContinuation::ptr getErrorHandlderOrFinalTask() final;
+    ITaskContinuation::Ptr getErrorHandlerOrFinalTask() final;
+    
+    //===================================
+    //           NEW / DELETE
+    //===================================
+    static void* operator new(size_t size);
+    static void operator delete(void* p);
+    static void deleter(Task* p);
     
 private:
-    ITaskAccessor::ptr          _ctx; //holds execution context
-    Traits::context_t           _coro; //the current runnable coroutine
+    ITaskAccessor::Ptr          _ctx; //holds execution context
+    Traits::Coroutine           _coro; //the current runnable coroutine
     int                         _queueId;
     bool                        _isHighPriority;
     int                         _rc; //return from the co-routine
-    ITaskContinuation::ptr      _next; //Task scheduled to run after current completes.
-    ITaskContinuation::wptr     _prev; //Previous task in the chain
+    ITaskContinuation::Ptr      _next; //Task scheduled to run after current completes.
+    ITaskContinuation::WeakPtr  _prev; //Previous task in the chain
     ITask::Type                 _type;
     std::atomic_flag            _terminated;
 };

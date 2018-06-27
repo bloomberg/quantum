@@ -37,7 +37,7 @@ struct YieldingThreadDuration
     /// @param[in] time Time used for the sleep duration.
     void operator()(size_t time = 10)
     {
-#ifdef _QUANTUM_YIELD_WITHOUT_SLEEP
+#ifdef __QUANTUM_YIELD_WITHOUT_SLEEP
         //Busy wait
         UNUSED(time);
         std::this_thread::yield();

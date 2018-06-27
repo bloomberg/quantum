@@ -74,7 +74,7 @@ public:
     /// @param[in] sync Pointer to a coroutine synchronization object.
     /// @param[in] mutex Mutex object which is locked by the current coroutine.
     /// @note This function should be called from a coroutine.
-    void wait(ICoroSync::ptr sync,
+    void wait(ICoroSync::Ptr sync,
               Mutex& mutex);
     
     /// @brief Block the current thread until the condition is signalled via notifyOne() or notifyAll().
@@ -112,7 +112,7 @@ public:
     /// @param[in] predicate Function or functor to be tested as exit condition of the endless while loop.
     /// @note This function should be called from a coroutine.
     template <class PREDICATE = bool()>
-    void wait(ICoroSync::ptr sync,
+    void wait(ICoroSync::Ptr sync,
               Mutex& mutex,
               PREDICATE predicate);
     
@@ -140,7 +140,7 @@ public:
     /// @return True if the mutex was acquired before 'time' expired or false otherwise.
     /// @note This function should be called from a coroutine.
     template <class REP, class PERIOD>
-    bool waitFor(ICoroSync::ptr sync,
+    bool waitFor(ICoroSync::Ptr sync,
                  Mutex& mutex,
                  const std::chrono::duration<REP, PERIOD>& time);
     
@@ -189,7 +189,7 @@ public:
     /// @return True if the mutex was acquired before 'time' expired, otherwise the predicate result after timeout.
     /// @note This function should be called from a coroutine.
     template <class REP, class PERIOD, class PREDICATE = bool()>
-    bool waitFor(ICoroSync::ptr sync,
+    bool waitFor(ICoroSync::Ptr sync,
                  Mutex& mutex,
                  const std::chrono::duration<REP, PERIOD>& time,
                  PREDICATE predicate);

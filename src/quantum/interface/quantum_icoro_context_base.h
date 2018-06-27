@@ -17,6 +17,7 @@
 #define QUANTUM_ICORO_CONTEXT_BASE_H
 
 #include <future>
+#include <chrono>
 #include <quantum/interface/quantum_icontext_base.h>
 #include <quantum/interface/quantum_icoro_sync.h>
 
@@ -31,20 +32,20 @@ namespace quantum {
 struct ICoroContextBase : public virtual IContextBase,
                           public ICoroSync
 {
-    using ptr = std::shared_ptr<ICoroContextBase>;
+    using Ptr = std::shared_ptr<ICoroContextBase>;
     
     /// @brief Waits for the future associated with this context to be ready.
     /// @param[in] sync Pointer to the coroutine synchronization object.
     /// @note Blocks until the future is ready or until an exception is thrown.
-    virtual void wait(ICoroSync::ptr sync) const = 0;
+    virtual void wait(ICoroSync::Ptr sync) const = 0;
     
     /// @brief Waits for the future associated with this context to be ready for a maximum of 'timeMs' milliseconds.
     /// @param[in] sync Pointer to the coroutine synchronization object.
     /// @param[in] timeMs The maximum amount of milliseconds to wait until the future value becomes ready.
     /// @return 'ready' if value was posted before duration expired or 'timeout' otherwise.
     /// @note Blocks until the value is ready, until 'timeMs' duration expires or until an exception is thrown.
-    virtual std::future_status waitFor(ICoroSync::ptr sync,
-                                       size_t timeMs) const = 0;
+    virtual std::future_status waitFor(ICoroSync::Ptr sync,
+                                       std::chrono::milliseconds timeMs) const = 0;
     
     /// @brief Waits for the future in the 'num-th' continuation context to be ready.
     /// @details Allowed range for num is [-1, total_continuations). -1 is equivalent of calling wait() or
@@ -54,7 +55,7 @@ struct ICoroContextBase : public virtual IContextBase,
     /// @param[in] sync Pointer to the coroutine synchronization object.
     /// @note Blocks until the value is ready or an exception is thrown.
     virtual void waitAt(int num,
-                        ICoroSync::ptr sync) const = 0;
+                        ICoroSync::Ptr sync) const = 0;
     
     /// @brief Waits for the future in the 'num-th' continuation context to be ready for a maximum of 'timeMs' milliseconds.
     /// @details Allowed range for num is [-1, total_continuations). -1 is equivalent of calling wait() or
@@ -66,13 +67,13 @@ struct ICoroContextBase : public virtual IContextBase,
     /// @return 'ready' if value was posted before duration expired or 'timeout' otherwise.
     /// @note Blocks until the value is ready, until 'timeMs' duration expires or until an exception is thrown.
     virtual std::future_status waitForAt(int num,
-                                         ICoroSync::ptr sync,
-                                         size_t timeMs) const = 0;
+                                         ICoroSync::Ptr sync,
+                                         std::chrono::milliseconds timeMs) const = 0;
     
     /// @brief Wait for all the futures in the continuation chain to be ready.
     /// @param[in] sync Pointer to the coroutine synchronization object.
     /// @note Blocks until all future values are ready. If any future throws, the exception is swallowed.
-    virtual void waitAll(ICoroSync::ptr sync) const = 0;
+    virtual void waitAll(ICoroSync::Ptr sync) const = 0;
 };
 
 }}
