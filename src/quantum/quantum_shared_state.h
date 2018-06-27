@@ -1,0 +1,120 @@
+/*
+** Copyright 2018 Bloomberg Finance L.P.
+**
+** Licensed under the Apache License, Version 2.0 (the "License");
+** you may not use this file except in compliance with the License.
+** You may obtain a copy of the License at
+**
+**     http://www.apache.org/licenses/LICENSE-2.0
+**
+** Unless required by applicable law or agreed to in writing, software
+** distributed under the License is distributed on an "AS IS" BASIS,
+** WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+** See the License for the specific language governing permissions and
+** limitations under the License.
+*/
+#ifndef QUANTUM_SHARED_STATE_MUTEX_H
+#define QUANTUM_SHARED_STATE_MUTEX_H
+
+#include <memory>
+#include <exception>
+#include <quantum/quantum_traits.h>
+#include <quantum/quantum_future_state.h>
+#include <quantum/quantum_yielding_thread.h>
+#include <quantum/interface/quantum_icontext.h>
+#include <quantum/quantum_condition_variable.h>
+#include <quantum/quantum_buffer.h>
+
+namespace Bloomberg {
+namespace quantum {
+
+//==============================================================================================
+//                                 class SharedState
+//==============================================================================================
+/// @class SharedState.
+/// @brief Shared state used between a Promise and a Future to exchange values.
+/// @note For internal use only.
+template <class T>
+class SharedState
+{
+    friend class Promise<T>;
+    
+public:
+    template <class V = T>
+    int set(V&& value);
+    
+    template <class V = T>
+    int set(ICoroSync::ptr sync, V&& value);
+    
+    //Moves value out of the shared state
+    T get();
+    
+    T get(ICoroSync::ptr sync);
+    
+    const T& getRef() const;
+    
+    const T& getRef(ICoroSync::ptr sync) const;
+    
+    void breakPromise();
+    
+    void wait() const;
+    
+    void wait(ICoroSync::ptr sync) const;
+    
+    template<class REP, class PERIOD>
+    std::future_status waitFor(const std::chrono::duration<REP, PERIOD> &time) const;
+    
+    template<class REP, class PERIOD>
+    std::future_status waitFor(ICoroSync::ptr sync,
+                               const std::chrono::duration<REP, PERIOD> &time) const;
+    
+    int setException(std::exception_ptr ex);
+    
+    int setException(ICoroSync::ptr sync,
+                     std::exception_ptr ex);
+    
+    //=========================================================================
+    //                         Buffered future access
+    //=========================================================================
+    template <class BUF = T, class V = typename std::enable_if_t<Traits::IsBuffer<BUF>::value, BUF>::value_type>
+    void push(V&& value);
+    
+    template <class BUF = T, class V = typename std::enable_if_t<Traits::IsBuffer<BUF>::value, BUF>::value_type>
+    void push(ICoroSync::ptr sync, V&& value);
+    
+    template <class BUF = T, class V = typename std::enable_if_t<Traits::IsBuffer<BUF>::value, BUF>::value_type>
+    V pull(bool& isBufferClosed);
+    
+    template <class BUF = T, class V = typename std::enable_if_t<Traits::IsBuffer<BUF>::value, BUF>::value_type>
+    V pull(ICoroSync::ptr sync, bool& isBufferClosed);
+    
+    template <class BUF = T, class = std::enable_if_t<Traits::IsBuffer<BUF>::value>>
+    int closeBuffer();
+    
+private:
+    SharedState();
+    
+    void conditionWait() const;
+    
+    void conditionWait(ICoroSync::ptr sync) const;
+    
+    void checkPromiseState() const;
+    
+    bool stateHasChanged() const;
+    
+    template <class BUF = T, typename = std::enable_if_t<Traits::IsBuffer<BUF>::value>>
+    bool bufferStateHasChanged(BufferStatus status) const;
+    
+    // ============================= MEMBERS ==============================
+    mutable ConditionVariable       _cond;
+    mutable Mutex                   _mutex;
+    FutureState                     _state;
+    std::exception_ptr              _exception;
+    T                               _value;
+};
+
+}}
+
+#include <quantum/impl/quantum_shared_state_impl.h>
+
+#endif //QUANTUM_SHARED_STATE_MUTEX_H
