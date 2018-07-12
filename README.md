@@ -109,8 +109,9 @@ To use the library simply include `<quantum/quantum.h>` in your application. Als
 The following compiler options can be set when building your application:
 * `__QUANTUM_PRINT_DEBUG`         : Prints debug and error information to `stdout` and `stderr` respectively.
 * `__QUANTUM_YIELD_WITHOUT_SLEEP` : Yields a coroutine thread instead of sleeping it when blocked. This could result in performance improvement in some cases.
+* `__QUANTUM_DEFAULT_STACK_ALLOC_SIZE=<NUM>` : Change the size of the stack allocation buffers for internal objects. Default is 1000.
 
 ### Documentation
-Please see the [wiki](https://bbgithub.dev.bloomberg.com/adamian/quantum-public/wiki) page for a detailed overview of this library, use-case scenarios and examples.
+Please see the [wiki](https://github.com/bloomberg/quantum/wiki) page for a detailed overview of this library, use-case scenarios and examples.
 
-For class description visit the [API](https://bbgithub.dev.bloomberg.com/pages/adamian/quantum-public/) page.
+For class description visit the [API reference](https://bloomberg.github.io/quantum) page.
