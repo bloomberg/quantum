@@ -35,15 +35,14 @@ var hierarchy =
       ] ]
     ] ],
     [ "false_type", null, [
-      [ "Bloomberg::quantum::Traits::IsBuffer< T >", "da/d88/structBloomberg_1_1quantum_1_1Traits_1_1IsBuffer.html", null ],
-      [ "Bloomberg::quantum::Traits::IsReferenceWrapper< T >", "d8/d38/structBloomberg_1_1quantum_1_1Traits_1_1IsReferenceWrapper.html", null ]
+      [ "Bloomberg::quantum::Traits::IsBuffer< T >", "da/d88/structBloomberg_1_1quantum_1_1Traits_1_1IsBuffer.html", null ]
     ] ],
-    [ "SpinLock::Guard", "de/d78/classSpinLock_1_1Guard.html", null ],
-    [ "Bloomberg::quantum::Mutex::Guard", "d8/dbb/classBloomberg_1_1quantum_1_1Mutex_1_1Guard.html", null ],
     [ "Bloomberg::quantum::ITerminate::Guard", "d5/dae/classBloomberg_1_1quantum_1_1ITerminate_1_1Guard.html", null ],
     [ "Bloomberg::quantum::SpinLock::Guard", "db/de4/classBloomberg_1_1quantum_1_1SpinLock_1_1Guard.html", null ],
+    [ "Bloomberg::quantum::Mutex::Guard", "d8/dbb/classBloomberg_1_1quantum_1_1Mutex_1_1Guard.html", null ],
     [ "ITerminate::Guard", "d2/dad/classITerminate_1_1Guard.html", null ],
     [ "Mutex::Guard", "df/df3/classMutex_1_1Guard.html", null ],
+    [ "SpinLock::Guard", "de/d78/classSpinLock_1_1Guard.html", null ],
     [ "Bloomberg::quantum::IContextBase", "d8/db0/structBloomberg_1_1quantum_1_1IContextBase.html", [
       [ "Bloomberg::quantum::ICoroContextBase", "de/d67/structBloomberg_1_1quantum_1_1ICoroContextBase.html", [
         [ "Bloomberg::quantum::ICoroContext< RET >", "d5/dd1/structBloomberg_1_1quantum_1_1ICoroContext.html", [
@@ -108,8 +107,7 @@ var hierarchy =
     [ "Bloomberg::quantum::StackAllocator< T, SIZE >", "d0/d75/structBloomberg_1_1quantum_1_1StackAllocator.html", null ],
     [ "Bloomberg::quantum::Traits", "d6/d86/structBloomberg_1_1quantum_1_1Traits.html", null ],
     [ "true_type", null, [
-      [ "Bloomberg::quantum::Traits::IsBuffer< Buffer< T > >", "d0/dc6/structBloomberg_1_1quantum_1_1Traits_1_1IsBuffer_3_01Buffer_3_01T_01_4_01_4.html", null ],
-      [ "Bloomberg::quantum::Traits::IsReferenceWrapper< std::reference_wrapper< U > >", "db/d0a/structBloomberg_1_1quantum_1_1Traits_1_1IsReferenceWrapper_3_01std_1_1reference__wrapper_3_01U_01_4_01_4.html", null ]
+      [ "Bloomberg::quantum::Traits::IsBuffer< Buffer< T > >", "d0/dc6/structBloomberg_1_1quantum_1_1Traits_1_1IsBuffer_3_01Buffer_3_01T_01_4_01_4.html", null ]
     ] ],
     [ "Bloomberg::quantum::Util", "d1/db1/structBloomberg_1_1quantum_1_1Util.html", null ],
     [ "Bloomberg::quantum::YieldingThreadDuration< DURATION >", "dd/d4a/structBloomberg_1_1quantum_1_1YieldingThreadDuration.html", null ]

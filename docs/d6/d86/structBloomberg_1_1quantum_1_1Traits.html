@@ -88,7 +88,6 @@ $(document).ready(function(){initNavTree('d6/d86/structBloomberg_1_1quantum_1_1T
   <div class="summary">
 <a href="#nested-classes">Classes</a> &#124;
 <a href="#pub-types">Public Types</a> &#124;
-<a href="#pub-static-methods">Static Public Member Functions</a> &#124;
 <a href="../../d3/dc9/structBloomberg_1_1quantum_1_1Traits-members.html">List of all members</a>  </div>
   <div class="headertitle">
 <div class="title">Bloomberg::quantum::Traits Struct Reference</div>  </div>
@@ -108,10 +107,6 @@ Classes</h2></td></tr>
 <tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:"><td class="memItemLeft" align="right" valign="top">struct &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d0/dc6/structBloomberg_1_1quantum_1_1Traits_1_1IsBuffer_3_01Buffer_3_01T_01_4_01_4.html">IsBuffer&lt; Buffer&lt; T &gt; &gt;</a></td></tr>
 <tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:"><td class="memItemLeft" align="right" valign="top">struct &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d8/d38/structBloomberg_1_1quantum_1_1Traits_1_1IsReferenceWrapper.html">IsReferenceWrapper</a></td></tr>
-<tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:"><td class="memItemLeft" align="right" valign="top">struct &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../db/d0a/structBloomberg_1_1quantum_1_1Traits_1_1IsReferenceWrapper_3_01std_1_1reference__wrapper_3_01U_01_4_01_4.html">IsReferenceWrapper&lt; std::reference_wrapper&lt; U &gt; &gt;</a></td></tr>
-<tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a name="pub-types"></a>
 Public Types</h2></td></tr>
@@ -121,15 +116,6 @@ Public Types</h2></td></tr>
 <tr class="separator:a2730a4e218f1af1a4e3f64e80ed7bbfc"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:ae44b80c95477d906df75b33bce43c9e5"><td class="memItemLeft" align="right" valign="top">using&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d6/d86/structBloomberg_1_1quantum_1_1Traits.html#ae44b80c95477d906df75b33bce43c9e5">Coroutine</a> = typename BoostCoro::push_type</td></tr>
 <tr class="separator:ae44b80c95477d906df75b33bce43c9e5"><td class="memSeparator" colspan="2">&#160;</td></tr>
-</table><table class="memberdecls">
-<tr class="heading"><td colspan="2"><h2 class="groupheader"><a name="pub-static-methods"></a>
-Static Public Member Functions</h2></td></tr>
-<tr class="memitem:a2860e28c633ebacf1d4facb5a0064413"><td class="memTemplParams" colspan="2">template&lt;class T &gt; </td></tr>
-<tr class="memitem:a2860e28c633ebacf1d4facb5a0064413"><td class="memTemplItemLeft" align="right" valign="top">static auto&#160;</td><td class="memTemplItemRight" valign="bottom"><a class="el" href="../../d6/d86/structBloomberg_1_1quantum_1_1Traits.html#a2860e28c633ebacf1d4facb5a0064413">IsIteratableImpl</a> (int) -&gt; decltype(std::begin(std::declval&lt; T &amp;&gt;()) !=std::end(std::declval&lt; T &amp;&gt;()),++std::declval&lt; decltype(std::begin(std::declval&lt; T &amp;&gt;()))&amp;&gt;(), void(*std::begin(std::declval&lt; T &amp;&gt;())), std::true_type</td></tr>
-<tr class="separator:a2860e28c633ebacf1d4facb5a0064413"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:adbf690a377c53e5629d97dc14b20d379"><td class="memTemplParams" colspan="2">template&lt;class T &gt; </td></tr>
-<tr class="memitem:adbf690a377c53e5629d97dc14b20d379"><td class="memTemplItemLeft" align="right" valign="top">static std::false_type&#160;</td><td class="memTemplItemRight" valign="bottom"><a class="el" href="../../d6/d86/structBloomberg_1_1quantum_1_1Traits.html#adbf690a377c53e5629d97dc14b20d379">IsIteratableImpl</a> (...)</td></tr>
-<tr class="separator:adbf690a377c53e5629d97dc14b20d379"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table>
 <a name="details" id="details"></a><h2 class="groupheader">Detailed Description</h2>
 <div class="textblock"><p>Contains definitions for various traits used by this library. For internal use only. </p>
@@ -176,70 +162,6 @@ Static Public Member Functions</h2></td></tr>
 
 </div>
 </div>
-<h2 class="groupheader">Member Function Documentation</h2>
-<a id="a2860e28c633ebacf1d4facb5a0064413"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a2860e28c633ebacf1d4facb5a0064413">&#9670;&nbsp;</a></span>IsIteratableImpl() <span class="overload">[1/2]</span></h2>
-
-<div class="memitem">
-<div class="memproto">
-<div class="memtemplate">
-template&lt;class T &gt; </div>
-<table class="mlabels">
-  <tr>
-  <td class="mlabels-left">
-      <table class="memname">
-        <tr>
-          <td class="memname">static auto Bloomberg::quantum::Traits::IsIteratableImpl </td>
-          <td>(</td>
-          <td class="paramtype">int&#160;</td>
-          <td class="paramname"></td><td>)</td>
-          <td> -&gt; decltype (
-        std::begin(std::declval&lt;T&amp;&gt;()) != std::end(std::declval&lt;T&amp;&gt;()), 
-        ++std::declval&lt;decltype(std::begin(std::declval&lt;T&amp;&gt;()))&amp;&gt;(), 
-        void(*std::begin(std::declval&lt;T&amp;&gt;())), 
-        std::true_type</td>
-        </tr>
-      </table>
-  </td>
-  <td class="mlabels-right">
-<span class="mlabels"><span class="mlabel">inline</span><span class="mlabel">static</span></span>  </td>
-  </tr>
-</table>
-</div><div class="memdoc">
-
-</div>
-</div>
-<a id="adbf690a377c53e5629d97dc14b20d379"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#adbf690a377c53e5629d97dc14b20d379">&#9670;&nbsp;</a></span>IsIteratableImpl() <span class="overload">[2/2]</span></h2>
-
-<div class="memitem">
-<div class="memproto">
-<div class="memtemplate">
-template&lt;class T &gt; </div>
-<table class="mlabels">
-  <tr>
-  <td class="mlabels-left">
-      <table class="memname">
-        <tr>
-          <td class="memname">static std::false_type Bloomberg::quantum::Traits::IsIteratableImpl </td>
-          <td>(</td>
-          <td class="paramtype">&#160;</td>
-          <td class="paramname"><em>...</em></td><td>)</td>
-          <td></td>
-        </tr>
-      </table>
-  </td>
-  <td class="mlabels-right">
-<span class="mlabels"><span class="mlabel">static</span></span>  </td>
-  </tr>
-</table>
-</div><div class="memdoc">
-
-</div>
-</div>
-<hr/>The documentation for this struct was generated from the following file:<ul>
-<li>/home/adamian/mbig/git/quantum-public/src/quantum/<a class="el" href="../../de/dcb/quantum__traits_8h_source.html">quantum_traits.h</a></li>
-</ul>
 </div><!-- contents -->
 </div><!-- doc-content -->
 <!-- start footer part -->

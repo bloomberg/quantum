@@ -1,11 +1,18 @@
 var searchData=
 [
-  ['address',['address',['../d0/d75/structBloomberg_1_1quantum_1_1StackAllocator.html#aa3c8cb250aeeb67b29f002543964aee0',1,'Bloomberg::quantum::StackAllocator::address(reference x) const'],['../d0/d75/structBloomberg_1_1quantum_1_1StackAllocator.html#a5bed34d56cd6760f1a37526c75a3be5a',1,'Bloomberg::quantum::StackAllocator::address(const_reference x) const']]],
-  ['all',['All',['../d2/db0/structBloomberg_1_1quantum_1_1IQueue.html#a5d3e6340ac9844b3fabb6759e1b7facbab1c94ca2fbc3e78fc30069c8d0f01680',1,'Bloomberg::quantum::IQueue::All()'],['../d2/db0/structBloomberg_1_1quantum_1_1IQueue.html#aec9f17dc0836162032f0239b2415649eab1c94ca2fbc3e78fc30069c8d0f01680',1,'Bloomberg::quantum::IQueue::All()']]],
-  ['allocate',['allocate',['../d0/d75/structBloomberg_1_1quantum_1_1StackAllocator.html#a7b3563f318adbb1f72742a2a421d5be6',1,'Bloomberg::quantum::StackAllocator']]],
-  ['allocatedblocks',['allocatedBlocks',['../d0/d75/structBloomberg_1_1quantum_1_1StackAllocator.html#aa822c38c66fe1e6bd0b8a8b158db48a7',1,'Bloomberg::quantum::StackAllocator']]],
-  ['allocatedheapblocks',['allocatedHeapBlocks',['../d0/d75/structBloomberg_1_1quantum_1_1StackAllocator.html#a5e5fa9bfa19f49c59c533b284fd008e0',1,'Bloomberg::quantum::StackAllocator']]],
-  ['any',['Any',['../d2/db0/structBloomberg_1_1quantum_1_1IQueue.html#aec9f17dc0836162032f0239b2415649eaed36a1ef76a59ee3f15180e0441188ad',1,'Bloomberg::quantum::IQueue']]],
-  ['apply',['apply',['../dc/d48/namespaceBloomberg_1_1quantum.html#a0f21d0f802a9ff45476fc34eadf136bf',1,'Bloomberg::quantum']]],
-  ['apply_5fimpl',['apply_impl',['../dc/d48/namespaceBloomberg_1_1quantum.html#acc8a3dde9f6164beb2ff8fefc7759b23',1,'Bloomberg::quantum']]]
+  ['bindcaller',['BindCaller',['../d1/db1/structBloomberg_1_1quantum_1_1Util.html#a0a5a8a5b1cccc67956984f196479cbbc',1,'Bloomberg::quantum::Util']]],
+  ['bindiocaller',['BindIoCaller',['../d1/db1/structBloomberg_1_1quantum_1_1Util.html#a87eef0ea0898a28912d27fc6f0c348c2',1,'Bloomberg::quantum::Util']]],
+  ['bloomberg',['Bloomberg',['../d6/db9/namespaceBloomberg.html',1,'']]],
+  ['boostcoro',['BoostCoro',['../d6/d86/structBloomberg_1_1quantum_1_1Traits.html#a9b6706411418ca7a9e3eac3fd45fd997',1,'Bloomberg::quantum::Traits']]],
+  ['breakpromise',['breakPromise',['../d2/df0/classBloomberg_1_1quantum_1_1SharedState.html#a8f41b9ba8a27ddf54abab7ce18e2b29f',1,'Bloomberg::quantum::SharedState']]],
+  ['brokenpromise',['BrokenPromise',['../dc/d48/namespaceBloomberg_1_1quantum.html#aae5974140a54463c3c55040f00e6f70ba30a0125c796cabdb8c4b0073aff78888',1,'Bloomberg::quantum']]],
+  ['brokenpromiseexception',['BrokenPromiseException',['../d1/d0d/structBloomberg_1_1quantum_1_1BrokenPromiseException.html',1,'Bloomberg::quantum::BrokenPromiseException'],['../d1/d0d/structBloomberg_1_1quantum_1_1BrokenPromiseException.html#aa4911e1e940953934dd444fc97dde5ed',1,'Bloomberg::quantum::BrokenPromiseException::BrokenPromiseException()']]],
+  ['buffer',['Buffer',['../d1/d87/classBloomberg_1_1quantum_1_1Buffer.html',1,'Bloomberg::quantum::Buffer&lt; T &gt;'],['../d1/d87/classBloomberg_1_1quantum_1_1Buffer.html#a01d8a7561098e82fce67e970b2b86556',1,'Bloomberg::quantum::Buffer::Buffer()']]],
+  ['buffer_5ftype',['buffer_type',['../d0/d75/structBloomberg_1_1quantum_1_1StackAllocator.html#a302a667364f149f7f3179b366192a0b9',1,'Bloomberg::quantum::StackAllocator']]],
+  ['bufferclosed',['BufferClosed',['../dc/d48/namespaceBloomberg_1_1quantum.html#aae5974140a54463c3c55040f00e6f70ba444aecf3cf9ff4046b30c4d603967093',1,'Bloomberg::quantum']]],
+  ['bufferclosedexception',['BufferClosedException',['../d2/dfa/structBloomberg_1_1quantum_1_1BufferClosedException.html',1,'Bloomberg::quantum::BufferClosedException'],['../d2/dfa/structBloomberg_1_1quantum_1_1BufferClosedException.html#af942eed36d3c72f23accd9c4c826f949',1,'Bloomberg::quantum::BufferClosedException::BufferClosedException()']]],
+  ['bufferingdata',['BufferingData',['../dc/d48/namespaceBloomberg_1_1quantum.html#aae5974140a54463c3c55040f00e6f70baaa217200c8ae10d76e314216bc4f29ab',1,'Bloomberg::quantum']]],
+  ['bufferingdataexception',['BufferingDataException',['../d8/dde/structBloomberg_1_1quantum_1_1BufferingDataException.html',1,'Bloomberg::quantum::BufferingDataException'],['../d8/dde/structBloomberg_1_1quantum_1_1BufferingDataException.html#aa97b564701528ec052f1856c219e9cff',1,'Bloomberg::quantum::BufferingDataException::BufferingDataException()']]],
+  ['bufferstatus',['BufferStatus',['../dc/d48/namespaceBloomberg_1_1quantum.html#a9322decc3c78f19a6262e572bd276b5f',1,'Bloomberg::quantum']]],
+  ['quantum',['quantum',['../dc/d48/namespaceBloomberg_1_1quantum.html',1,'Bloomberg']]]
 ];

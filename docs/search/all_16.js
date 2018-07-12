@@ -1,6 +1,22 @@
 var searchData=
 [
-  ['yield',['Yield',['../d6/d86/structBloomberg_1_1quantum_1_1Traits.html#a2730a4e218f1af1a4e3f64e80ed7bbfc',1,'Bloomberg::quantum::Traits::Yield()'],['../d3/d63/structBloomberg_1_1quantum_1_1ICoroSync.html#a2eca1ca5aa6e819c88a65214289290d4',1,'Bloomberg::quantum::ICoroSync::yield()'],['../d8/df7/classBloomberg_1_1quantum_1_1Context.html#a83acb42a49d715661b7489479a2cbd53',1,'Bloomberg::quantum::Context::yield()']]],
-  ['yieldingthread',['YieldingThread',['../dc/d48/namespaceBloomberg_1_1quantum.html#a1f84cd11aaef5c4bd676d0472d78e5cd',1,'Bloomberg::quantum']]],
-  ['yieldingthreadduration',['YieldingThreadDuration',['../dd/d4a/structBloomberg_1_1quantum_1_1YieldingThreadDuration.html',1,'Bloomberg::quantum']]]
+  ['_7econditionvariable',['~ConditionVariable',['../da/d9d/classBloomberg_1_1quantum_1_1ConditionVariable.html#a08203af67a4ce39ca5e1e6769708a38b',1,'Bloomberg::quantum::ConditionVariable']]],
+  ['_7econtext',['~Context',['../d8/df7/classBloomberg_1_1quantum_1_1Context.html#a27f69b3023acdc46fc3145db80ea1b68',1,'Bloomberg::quantum::Context']]],
+  ['_7ederivedfrom',['~DerivedFrom',['../db/db8/structBloomberg_1_1quantum_1_1Traits_1_1DerivedFrom.html#a58de90b9397ea0c48c3cbe37866ddb3d',1,'Bloomberg::quantum::Traits::DerivedFrom']]],
+  ['_7edispatchercore',['~DispatcherCore',['../da/daa/classBloomberg_1_1quantum_1_1DispatcherCore.html#ae747f986c1d7522fd4ed0c4b3de96732',1,'Bloomberg::quantum::DispatcherCore']]],
+  ['_7eguard',['~Guard',['../d5/dae/classBloomberg_1_1quantum_1_1ITerminate_1_1Guard.html#a935713cd21906b3fd3b5c8b6346d902c',1,'Bloomberg::quantum::ITerminate::Guard::~Guard()'],['../d8/dbb/classBloomberg_1_1quantum_1_1Mutex_1_1Guard.html#a328f4a28d4e3f0a53bbf249ff81b4c3e',1,'Bloomberg::quantum::Mutex::Guard::~Guard()'],['../db/de4/classBloomberg_1_1quantum_1_1SpinLock_1_1Guard.html#ad5a1d7a7122a97faf3bb5bcb011739db',1,'Bloomberg::quantum::SpinLock::Guard::~Guard()']]],
+  ['_7eicontextbase',['~IContextBase',['../d8/db0/structBloomberg_1_1quantum_1_1IContextBase.html#a39a012af6799019e99e1ab5364bb2c86',1,'Bloomberg::quantum::IContextBase']]],
+  ['_7eicorofuturebase',['~ICoroFutureBase',['../dc/d82/structBloomberg_1_1quantum_1_1ICoroFutureBase.html#ac320a032b464b1578a67492dc78bd299',1,'Bloomberg::quantum::ICoroFutureBase']]],
+  ['_7eicorosync',['~ICoroSync',['../d3/d63/structBloomberg_1_1quantum_1_1ICoroSync.html#a870e1b03e0c0b5a2310709310b78379b',1,'Bloomberg::quantum::ICoroSync']]],
+  ['_7eioqueue',['~IoQueue',['../d4/dd1/classBloomberg_1_1quantum_1_1IoQueue.html#a66addb48225eb3844d9b4a68b99dec7b',1,'Bloomberg::quantum::IoQueue']]],
+  ['_7eiotask',['~IoTask',['../d4/d8b/classBloomberg_1_1quantum_1_1IoTask.html#a9b48729f2f3626d51a9099c6315a81c9',1,'Bloomberg::quantum::IoTask']]],
+  ['_7eiqueuestatistics',['~IQueueStatistics',['../d5/de7/structBloomberg_1_1quantum_1_1IQueueStatistics.html#aa0343314d69e961f94da08c3bc0c8007',1,'Bloomberg::quantum::IQueueStatistics']]],
+  ['_7eitask',['~ITask',['../df/daf/structBloomberg_1_1quantum_1_1ITask.html#aee1b51813555c7444e451f3d5cb8111a',1,'Bloomberg::quantum::ITask']]],
+  ['_7eiterminate',['~ITerminate',['../d9/ddb/structBloomberg_1_1quantum_1_1ITerminate.html#a4086a8ce16fc2482ee77701d387b14d8',1,'Bloomberg::quantum::ITerminate']]],
+  ['_7eithreadfuturebase',['~IThreadFutureBase',['../d1/d2d/structBloomberg_1_1quantum_1_1IThreadFutureBase.html#a934b37ec3fc8f57406fbca24cc90c40a',1,'Bloomberg::quantum::IThreadFutureBase']]],
+  ['_7epromise',['~Promise',['../d1/d15/classBloomberg_1_1quantum_1_1Promise.html#a6377ce4da88d823a01c57d2847eb39df',1,'Bloomberg::quantum::Promise']]],
+  ['_7ereverseguard',['~ReverseGuard',['../d4/d39/classBloomberg_1_1quantum_1_1Mutex_1_1ReverseGuard.html#a59abd95a2ce5f2c551fbacbc291b7753',1,'Bloomberg::quantum::Mutex::ReverseGuard::~ReverseGuard()'],['../dd/d36/classBloomberg_1_1quantum_1_1SpinLock_1_1ReverseGuard.html#aee249cfe88d1f1ff5b94e522b545dd03',1,'Bloomberg::quantum::SpinLock::ReverseGuard::~ReverseGuard()']]],
+  ['_7etask',['~Task',['../d0/d90/classBloomberg_1_1quantum_1_1Task.html#a9239036c9c8c4103c6ed4ba87da7ef26',1,'Bloomberg::quantum::Task']]],
+  ['_7etaskdispatcher',['~TaskDispatcher',['../d7/da1/classBloomberg_1_1quantum_1_1TaskDispatcher.html#a522d2d40e09c2f0c873dabe8238ab995',1,'Bloomberg::quantum::TaskDispatcher']]],
+  ['_7etaskqueue',['~TaskQueue',['../d8/d06/classBloomberg_1_1quantum_1_1TaskQueue.html#ab139dd2134e5bacecc8e282ac63010fb',1,'Bloomberg::quantum::TaskQueue']]]
 ];

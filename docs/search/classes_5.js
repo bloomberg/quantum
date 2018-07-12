@@ -18,8 +18,6 @@ var searchData=
   ['iqueuestatistics',['IQueueStatistics',['../d5/de7/structBloomberg_1_1quantum_1_1IQueueStatistics.html',1,'Bloomberg::quantum']]],
   ['isbuffer',['IsBuffer',['../da/d88/structBloomberg_1_1quantum_1_1Traits_1_1IsBuffer.html',1,'Bloomberg::quantum::Traits']]],
   ['isbuffer_3c_20buffer_3c_20t_20_3e_20_3e',['IsBuffer&lt; Buffer&lt; T &gt; &gt;',['../d0/dc6/structBloomberg_1_1quantum_1_1Traits_1_1IsBuffer_3_01Buffer_3_01T_01_4_01_4.html',1,'Bloomberg::quantum::Traits']]],
-  ['isreferencewrapper',['IsReferenceWrapper',['../d8/d38/structBloomberg_1_1quantum_1_1Traits_1_1IsReferenceWrapper.html',1,'Bloomberg::quantum::Traits']]],
-  ['isreferencewrapper_3c_20std_3a_3areference_5fwrapper_3c_20u_20_3e_20_3e',['IsReferenceWrapper&lt; std::reference_wrapper&lt; U &gt; &gt;',['../db/d0a/structBloomberg_1_1quantum_1_1Traits_1_1IsReferenceWrapper_3_01std_1_1reference__wrapper_3_01U_01_4_01_4.html',1,'Bloomberg::quantum::Traits']]],
   ['itask',['ITask',['../df/daf/structBloomberg_1_1quantum_1_1ITask.html',1,'Bloomberg::quantum']]],
   ['itaskaccessor',['ITaskAccessor',['../d0/d96/structBloomberg_1_1quantum_1_1ITaskAccessor.html',1,'Bloomberg::quantum']]],
   ['itaskcontinuation',['ITaskContinuation',['../d4/d03/structBloomberg_1_1quantum_1_1ITaskContinuation.html',1,'Bloomberg::quantum']]],

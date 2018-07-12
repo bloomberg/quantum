@@ -1,4 +1,5 @@
 var searchData=
 [
-  ['lock',['lock',['../d7/d71/classBloomberg_1_1quantum_1_1Mutex.html#a1872a5c36145280c97610b06a14cc946',1,'Bloomberg::quantum::Mutex::lock()'],['../d7/d71/classBloomberg_1_1quantum_1_1Mutex.html#a5224f6b74c7c422e18e7d9134aae3489',1,'Bloomberg::quantum::Mutex::lock(ICoroSync::Ptr sync)'],['../d1/d05/classBloomberg_1_1quantum_1_1SpinLock.html#a09b87ac342dc40720bb3161758b97ccd',1,'Bloomberg::quantum::SpinLock::lock()']]]
+  ['max_5fsize',['max_size',['../d0/d75/structBloomberg_1_1quantum_1_1StackAllocator.html#a935c671140b87b89ed8a5e247973d9c5',1,'Bloomberg::quantum::StackAllocator']]],
+  ['mutex',['Mutex',['../d7/d71/classBloomberg_1_1quantum_1_1Mutex.html',1,'Bloomberg::quantum::Mutex'],['../d8/da3/namespaceMutex.html',1,'Mutex'],['../d7/d71/classBloomberg_1_1quantum_1_1Mutex.html#aea33990f2e839eefc1939f5b1c296e5e',1,'Bloomberg::quantum::Mutex::Mutex()'],['../d7/d71/classBloomberg_1_1quantum_1_1Mutex.html#aca651f127056f6772790aac37f952802',1,'Bloomberg::quantum::Mutex::Mutex(const Mutex &amp;other)=delete']]]
 ];
