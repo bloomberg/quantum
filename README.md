@@ -111,6 +111,6 @@ The following compiler options can be set when building your application:
 * `__QUANTUM_YIELD_WITHOUT_SLEEP` : Yields a coroutine thread instead of sleeping it when blocked. This could result in performance improvement in some cases.
 
 ### Documentation
-Please see the [wiki](https://bbgithub.dev.bloomberg.com/adamian/quantum-public/wiki) page for a detailed overview of this library, use-case scenarios and examples.
+Please see the [wiki](https://github.com/bloomberg/quantum/wiki) page for a detailed overview of this library, use-case scenarios and examples.
 
-For class description visit the [API](https://bbgithub.dev.bloomberg.com/pages/adamian/quantum-public/) page.
+For class description visit the [API](https://bloomberg.github.io/quantum) page.
