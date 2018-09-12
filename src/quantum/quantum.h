@@ -53,6 +53,7 @@
 #include <quantum/quantum_shared_state.h>
 #include <quantum/quantum_spinlock.h>
 #include <quantum/quantum_stack_allocator.h>
+#include <quantum/quantum_stack_traits.h>
 #include <quantum/quantum_task.h>
 #include <quantum/quantum_task_queue.h>
 #include <quantum/quantum_traits.h>

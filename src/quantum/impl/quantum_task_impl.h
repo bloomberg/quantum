@@ -24,12 +24,21 @@ namespace Bloomberg {
 namespace quantum {
 
 #ifndef __QUANTUM_TASK_ALLOC
-#define __QUANTUM_TASK_ALLOC __QUANTUM_DEFAULT_STACK_ALLOC_SIZE
+    #define __QUANTUM_TASK_ALLOC __QUANTUM_DEFAULT_STACK_ALLOC_SIZE
+#endif
+#ifndef __QUANTUM_USE_DEFAULT_ALLOCATOR
+    using TaskAllocator = StackAllocator<Task, __QUANTUM_TASK_ALLOC>;
+#else
+    using TaskAllocator = std::allocator<Task>;
 #endif
 
-using TaskAllocator = StackAllocator<Task, __QUANTUM_TASK_ALLOC>;
 inline TaskAllocator& GetTaskAllocator() {
     static TaskAllocator allocator;
+    return allocator;
+}
+
+inline Traits::CoroStackAllocator& GetCoroStackAllocator() {
+    static Traits::CoroStackAllocator allocator;
     return allocator;
 }
 
@@ -39,7 +48,8 @@ Task::Task(std::shared_ptr<Context<RET>> ctx,
            FUNC&& func,
            ARGS&&... args) :
     _ctx(ctx),
-    _coro(Util::BindCaller(ctx,
+    _coro(GetCoroStackAllocator(),
+          Util::BindCaller(ctx,
                            std::forward<FUNC>(func),
                            std::forward<ARGS>(args)...)),
     _queueId((int)IQueue::QueueId::Any),
@@ -57,7 +67,8 @@ Task::Task(std::shared_ptr<Context<RET>> ctx,
            FUNC&& func,
            ARGS&&... args) :
     _ctx(ctx),
-    _coro(Util::BindCaller(ctx,
+    _coro(GetCoroStackAllocator(),
+          Util::BindCaller(ctx,
                            std::forward<FUNC>(func),
                            std::forward<ARGS>(args)...)),
     _queueId(queueId),
@@ -159,21 +170,25 @@ bool Task::isHighPriority() const
 }
 
 inline
-void* Task::operator new(size_t)
+void* Task::operator new(size_t size)
 {
-    return GetTaskAllocator().allocate();
+    return GetTaskAllocator().allocate(size);
 }
 
 inline
 void Task::operator delete(void* p)
 {
-    GetTaskAllocator().deallocate(static_cast<Task*>(p));
+    GetTaskAllocator().deallocate(static_cast<Task*>(p), 1);
 }
 
 inline
 void Task::deleter(Task* p)
 {
+#ifndef __QUANTUM_USE_DEFAULT_ALLOCATOR
     GetTaskAllocator().dispose(p);
+#else
+    delete p;
+#endif
 }
 
 }}

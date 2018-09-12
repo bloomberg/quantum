@@ -213,7 +213,7 @@ int SharedState<T>::setException(std::exception_ptr ex)
         _exception = ex;
     }
     _cond.notifyAll();
-    return 0;
+    return -1;
 }
 
 template <class T>
@@ -225,7 +225,7 @@ int SharedState<T>::setException(ICoroSync::Ptr sync,
         _exception = ex;
     }
     _cond.notifyAll();
-    return 0;
+    return -1;
 }
 
 template <class T>

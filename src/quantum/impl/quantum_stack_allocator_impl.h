@@ -14,6 +14,7 @@
 ** limitations under the License.
 */
 //NOTE: DO NOT INCLUDE DIRECTLY
+#include <type_traits>
 
 //##############################################################################################
 //#################################### IMPLEMENTATIONS #########################################
@@ -24,6 +25,8 @@ namespace quantum {
 template <typename T, unsigned int SIZE>
 StackAllocator<T,SIZE>::StackAllocator()
 {
+    static_assert(SIZE > 0, "Allocator buffer size must be > 0");
+    
     //build the free stack
     for (size_t i = 0; i < SIZE; ++i) {
         _freeBlocks[i] = i;
@@ -68,21 +71,16 @@ template <typename T, unsigned int SIZE>
 typename StackAllocator<T,SIZE>::pointer StackAllocator<T,SIZE>::allocate(size_type,
                                                                           std::allocator<void>::const_pointer)
 {
-    bool useHeap = false;
     {
         SpinLock::Guard lock(_spinlock);
-        useHeap = isEmpty();
         if (!isEmpty())
         {
             return reinterpret_cast<pointer>(&_buffer[_freeBlocks[_freeBlockIndex--]]);
         }
     }
-    if (useHeap)
-    {
-        ++_numHeapAllocatedBlocks;
-        return (pointer)new char[sizeof(value_type)];
-    }
-    return nullptr; //never reaches here
+    // Use heap allocation
+    ++_numHeapAllocatedBlocks;
+    return (pointer)new char[sizeof(value_type)];
 }
 
 template <typename T, unsigned int SIZE>

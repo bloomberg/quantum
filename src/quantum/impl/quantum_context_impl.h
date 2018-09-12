@@ -245,10 +245,14 @@ ICoroContext<RET>::postAsyncIo(int queueId, bool isHighPriority, FUNC&& func, AR
 //                                     class Context
 //==============================================================================================
 #ifndef __QUANTUM_CONTEXT_ALLOC
-#define __QUANTUM_CONTEXT_ALLOC __QUANTUM_DEFAULT_STACK_ALLOC_SIZE
+    #define __QUANTUM_CONTEXT_ALLOC __QUANTUM_DEFAULT_STACK_ALLOC_SIZE
+#endif
+#ifndef __QUANTUM_USE_DEFAULT_ALLOCATOR
+    using ContextAllocator = StackAllocator<Context<int>, __QUANTUM_CONTEXT_ALLOC>;
+#else
+    using ContextAllocator = std::allocator<Context<int>>;
 #endif
 
-using ContextAllocator = StackAllocator<Context<int>, __QUANTUM_CONTEXT_ALLOC>;
 inline ContextAllocator&  GetContextAllocator() {
     static ContextAllocator allocator;
     return allocator;
@@ -801,21 +805,25 @@ Context<RET>::postImpl(int queueId, bool isHighPriority, ITask::Type type, FUNC&
 }
 
 template <class RET>
-void* Context<RET>::operator new(size_t)
+void* Context<RET>::operator new(size_t size)
 {
-    return GetContextAllocator().allocate();
+    return GetContextAllocator().allocate(size);
 }
 
 template <class RET>
 void Context<RET>::operator delete(void* p)
 {
-    GetContextAllocator().deallocate(static_cast<Context<int>*>(p));
+    GetContextAllocator().deallocate(static_cast<Context<int>*>(p), 1);
 }
 
 template <class RET>
 void Context<RET>::deleter(Context<RET>* p)
 {
+#ifndef __QUANTUM_USE_DEFAULT_ALLOCATOR
     GetContextAllocator().dispose(reinterpret_cast<Context<int>*>(p));
+#else
+    delete p;
+#endif
 }
 
 }}

@@ -16,7 +16,11 @@
 #ifndef QUANTUM_TRAITS_H
 #define QUANTUM_TRAITS_H
 
+#include <quantum/quantum_stack_traits.h>
 #include <boost/coroutine2/all.hpp>
+#include <boost/context/stack_traits.hpp>
+#include <boost/coroutine2/pooled_fixedsize_stack.hpp>
+#include <boost/coroutine2/fixedsize_stack.hpp>
 #include <iterator>
 #include <type_traits>
 
@@ -35,6 +39,18 @@ class Buffer; //fwd declaration
 /// @brief Contains definitions for various traits used by this library. For internal use only.
 struct Traits
 {
+    struct StackTraitsProxy {
+        static bool is_unbounded() { return StackTraits::isUnbounded(); }
+        static std::size_t page_size() { return StackTraits::pageSize(); }
+        static std::size_t default_size() { return StackTraits::defaultSize(); }
+        static std::size_t minimum_size() { return StackTraits::minimumSize(); }
+        static std::size_t maximum_size() { return StackTraits::maximumSize(); }
+    };
+//#ifndef __QUANTUM_USE_DEFAULT_ALLOCATOR
+//    using CoroStackAllocator = boost::context::basic_pooled_fixedsize_stack<StackTraitsProxy>;
+//#else
+    using CoroStackAllocator = boost::context::basic_fixedsize_stack<StackTraitsProxy>;
+//#endif
     using BoostCoro = boost::coroutines2::coroutine<int&>;
     using Yield     = typename BoostCoro::pull_type;
     using Coroutine = typename BoostCoro::push_type;
