@@ -20,6 +20,7 @@
 #include <quantum/interface/quantum_iterminate.h>
 #include <quantum/interface/quantum_itask.h>
 #include <quantum/interface/quantum_iqueue_statistics.h>
+#include <quantum/quantum_stack_allocator.h>
 
 namespace Bloomberg {
 namespace quantum {
@@ -57,6 +58,20 @@ struct IQueue : public ITerminate
     
     virtual bool isIdle() const = 0;
 };
+
+#ifndef __QUANTUM_QUEUE_LIST_ALLOC
+    #define __QUANTUM_QUEUE_LIST_ALLOC __QUANTUM_DEFAULT_STACK_ALLOC_SIZE
+#endif
+#ifndef __QUANTUM_USE_DEFAULT_ALLOCATOR
+    using QueueListAllocator = StackAllocator<ITask::Ptr, __QUANTUM_QUEUE_LIST_ALLOC>;
+#else
+    using QueueListAllocator = std::allocator<ITask::Ptr>;
+#endif
+
+inline QueueListAllocator&  GetQueueListAllocator() {
+    static QueueListAllocator allocator;
+    return allocator;
+}
 
 }}
 

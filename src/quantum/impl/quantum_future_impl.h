@@ -24,10 +24,14 @@ namespace Bloomberg {
 namespace quantum {
 
 #ifndef __QUANTUM_FUTURE_ALLOC
-#define __QUANTUM_FUTURE_ALLOC __QUANTUM_DEFAULT_STACK_ALLOC_SIZE
+    #define __QUANTUM_FUTURE_ALLOC __QUANTUM_DEFAULT_STACK_ALLOC_SIZE
+#endif
+#ifndef __QUANTUM_USE_DEFAULT_ALLOCATOR
+    using FutureAllocator = StackAllocator<Future<int>, __QUANTUM_FUTURE_ALLOC>;
+#else
+    using FutureAllocator = std::allocator<Future<int>>;
 #endif
 
-using FutureAllocator = StackAllocator<Future<int>, __QUANTUM_FUTURE_ALLOC>;
 inline FutureAllocator& GetFutureAllocator() {
     static FutureAllocator allocator;
     return allocator;
@@ -141,21 +145,25 @@ V Future<T>::pull(ICoroSync::Ptr sync, bool& isBufferClosed)
 }
 
 template <class T>
-void* Future<T>::operator new(size_t)
+void* Future<T>::operator new(size_t size)
 {
-    return GetFutureAllocator().allocate();
+    return GetFutureAllocator().allocate(size);
 }
 
 template <class T>
 void Future<T>::operator delete(void* p)
 {
-    GetFutureAllocator().deallocate(static_cast<Future<int>*>(p));
+    GetFutureAllocator().deallocate(static_cast<Future<int>*>(p), 1);
 }
 
 template <class T>
 void Future<T>::deleter(Future<T>* p)
 {
+#ifndef __QUANTUM_USE_DEFAULT_ALLOCATOR
     GetFutureAllocator().dispose(reinterpret_cast<Future<int>*>(p));
+#else
+    delete p;
+#endif
 }
 
 }}

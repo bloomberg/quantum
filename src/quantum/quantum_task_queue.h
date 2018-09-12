@@ -44,7 +44,7 @@ namespace quantum {
 class TaskQueue : public IQueue
 {
 public:
-    using TaskList = std::list<Task::Ptr>;
+    using TaskList = std::list<Task::Ptr, QueueListAllocator>;
     using TaskListIter = TaskList::iterator;
     
     TaskQueue();

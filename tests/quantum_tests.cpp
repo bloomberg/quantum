@@ -644,9 +644,8 @@ TEST(PromiseTest, SetExceptionInPromise)
         }
         catch (...)
         {
-            ctx->setException(std::current_exception());
+            return ctx->setException(std::current_exception());
         }
-        return 0;
     });
     EXPECT_THROW(ctx->get(), int);
 }

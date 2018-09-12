@@ -24,10 +24,14 @@ namespace Bloomberg {
 namespace quantum {
 
 #ifndef __QUANTUM_IO_TASK_ALLOC
-#define __QUANTUM_IO_TASK_ALLOC __QUANTUM_DEFAULT_STACK_ALLOC_SIZE
+    #define __QUANTUM_IO_TASK_ALLOC __QUANTUM_DEFAULT_STACK_ALLOC_SIZE
+#endif
+#ifndef __QUANTUM_USE_DEFAULT_ALLOCATOR
+    using IoTaskAllocator = StackAllocator<IoTask, __QUANTUM_IO_TASK_ALLOC>;
+#else
+    using IoTaskAllocator = std::allocator<IoTask>;
 #endif
 
-using IoTaskAllocator = StackAllocator<IoTask, __QUANTUM_IO_TASK_ALLOC>;
 inline IoTaskAllocator& GetIoTaskAllocator() {
     static IoTaskAllocator allocator;
     return allocator;
@@ -113,21 +117,25 @@ bool IoTask::isHighPriority() const
 }
 
 inline
-void* IoTask::operator new(size_t)
+void* IoTask::operator new(size_t size)
 {
-    return GetIoTaskAllocator().allocate();
+    return GetIoTaskAllocator().allocate(size);
 }
 
 inline
 void IoTask::operator delete(void* p)
 {
-    GetIoTaskAllocator().deallocate(static_cast<IoTask*>(p));
+    GetIoTaskAllocator().deallocate(static_cast<IoTask*>(p), 1);
 }
 
 inline
 void IoTask::deleter(IoTask* p)
 {
+#ifndef __QUANTUM_USE_DEFAULT_ALLOCATOR
     GetIoTaskAllocator().dispose(p);
+#else
+    delete p;
+#endif
 }
 
 }}

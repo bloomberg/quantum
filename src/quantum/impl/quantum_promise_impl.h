@@ -75,10 +75,14 @@ int ICoroPromise<PROMISE, T>::closeBuffer()
 //                                class Promise
 //==============================================================================================
 #ifndef __QUANTUM_PROMISE_ALLOC
-#define __QUANTUM_PROMISE_ALLOC __QUANTUM_DEFAULT_STACK_ALLOC_SIZE
+    #define __QUANTUM_PROMISE_ALLOC __QUANTUM_DEFAULT_STACK_ALLOC_SIZE
+#endif
+#ifndef __QUANTUM_USE_DEFAULT_ALLOCATOR
+    using PromiseAllocator = StackAllocator<Promise<int>, __QUANTUM_PROMISE_ALLOC>;
+#else
+    using PromiseAllocator = std::allocator<Promise<int>>;
 #endif
 
-using PromiseAllocator = StackAllocator<Promise<int>, __QUANTUM_PROMISE_ALLOC>;
 inline PromiseAllocator& GetPromiseAllocator() {
     static PromiseAllocator allocator;
     return allocator;
@@ -189,21 +193,25 @@ int Promise<T>::closeBuffer()
 }
 
 template <class T>
-void* Promise<T>::operator new(size_t)
+void* Promise<T>::operator new(size_t size)
 {
-    return GetPromiseAllocator().allocate();
+    return GetPromiseAllocator().allocate(size);
 }
 
 template <class T>
 void Promise<T>::operator delete(void* p)
 {
-    GetPromiseAllocator().deallocate(static_cast<Promise<int>*>(p));
+    GetPromiseAllocator().deallocate(static_cast<Promise<int>*>(p), 1);
 }
 
 template <class T>
 void Promise<T>::deleter(Promise<T>* p)
 {
+#ifndef __QUANTUM_USE_DEFAULT_ALLOCATOR
     GetPromiseAllocator().dispose(reinterpret_cast<Promise<int>*>(p));
+#else
+    delete p;
+#endif
 }
 
 }}

@@ -29,7 +29,9 @@ namespace quantum {
 //==============================================================================
 //                               Helpers
 //==============================================================================
+#ifndef __QUANTUM_DEFAULT_STACK_ALLOC_SIZE
 #define __QUANTUM_DEFAULT_STACK_ALLOC_SIZE 1000
+#endif
 
 template <int N> //N == 0
 struct index {

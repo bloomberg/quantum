@@ -24,6 +24,7 @@ namespace quantum {
 
 inline
 TaskQueue::TaskQueue() :
+    _queue(GetQueueListAllocator()),
     _queueIt(_queue.end()),
     _isEmpty(true),
     _isInterrupted(false),
@@ -100,7 +101,7 @@ void TaskQueue::run()
                     //Coroutine ended normally with "return 0" statement
                     _stats.incCompletedCount();
                     
-                    //check to see interfaces there's another task scheduled to run after this one
+                    //check if there's another task scheduled to run after this one
                     nextTask = task->getNextTask();
                     if (nextTask && (nextTask->getType() == ITask::Type::ErrorHandler))
                     {
@@ -125,7 +126,7 @@ void TaskQueue::run()
                         std::cerr << "Coroutine exited with error : " << rc << std::endl;
                     }
 #endif
-                    //Check to see interfaces we have a final task to run
+                    //Check if we have a final task to run
                     nextTask = task->getErrorHandlerOrFinalTask();
                 }
                 
