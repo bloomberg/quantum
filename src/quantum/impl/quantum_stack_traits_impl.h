@@ -22,31 +22,35 @@
 namespace Bloomberg {
 namespace quantum {
 
+inline
 bool& StackTraits::isUnbounded()
 {
     static bool isUnbounded = boost::context::stack_traits::is_unbounded();
     return isUnbounded;
 }
-    
+
+inline
 size_t& StackTraits::pageSize()
 {
     static size_t pageSize = boost::context::stack_traits::page_size();
     return pageSize;
 }
 
+inline
 size_t& StackTraits::defaultSize()
 {
     static size_t defaultSize = boost::context::stack_traits::default_size();
     return defaultSize;
 }
     
-
+inline
 size_t& StackTraits::minimumSize()
 {
     static size_t minimumSize = boost::context::stack_traits::minimum_size();
     return minimumSize;
 }
 
+inline
 size_t& StackTraits::maximumSize()
 {
     static size_t maximumSize = boost::context::stack_traits::maximum_size();

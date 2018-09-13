@@ -56,6 +56,10 @@ private:
 class DispatcherFixture : public ::testing::Test
 {
 public:
+    DispatcherFixture()
+    {
+        quantum::StackTraits::defaultSize() = 1 << 14; //16k stack for testing
+    }
     /// @brief Create a dispatcher object with equal number of coroutine and IO threads
     void SetUp()
     {
