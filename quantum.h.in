@@ -16,5 +16,6 @@
 #ifndef QUANTUM_H
 #define QUANTUM_H
 
+#define __NATIVESTD__
 @QUANTUM_HEADERS@
 #endif //QUANTUM_H
