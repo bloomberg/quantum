@@ -16,6 +16,7 @@
 #ifndef QUANTUM_H
 #define QUANTUM_H
 
+#define __NATIVESTD__
 #include <quantum/interface/quantum_icontext.h>
 #include <quantum/interface/quantum_icontext_base.h>
 #include <quantum/interface/quantum_icoro_context.h>
