@@ -818,6 +818,28 @@ TEST(StressTest, RecursiveFibonacciSerie)
     EXPECT_EQ((size_t)fibValues[fibInput], tctx->get());
 }
 
+TEST(StressTest, AsyncIo)
+{
+    std::mutex m;
+    std::set<std::pair<int, int>> s; //queueId,iteration
+    std::vector<std::pair<int, int>> v;
+    v.reserve(1000);
+    for (int i = 0; i < 1000; ++i) {
+        int queueId = i % Dispatcher::instance().getNumIoThreads();
+        Dispatcher::instance().postAsyncIo<int>(queueId, false, [&m,&v,&s,queueId,i](ThreadPromise<int>::Ptr promise){
+            {
+            std::lock_guard<std::mutex> lock(m);
+            s.insert(std::make_pair(queueId, i));
+            v.push_back(std::make_pair(queueId, i));
+            }
+            return promise->set(0);
+        });
+    }
+    Dispatcher::instance().drain();
+    EXPECT_EQ(1000, s.size()); //all elements unique
+    EXPECT_EQ(1000, v.size()); //all elements unique
+}
+
 //This test **must** come last to make Valgrind happy.
 TEST(TestCleanup, DeleteDispatcherInstance)
 {

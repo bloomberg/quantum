@@ -19,6 +19,7 @@
 //#################################### IMPLEMENTATIONS #########################################
 //##############################################################################################
 #include <quantum/quantum_stack_allocator.h>
+#include <quantum/quantum_heap_allocator.h>
 
 namespace Bloomberg {
 namespace quantum {
@@ -75,10 +76,14 @@ int ICoroPromise<PROMISE, T>::closeBuffer()
 //                                class Promise
 //==============================================================================================
 #ifndef __QUANTUM_PROMISE_ALLOC
-    #define __QUANTUM_PROMISE_ALLOC __QUANTUM_DEFAULT_STACK_ALLOC_SIZE
+    #define __QUANTUM_PROMISE_ALLOC __QUANTUM_DEFAULT_POOL_ALLOC_SIZE
 #endif
 #ifndef __QUANTUM_USE_DEFAULT_ALLOCATOR
-    using PromiseAllocator = StackAllocator<Promise<int>, __QUANTUM_PROMISE_ALLOC>;
+    #ifdef __QUANTUM_ALLOCATE_POOL_FROM_HEAP
+        using PromiseAllocator = HeapAllocator<Promise<int>, __QUANTUM_PROMISE_ALLOC>;
+    #else
+        using PromiseAllocator = StackAllocator<Promise<int>, __QUANTUM_PROMISE_ALLOC>;
+    #endif
 #else
     using PromiseAllocator = std::allocator<Promise<int>>;
 #endif

@@ -19,6 +19,7 @@
 //#################################### IMPLEMENTATIONS #########################################
 //##############################################################################################
 #include <quantum/quantum_stack_allocator.h>
+#include <quantum/quantum_heap_allocator.h>
 
 namespace Bloomberg {
 namespace quantum {
@@ -269,10 +270,14 @@ ICoroContext<RET>::postAsyncIo(int queueId, bool isHighPriority, FUNC&& func, AR
 //                                     class Context
 //==============================================================================================
 #ifndef __QUANTUM_CONTEXT_ALLOC
-    #define __QUANTUM_CONTEXT_ALLOC __QUANTUM_DEFAULT_STACK_ALLOC_SIZE
+    #define __QUANTUM_CONTEXT_ALLOC __QUANTUM_DEFAULT_POOL_ALLOC_SIZE
 #endif
 #ifndef __QUANTUM_USE_DEFAULT_ALLOCATOR
-    using ContextAllocator = StackAllocator<Context<int>, __QUANTUM_CONTEXT_ALLOC>;
+    #ifdef __QUANTUM_ALLOCATE_POOL_FROM_HEAP
+        using ContextAllocator = HeapAllocator<Context<int>, __QUANTUM_CONTEXT_ALLOC>;
+    #else
+        using ContextAllocator = StackAllocator<Context<int>, __QUANTUM_CONTEXT_ALLOC>;
+    #endif
 #else
     using ContextAllocator = std::allocator<Context<int>>;
 #endif
