@@ -152,6 +152,10 @@ public:
     template <class OTHER_RET>
     const OTHER_RET& getPrevRef(ICoroSync::Ptr sync);
     
+    int getNumCoroutineThreads() const;
+    
+    int getNumIoThreads() const;
+    
     //===================================
     //        TASK CONTINUATIONS
     //===================================

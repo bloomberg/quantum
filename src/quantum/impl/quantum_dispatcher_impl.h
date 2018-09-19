@@ -135,6 +135,18 @@ void TaskDispatcher::drain()
 }
 
 inline
+int TaskDispatcher::getNumCoroutineThreads() const
+{
+    return _dispatcher.getNumCoroutineThreads();
+}
+
+inline
+int TaskDispatcher::getNumIoThreads() const
+{
+    return _dispatcher.getNumIoThreads();
+}
+
+inline
 QueueStatistics TaskDispatcher::stats(IQueue::QueueType type,
                                       int queueId)
 {
@@ -161,7 +173,7 @@ TaskDispatcher::postImpl(int queueId,
     }
     if (queueId < (int)IQueue::QueueId::Any)
     {
-        throw std::runtime_error("Invalid queue id");
+        throw std::runtime_error("Invalid coroutine queue id");
     }
     auto ctx = typename Context<RET>::Ptr(new Context<RET>(_dispatcher),
                                           Context<RET>::deleter);
@@ -193,7 +205,7 @@ TaskDispatcher::postAsyncIoImpl(int queueId,
     }
     if (queueId < (int)IQueue::QueueId::Any)
     {
-        throw std::runtime_error("Invalid queue id");
+        throw std::runtime_error("Invalid IO queue id");
     }
     auto promise = typename Promise<RET>::Ptr(new Promise<RET>(), Promise<RET>::deleter);
     auto task = IoTask::Ptr(new IoTask(promise,

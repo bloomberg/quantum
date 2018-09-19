@@ -206,7 +206,7 @@ QueueStatistics DispatcherCore::coroStats(int queueId)
     {
         if ((queueId >= (int)_coroQueues.size()) || (queueId < 0))
         {
-            throw std::runtime_error("Invalid queue id");
+            throw std::runtime_error("Invalid coroutine queue id");
         }
         return static_cast<const QueueStatistics&>(_coroQueues[queueId].stats());
     }
@@ -231,9 +231,9 @@ QueueStatistics DispatcherCore::ioStats(int queueId)
     }
     else
     {
-        if ((queueId >= (int)_coroQueues.size()) || (queueId < 0))
+        if ((queueId >= (int)_ioQueues.size()) || (queueId < 0))
         {
-            throw std::runtime_error("Invalid queue id");
+            throw std::runtime_error("Invalid IO queue id");
         }
         return static_cast<const QueueStatistics&>(_ioQueues[queueId].stats());
     }
@@ -324,6 +324,18 @@ void DispatcherCore::postAsyncIo(IoTask::Ptr task)
         //Run on specific queue
         _ioQueues[task->getQueueId()].enQueue(task);
     }
+}
+
+inline
+int DispatcherCore::getNumCoroutineThreads() const
+{
+    return _coroQueues.size();
+}
+
+inline
+int DispatcherCore::getNumIoThreads() const
+{
+    return _ioQueues.size();
 }
 
 }}

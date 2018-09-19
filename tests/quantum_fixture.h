@@ -37,7 +37,7 @@ public:
     {
         if (_dispatcher == nullptr)
         {
-            createInstance(5, 5, false);
+            createInstance(numCoro, numThreads, false);
         }
         return *_dispatcher;
     }
@@ -48,6 +48,9 @@ public:
         _dispatcher = nullptr;
     }
     
+    static constexpr int numCoro{4};
+    
+    static constexpr int numThreads{5};
 private:
     static quantum::TaskDispatcher*  _dispatcher;
 };
@@ -63,7 +66,7 @@ public:
     /// @brief Create a dispatcher object with equal number of coroutine and IO threads
     void SetUp()
     {
-        Dispatcher::createInstance(5, 5, false);
+        Dispatcher::createInstance(Dispatcher::numCoro, Dispatcher::numThreads, false);
         _dispatcher = &Dispatcher::instance();
     }
     

@@ -57,6 +57,10 @@ public:
     void post(Task::Ptr task);
     
     void postAsyncIo(IoTask::Ptr task);
+    
+    int getNumCoroutineThreads() const;
+    
+    int getNumIoThreads() const;
 
 private:
     DispatcherCore(int numCoroutineThreads,
