@@ -23,6 +23,8 @@
 using namespace quantum;
 using ms = std::chrono::milliseconds;
 
+constexpr int Dispatcher::numCoro;
+constexpr int Dispatcher::numThreads;
 TaskDispatcher* Dispatcher::_dispatcher = nullptr;
 
 //==============================================================================
@@ -80,6 +82,17 @@ TEST_F(DispatcherFixture, Constructor)
     EXPECT_EQ(0, (int)_dispatcher->size(IQueue::QueueType::Coro));
     EXPECT_EQ(0, (int)_dispatcher->size(IQueue::QueueType::IO));
     EXPECT_EQ(0, (int)_dispatcher->size());
+}
+
+TEST_F(DispatcherFixture, CheckNumThreads)
+{
+    IThreadContext<int>::Ptr tctx = _dispatcher->post([](CoroContext<int>::Ptr ctx)->int{
+        EXPECT_EQ(Dispatcher::numCoro, ctx->getNumCoroutineThreads());
+        EXPECT_EQ(Dispatcher::numThreads, ctx->getNumIoThreads());
+        return 0;
+    });
+    EXPECT_EQ(Dispatcher::numCoro, tctx->getNumCoroutineThreads());
+    EXPECT_EQ(Dispatcher::numThreads, tctx->getNumIoThreads());
 }
 
 TEST_F(DispatcherFixture, CheckCoroutineQueuing)

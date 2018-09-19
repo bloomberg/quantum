@@ -140,6 +140,19 @@ struct IThreadContext : public IThreadContextBase
     template <class BUF = RET, class = std::enable_if_t<Traits::IsBuffer<BUF>::value>>
     int closeBuffer();
     
+    /// @brief Returns the number of underlying coroutine threads as specified in the dispatcher constructor.
+    ///        If -1 was passed than this number essentially indicates the number of cores.
+    /// @return The number of threads.
+    /// @note Each thread services its own queueId, therefore this number can be used when assigning coroutines
+    ///       to a specific queue.
+    int getNumCoroutineThreads() const;
+    
+    /// @brief Returns the number of underlying IO threads as specified in the dispatcher constructor.
+    /// @return The number of threads.
+    /// @note Each thread services its own queueId, therefore this number can be used when assigning IO tasks
+    ///       to a specific queue.
+    int getNumIoThreads() const;
+    
     //=========================================================================================
     //                          TASK CONTINUATIONS (NON-VIRTUAL)
     //=========================================================================================

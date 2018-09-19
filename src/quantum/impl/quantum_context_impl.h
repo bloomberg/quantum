@@ -69,6 +69,18 @@ int IThreadContext<RET>::closeBuffer()
 }
 
 template <class RET>
+int IThreadContext<RET>::getNumCoroutineThreads() const
+{
+    return static_cast<const Impl*>(this)->getNumCoroutineThreads();
+}
+
+template <class RET>
+int IThreadContext<RET>::getNumIoThreads() const
+{
+    return static_cast<const Impl*>(this)->getNumIoThreads();
+}
+
+template <class RET>
 template <class OTHER_RET, class FUNC, class ... ARGS>
 typename IThreadContext<OTHER_RET>::Ptr
 IThreadContext<RET>::then(FUNC&& func, ARGS&&... args)
@@ -160,6 +172,18 @@ template <class BUF, class>
 int ICoroContext<RET>::closeBuffer()
 {
     return static_cast<Impl*>(this)->template closeBuffer<BUF>();
+}
+
+template <class RET>
+int ICoroContext<RET>::getNumCoroutineThreads() const
+{
+    return static_cast<const Impl*>(this)->getNumCoroutineThreads();
+}
+
+template <class RET>
+int ICoroContext<RET>::getNumIoThreads() const
+{
+    return static_cast<const Impl*>(this)->getNumIoThreads();
 }
 
 template <class RET>
@@ -523,7 +547,7 @@ Context<RET>::postAsyncIoImpl(int queueId, bool isHighPriority, FUNC&& func, ARG
 {
     if (queueId < (int)IQueue::QueueId::Any)
     {
-        throw std::runtime_error("Invalid queue id");
+        throw std::runtime_error("Invalid coroutine queue id");
     }
     auto promise = typename Promise<OTHER_RET>::Ptr(new Promise<OTHER_RET>(), Promise<OTHER_RET>::deleter);
     auto task = IoTask::Ptr(new IoTask(promise,
@@ -702,6 +726,18 @@ const OTHER_RET& Context<RET>::getPrevRef(ICoroSync::Ptr sync)
 }
 
 template <class RET>
+int Context<RET>::getNumCoroutineThreads() const
+{
+    return _dispatcher->getNumCoroutineThreads();
+}
+
+template <class RET>
+int Context<RET>::getNumIoThreads() const
+{
+    return _dispatcher->getNumIoThreads();
+}
+
+template <class RET>
 void Context<RET>::waitAt(int num,
                           ICoroSync::Ptr sync) const
 {
@@ -785,7 +821,7 @@ Context<RET>::postImpl(int queueId, bool isHighPriority, ITask::Type type, FUNC&
 {
     if (queueId < (int)IQueue::QueueId::Same)
     {
-        throw std::runtime_error("Invalid queue id");
+        throw std::runtime_error("Invalid coroutine queue id");
     }
     auto ctx = typename Context<OTHER_RET>::Ptr(new Context<OTHER_RET>(*_dispatcher),
                                                 Context<OTHER_RET>::deleter);
