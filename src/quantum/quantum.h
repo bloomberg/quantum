@@ -42,6 +42,8 @@
 #include <quantum/quantum_buffer.h>
 #include <quantum/quantum_condition_variable.h>
 #include <quantum/quantum_context.h>
+#include <quantum/quantum_contiguous_pool_manager.h>
+#include <quantum/quantum_coroutine_pool_allocator.h>
 #include <quantum/quantum_dispatcher.h>
 #include <quantum/quantum_dispatcher_core.h>
 #include <quantum/quantum_future.h>

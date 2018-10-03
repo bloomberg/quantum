@@ -19,15 +19,20 @@
 //#################################### IMPLEMENTATIONS #########################################
 //##############################################################################################
 #include <quantum/quantum_stack_allocator.h>
+#include <quantum/quantum_heap_allocator.h>
 
 namespace Bloomberg {
 namespace quantum {
 
 #ifndef __QUANTUM_FUTURE_ALLOC
-    #define __QUANTUM_FUTURE_ALLOC __QUANTUM_DEFAULT_STACK_ALLOC_SIZE
+    #define __QUANTUM_FUTURE_ALLOC __QUANTUM_DEFAULT_POOL_ALLOC_SIZE
 #endif
 #ifndef __QUANTUM_USE_DEFAULT_ALLOCATOR
-    using FutureAllocator = StackAllocator<Future<int>, __QUANTUM_FUTURE_ALLOC>;
+    #ifdef __QUANTUM_ALLOCATE_POOL_FROM_HEAP
+        using FutureAllocator = HeapAllocator<Future<int>, __QUANTUM_FUTURE_ALLOC>;
+    #else
+        using FutureAllocator = StackAllocator<Future<int>, __QUANTUM_FUTURE_ALLOC>;
+    #endif
 #else
     using FutureAllocator = std::allocator<Future<int>>;
 #endif

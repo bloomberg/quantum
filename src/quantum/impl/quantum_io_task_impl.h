@@ -19,15 +19,20 @@
 //#################################### IMPLEMENTATIONS #########################################
 //##############################################################################################
 #include <quantum/quantum_stack_allocator.h>
+#include <quantum/quantum_heap_allocator.h>
 
 namespace Bloomberg {
 namespace quantum {
 
 #ifndef __QUANTUM_IO_TASK_ALLOC
-    #define __QUANTUM_IO_TASK_ALLOC __QUANTUM_DEFAULT_STACK_ALLOC_SIZE
+    #define __QUANTUM_IO_TASK_ALLOC __QUANTUM_DEFAULT_POOL_ALLOC_SIZE
 #endif
 #ifndef __QUANTUM_USE_DEFAULT_ALLOCATOR
-    using IoTaskAllocator = StackAllocator<IoTask, __QUANTUM_IO_TASK_ALLOC>;
+    #ifdef __QUANTUM_ALLOCATE_POOL_FROM_HEAP
+        using IoTaskAllocator = HeapAllocator<IoTask, __QUANTUM_IO_TASK_ALLOC>;
+    #else
+        using IoTaskAllocator = StackAllocator<IoTask, __QUANTUM_IO_TASK_ALLOC>;
+    #endif
 #else
     using IoTaskAllocator = std::allocator<IoTask>;
 #endif

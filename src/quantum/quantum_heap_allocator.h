@@ -13,8 +13,8 @@
 ** See the License for the specific language governing permissions and
 ** limitations under the License.
 */
-#ifndef QUANTUM_STACK_ALLOCATOR_H
-#define QUANTUM_STACK_ALLOCATOR_H
+#ifndef QUANTUM_HEAP_ALLOCATOR_H
+#define QUANTUM_HEAP_ALLOCATOR_H
 
 #include <quantum/quantum_contiguous_pool_manager.h>
 
@@ -22,19 +22,19 @@ namespace Bloomberg {
 namespace quantum {
 
 //==============================================================================
-//                            struct StackAllocator
+//                            struct HeapAllocator
 //==============================================================================
-/// @struct StackAllocator.
-/// @brief Provides a stack-based object pool to the underlying ContiguousPoolManager.
+/// @struct HeapAllocator.
+/// @brief Provides a heap-based object pool to the underlying ContiguousPoolManager.
 ///        The default buffer size is 1000.
 /// @tparam T The type to allocate.
 /// @tparam SIZE The size of the stack buffer.
 /// @note This allocator is thread safe. For internal use only.
 template <typename T, unsigned int SIZE>
-struct StackAllocator : public ContiguousPoolManager<T, SIZE>
+struct HeapAllocator : public ContiguousPoolManager<T, SIZE>
 {
     //------------------------------ Typedefs ----------------------------------
-    typedef StackAllocator<T, SIZE> this_type;
+    typedef HeapAllocator<T, SIZE> this_type;
     typedef T                       value_type;
     typedef value_type*             pointer;
     typedef const value_type*       const_pointer;
@@ -42,10 +42,10 @@ struct StackAllocator : public ContiguousPoolManager<T, SIZE>
     typedef const value_type&       const_reference;
     typedef size_t                  size_type;
     typedef std::ptrdiff_t          difference_type;
-    typedef std::false_type         propagate_on_container_move_assignment;
+    typedef std::true_type          propagate_on_container_move_assignment;
     typedef std::false_type         propagate_on_container_copy_assignment;
-    typedef std::false_type         propagate_on_container_swap;
-    typedef std::false_type         is_always_equal;
+    typedef std::true_type          propagate_on_container_swap;
+    typedef std::true_type          is_always_equal;
     typedef std::aligned_storage<sizeof(value_type),
                                  alignof(value_type)> storage_type;
     typedef typename storage_type::type aligned_type;
@@ -53,36 +53,46 @@ struct StackAllocator : public ContiguousPoolManager<T, SIZE>
     template <typename U>
     struct rebind
     {
-        typedef StackAllocator<U,SIZE> other;
+        typedef HeapAllocator<U,SIZE> other;
     };
     //------------------------------- Methods ----------------------------------
-    StackAllocator() : ContiguousPoolManager<T, SIZE>(_buffer)
+    HeapAllocator() {
+        _buffer = new aligned_type[SIZE];
+        if (!_buffer) {
+            throw std::bad_alloc();
+        }
+        this->setBuffer(_buffer);
+    }
+    HeapAllocator(const this_type&) : HeapAllocator()
     {}
-    StackAllocator(const this_type&) : StackAllocator()
+    HeapAllocator(this_type&&) = default;
+    HeapAllocator& operator=(const this_type&)
     {}
-    StackAllocator& operator=(const this_type&)
-    {}
-    static StackAllocator select_on_container_copy_construction(const StackAllocator& other) {
-        return StackAllocator();
+    HeapAllocator& operator=(this_type&&) = default;
+    ~HeapAllocator() {
+        delete[] _buffer;
+    }
+    static HeapAllocator select_on_container_copy_construction(const HeapAllocator& other) {
+        return HeapAllocator();
     }
     template <typename U>
-    StackAllocator(const StackAllocator<U,SIZE>&) : StackAllocator()
+    HeapAllocator(const HeapAllocator<U,SIZE>&) : HeapAllocator()
     {}
     template <typename U>
-    StackAllocator& operator=(const StackAllocator<U,SIZE>&)
+    HeapAllocator& operator=(const HeapAllocator<U,SIZE>&)
     {}
     bool operator==(const this_type& other) const {
-        return false;
+        return true;
     }
     bool operator!=(const this_type& other) const {
-        return true;
+        return false;
     }
     
 private:
     //------------------------------- Members ----------------------------------
-    aligned_type            _buffer[SIZE];
+    aligned_type* _buffer;
 };
 
 }} //namespaces
 
-#endif //QUANTUM_STACK_ALLOCATOR_H
+#endif //QUANTUM_HEAP_ALLOCATOR_H

@@ -19,15 +19,20 @@
 //#################################### IMPLEMENTATIONS #########################################
 //##############################################################################################
 #include <quantum/quantum_stack_allocator.h>
+#include <quantum/quantum_heap_allocator.h>
 
 namespace Bloomberg {
 namespace quantum {
 
 #ifndef __QUANTUM_TASK_ALLOC
-    #define __QUANTUM_TASK_ALLOC __QUANTUM_DEFAULT_STACK_ALLOC_SIZE
+    #define __QUANTUM_TASK_ALLOC __QUANTUM_DEFAULT_POOL_ALLOC_SIZE
 #endif
 #ifndef __QUANTUM_USE_DEFAULT_ALLOCATOR
-    using TaskAllocator = StackAllocator<Task, __QUANTUM_TASK_ALLOC>;
+    #ifdef __QUANTUM_ALLOCATE_POOL_FROM_HEAP
+        using TaskAllocator = HeapAllocator<Task, __QUANTUM_TASK_ALLOC>;
+    #else
+        using TaskAllocator = StackAllocator<Task, __QUANTUM_TASK_ALLOC>;
+    #endif
 #else
     using TaskAllocator = std::allocator<Task>;
 #endif
@@ -49,9 +54,9 @@ Task::Task(std::shared_ptr<Context<RET>> ctx,
            ARGS&&... args) :
     _ctx(ctx),
     _coro(GetCoroStackAllocator(),
-          Util::BindCaller(ctx,
+          std::move(Util::BindCaller(ctx,
                            std::forward<FUNC>(func),
-                           std::forward<ARGS>(args)...)),
+                           std::forward<ARGS>(args)...))),
     _queueId((int)IQueue::QueueId::Any),
     _isHighPriority(false),
     _rc((int)ITask::RetCode::Running),
@@ -68,9 +73,9 @@ Task::Task(std::shared_ptr<Context<RET>> ctx,
            ARGS&&... args) :
     _ctx(ctx),
     _coro(GetCoroStackAllocator(),
-          Util::BindCaller(ctx,
+          std::move(Util::BindCaller(ctx,
                            std::forward<FUNC>(func),
-                           std::forward<ARGS>(args)...)),
+                           std::forward<ARGS>(args)...))),
     _queueId(queueId),
     _isHighPriority(isHighPriority),
     _rc((int)ITask::RetCode::Running),

@@ -21,6 +21,7 @@
 #include <quantum/interface/quantum_itask.h>
 #include <quantum/interface/quantum_iqueue_statistics.h>
 #include <quantum/quantum_stack_allocator.h>
+#include <quantum/quantum_heap_allocator.h>
 
 namespace Bloomberg {
 namespace quantum {
@@ -60,10 +61,14 @@ struct IQueue : public ITerminate
 };
 
 #ifndef __QUANTUM_QUEUE_LIST_ALLOC
-    #define __QUANTUM_QUEUE_LIST_ALLOC __QUANTUM_DEFAULT_STACK_ALLOC_SIZE
+    #define __QUANTUM_QUEUE_LIST_ALLOC __QUANTUM_DEFAULT_POOL_ALLOC_SIZE
 #endif
 #ifndef __QUANTUM_USE_DEFAULT_ALLOCATOR
-    using QueueListAllocator = StackAllocator<ITask::Ptr, __QUANTUM_QUEUE_LIST_ALLOC>;
+    #ifdef __QUANTUM_ALLOCATE_POOL_FROM_HEAP
+        using QueueListAllocator = HeapAllocator<ITask::Ptr, __QUANTUM_QUEUE_LIST_ALLOC>;
+    #else
+        using QueueListAllocator = StackAllocator<ITask::Ptr, __QUANTUM_QUEUE_LIST_ALLOC>;
+    #endif
 #else
     using QueueListAllocator = std::allocator<ITask::Ptr>;
 #endif

@@ -17,6 +17,7 @@
 #define QUANTUM_TRAITS_H
 
 #include <quantum/quantum_stack_traits.h>
+#include <quantum/quantum_coroutine_pool_allocator.h>
 #include <boost/coroutine2/all.hpp>
 #include <boost/context/stack_traits.hpp>
 #include <boost/coroutine2/pooled_fixedsize_stack.hpp>
@@ -46,11 +47,11 @@ struct Traits
         static std::size_t minimum_size() { return StackTraits::minimumSize(); }
         static std::size_t maximum_size() { return StackTraits::maximumSize(); }
     };
-//#ifndef __QUANTUM_USE_DEFAULT_ALLOCATOR
-//    using CoroStackAllocator = boost::context::basic_pooled_fixedsize_stack<StackTraitsProxy>;
-//#else
+#ifndef __QUANTUM_USE_DEFAULT_CORO_ALLOCATOR
+    using CoroStackAllocator = CoroutinePoolAllocatorProxy<StackTraitsProxy, __QUANTUM_DEFAULT_CORO_POOL_ALLOC_SIZE>;
+#else
     using CoroStackAllocator = boost::context::basic_fixedsize_stack<StackTraitsProxy>;
-//#endif
+#endif
     using BoostCoro = boost::coroutines2::coroutine<int&>;
     using Yield     = typename BoostCoro::pull_type;
     using Coroutine = typename BoostCoro::push_type;
