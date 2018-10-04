@@ -18,29 +18,23 @@
 //##############################################################################################
 //#################################### IMPLEMENTATIONS #########################################
 //##############################################################################################
-#include <quantum/quantum_stack_allocator.h>
-#include <quantum/quantum_heap_allocator.h>
+#include <quantum/quantum_allocator.h>
 
 namespace Bloomberg {
 namespace quantum {
 
-#ifndef __QUANTUM_IO_TASK_ALLOC
-    #define __QUANTUM_IO_TASK_ALLOC __QUANTUM_DEFAULT_POOL_ALLOC_SIZE
+#ifndef __QUANTUM_IO_TASK_ALLOC_SIZE
+    #define __QUANTUM_IO_TASK_ALLOC_SIZE __QUANTUM_DEFAULT_POOL_ALLOC_SIZE
 #endif
 #ifndef __QUANTUM_USE_DEFAULT_ALLOCATOR
     #ifdef __QUANTUM_ALLOCATE_POOL_FROM_HEAP
-        using IoTaskAllocator = HeapAllocator<IoTask, __QUANTUM_IO_TASK_ALLOC>;
+        using IoTaskAllocator = HeapAllocator<IoTask>;
     #else
-        using IoTaskAllocator = StackAllocator<IoTask, __QUANTUM_IO_TASK_ALLOC>;
+        using IoTaskAllocator = StackAllocator<IoTask, __QUANTUM_IO_TASK_ALLOC_SIZE>;
     #endif
 #else
-    using IoTaskAllocator = std::allocator<IoTask>;
+    using IoTaskAllocator = StlAllocator<IoTask>;
 #endif
-
-inline IoTaskAllocator& GetIoTaskAllocator() {
-    static IoTaskAllocator allocator;
-    return allocator;
-}
 
 template <class RET, class FUNC, class ... ARGS>
 IoTask::IoTask(std::shared_ptr<Promise<RET>> promise,
@@ -124,20 +118,20 @@ bool IoTask::isHighPriority() const
 inline
 void* IoTask::operator new(size_t size)
 {
-    return GetIoTaskAllocator().allocate(size);
+    return Allocator<IoTaskAllocator>::instance(AllocatorTraits::ioTaskAllocSize()).allocate(size);
 }
 
 inline
 void IoTask::operator delete(void* p)
 {
-    GetIoTaskAllocator().deallocate(static_cast<IoTask*>(p), 1);
+    Allocator<IoTaskAllocator>::instance(AllocatorTraits::ioTaskAllocSize()).deallocate(static_cast<IoTask*>(p), 1);
 }
 
 inline
 void IoTask::deleter(IoTask* p)
 {
 #ifndef __QUANTUM_USE_DEFAULT_ALLOCATOR
-    GetIoTaskAllocator().dispose(p);
+    Allocator<IoTaskAllocator>::instance(AllocatorTraits::ioTaskAllocSize()).dispose(p);
 #else
     delete p;
 #endif

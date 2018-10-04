@@ -31,7 +31,7 @@ namespace quantum {
 /// @tparam SIZE The size of the stack buffer.
 /// @note This allocator is thread safe. For internal use only.
 template <typename T, unsigned int SIZE>
-struct StackAllocator : public ContiguousPoolManager<T, SIZE>
+struct StackAllocator : public ContiguousPoolManager<T>
 {
     //------------------------------ Typedefs ----------------------------------
     typedef StackAllocator<T, SIZE> this_type;
@@ -40,12 +40,13 @@ struct StackAllocator : public ContiguousPoolManager<T, SIZE>
     typedef const value_type*       const_pointer;
     typedef value_type&             reference;
     typedef const value_type&       const_reference;
-    typedef size_t                  size_type;
+    typedef uint16_t                size_type;
     typedef std::ptrdiff_t          difference_type;
     typedef std::false_type         propagate_on_container_move_assignment;
     typedef std::false_type         propagate_on_container_copy_assignment;
     typedef std::false_type         propagate_on_container_swap;
     typedef std::false_type         is_always_equal;
+    typedef std::true_type          default_constructor;
     typedef std::aligned_storage<sizeof(value_type),
                                  alignof(value_type)> storage_type;
     typedef typename storage_type::type aligned_type;
@@ -56,7 +57,7 @@ struct StackAllocator : public ContiguousPoolManager<T, SIZE>
         typedef StackAllocator<U,SIZE> other;
     };
     //------------------------------- Methods ----------------------------------
-    StackAllocator() : ContiguousPoolManager<T, SIZE>(_buffer)
+    StackAllocator() : ContiguousPoolManager<T>(_buffer, SIZE)
     {}
     StackAllocator(const this_type&) : StackAllocator()
     {}

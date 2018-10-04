@@ -28,24 +28,24 @@ namespace quantum {
 /// @brief Provides a heap-based object pool to the underlying ContiguousPoolManager.
 ///        The default buffer size is 1000.
 /// @tparam T The type to allocate.
-/// @tparam SIZE The size of the stack buffer.
 /// @note This allocator is thread safe. For internal use only.
-template <typename T, unsigned int SIZE>
-struct HeapAllocator : public ContiguousPoolManager<T, SIZE>
+template <typename T>
+struct HeapAllocator : public ContiguousPoolManager<T>
 {
     //------------------------------ Typedefs ----------------------------------
-    typedef HeapAllocator<T, SIZE> this_type;
+    typedef HeapAllocator<T>        this_type;
     typedef T                       value_type;
     typedef value_type*             pointer;
     typedef const value_type*       const_pointer;
     typedef value_type&             reference;
     typedef const value_type&       const_reference;
-    typedef size_t                  size_type;
+    typedef uint16_t                size_type;
     typedef std::ptrdiff_t          difference_type;
     typedef std::true_type          propagate_on_container_move_assignment;
     typedef std::false_type         propagate_on_container_copy_assignment;
     typedef std::true_type          propagate_on_container_swap;
     typedef std::true_type          is_always_equal;
+    typedef std::false_type         default_constructor;
     typedef std::aligned_storage<sizeof(value_type),
                                  alignof(value_type)> storage_type;
     typedef typename storage_type::type aligned_type;
@@ -53,33 +53,46 @@ struct HeapAllocator : public ContiguousPoolManager<T, SIZE>
     template <typename U>
     struct rebind
     {
-        typedef HeapAllocator<U,SIZE> other;
+        typedef HeapAllocator<U> other;
     };
     //------------------------------- Methods ----------------------------------
-    HeapAllocator() {
-        _buffer = new aligned_type[SIZE];
+    HeapAllocator(uint16_t size) :
+        _size(size),
+        _buffer(new aligned_type[size])
+    {
         if (!_buffer) {
             throw std::bad_alloc();
         }
-        this->setBuffer(_buffer);
+        this->setBuffer(_buffer, _size);
     }
-    HeapAllocator(const this_type&) : HeapAllocator()
+    HeapAllocator(const this_type& other) :
+        HeapAllocator(other._size)
     {}
-    HeapAllocator(this_type&&) = default;
-    HeapAllocator& operator=(const this_type&)
+    HeapAllocator(this_type&& other)
+    {
+        *this = std::move(other);
+    }
+    HeapAllocator& operator=(const this_type& other)
     {}
-    HeapAllocator& operator=(this_type&&) = default;
+    HeapAllocator& operator=(this_type&& other)
+    {
+        static_cast<ContiguousPoolManager<T>>(*this) = static_cast<ContiguousPoolManager<T>&&>(other);
+        _size = other._size;
+        _buffer = other._buffer;
+        other._size = 0;
+        other._buffer = nullptr;
+    }
     ~HeapAllocator() {
         delete[] _buffer;
     }
     static HeapAllocator select_on_container_copy_construction(const HeapAllocator& other) {
-        return HeapAllocator();
+        return HeapAllocator(other.size());
     }
     template <typename U>
-    HeapAllocator(const HeapAllocator<U,SIZE>&) : HeapAllocator()
+    HeapAllocator(const HeapAllocator<U>& other) : HeapAllocator(other.size())
     {}
     template <typename U>
-    HeapAllocator& operator=(const HeapAllocator<U,SIZE>&)
+    HeapAllocator& operator=(const HeapAllocator<U>&)
     {}
     bool operator==(const this_type& other) const {
         return true;
@@ -87,10 +100,12 @@ struct HeapAllocator : public ContiguousPoolManager<T, SIZE>
     bool operator!=(const this_type& other) const {
         return false;
     }
+    size_type size() const { return _size; }
     
 private:
     //------------------------------- Members ----------------------------------
-    aligned_type* _buffer;
+    size_type       _size;
+    aligned_type*   _buffer;
 };
 
 }} //namespaces

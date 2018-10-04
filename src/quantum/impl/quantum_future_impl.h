@@ -18,29 +18,23 @@
 //##############################################################################################
 //#################################### IMPLEMENTATIONS #########################################
 //##############################################################################################
-#include <quantum/quantum_stack_allocator.h>
-#include <quantum/quantum_heap_allocator.h>
+#include <quantum/quantum_allocator.h>
 
 namespace Bloomberg {
 namespace quantum {
 
-#ifndef __QUANTUM_FUTURE_ALLOC
-    #define __QUANTUM_FUTURE_ALLOC __QUANTUM_DEFAULT_POOL_ALLOC_SIZE
+#ifndef __QUANTUM_FUTURE_ALLOC_SIZE
+    #define __QUANTUM_FUTURE_ALLOC_SIZE __QUANTUM_DEFAULT_POOL_ALLOC_SIZE
 #endif
 #ifndef __QUANTUM_USE_DEFAULT_ALLOCATOR
     #ifdef __QUANTUM_ALLOCATE_POOL_FROM_HEAP
-        using FutureAllocator = HeapAllocator<Future<int>, __QUANTUM_FUTURE_ALLOC>;
+        using FutureAllocator = HeapAllocator<Future<int>>;
     #else
-        using FutureAllocator = StackAllocator<Future<int>, __QUANTUM_FUTURE_ALLOC>;
+        using FutureAllocator = StackAllocator<Future<int>, __QUANTUM_FUTURE_ALLOC_SIZE>;
     #endif
 #else
-    using FutureAllocator = std::allocator<Future<int>>;
+    using FutureAllocator = StlAllocator<Future<int>>;
 #endif
-
-inline FutureAllocator& GetFutureAllocator() {
-    static FutureAllocator allocator;
-    return allocator;
-}
 
 //==============================================================================================
 //                                class IThreadFuture
@@ -152,20 +146,20 @@ V Future<T>::pull(ICoroSync::Ptr sync, bool& isBufferClosed)
 template <class T>
 void* Future<T>::operator new(size_t size)
 {
-    return GetFutureAllocator().allocate(size);
+    return Allocator<FutureAllocator>::instance(AllocatorTraits::futureAllocSize()).allocate(size);
 }
 
 template <class T>
 void Future<T>::operator delete(void* p)
 {
-    GetFutureAllocator().deallocate(static_cast<Future<int>*>(p), 1);
+    Allocator<FutureAllocator>::instance(AllocatorTraits::futureAllocSize()).deallocate(static_cast<Future<int>*>(p), 1);
 }
 
 template <class T>
 void Future<T>::deleter(Future<T>* p)
 {
 #ifndef __QUANTUM_USE_DEFAULT_ALLOCATOR
-    GetFutureAllocator().dispose(reinterpret_cast<Future<int>*>(p));
+    Allocator<FutureAllocator>::instance(AllocatorTraits::futureAllocSize()).dispose(reinterpret_cast<Future<int>*>(p));
 #else
     delete p;
 #endif

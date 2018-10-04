@@ -39,6 +39,8 @@
 #include <quantum/interface/quantum_ithread_future.h>
 #include <quantum/interface/quantum_ithread_future_base.h>
 #include <quantum/interface/quantum_ithread_promise.h>
+#include <quantum/quantum_allocator.h>
+#include <quantum/quantum_allocator_traits.h>
 #include <quantum/quantum_buffer.h>
 #include <quantum/quantum_condition_variable.h>
 #include <quantum/quantum_context.h>

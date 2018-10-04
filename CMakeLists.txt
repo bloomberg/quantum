@@ -27,6 +27,11 @@ add_definitions(
         -D_THREAD_SAFE
         -D_POSIX_PTHREAD_SEMANTICS
         -D__FUNCTION__=__FILE__
+        #-D__QUANTUM_DEFAULT_POOL_ALLOC_SIZE=1000
+        #-D__QUANTUM_DEFAULT_CORO_POOL_ALLOC_SIZE=200
+        #-D__QUANTUM_USE_DEFAULT_ALLOCATOR
+        #-D__QUANTUM_USE_DEFAULT_CORO_ALLOCATOR
+        #-D__QUANTUM_ALLOCATE_POOL_FROM_HEAP
 )
 add_compile_options(-Wall -Wextra -Werror -Wabi -O0 -m${MODE} -std=gnu++${CMAKE_CXX_STANDARD} -ftemplate-backtrace-limit=0)
 

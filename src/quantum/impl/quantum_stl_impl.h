@@ -16,11 +16,8 @@
 #ifndef QUANTUM_STL_IMPL_H
 #define QUANTUM_STL_IMPL_H
 
-#include <quantum/quantum_traits.h>
 #include <tuple>
 #include <utility>
-
-using Traits = Bloomberg::quantum::Traits;
 
 namespace std {
 #if (__cplusplus == 201103L)

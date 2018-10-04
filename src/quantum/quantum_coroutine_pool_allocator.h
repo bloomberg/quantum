@@ -27,10 +27,6 @@
 namespace Bloomberg {
 namespace quantum {
 
-#ifndef __QUANTUM_DEFAULT_CORO_POOL_ALLOC_SIZE
-    #define __QUANTUM_DEFAULT_CORO_POOL_ALLOC_SIZE 200
-#endif
-
 //==============================================================================
 //                        struct CoroutinePoolAllocator
 //==============================================================================
@@ -38,19 +34,18 @@ namespace quantum {
 /// @brief Provides fast (quasi zero-time) in-place allocation for coroutines.
 ///        Coroutine stacks are pre-allocated from separate (i.e. non-contiguous)
 ///        heap blocks and maintained in a reusable list.
-/// @tparam SIZE The number of coroutine stacks to allocate.
 /// @note This allocator is thread safe. For internal use only and is meant to
 ///       replace the boost fixed size pool allocator which crashes.
-template <typename STACK_TRAITS, unsigned int SIZE>
+template <typename STACK_TRAITS>
 struct CoroutinePoolAllocator
 {
     //------------------------------ Typedefs ----------------------------------
-    typedef CoroutinePoolAllocator<STACK_TRAITS, SIZE>  this_type;
-    typedef unsigned short  index_type;
-    typedef STACK_TRAITS    traits;
+    typedef CoroutinePoolAllocator<STACK_TRAITS>  this_type;
+    typedef uint16_t                              size_type;
+    typedef STACK_TRAITS                          traits;
     
     //------------------------------- Methods ----------------------------------
-    CoroutinePoolAllocator();
+    CoroutinePoolAllocator(size_type size);
     CoroutinePoolAllocator(const this_type&) = delete;
     CoroutinePoolAllocator(this_type&&);
     CoroutinePoolAllocator& operator=(const this_type&) = delete;
@@ -75,18 +70,21 @@ private:
     Header* getHeader(const boost::context::stack_context& ctx) const;
     
     //------------------------------- Members ----------------------------------
-    Header*         _blocks[SIZE];
-    index_type      _freeBlocks[SIZE];
+    size_type       _size;
+    Header**        _blocks;
+    size_type*      _freeBlocks;
     ssize_t         _freeBlockIndex;
     size_t          _numHeapAllocatedBlocks;
     size_t          _stackSize;
     SpinLock        _spinlock;
 };
 
-template <typename STACK_TRAITS, unsigned int SIZE>
+template <typename STACK_TRAITS>
 struct CoroutinePoolAllocatorProxy
 {
-    CoroutinePoolAllocatorProxy() : _alloc(new CoroutinePoolAllocator<STACK_TRAITS, SIZE>())
+    typedef std::false_type default_constructor;
+    
+    CoroutinePoolAllocatorProxy(uint16_t size) : _alloc(new CoroutinePoolAllocator<STACK_TRAITS>(size))
     {
         if (!_alloc) {
             throw std::bad_alloc();
@@ -100,7 +98,7 @@ struct CoroutinePoolAllocatorProxy
     bool isFull() const { return _alloc->isFull(); }
     bool isEmpty() const { return _alloc->isEmpty(); }
 private:
-    std::shared_ptr<CoroutinePoolAllocator<STACK_TRAITS, SIZE>> _alloc;
+    std::shared_ptr<CoroutinePoolAllocator<STACK_TRAITS>> _alloc;
 };
 
 }} //namespaces

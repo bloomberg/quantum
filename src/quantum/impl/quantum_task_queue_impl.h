@@ -24,7 +24,7 @@ namespace quantum {
 
 inline
 TaskQueue::TaskQueue() :
-    _queue(GetQueueListAllocator()),
+    _queue(Allocator<QueueListAllocator>::instance(AllocatorTraits::queueListAllocSize())),
     _queueIt(_queue.end()),
     _isEmpty(true),
     _isInterrupted(false),
