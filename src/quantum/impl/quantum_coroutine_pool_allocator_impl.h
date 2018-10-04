@@ -28,67 +28,69 @@
 namespace Bloomberg {
 namespace quantum {
 
-template <typename STACK_TRAITS, unsigned int SIZE>
-CoroutinePoolAllocator<STACK_TRAITS, SIZE>::CoroutinePoolAllocator() :
-    _freeBlockIndex(SIZE-1),
+template <typename STACK_TRAITS>
+CoroutinePoolAllocator<STACK_TRAITS>::CoroutinePoolAllocator(size_type size) :
+    _size(size),
+    _blocks(new Header*[size]),
+    _freeBlocks(new size_type[size]),
+    _freeBlockIndex(size-1),
     _numHeapAllocatedBlocks(0),
     _stackSize(std::min(std::max(traits::default_size(), traits::minimum_size()), traits::maximum_size()))
 {
-    static_assert(SIZE < std::numeric_limits<unsigned short>::max(), "Pool size too large");
-    assert(_stackSize);
-    
+    if (!_blocks || !_freeBlocks) {
+        throw std::bad_alloc();
+    }
+    if (_size == 0) {
+        throw std::runtime_error("Invalid coroutine allocator pool size");
+    }
     //pre-allocate all the coroutine stack blocks
-    for (size_t i = 0; i < SIZE; ++i) {
+    for (size_type i = 0; i < size; ++i) {
         _blocks[i] = reinterpret_cast<Header*>(new char[_stackSize]);
         if (!_blocks[i]) {
             throw std::bad_alloc();
         }
-        reinterpret_cast<Header*>(_blocks[i])->_pos = i; //mark position
+        _blocks[i]->_pos = i; //mark position
     }
     //initialize the free block list
-    for (size_t i = 0; i < SIZE; ++i) {
+    for (size_type i = 0; i < size; ++i) {
         _freeBlocks[i] = i;
     }
 }
 
-template <typename STACK_TRAITS, unsigned int SIZE>
-CoroutinePoolAllocator<STACK_TRAITS,SIZE>::CoroutinePoolAllocator(CoroutinePoolAllocator<STACK_TRAITS,SIZE>&& other)
+template <typename STACK_TRAITS>
+CoroutinePoolAllocator<STACK_TRAITS>::CoroutinePoolAllocator(CoroutinePoolAllocator<STACK_TRAITS>&& other)
 {
-    std::copy(std::begin(_blocks), std::end(_blocks), std::begin(other._blocks));
-    std::copy(std::begin(_freeBlocks), std::end(_freeBlocks), std::begin(other._freeBlocks));
+    *this = other;
+}
+
+template <typename STACK_TRAITS>
+CoroutinePoolAllocator<STACK_TRAITS>& CoroutinePoolAllocator<STACK_TRAITS>::operator=(CoroutinePoolAllocator<STACK_TRAITS>&& other)
+{
+    _size = other._size;
+    _blocks = other._blocks;
+    _freeBlocks = other._freeBlocks;
     _freeBlockIndex = other._freeBlockIndex;
     _numHeapAllocatedBlocks = other._numHeapAllocatedBlocks;
     
     // Reset other
-    for (size_t i = 0; i < SIZE; _blocks[++i] = nullptr);
+    other._blocks = nullptr;
+    other._freeBlocks = nullptr;
     other._freeBlockIndex = -1;
     other._numHeapAllocatedBlocks = 0;
 }
 
-template <typename STACK_TRAITS, unsigned int SIZE>
-CoroutinePoolAllocator<STACK_TRAITS,SIZE>& CoroutinePoolAllocator<STACK_TRAITS,SIZE>::operator=(CoroutinePoolAllocator<STACK_TRAITS,SIZE>&& other)
+template <typename STACK_TRAITS>
+CoroutinePoolAllocator<STACK_TRAITS>::~CoroutinePoolAllocator()
 {
-    std::copy(std::begin(_blocks), std::end(_blocks), std::begin(other._blocks));
-    std::copy(std::begin(_freeBlocks), std::end(_freeBlocks), std::begin(other._freeBlocks));
-    _freeBlockIndex = other._freeBlockIndex;
-    _numHeapAllocatedBlocks = other._numHeapAllocatedBlocks;
-    
-    // Reset other
-    for (size_t i = 0; i < SIZE; _blocks[++i] = nullptr);
-    other._freeBlockIndex = -1;
-    other._numHeapAllocatedBlocks = 0;
-}
-
-template <typename STACK_TRAITS, unsigned int SIZE>
-CoroutinePoolAllocator<STACK_TRAITS,SIZE>::~CoroutinePoolAllocator()
-{
-    for (size_t i = 0; i < SIZE; ++i) {
+    for (size_t i = 0; i < _size; ++i) {
         delete[] (char*)_blocks[i];
     }
+    delete[] _blocks;
+    delete[] _freeBlocks;
 }
 
-template <typename STACK_TRAITS, unsigned int SIZE>
-boost::context::stack_context CoroutinePoolAllocator<STACK_TRAITS, SIZE>::allocate() {
+template <typename STACK_TRAITS>
+boost::context::stack_context CoroutinePoolAllocator<STACK_TRAITS>::allocate() {
     boost::context::stack_context ctx;
     Header* block = nullptr;
     {
@@ -117,8 +119,8 @@ boost::context::stack_context CoroutinePoolAllocator<STACK_TRAITS, SIZE>::alloca
     return ctx;
 }
 
-template <typename STACK_TRAITS, unsigned int SIZE>
-void CoroutinePoolAllocator<STACK_TRAITS, SIZE>::deallocate(const boost::context::stack_context& ctx) {
+template <typename STACK_TRAITS>
+void CoroutinePoolAllocator<STACK_TRAITS>::deallocate(const boost::context::stack_context& ctx) {
     if (!ctx.sp) {
         return;
     }
@@ -138,45 +140,45 @@ void CoroutinePoolAllocator<STACK_TRAITS, SIZE>::deallocate(const boost::context
     }
 }
 
-template <typename STACK_TRAITS, unsigned int SIZE>
-size_t CoroutinePoolAllocator<STACK_TRAITS,SIZE>::allocatedBlocks() const
+template <typename STACK_TRAITS>
+size_t CoroutinePoolAllocator<STACK_TRAITS>::allocatedBlocks() const
 {
-    return SIZE - _freeBlockIndex - 1;
+    return _size - _freeBlockIndex - 1;
 }
 
-template <typename STACK_TRAITS, unsigned int SIZE>
-size_t CoroutinePoolAllocator<STACK_TRAITS,SIZE>::allocatedHeapBlocks() const
+template <typename STACK_TRAITS>
+size_t CoroutinePoolAllocator<STACK_TRAITS>::allocatedHeapBlocks() const
 {
     return _numHeapAllocatedBlocks;
 }
 
-template <typename STACK_TRAITS, unsigned int SIZE>
-bool CoroutinePoolAllocator<STACK_TRAITS,SIZE>::isFull() const
+template <typename STACK_TRAITS>
+bool CoroutinePoolAllocator<STACK_TRAITS>::isFull() const
 {
-    return _freeBlockIndex == SIZE-1;
+    return _freeBlockIndex == _size-1;
 }
 
-template <typename STACK_TRAITS, unsigned int SIZE>
-bool CoroutinePoolAllocator<STACK_TRAITS,SIZE>::isEmpty() const
+template <typename STACK_TRAITS>
+bool CoroutinePoolAllocator<STACK_TRAITS>::isEmpty() const
 {
     return _freeBlockIndex == -1;
 }
 
-template <typename STACK_TRAITS, unsigned int SIZE>
-typename CoroutinePoolAllocator<STACK_TRAITS,SIZE>::Header*
-CoroutinePoolAllocator<STACK_TRAITS,SIZE>::getHeader(const boost::context::stack_context& ctx) const
+template <typename STACK_TRAITS>
+typename CoroutinePoolAllocator<STACK_TRAITS>::Header*
+CoroutinePoolAllocator<STACK_TRAITS>::getHeader(const boost::context::stack_context& ctx) const
 {
     return reinterpret_cast<Header*>(reinterpret_cast<char*>(ctx.sp) - ctx.size - sizeof(Header));
 }
 
-template <typename STACK_TRAITS, unsigned int SIZE>
-bool CoroutinePoolAllocator<STACK_TRAITS,SIZE>::isManaged(const boost::context::stack_context& ctx) const
+template <typename STACK_TRAITS>
+bool CoroutinePoolAllocator<STACK_TRAITS>::isManaged(const boost::context::stack_context& ctx) const
 {
     return blockIndex(ctx) != -1;
 }
 
-template <typename STACK_TRAITS, unsigned int SIZE>
-int CoroutinePoolAllocator<STACK_TRAITS,SIZE>::blockIndex(const boost::context::stack_context& ctx) const
+template <typename STACK_TRAITS>
+int CoroutinePoolAllocator<STACK_TRAITS>::blockIndex(const boost::context::stack_context& ctx) const
 {
     return getHeader(ctx)->_pos;
 }

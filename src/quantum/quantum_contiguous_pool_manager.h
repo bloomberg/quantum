@@ -26,38 +26,6 @@
 namespace Bloomberg {
 namespace quantum {
 
-#ifndef __QUANTUM_DEFAULT_POOL_ALLOC_SIZE
-    #ifdef __QUANTUM_DEFAULT_STACK_ALLOC_SIZE
-        #warning Deprecated : use __QUANTUM_DEFAULT_POOL_ALLOC_SIZE instead.
-        #define __QUANTUM_DEFAULT_POOL_ALLOC_SIZE __QUANTUM_DEFAULT_STACK_ALLOC_SIZE
-    #else
-        #define __QUANTUM_DEFAULT_POOL_ALLOC_SIZE 1000
-    #endif
-#endif
-
-//==============================================================================
-//                               Helpers
-//==============================================================================
-template <int N> //N == 0
-struct index {
-    using type = unsigned int;
-};
-template<>
-struct index<1> {
-    using type = unsigned short;
-};
-template <>
-struct index<2> {
-    using type = unsigned char;
-};
-
-template <int N>
-struct pos_index {
-    constexpr static int I = N <= std::numeric_limits<unsigned char>::max() ? 2 :
-                             N <= std::numeric_limits<unsigned short>::max() ? 1 : 0;
-    using type = typename index<I>::type;
-};
-
 //==============================================================================
 //                        struct ContiguousPoolManager
 //==============================================================================
@@ -67,41 +35,39 @@ struct pos_index {
 ///        buffer is exhausted, allocation is delegated to the heap. The default
 ///        buffer size is 1000.
 /// @tparam T The type to allocate.
-/// @tparam SIZE The size of the stack buffer.
 /// @note This allocator is thread safe. For internal use only.
-template <typename T, unsigned int SIZE>
+template <typename T>
 struct ContiguousPoolManager
 {
     //------------------------------ Typedefs ----------------------------------
-    typedef ContiguousPoolManager<T,SIZE>   this_type;
+    typedef ContiguousPoolManager<T>        this_type;
     typedef T                               value_type;
     typedef value_type*                     pointer;
     typedef const value_type*               const_pointer;
     typedef value_type&                     reference;
     typedef const value_type&               const_reference;
-    typedef size_t                          size_type;
-    typedef typename pos_index<SIZE>::type  index_type;
+    typedef uint16_t                        size_type;
     typedef std::aligned_storage<sizeof(T), alignof(T)> storage_type;
     typedef typename storage_type::type aligned_type;
     
     //------------------------------- Methods ----------------------------------
     ContiguousPoolManager();
-    ContiguousPoolManager(aligned_type* buffer);
+    ContiguousPoolManager(aligned_type* buffer, size_type size);
     ContiguousPoolManager(const this_type&) = delete;
     ContiguousPoolManager(this_type&&);
     ContiguousPoolManager& operator=(const this_type&) = delete;
     ContiguousPoolManager& operator=(this_type&&);
-    virtual ~ContiguousPoolManager() = default;
+    virtual ~ContiguousPoolManager();
     
     // Accessors
-    void setBuffer(aligned_type* buffer);
+    void setBuffer(aligned_type* buffer, size_type size);
     pointer address(reference x) const;
     const_pointer address(const_reference x) const;
     size_type max_size() const;
     template <typename... Args >
     void construct(T* p, Args&&... args);
     void destroy(pointer p);
-    pointer allocate(size_type = 1, std::allocator<void>::const_pointer = 0);
+    pointer allocate(size_type = 1, const_pointer = 0);
     void deallocate(pointer p, size_type = 1);
     template <typename... Args >
     pointer create(Args&&... args);
@@ -115,12 +81,13 @@ private:
     pointer bufferStart();
     pointer bufferEnd();
     bool isManaged(pointer p);
-    index_type blockIndex(pointer p);
+    size_type blockIndex(pointer p);
 
     //------------------------------- Members ----------------------------------
-    aligned_type*   _buffer;
-    index_type      _freeBlocks[SIZE];
-    ssize_t         _freeBlockIndex{SIZE-1};
+    size_type       _size{0};
+    aligned_type*   _buffer{nullptr}; //non-owning
+    size_type*      _freeBlocks{nullptr};
+    ssize_t         _freeBlockIndex{-1};
     size_type       _numHeapAllocatedBlocks{0};
     SpinLock        _spinlock;
 };

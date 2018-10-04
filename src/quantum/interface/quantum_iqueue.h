@@ -20,8 +20,7 @@
 #include <quantum/interface/quantum_iterminate.h>
 #include <quantum/interface/quantum_itask.h>
 #include <quantum/interface/quantum_iqueue_statistics.h>
-#include <quantum/quantum_stack_allocator.h>
-#include <quantum/quantum_heap_allocator.h>
+#include <quantum/quantum_allocator.h>
 
 namespace Bloomberg {
 namespace quantum {
@@ -60,23 +59,18 @@ struct IQueue : public ITerminate
     virtual bool isIdle() const = 0;
 };
 
-#ifndef __QUANTUM_QUEUE_LIST_ALLOC
-    #define __QUANTUM_QUEUE_LIST_ALLOC __QUANTUM_DEFAULT_POOL_ALLOC_SIZE
+#ifndef __QUANTUM_QUEUE_LIST_ALLOC_SIZE
+    #define __QUANTUM_QUEUE_LIST_ALLOC_SIZE __QUANTUM_DEFAULT_POOL_ALLOC_SIZE
 #endif
 #ifndef __QUANTUM_USE_DEFAULT_ALLOCATOR
     #ifdef __QUANTUM_ALLOCATE_POOL_FROM_HEAP
-        using QueueListAllocator = HeapAllocator<ITask::Ptr, __QUANTUM_QUEUE_LIST_ALLOC>;
+        using QueueListAllocator = HeapAllocator<ITask::Ptr>;
     #else
-        using QueueListAllocator = StackAllocator<ITask::Ptr, __QUANTUM_QUEUE_LIST_ALLOC>;
+        using QueueListAllocator = StackAllocator<ITask::Ptr, __QUANTUM_QUEUE_LIST_ALLOC_SIZE>;
     #endif
 #else
-    using QueueListAllocator = std::allocator<ITask::Ptr>;
+    using QueueListAllocator = StlAllocator<ITask::Ptr>;
 #endif
-
-inline QueueListAllocator&  GetQueueListAllocator() {
-    static QueueListAllocator allocator;
-    return allocator;
-}
 
 }}
 

@@ -22,14 +22,13 @@ namespace Bloomberg {
 namespace quantum {
 
 //==============================================================================================
-//                                 class StackTraits
+//                                 struct StackTraits
 //==============================================================================================
 /// @struct StackParameters.
 /// @brief Allows overrides for the coroutine stack traits which is used internally by the coroutine allocators.
 /// @note See boost::context::stack_traits for details. Typically only the default size should be modified.
 
-class StackTraits {
-public:
+struct StackTraits {
     /// @brief Get/set if the environment defines a limit for the stack size.
     /// @return Modifiable reference.
     static bool& isUnbounded();

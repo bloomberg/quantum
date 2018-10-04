@@ -18,8 +18,7 @@
 //##############################################################################################
 //#################################### IMPLEMENTATIONS #########################################
 //##############################################################################################
-#include <quantum/quantum_stack_allocator.h>
-#include <quantum/quantum_heap_allocator.h>
+#include <quantum/quantum_allocator.h>
 
 namespace Bloomberg {
 namespace quantum {
@@ -75,23 +74,18 @@ int ICoroPromise<PROMISE, T>::closeBuffer()
 //==============================================================================================
 //                                class Promise
 //==============================================================================================
-#ifndef __QUANTUM_PROMISE_ALLOC
-    #define __QUANTUM_PROMISE_ALLOC __QUANTUM_DEFAULT_POOL_ALLOC_SIZE
+#ifndef __QUANTUM_PROMISE_ALLOC_SIZE
+    #define __QUANTUM_PROMISE_ALLOC_SIZE __QUANTUM_DEFAULT_POOL_ALLOC_SIZE
 #endif
 #ifndef __QUANTUM_USE_DEFAULT_ALLOCATOR
     #ifdef __QUANTUM_ALLOCATE_POOL_FROM_HEAP
-        using PromiseAllocator = HeapAllocator<Promise<int>, __QUANTUM_PROMISE_ALLOC>;
+        using PromiseAllocator = HeapAllocator<Promise<int>>;
     #else
-        using PromiseAllocator = StackAllocator<Promise<int>, __QUANTUM_PROMISE_ALLOC>;
+        using PromiseAllocator = StackAllocator<Promise<int>, __QUANTUM_PROMISE_ALLOC_SIZE>;
     #endif
 #else
-    using PromiseAllocator = std::allocator<Promise<int>>;
+    using PromiseAllocator = StlAllocator<Promise<int>>;
 #endif
-
-inline PromiseAllocator& GetPromiseAllocator() {
-    static PromiseAllocator allocator;
-    return allocator;
-}
 
 template <class T>
 Promise<T>::Promise() :
@@ -200,20 +194,20 @@ int Promise<T>::closeBuffer()
 template <class T>
 void* Promise<T>::operator new(size_t size)
 {
-    return GetPromiseAllocator().allocate(size);
+    return Allocator<PromiseAllocator>::instance(AllocatorTraits::promiseAllocSize()).allocate(size);
 }
 
 template <class T>
 void Promise<T>::operator delete(void* p)
 {
-    GetPromiseAllocator().deallocate(static_cast<Promise<int>*>(p), 1);
+    Allocator<PromiseAllocator>::instance(AllocatorTraits::promiseAllocSize()).deallocate(static_cast<Promise<int>*>(p), 1);
 }
 
 template <class T>
 void Promise<T>::deleter(Promise<T>* p)
 {
 #ifndef __QUANTUM_USE_DEFAULT_ALLOCATOR
-    GetPromiseAllocator().dispose(reinterpret_cast<Promise<int>*>(p));
+    Allocator<PromiseAllocator>::instance(AllocatorTraits::promiseAllocSize()).dispose(reinterpret_cast<Promise<int>*>(p));
 #else
     delete p;
 #endif

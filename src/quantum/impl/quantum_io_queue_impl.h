@@ -25,7 +25,7 @@ namespace quantum {
 inline
 IoQueue::IoQueue(IoQueue* mainIoQueue) :
     _sharedIoQueue(mainIoQueue),
-    _queue(GetQueueListAllocator()),
+    _queue(Allocator<QueueListAllocator>::instance(AllocatorTraits::queueListAllocSize())),
     _isEmpty(true),
     _isInterrupted(false),
     _isIdle(true),

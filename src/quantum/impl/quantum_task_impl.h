@@ -18,34 +18,24 @@
 //##############################################################################################
 //#################################### IMPLEMENTATIONS #########################################
 //##############################################################################################
-#include <quantum/quantum_stack_allocator.h>
-#include <quantum/quantum_heap_allocator.h>
+#include <quantum/quantum_allocator.h>
+#include <quantum/quantum_traits.h>
 
 namespace Bloomberg {
 namespace quantum {
 
-#ifndef __QUANTUM_TASK_ALLOC
-    #define __QUANTUM_TASK_ALLOC __QUANTUM_DEFAULT_POOL_ALLOC_SIZE
+#ifndef __QUANTUM_TASK_ALLOC_SIZE
+    #define __QUANTUM_TASK_ALLOC_SIZE __QUANTUM_DEFAULT_POOL_ALLOC_SIZE
 #endif
 #ifndef __QUANTUM_USE_DEFAULT_ALLOCATOR
     #ifdef __QUANTUM_ALLOCATE_POOL_FROM_HEAP
-        using TaskAllocator = HeapAllocator<Task, __QUANTUM_TASK_ALLOC>;
+        using TaskAllocator = HeapAllocator<Task>;
     #else
-        using TaskAllocator = StackAllocator<Task, __QUANTUM_TASK_ALLOC>;
+        using TaskAllocator = StackAllocator<Task, __QUANTUM_TASK_ALLOC_SIZE>;
     #endif
 #else
-    using TaskAllocator = std::allocator<Task>;
+    using TaskAllocator = StlAllocator<Task>;
 #endif
-
-inline TaskAllocator& GetTaskAllocator() {
-    static TaskAllocator allocator;
-    return allocator;
-}
-
-inline Traits::CoroStackAllocator& GetCoroStackAllocator() {
-    static Traits::CoroStackAllocator allocator;
-    return allocator;
-}
 
 template <class RET, class FUNC, class ... ARGS>
 Task::Task(std::shared_ptr<Context<RET>> ctx,
@@ -53,7 +43,7 @@ Task::Task(std::shared_ptr<Context<RET>> ctx,
            FUNC&& func,
            ARGS&&... args) :
     _ctx(ctx),
-    _coro(GetCoroStackAllocator(),
+    _coro(Allocator<Traits::CoroStackAllocator>::instance(AllocatorTraits::defaultCoroPoolAllocSize()),
           std::move(Util::BindCaller(ctx,
                            std::forward<FUNC>(func),
                            std::forward<ARGS>(args)...))),
@@ -72,7 +62,7 @@ Task::Task(std::shared_ptr<Context<RET>> ctx,
            FUNC&& func,
            ARGS&&... args) :
     _ctx(ctx),
-    _coro(GetCoroStackAllocator(),
+    _coro(Allocator<Traits::CoroStackAllocator>::instance(AllocatorTraits::defaultCoroPoolAllocSize()),
           std::move(Util::BindCaller(ctx,
                            std::forward<FUNC>(func),
                            std::forward<ARGS>(args)...))),
@@ -177,20 +167,20 @@ bool Task::isHighPriority() const
 inline
 void* Task::operator new(size_t size)
 {
-    return GetTaskAllocator().allocate(size);
+    return Allocator<TaskAllocator>::instance(AllocatorTraits::taskAllocSize()).allocate(size);
 }
 
 inline
 void Task::operator delete(void* p)
 {
-    GetTaskAllocator().deallocate(static_cast<Task*>(p), 1);
+    Allocator<TaskAllocator>::instance(AllocatorTraits::taskAllocSize()).deallocate(static_cast<Task*>(p), 1);
 }
 
 inline
 void Task::deleter(Task* p)
 {
 #ifndef __QUANTUM_USE_DEFAULT_ALLOCATOR
-    GetTaskAllocator().dispose(p);
+    Allocator<TaskAllocator>::instance(AllocatorTraits::taskAllocSize()).dispose(p);
 #else
     delete p;
 #endif
