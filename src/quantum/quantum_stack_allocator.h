@@ -40,7 +40,7 @@ struct StackAllocator : public ContiguousPoolManager<T>
     typedef const value_type*       const_pointer;
     typedef value_type&             reference;
     typedef const value_type&       const_reference;
-    typedef uint16_t                size_type;
+    typedef size_t                  size_type;
     typedef std::ptrdiff_t          difference_type;
     typedef std::false_type         propagate_on_container_move_assignment;
     typedef std::false_type         propagate_on_container_copy_assignment;

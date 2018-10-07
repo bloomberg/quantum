@@ -46,13 +46,14 @@ struct ContiguousPoolManager
     typedef const value_type*               const_pointer;
     typedef value_type&                     reference;
     typedef const value_type&               const_reference;
-    typedef uint16_t                        size_type;
+    typedef size_t                          size_type;
+    typedef uint16_t                        index_type;
     typedef std::aligned_storage<sizeof(T), alignof(T)> storage_type;
     typedef typename storage_type::type aligned_type;
     
     //------------------------------- Methods ----------------------------------
     ContiguousPoolManager();
-    ContiguousPoolManager(aligned_type* buffer, size_type size);
+    ContiguousPoolManager(aligned_type* buffer, index_type size);
     ContiguousPoolManager(const this_type&) = delete;
     ContiguousPoolManager(this_type&&);
     ContiguousPoolManager& operator=(const this_type&) = delete;
@@ -60,7 +61,7 @@ struct ContiguousPoolManager
     virtual ~ContiguousPoolManager();
     
     // Accessors
-    void setBuffer(aligned_type* buffer, size_type size);
+    void setBuffer(aligned_type* buffer, index_type size);
     pointer address(reference x) const;
     const_pointer address(const_reference x) const;
     size_type max_size() const;
@@ -81,14 +82,14 @@ private:
     pointer bufferStart();
     pointer bufferEnd();
     bool isManaged(pointer p);
-    size_type blockIndex(pointer p);
+    index_type blockIndex(pointer p);
 
     //------------------------------- Members ----------------------------------
-    size_type       _size{0};
+    index_type      _size{0};
     aligned_type*   _buffer{nullptr}; //non-owning
-    size_type*      _freeBlocks{nullptr};
+    index_type*     _freeBlocks{nullptr};
     ssize_t         _freeBlockIndex{-1};
-    size_type       _numHeapAllocatedBlocks{0};
+    size_t          _numHeapAllocatedBlocks{0};
     SpinLock        _spinlock;
 };
 

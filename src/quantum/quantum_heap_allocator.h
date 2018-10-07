@@ -39,7 +39,8 @@ struct HeapAllocator : public ContiguousPoolManager<T>
     typedef const value_type*       const_pointer;
     typedef value_type&             reference;
     typedef const value_type&       const_reference;
-    typedef uint16_t                size_type;
+    typedef size_t                  size_type;
+    typedef uint16_t                index_type;
     typedef std::ptrdiff_t          difference_type;
     typedef std::true_type          propagate_on_container_move_assignment;
     typedef std::false_type         propagate_on_container_copy_assignment;
@@ -56,7 +57,7 @@ struct HeapAllocator : public ContiguousPoolManager<T>
         typedef HeapAllocator<U> other;
     };
     //------------------------------- Methods ----------------------------------
-    HeapAllocator(uint16_t size) :
+    HeapAllocator(index_type size) :
         _size(size),
         _buffer(new aligned_type[size])
     {
@@ -100,11 +101,11 @@ struct HeapAllocator : public ContiguousPoolManager<T>
     bool operator!=(const this_type& other) const {
         return false;
     }
-    size_type size() const { return _size; }
+    index_type size() const { return _size; }
     
 private:
     //------------------------------- Members ----------------------------------
-    size_type       _size;
+    index_type      _size;
     aligned_type*   _buffer;
 };
 

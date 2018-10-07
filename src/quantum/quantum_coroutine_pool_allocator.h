@@ -41,11 +41,12 @@ struct CoroutinePoolAllocator
 {
     //------------------------------ Typedefs ----------------------------------
     typedef CoroutinePoolAllocator<STACK_TRAITS>  this_type;
-    typedef uint16_t                              size_type;
+    typedef size_t                                size_type;
+    typedef uint16_t                              index_type;
     typedef STACK_TRAITS                          traits;
     
     //------------------------------- Methods ----------------------------------
-    CoroutinePoolAllocator(size_type size);
+    CoroutinePoolAllocator(index_type size);
     CoroutinePoolAllocator(const this_type&) = delete;
     CoroutinePoolAllocator(this_type&&);
     CoroutinePoolAllocator& operator=(const this_type&) = delete;
@@ -70,9 +71,9 @@ private:
     Header* getHeader(const boost::context::stack_context& ctx) const;
     
     //------------------------------- Members ----------------------------------
-    size_type       _size;
+    index_type      _size;
     Header**        _blocks;
-    size_type*      _freeBlocks;
+    index_type*     _freeBlocks;
     ssize_t         _freeBlockIndex;
     size_t          _numHeapAllocatedBlocks;
     size_t          _stackSize;

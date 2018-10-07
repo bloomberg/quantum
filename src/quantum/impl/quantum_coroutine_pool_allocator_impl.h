@@ -29,10 +29,10 @@ namespace Bloomberg {
 namespace quantum {
 
 template <typename STACK_TRAITS>
-CoroutinePoolAllocator<STACK_TRAITS>::CoroutinePoolAllocator(size_type size) :
+CoroutinePoolAllocator<STACK_TRAITS>::CoroutinePoolAllocator(index_type size) :
     _size(size),
     _blocks(new Header*[size]),
-    _freeBlocks(new size_type[size]),
+    _freeBlocks(new index_type[size]),
     _freeBlockIndex(size-1),
     _numHeapAllocatedBlocks(0),
     _stackSize(std::min(std::max(traits::default_size(), traits::minimum_size()), traits::maximum_size()))
@@ -44,7 +44,7 @@ CoroutinePoolAllocator<STACK_TRAITS>::CoroutinePoolAllocator(size_type size) :
         throw std::runtime_error("Invalid coroutine allocator pool size");
     }
     //pre-allocate all the coroutine stack blocks
-    for (size_type i = 0; i < size; ++i) {
+    for (index_type i = 0; i < size; ++i) {
         _blocks[i] = reinterpret_cast<Header*>(new char[_stackSize]);
         if (!_blocks[i]) {
             throw std::bad_alloc();
@@ -52,7 +52,7 @@ CoroutinePoolAllocator<STACK_TRAITS>::CoroutinePoolAllocator(size_type size) :
         _blocks[i]->_pos = i; //mark position
     }
     //initialize the free block list
-    for (size_type i = 0; i < size; ++i) {
+    for (index_type i = 0; i < size; ++i) {
         _freeBlocks[i] = i;
     }
 }

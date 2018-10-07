@@ -30,7 +30,7 @@ ContiguousPoolManager<T>::ContiguousPoolManager()
 }
 
 template <typename T>
-ContiguousPoolManager<T>::ContiguousPoolManager(aligned_type* buffer, size_type size)
+ContiguousPoolManager<T>::ContiguousPoolManager(aligned_type* buffer, index_type size)
 {
     setBuffer(buffer, size);
 }
@@ -65,7 +65,7 @@ ContiguousPoolManager<T>::~ContiguousPoolManager()
 }
 
 template <typename T>
-void ContiguousPoolManager<T>::setBuffer(aligned_type *buffer, size_type size)
+void ContiguousPoolManager<T>::setBuffer(aligned_type *buffer, index_type size)
 {
     if (!buffer) {
         throw std::runtime_error("Null buffer");
@@ -75,13 +75,13 @@ void ContiguousPoolManager<T>::setBuffer(aligned_type *buffer, size_type size)
     }
     _size = size;
     _buffer = buffer;
-    _freeBlocks = new size_type[size];
+    _freeBlocks = new index_type[size];
     if (!_freeBlocks) {
         throw std::bad_alloc();
     }
     _freeBlockIndex = size-1;
     //build the free stack
-    for (size_type i = 0; i < size; ++i) {
+    for (index_type i = 0; i < size; ++i) {
         _freeBlocks[i] = i;
     }
 }
@@ -216,9 +216,9 @@ bool ContiguousPoolManager<T>::isManaged(pointer p)
 }
 
 template <typename T>
-typename ContiguousPoolManager<T>::size_type ContiguousPoolManager<T>::blockIndex(pointer p)
+typename ContiguousPoolManager<T>::index_type ContiguousPoolManager<T>::blockIndex(pointer p)
 {
-    return static_cast<size_type>(reinterpret_cast<aligned_type*>(p) - _buffer);
+    return static_cast<index_type>(reinterpret_cast<aligned_type*>(p) - _buffer);
 }
 
 }}
