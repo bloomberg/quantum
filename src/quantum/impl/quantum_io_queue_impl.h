@@ -23,15 +23,24 @@ namespace Bloomberg {
 namespace quantum {
 
 inline
-IoQueue::IoQueue(IoQueue* mainIoQueue) :
-    _sharedIoQueue(mainIoQueue),
+IoQueue::IoQueue() : IoQueue(nullptr)
+{
+
+}
+
+inline
+IoQueue::IoQueue(IoQueue* sharedIoQueue) :
+    _sharedIoQueue(sharedIoQueue),
     _queue(Allocator<QueueListAllocator>::instance(AllocatorTraits::queueListAllocSize())),
     _isEmpty(true),
     _isInterrupted(false),
     _isIdle(true),
     _terminated(ATOMIC_FLAG_INIT)
 {
-    _thread = std::make_shared<std::thread>(std::bind(&IoQueue::run, this));
+    if (_sharedIoQueue) {
+        //The shared queue doesn't have its own thread
+        _thread = std::make_shared<std::thread>(std::bind(&IoQueue::run, this));
+    }
 }
 
 inline
@@ -86,17 +95,9 @@ void IoQueue::run()
 
             if (rc == (int)ITask::RetCode::Success)
             {
-                if (_sharedIoQueue)
+                if (task->getQueueId() == (int)IQueue::QueueId::Any)
                 {
-                    //this is a worker queue
-                    if (task->getQueueId() == (int)IQueue::QueueId::Any)
-                    {
-                        _stats.incSharedQueueCompletedCount();
-                    }
-                    else
-                    {
-                        _stats.incCompletedCount();
-                    }
+                    _stats.incSharedQueueCompletedCount();
                 }
                 else
                 {
@@ -106,17 +107,9 @@ void IoQueue::run()
             else
             {
                 //IO task ended with error
-                if (_sharedIoQueue)
+                if (task->getQueueId() == (int)IQueue::QueueId::Any)
                 {
-                    //this is a worker queue
-                    if (task->getQueueId() == (int)IQueue::QueueId::Any)
-                    {
-                        _stats.incSharedQueueErrorCount();
-                    }
-                    else
-                    {
-                        _stats.incErrorCount();
-                    }
+                    _stats.incSharedQueueErrorCount();
                 }
                 else
                 {
@@ -211,7 +204,7 @@ bool IoQueue::empty() const
 inline
 void IoQueue::terminate()
 {
-    if (!_terminated.test_and_set())
+    if (!_terminated.test_and_set() && _sharedIoQueue)
     {
         _isInterrupted = true;
         _notEmptyCond.notify_all();
@@ -246,14 +239,31 @@ void IoQueue::signalEmptyCondition(bool value)
 inline
 ITask::Ptr IoQueue::grabWorkItem()
 {
-    //========================= LOCKED SCOPE =========================
-    SpinLock::Guard lock(_spinlock);
-    ITask::Ptr task = deQueue();
-    if (!task)
-    {
-        if (_sharedIoQueue)
+    static bool grabFromShared = false;
+    grabFromShared = !grabFromShared;
+    if (grabFromShared) {
+        //========================= LOCKED SCOPE (SHARED QUEUE) =========================
+        SpinLock::Guard lock(_sharedIoQueue->getLock());
+        ITask::Ptr task = _sharedIoQueue->deQueue();
+        if (!task)
         {
-            //========================= LOCKED SCOPE (MAIN QUEUE) =========================
+            //========================= LOCKED SCOPE =========================
+            SpinLock::Guard lock(_spinlock);
+            task = deQueue();
+            if (!task)
+            {
+                signalEmptyCondition(true);
+            }
+        }
+        return task;
+    }
+    else {
+        //========================= LOCKED SCOPE =========================
+        SpinLock::Guard lock(_spinlock);
+        ITask::Ptr task = deQueue();
+        if (!task)
+        {
+            //========================= LOCKED SCOPE (SHARED QUEUE) =========================
             SpinLock::Guard lock(_sharedIoQueue->getLock());
             task = _sharedIoQueue->deQueue();
             if (!task)
@@ -261,13 +271,8 @@ ITask::Ptr IoQueue::grabWorkItem()
                 signalEmptyCondition(true);
             }
         }
-        else
-        {
-            //This is the main queue
-            signalEmptyCondition(true);
-        }
+        return task;
     }
-    return task;
 }
 
 inline

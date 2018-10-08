@@ -42,7 +42,9 @@ public:
     using TaskList = std::list<IoTask::Ptr, QueueListAllocator>;
     using TaskListIter = TaskList::iterator;
     
-    explicit IoQueue(IoQueue* mainIoQueue = nullptr);
+    IoQueue();
+    
+    explicit IoQueue(IoQueue* sharedIoQueue);
     
     IoQueue(const IoQueue& other);
     
