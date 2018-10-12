@@ -840,15 +840,15 @@ Context<RET>::postImpl(int queueId, bool isHighPriority, ITask::Type type, FUNC&
 }
 
 template <class RET>
-void* Context<RET>::operator new(size_t size)
+void* Context<RET>::operator new(size_t)
 {
-    return Allocator<ContextAllocator>::instance(AllocatorTraits::contextAllocSize()).allocate(size);
+    return Allocator<ContextAllocator>::instance(AllocatorTraits::contextAllocSize()).allocate();
 }
 
 template <class RET>
 void Context<RET>::operator delete(void* p)
 {
-    Allocator<ContextAllocator>::instance(AllocatorTraits::contextAllocSize()).deallocate(static_cast<Context<int>*>(p), 1);
+    Allocator<ContextAllocator>::instance(AllocatorTraits::contextAllocSize()).deallocate(static_cast<Context<int>*>(p));
 }
 
 template <class RET>

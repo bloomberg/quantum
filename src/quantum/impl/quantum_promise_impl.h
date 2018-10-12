@@ -192,15 +192,15 @@ int Promise<T>::closeBuffer()
 }
 
 template <class T>
-void* Promise<T>::operator new(size_t size)
+void* Promise<T>::operator new(size_t)
 {
-    return Allocator<PromiseAllocator>::instance(AllocatorTraits::promiseAllocSize()).allocate(size);
+    return Allocator<PromiseAllocator>::instance(AllocatorTraits::promiseAllocSize()).allocate();
 }
 
 template <class T>
 void Promise<T>::operator delete(void* p)
 {
-    Allocator<PromiseAllocator>::instance(AllocatorTraits::promiseAllocSize()).deallocate(static_cast<Promise<int>*>(p), 1);
+    Allocator<PromiseAllocator>::instance(AllocatorTraits::promiseAllocSize()).deallocate(static_cast<Promise<int>*>(p));
 }
 
 template <class T>

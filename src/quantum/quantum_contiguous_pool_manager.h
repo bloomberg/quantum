@@ -49,7 +49,7 @@ struct ContiguousPoolManager
     typedef size_t                          size_type;
     typedef uint16_t                        index_type;
     typedef std::aligned_storage<sizeof(T), alignof(T)> storage_type;
-    typedef typename storage_type::type aligned_type;
+    typedef typename storage_type::type     aligned_type;
     
     //------------------------------- Methods ----------------------------------
     ContiguousPoolManager();
@@ -83,6 +83,7 @@ private:
     pointer bufferEnd();
     bool isManaged(pointer p);
     index_type blockIndex(pointer p);
+    bool findContiguous(index_type n);
 
     //------------------------------- Members ----------------------------------
     index_type      _size{0};

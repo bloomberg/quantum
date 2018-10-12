@@ -144,15 +144,15 @@ V Future<T>::pull(ICoroSync::Ptr sync, bool& isBufferClosed)
 }
 
 template <class T>
-void* Future<T>::operator new(size_t size)
+void* Future<T>::operator new(size_t)
 {
-    return Allocator<FutureAllocator>::instance(AllocatorTraits::futureAllocSize()).allocate(size);
+    return Allocator<FutureAllocator>::instance(AllocatorTraits::futureAllocSize()).allocate();
 }
 
 template <class T>
 void Future<T>::operator delete(void* p)
 {
-    Allocator<FutureAllocator>::instance(AllocatorTraits::futureAllocSize()).deallocate(static_cast<Future<int>*>(p), 1);
+    Allocator<FutureAllocator>::instance(AllocatorTraits::futureAllocSize()).deallocate(static_cast<Future<int>*>(p));
 }
 
 template <class T>

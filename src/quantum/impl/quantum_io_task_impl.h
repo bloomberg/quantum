@@ -116,15 +116,15 @@ bool IoTask::isHighPriority() const
 }
 
 inline
-void* IoTask::operator new(size_t size)
+void* IoTask::operator new(size_t)
 {
-    return Allocator<IoTaskAllocator>::instance(AllocatorTraits::ioTaskAllocSize()).allocate(size);
+    return Allocator<IoTaskAllocator>::instance(AllocatorTraits::ioTaskAllocSize()).allocate();
 }
 
 inline
 void IoTask::operator delete(void* p)
 {
-    Allocator<IoTaskAllocator>::instance(AllocatorTraits::ioTaskAllocSize()).deallocate(static_cast<IoTask*>(p), 1);
+    Allocator<IoTaskAllocator>::instance(AllocatorTraits::ioTaskAllocSize()).deallocate(static_cast<IoTask*>(p));
 }
 
 inline
