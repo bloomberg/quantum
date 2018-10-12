@@ -122,14 +122,15 @@ void ContiguousPoolManager<T>::destroy(pointer p)
 
 template <typename T>
 typename ContiguousPoolManager<T>::pointer
-ContiguousPoolManager<T>::allocate(size_type, const_pointer)
+ContiguousPoolManager<T>::allocate(size_type n, const_pointer)
 {
     assert(_buffer);
     {
         SpinLock::Guard lock(_spinlock);
-        if (!isEmpty())
+        if (findContiguous(static_cast<index_type>(n)))
         {
-            return reinterpret_cast<pointer>(_buffer + _freeBlocks[_freeBlockIndex--]);
+            _freeBlockIndex -= (n - 1);
+            return reinterpret_cast<pointer>(&_buffer[_freeBlocks[_freeBlockIndex--]]);
         }
         // Use heap allocation
         ++_numHeapAllocatedBlocks;
@@ -138,16 +139,18 @@ ContiguousPoolManager<T>::allocate(size_type, const_pointer)
 }
 
 template <typename T>
-void ContiguousPoolManager<T>::deallocate(pointer p, size_type)
+void ContiguousPoolManager<T>::deallocate(pointer p, size_type n)
 {
     assert(_buffer);
     if (p == nullptr) {
         return;
     }
     if (isManaged(p)) {
-        //find index of the block
+        //find index of the block and return the individual blocks to the free pool
         SpinLock::Guard lock(_spinlock);
-        _freeBlocks[++_freeBlockIndex] = blockIndex(p);
+        for (ssize_t i = 0; i < n; ++i) {
+            _freeBlocks[++_freeBlockIndex] = blockIndex(p+i);
+        }
     }
     else {
         delete[] (char*)p;
@@ -219,6 +222,23 @@ template <typename T>
 typename ContiguousPoolManager<T>::index_type ContiguousPoolManager<T>::blockIndex(pointer p)
 {
     return static_cast<index_type>(reinterpret_cast<aligned_type*>(p) - _buffer);
+}
+
+template <typename T>
+bool ContiguousPoolManager<T>::findContiguous(index_type n)
+{
+    if ((_freeBlockIndex + 1) < n) {
+        return false;
+    }
+    bool found = true;
+    aligned_type* last = &_buffer[_freeBlocks[_freeBlockIndex]];
+    for (ssize_t i = _freeBlockIndex-1; i > _freeBlockIndex-n; --i) {
+        aligned_type* first = &_buffer[_freeBlocks[i]];
+        if ((last-first) != (_freeBlockIndex-i)) {
+            return false;
+        }
+    }
+    return found;
 }
 
 }}

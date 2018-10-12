@@ -165,15 +165,15 @@ bool Task::isHighPriority() const
 }
 
 inline
-void* Task::operator new(size_t size)
+void* Task::operator new(size_t)
 {
-    return Allocator<TaskAllocator>::instance(AllocatorTraits::taskAllocSize()).allocate(size);
+    return Allocator<TaskAllocator>::instance(AllocatorTraits::taskAllocSize()).allocate();
 }
 
 inline
 void Task::operator delete(void* p)
 {
-    Allocator<TaskAllocator>::instance(AllocatorTraits::taskAllocSize()).deallocate(static_cast<Task*>(p), 1);
+    Allocator<TaskAllocator>::instance(AllocatorTraits::taskAllocSize()).deallocate(static_cast<Task*>(p));
 }
 
 inline
