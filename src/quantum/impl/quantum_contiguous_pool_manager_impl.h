@@ -148,7 +148,7 @@ void ContiguousPoolManager<T>::deallocate(pointer p, size_type n)
     if (isManaged(p)) {
         //find index of the block and return the individual blocks to the free pool
         SpinLock::Guard lock(_spinlock);
-        for (ssize_t i = 0; i < n; ++i) {
+        for (size_type i = 0; i < n; ++i) {
             _freeBlocks[++_freeBlockIndex] = blockIndex(p+i);
         }
     }
