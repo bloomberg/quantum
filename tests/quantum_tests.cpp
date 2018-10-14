@@ -22,7 +22,6 @@
 
 using namespace quantum;
 using ms = std::chrono::milliseconds;
-
 constexpr int Dispatcher::numCoro;
 constexpr int Dispatcher::numThreads;
 TaskDispatcher* Dispatcher::_dispatcher = nullptr;
@@ -836,8 +835,8 @@ TEST(StressTest, AsyncIo)
         });
     }
     Dispatcher::instance().drain();
+    EXPECT_EQ(10000, v.size());
     EXPECT_EQ(10000, s.size()); //all elements unique
-    EXPECT_EQ(10000, v.size()); //all elements unique
 }
 
 TEST(StressTest, AsyncIoAnyQueue)
@@ -858,8 +857,32 @@ TEST(StressTest, AsyncIoAnyQueue)
         });
     }
     Dispatcher::instance().drain();
+    EXPECT_EQ(10000, v.size());
     EXPECT_EQ(10000, s.size()); //all elements unique
-    EXPECT_EQ(10000, v.size()); //all elements unique
+}
+
+TEST(StressTest, AsyncIoAnyQueueLoadBalance)
+{
+    Dispatcher::deleteInstance();
+    Dispatcher::createInstance(true);
+    std::mutex m;
+    std::set<std::pair<int, int>> s; //queueId,iteration
+    std::vector<std::pair<int, int>> v;
+    v.reserve(10000);
+    for (int i = 0; i < 10000; ++i) {
+        int queueId = i % Dispatcher::instance().getNumIoThreads();
+        Dispatcher::instance().postAsyncIo<int>([&m,&v,&s,queueId,i](ThreadPromise<int>::Ptr promise){
+            {
+            std::lock_guard<std::mutex> lock(m);
+            s.insert(std::make_pair(queueId, i));
+            v.push_back(std::make_pair(queueId, i));
+            }
+            return promise->set(0);
+        });
+    }
+    Dispatcher::instance().drain();
+    EXPECT_EQ(10000, v.size());
+    EXPECT_EQ(10000, s.size()); //all elements unique
 }
 
 //This test **must** come last to make Valgrind happy.

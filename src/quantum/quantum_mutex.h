@@ -143,7 +143,7 @@ private:
     void lockImpl(YIELDING&& yield);
     
     //Members
-    SpinLock  _spinlock;
+    mutable SpinLock  _spinlock;
 };
 
 }}

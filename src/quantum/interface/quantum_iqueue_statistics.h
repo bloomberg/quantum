@@ -34,6 +34,15 @@ struct IQueueStatistics
     /// @brief Reset all the counters to 0.
     virtual void reset() = 0;
     
+    /// @brief Gets the current size of the queue
+    virtual size_t numElements() const = 0;
+    
+    /// @brief Increment this counter.
+    virtual void incNumElements() = 0;
+    
+    /// @brief Decrement this counter.
+    virtual void decNumElements() = 0;
+    
     /// @brief Count of all coroutine and IO task execution errors on this queue.
     /// @return Counter value.
     virtual size_t errorCount() const = 0;

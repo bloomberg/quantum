@@ -71,13 +71,13 @@ private:
     Header* getHeader(const boost::context::stack_context& ctx) const;
     
     //------------------------------- Members ----------------------------------
-    index_type      _size;
-    Header**        _blocks;
-    index_type*     _freeBlocks;
-    ssize_t         _freeBlockIndex;
-    size_t          _numHeapAllocatedBlocks;
-    size_t          _stackSize;
-    SpinLock        _spinlock;
+    index_type          _size;
+    Header**            _blocks;
+    index_type*         _freeBlocks;
+    ssize_t             _freeBlockIndex;
+    size_t              _numHeapAllocatedBlocks;
+    size_t              _stackSize;
+    mutable SpinLock    _spinlock;
 };
 
 template <typename STACK_TRAITS>

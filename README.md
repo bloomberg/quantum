@@ -109,16 +109,14 @@ To use the library simply include `<quantum/quantum.h>` in your application. Als
 ### Compiler options
 The following compiler options can be set when building your application:
 * `__QUANTUM_PRINT_DEBUG`         : Prints debug and error information to `stdout` and `stderr` respectively.
-* `__QUANTUM_YIELD_WITHOUT_SLEEP` : Yields a coroutine thread instead of sleeping it when blocked. This could result in performance improvement in some cases.
-* `__QUANTUM_DEFAULT_POOL_ALLOC_SIZE=<NUM>` : Change the size of the pool allocation buffers for internal objects. Default is 1000.
-* `__QUANTUM_DEFAULT_CORO_POOL_ALLOC_SIZE=<NUM>` : Change the size of the pool allocation buffers for coroutines. Default is 200.
-                                                   This is set to a smaller value since the stack size can be quite large on some systems. 
-                                                   Use `quantum::StackTraits` to change the default application values.
 * `__QUANTUM_USE_DEFAULT_ALLOCATOR` : Disable pool allocation for internal objects (other than coroutines stacks) and use default system allocators instead.
 * `__QUANTUM_USE_DEFAULT_CORO_ALLOCATOR` : Disable pool allocation for coroutine stacks and use default system allocator instead.
 * `__QUANTUM_ALLOCATE_POOL_FROM_HEAP` : Pre-allocates object pool from heap instead of the application stack (default). 
                                         This affects internal object allocations other than coroutines. Coroutine pools are always 
                                         heap-allocated due to their size.
+                                        
+### Application-wide settings
+Various application-wide settings can be configured via `ThreadTraits`, `AllocatorTraits` and `StackTraits`.
 
 ### Documentation
 Please see the [wiki](https://github.com/bloomberg/quantum/wiki) page for a detailed overview of this library, use-case scenarios and examples.

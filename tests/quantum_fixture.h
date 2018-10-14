@@ -25,19 +25,25 @@ namespace quantum = Bloomberg::quantum;
 class Dispatcher
 {
 public:
-    static void createInstance(int numCoro, int numIo, bool pin)
+    static quantum::TaskDispatcher& createInstance(bool loadBalance)
     {
         if (_dispatcher == nullptr)
         {
-            _dispatcher = new quantum::TaskDispatcher(numCoro, numIo, pin);
+            quantum::Configuration config;
+            config.setNumCoroutineThreads(numCoro);
+            config.setNumIoThreads(numThreads);
+            config.setLoadBalanceSharedIoQueues(loadBalance);
+            config.setLoadBalancePollIntervalMs(std::chrono::milliseconds(10));
+            _dispatcher = new quantum::TaskDispatcher(config);
         }
+        return *_dispatcher;
     }
     
     static quantum::TaskDispatcher& instance()
     {
         if (_dispatcher == nullptr)
         {
-            createInstance(numCoro, numThreads, false);
+            createInstance(false);
         }
         return *_dispatcher;
     }
@@ -66,7 +72,6 @@ public:
     /// @brief Create a dispatcher object with equal number of coroutine and IO threads
     void SetUp()
     {
-        Dispatcher::createInstance(Dispatcher::numCoro, Dispatcher::numThreads, false);
         _dispatcher = &Dispatcher::instance();
     }
     

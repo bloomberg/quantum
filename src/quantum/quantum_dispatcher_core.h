@@ -23,7 +23,12 @@
 #include <thread>
 #include <functional>
 #include <algorithm>
+#ifdef _WIN32
+#include <winbase.h>
+#else
 #include <pthread.h>
+#endif
+#include <quantum/quantum_configuration.h>
 #include <quantum/quantum_task_queue.h>
 #include <quantum/quantum_io_queue.h>
 
@@ -63,9 +68,12 @@ public:
     int getNumIoThreads() const;
 
 private:
+    // TODO : Remove - deprecated
     DispatcherCore(int numCoroutineThreads,
                    int numIoThreads,
                    bool pinCoroutineThreadsToCores);
+    
+    DispatcherCore(const Configuration& config);
     
     size_t coroSize(int queueId) const;
     
@@ -80,9 +88,10 @@ private:
     QueueStatistics ioStats(int queueId);
     
     //Members
-    std::vector<TaskQueue>  _coroQueues;    //coroutine queues
-    IoQueue                 _sharedIoQueue; //shared IO task queue (holds tasks posted to 'Any' IO queue)
-    std::vector<IoQueue>    _ioQueues;      //dedicated IO task queues
+    std::vector<TaskQueue>  _coroQueues;     //coroutine queues
+    std::vector<IoQueue>    _sharedIoQueues; //shared IO task queues (hold tasks posted to 'Any' IO queue)
+    std::vector<IoQueue>    _ioQueues;       //dedicated IO task queues
+    bool                    _loadBalanceSharedIoQueues; //tasks posted to 'Any' IO queue are load balanced
     std::atomic_flag        _terminated;
 };
 

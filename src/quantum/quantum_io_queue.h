@@ -26,6 +26,7 @@
 #include <quantum/interface/quantum_iqueue.h>
 #include <quantum/quantum_io_task.h>
 #include <quantum/quantum_queue_statistics.h>
+#include <quantum/quantum_configuration.h>
 
 namespace Bloomberg {
 namespace quantum {
@@ -44,9 +45,12 @@ public:
     
     IoQueue();
     
-    explicit IoQueue(IoQueue* sharedIoQueue);
+    IoQueue(const Configuration& config,
+            std::vector<IoQueue>* sharedIoQueues);
     
     IoQueue(const IoQueue& other);
+    
+    IoQueue(IoQueue&& other) = default;
     
     ~IoQueue();
     
@@ -56,9 +60,13 @@ public:
     
     void run() final;
     
-    void enQueue(ITask::Ptr task) final;
+    void enqueue(ITask::Ptr task) final;
     
-    ITask::Ptr deQueue() final;
+    bool tryEnqueue(ITask::Ptr task) final;
+    
+    ITask::Ptr dequeue(std::atomic_bool& hint) final;
+    
+    ITask::Ptr tryDequeue(std::atomic_bool& hint) final;
     
     size_t size() const final;
     
@@ -74,12 +82,22 @@ public:
     
 private:
     ITask::Ptr grabWorkItem();
+    ITask::Ptr grabWorkItemFromAll();
+    void doEnqueue(ITask::Ptr task);
+    ITask::Ptr doDequeue(std::atomic_bool& hint);
+    ITask::Ptr tryDequeueFromShared();
+    std::chrono::milliseconds getBackoffInterval();
     
     //async IO queue
-    IoQueue*                        _sharedIoQueue;
+    std::vector<IoQueue>*           _sharedIoQueues;
+    bool                            _loadBalanceSharedIoQueues;
+    std::chrono::milliseconds       _loadBalancePollIntervalMs;
+    Configuration::BackoffPolicy    _loadBalancePollIntervalBackoffPolicy;
+    size_t                          _loadBalancePollIntervalNumBackoffs;
+    size_t                          _loadBalanceBackoffNum;
     std::shared_ptr<std::thread>    _thread;
     TaskList                        _queue;
-    SpinLock                        _spinlock;
+    mutable SpinLock                _spinlock;
     std::mutex                      _notEmptyMutex; //for accessing the condition variable
     std::condition_variable         _notEmptyCond;
     std::atomic_bool                _isEmpty;

@@ -47,15 +47,48 @@ void SpinLock::unlock()
 
 inline
 SpinLock::Guard::Guard(SpinLock& lock) :
-    _spinlock(lock)
+    _spinlock(lock),
+    _ownsLock(true)
 {
     _spinlock.lock();
 }
 
 inline
+SpinLock::Guard::Guard(SpinLock& lock, SpinLock::TryToLock) :
+    _spinlock(lock),
+    _ownsLock(_spinlock.tryLock())
+{
+}
+
+inline
 SpinLock::Guard::~Guard()
 {
-    _spinlock.unlock();
+    if (_ownsLock) {
+        _spinlock.unlock();
+    }
+}
+
+inline
+bool SpinLock::Guard::tryLock()
+{
+    if (!_ownsLock) {
+        _ownsLock = _spinlock.tryLock();
+    }
+    return _ownsLock;
+}
+
+inline
+void SpinLock::Guard::lock()
+{
+    if (!_ownsLock) {
+        _spinlock.lock();
+        _ownsLock = true;
+    }
+}
+
+inline
+bool SpinLock::Guard::ownsLock() const {
+    return _ownsLock;
 }
 
 inline
