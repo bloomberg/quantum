@@ -97,6 +97,13 @@ $(document).ready(function(){initNavTree('dc/d48/namespaceBloomberg_1_1quantum.h
 <table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a name="nested-classes"></a>
 Classes</h2></td></tr>
+<tr class="memitem:"><td class="memItemLeft" align="right" valign="top">struct &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d7/df5/structBloomberg_1_1quantum_1_1Allocator.html">Allocator</a></td></tr>
+<tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:"><td class="memItemLeft" align="right" valign="top">struct &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../db/df0/structBloomberg_1_1quantum_1_1AllocatorTraits.html">AllocatorTraits</a></td></tr>
+<tr class="memdesc:"><td class="mdescLeft">&#160;</td><td class="mdescRight">Allows application-wide settings for the various allocators used by Quantum.  <a href="../../db/df0/structBloomberg_1_1quantum_1_1AllocatorTraits.html#details">More...</a><br /></td></tr>
+<tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:"><td class="memItemLeft" align="right" valign="top">struct &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d1/d95/structBloomberg_1_1quantum_1_1BoostAllocator.html">BoostAllocator</a></td></tr>
+<tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:"><td class="memItemLeft" align="right" valign="top">struct &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d1/d0d/structBloomberg_1_1quantum_1_1BrokenPromiseException.html">BrokenPromiseException</a></td></tr>
 <tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:"><td class="memItemLeft" align="right" valign="top">class &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d1/d87/classBloomberg_1_1quantum_1_1Buffer.html">Buffer</a></td></tr>
@@ -109,8 +116,18 @@ Classes</h2></td></tr>
 <tr class="memitem:"><td class="memItemLeft" align="right" valign="top">class &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../da/d9d/classBloomberg_1_1quantum_1_1ConditionVariable.html">ConditionVariable</a></td></tr>
 <tr class="memdesc:"><td class="mdescLeft">&#160;</td><td class="mdescRight">This class represents a coroutine-compatible implementation of the std::condition_variable. Most methods of the latter have been recreated with the same behavior. This object will yield instead of blocking if called from a coroutine.  <a href="../../da/d9d/classBloomberg_1_1quantum_1_1ConditionVariable.html#details">More...</a><br /></td></tr>
 <tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:"><td class="memItemLeft" align="right" valign="top">class &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../db/dda/classBloomberg_1_1quantum_1_1Configuration.html">Configuration</a></td></tr>
+<tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:"><td class="memItemLeft" align="right" valign="top">class &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d8/df7/classBloomberg_1_1quantum_1_1Context.html">Context</a></td></tr>
 <tr class="memdesc:"><td class="mdescLeft">&#160;</td><td class="mdescRight">Concrete class representing a coroutine or a thread context.  <a href="../../d8/df7/classBloomberg_1_1quantum_1_1Context.html#details">More...</a><br /></td></tr>
+<tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:"><td class="memItemLeft" align="right" valign="top">struct &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d7/dd7/structBloomberg_1_1quantum_1_1ContiguousPoolManager.html">ContiguousPoolManager</a></td></tr>
+<tr class="memdesc:"><td class="mdescLeft">&#160;</td><td class="mdescRight">Provides fast (quasi zero-time) in-place allocation for STL containers. Objects are allocated from a contiguous buffer (aka object pool). When the buffer is exhausted, allocation is delegated to the heap. The default buffer size is 1000.  <a href="../../d7/dd7/structBloomberg_1_1quantum_1_1ContiguousPoolManager.html#details">More...</a><br /></td></tr>
+<tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:"><td class="memItemLeft" align="right" valign="top">struct &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../db/d67/structBloomberg_1_1quantum_1_1CoroutinePoolAllocator.html">CoroutinePoolAllocator</a></td></tr>
+<tr class="memdesc:"><td class="mdescLeft">&#160;</td><td class="mdescRight">Provides fast (quasi zero-time) in-place allocation for coroutines. Coroutine stacks are pre-allocated from separate (i.e. non-contiguous) heap blocks and maintained in a reusable list.  <a href="../../db/d67/structBloomberg_1_1quantum_1_1CoroutinePoolAllocator.html#details">More...</a><br /></td></tr>
+<tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:"><td class="memItemLeft" align="right" valign="top">struct &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../de/d0e/structBloomberg_1_1quantum_1_1CoroutinePoolAllocatorProxy.html">CoroutinePoolAllocatorProxy</a></td></tr>
 <tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:"><td class="memItemLeft" align="right" valign="top">class &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../da/daa/classBloomberg_1_1quantum_1_1DispatcherCore.html">DispatcherCore</a></td></tr>
 <tr class="memdesc:"><td class="mdescLeft">&#160;</td><td class="mdescRight">Class implementing the dispatching logic unto worker threads. Used for both coroutines and IO tasks.  <a href="../../da/daa/classBloomberg_1_1quantum_1_1DispatcherCore.html#details">More...</a><br /></td></tr>
@@ -122,6 +139,9 @@ Classes</h2></td></tr>
 <tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:"><td class="memItemLeft" align="right" valign="top">struct &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d2/d14/structBloomberg_1_1quantum_1_1FutureException.html">FutureException</a></td></tr>
 <tr class="memdesc:"><td class="mdescLeft">&#160;</td><td class="mdescRight">Exception thrown by a <a class="el" href="../../dc/d14/classBloomberg_1_1quantum_1_1Future.html" title="Class representing a promised future. Can only be instantiated via a Promise object. ">Future</a> or <a class="el" href="../../d1/d15/classBloomberg_1_1quantum_1_1Promise.html" title="Class representing a promised value. ">Promise</a> object during various errors.  <a href="../../d2/d14/structBloomberg_1_1quantum_1_1FutureException.html#details">More...</a><br /></td></tr>
+<tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:"><td class="memItemLeft" align="right" valign="top">struct &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d2/da6/structBloomberg_1_1quantum_1_1HeapAllocator.html">HeapAllocator</a></td></tr>
+<tr class="memdesc:"><td class="mdescLeft">&#160;</td><td class="mdescRight">Provides a heap-based object pool to the underlying <a class="el" href="../../d7/dd7/structBloomberg_1_1quantum_1_1ContiguousPoolManager.html" title="Provides fast (quasi zero-time) in-place allocation for STL containers. Objects are allocated from a ...">ContiguousPoolManager</a>. The default buffer size is 1000.  <a href="../../d2/da6/structBloomberg_1_1quantum_1_1HeapAllocator.html#details">More...</a><br /></td></tr>
 <tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:"><td class="memItemLeft" align="right" valign="top">interface &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d8/db0/structBloomberg_1_1quantum_1_1IContextBase.html">IContextBase</a></td></tr>
 <tr class="memdesc:"><td class="mdescLeft">&#160;</td><td class="mdescRight">This interface exposes shared functionality between <a class="el" href="../../da/de3/structBloomberg_1_1quantum_1_1IThreadContext.html" title="Exposes methods to manipulate the thread context. ">IThreadContext</a> and <a class="el" href="../../d5/dd1/structBloomberg_1_1quantum_1_1ICoroContext.html" title="Exposes methods to manipulate the coroutine context. ">ICoroContext</a>.  <a href="../../d8/db0/structBloomberg_1_1quantum_1_1IContextBase.html#details">More...</a><br /></td></tr>
@@ -143,12 +163,6 @@ Classes</h2></td></tr>
 <tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:"><td class="memItemLeft" align="right" valign="top">interface &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d3/d63/structBloomberg_1_1quantum_1_1ICoroSync.html">ICoroSync</a></td></tr>
 <tr class="memdesc:"><td class="mdescLeft">&#160;</td><td class="mdescRight">Provides an interface to facilitate 'implicit' coroutine yielding within other primitives such as mutexes and condition variables or to allow 'explicit' cooperative yielding by the user.  <a href="../../d3/d63/structBloomberg_1_1quantum_1_1ICoroSync.html#details">More...</a><br /></td></tr>
-<tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:"><td class="memItemLeft" align="right" valign="top">struct &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d3/df2/structBloomberg_1_1quantum_1_1index.html">index</a></td></tr>
-<tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:"><td class="memItemLeft" align="right" valign="top">struct &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d8/dd3/structBloomberg_1_1quantum_1_1index_3_011_01_4.html">index&lt; 1 &gt;</a></td></tr>
-<tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:"><td class="memItemLeft" align="right" valign="top">struct &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d2/d2e/structBloomberg_1_1quantum_1_1index_3_012_01_4.html">index&lt; 2 &gt;</a></td></tr>
 <tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:"><td class="memItemLeft" align="right" valign="top">class &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d4/dd1/classBloomberg_1_1quantum_1_1IoQueue.html">IoQueue</a></td></tr>
 <tr class="memdesc:"><td class="mdescLeft">&#160;</td><td class="mdescRight">Thread queue for executing IO tasks.  <a href="../../d4/dd1/classBloomberg_1_1quantum_1_1IoQueue.html#details">More...</a><br /></td></tr>
@@ -195,8 +209,6 @@ Classes</h2></td></tr>
 <tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:"><td class="memItemLeft" align="right" valign="top">struct &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d8/d11/structBloomberg_1_1quantum_1_1NoStateException.html">NoStateException</a></td></tr>
 <tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:"><td class="memItemLeft" align="right" valign="top">struct &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../dc/df6/structBloomberg_1_1quantum_1_1pos__index.html">pos_index</a></td></tr>
-<tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:"><td class="memItemLeft" align="right" valign="top">class &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d1/d15/classBloomberg_1_1quantum_1_1Promise.html">Promise</a></td></tr>
 <tr class="memdesc:"><td class="mdescLeft">&#160;</td><td class="mdescRight">Class representing a promised value.  <a href="../../d1/d15/classBloomberg_1_1quantum_1_1Promise.html#details">More...</a><br /></td></tr>
 <tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
@@ -214,7 +226,14 @@ Classes</h2></td></tr>
 <tr class="memdesc:"><td class="mdescLeft">&#160;</td><td class="mdescRight">Coroutine-compatible spinlock. Used internally for mutexes since threads running coroutines cannot block.  <a href="../../d1/d05/classBloomberg_1_1quantum_1_1SpinLock.html#details">More...</a><br /></td></tr>
 <tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:"><td class="memItemLeft" align="right" valign="top">struct &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d0/d75/structBloomberg_1_1quantum_1_1StackAllocator.html">StackAllocator</a></td></tr>
-<tr class="memdesc:"><td class="mdescLeft">&#160;</td><td class="mdescRight">Provides fast (quasi zero-time) in-place allocation for STL containers. Types are allocated from a contiguous buffer on the stack. When the buffer is exhausted, allocation is delegated to the heap. The default buffer size is 1000.  <a href="../../d0/d75/structBloomberg_1_1quantum_1_1StackAllocator.html#details">More...</a><br /></td></tr>
+<tr class="memdesc:"><td class="mdescLeft">&#160;</td><td class="mdescRight">Provides a stack-based object pool to the underlying <a class="el" href="../../d7/dd7/structBloomberg_1_1quantum_1_1ContiguousPoolManager.html" title="Provides fast (quasi zero-time) in-place allocation for STL containers. Objects are allocated from a ...">ContiguousPoolManager</a>. The default buffer size is 1000.  <a href="../../d0/d75/structBloomberg_1_1quantum_1_1StackAllocator.html#details">More...</a><br /></td></tr>
+<tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:"><td class="memItemLeft" align="right" valign="top">struct &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d7/d9d/structBloomberg_1_1quantum_1_1StackTraits.html">StackTraits</a></td></tr>
+<tr class="memdesc:"><td class="mdescLeft">&#160;</td><td class="mdescRight">Allows application-wide overrides for the coroutine stack traits which are used internally by boost::coroutines2.  <a href="../../d7/d9d/structBloomberg_1_1quantum_1_1StackTraits.html#details">More...</a><br /></td></tr>
+<tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:"><td class="memItemLeft" align="right" valign="top">struct &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d4/df4/structBloomberg_1_1quantum_1_1StackTraitsProxy.html">StackTraitsProxy</a></td></tr>
+<tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:"><td class="memItemLeft" align="right" valign="top">struct &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d7/dd7/structBloomberg_1_1quantum_1_1StlAllocator.html">StlAllocator</a></td></tr>
 <tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:"><td class="memItemLeft" align="right" valign="top">class &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d0/d90/classBloomberg_1_1quantum_1_1Task.html">Task</a></td></tr>
 <tr class="memdesc:"><td class="mdescLeft">&#160;</td><td class="mdescRight">Runnable object representing a coroutine.  <a href="../../d0/d90/classBloomberg_1_1quantum_1_1Task.html#details">More...</a><br /></td></tr>
@@ -224,6 +243,9 @@ Classes</h2></td></tr>
 <tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:"><td class="memItemLeft" align="right" valign="top">class &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d8/d06/classBloomberg_1_1quantum_1_1TaskQueue.html">TaskQueue</a></td></tr>
 <tr class="memdesc:"><td class="mdescLeft">&#160;</td><td class="mdescRight">Thread queue for running coroutines.  <a href="../../d8/d06/classBloomberg_1_1quantum_1_1TaskQueue.html#details">More...</a><br /></td></tr>
+<tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:"><td class="memItemLeft" align="right" valign="top">struct &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d8/daf/structBloomberg_1_1quantum_1_1ThreadTraits.html">ThreadTraits</a></td></tr>
+<tr class="memdesc:"><td class="mdescLeft">&#160;</td><td class="mdescRight">Allows application-wide settings for the various thread settings used by Quantum.  <a href="../../d8/daf/structBloomberg_1_1quantum_1_1ThreadTraits.html#details">More...</a><br /></td></tr>
 <tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:"><td class="memItemLeft" align="right" valign="top">struct &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d6/d86/structBloomberg_1_1quantum_1_1Traits.html">Traits</a></td></tr>
 <tr class="memdesc:"><td class="mdescLeft">&#160;</td><td class="mdescRight">Contains definitions for various traits used by this library. For internal use only.  <a href="../../d6/d86/structBloomberg_1_1quantum_1_1Traits.html#details">More...</a><br /></td></tr>
@@ -237,16 +259,16 @@ Classes</h2></td></tr>
 </table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a name="typedef-members"></a>
 Typedefs</h2></td></tr>
-<tr class="memitem:a9dadf869ae934b5bccf7ba433666f416"><td class="memItemLeft" align="right" valign="top">using&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../dc/d48/namespaceBloomberg_1_1quantum.html#a9dadf869ae934b5bccf7ba433666f416">ContextAllocator</a> = <a class="el" href="../../d0/d75/structBloomberg_1_1quantum_1_1StackAllocator.html">StackAllocator</a>&lt; <a class="el" href="../../d8/df7/classBloomberg_1_1quantum_1_1Context.html">Context</a>&lt; int &gt;, __QUANTUM_CONTEXT_ALLOC &gt;</td></tr>
-<tr class="separator:a9dadf869ae934b5bccf7ba433666f416"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a63f2ac2442e71224fb5e0d6ace99e53a"><td class="memItemLeft" align="right" valign="top">using&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../dc/d48/namespaceBloomberg_1_1quantum.html#a63f2ac2442e71224fb5e0d6ace99e53a">FutureAllocator</a> = <a class="el" href="../../d0/d75/structBloomberg_1_1quantum_1_1StackAllocator.html">StackAllocator</a>&lt; <a class="el" href="../../dc/d14/classBloomberg_1_1quantum_1_1Future.html">Future</a>&lt; int &gt;, __QUANTUM_FUTURE_ALLOC &gt;</td></tr>
-<tr class="separator:a63f2ac2442e71224fb5e0d6ace99e53a"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a8220854a72439e5e0188a71f14ffb257"><td class="memItemLeft" align="right" valign="top">using&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../dc/d48/namespaceBloomberg_1_1quantum.html#a8220854a72439e5e0188a71f14ffb257">IoTaskAllocator</a> = <a class="el" href="../../d0/d75/structBloomberg_1_1quantum_1_1StackAllocator.html">StackAllocator</a>&lt; <a class="el" href="../../d4/d8b/classBloomberg_1_1quantum_1_1IoTask.html">IoTask</a>, __QUANTUM_IO_TASK_ALLOC &gt;</td></tr>
-<tr class="separator:a8220854a72439e5e0188a71f14ffb257"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a6922601f110cb4ae6015c5d5cafe5a58"><td class="memItemLeft" align="right" valign="top">using&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../dc/d48/namespaceBloomberg_1_1quantum.html#a6922601f110cb4ae6015c5d5cafe5a58">PromiseAllocator</a> = <a class="el" href="../../d0/d75/structBloomberg_1_1quantum_1_1StackAllocator.html">StackAllocator</a>&lt; <a class="el" href="../../d1/d15/classBloomberg_1_1quantum_1_1Promise.html">Promise</a>&lt; int &gt;, __QUANTUM_PROMISE_ALLOC &gt;</td></tr>
-<tr class="separator:a6922601f110cb4ae6015c5d5cafe5a58"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a0ad248c217486bf21c5ae0ae81dfa06d"><td class="memItemLeft" align="right" valign="top">using&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../dc/d48/namespaceBloomberg_1_1quantum.html#a0ad248c217486bf21c5ae0ae81dfa06d">TaskAllocator</a> = <a class="el" href="../../d0/d75/structBloomberg_1_1quantum_1_1StackAllocator.html">StackAllocator</a>&lt; <a class="el" href="../../d0/d90/classBloomberg_1_1quantum_1_1Task.html">Task</a>, __QUANTUM_TASK_ALLOC &gt;</td></tr>
-<tr class="separator:a0ad248c217486bf21c5ae0ae81dfa06d"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a4c489223386c94e8f0841e2688cca80e"><td class="memItemLeft" align="right" valign="top">using&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../dc/d48/namespaceBloomberg_1_1quantum.html#a4c489223386c94e8f0841e2688cca80e">ContextAllocator</a> = <a class="el" href="../../d0/d75/structBloomberg_1_1quantum_1_1StackAllocator.html">StackAllocator</a>&lt; <a class="el" href="../../d8/df7/classBloomberg_1_1quantum_1_1Context.html">Context</a>&lt; int &gt;, __QUANTUM_CONTEXT_ALLOC_SIZE &gt;</td></tr>
+<tr class="separator:a4c489223386c94e8f0841e2688cca80e"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a17ad7c3baf65051199af60f377a00fa0"><td class="memItemLeft" align="right" valign="top">using&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../dc/d48/namespaceBloomberg_1_1quantum.html#a17ad7c3baf65051199af60f377a00fa0">FutureAllocator</a> = <a class="el" href="../../d0/d75/structBloomberg_1_1quantum_1_1StackAllocator.html">StackAllocator</a>&lt; <a class="el" href="../../dc/d14/classBloomberg_1_1quantum_1_1Future.html">Future</a>&lt; int &gt;, __QUANTUM_FUTURE_ALLOC_SIZE &gt;</td></tr>
+<tr class="separator:a17ad7c3baf65051199af60f377a00fa0"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a739e7eaec89907476af7a3be87950b9b"><td class="memItemLeft" align="right" valign="top">using&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../dc/d48/namespaceBloomberg_1_1quantum.html#a739e7eaec89907476af7a3be87950b9b">IoTaskAllocator</a> = <a class="el" href="../../d0/d75/structBloomberg_1_1quantum_1_1StackAllocator.html">StackAllocator</a>&lt; <a class="el" href="../../d4/d8b/classBloomberg_1_1quantum_1_1IoTask.html">IoTask</a>, __QUANTUM_IO_TASK_ALLOC_SIZE &gt;</td></tr>
+<tr class="separator:a739e7eaec89907476af7a3be87950b9b"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a1a2e0d923f82da056e0f6be6b599491d"><td class="memItemLeft" align="right" valign="top">using&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../dc/d48/namespaceBloomberg_1_1quantum.html#a1a2e0d923f82da056e0f6be6b599491d">PromiseAllocator</a> = <a class="el" href="../../d0/d75/structBloomberg_1_1quantum_1_1StackAllocator.html">StackAllocator</a>&lt; <a class="el" href="../../d1/d15/classBloomberg_1_1quantum_1_1Promise.html">Promise</a>&lt; int &gt;, __QUANTUM_PROMISE_ALLOC_SIZE &gt;</td></tr>
+<tr class="separator:a1a2e0d923f82da056e0f6be6b599491d"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ac92fc09d9f3ed4dbc0c98347d66c6f8f"><td class="memItemLeft" align="right" valign="top">using&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../dc/d48/namespaceBloomberg_1_1quantum.html#ac92fc09d9f3ed4dbc0c98347d66c6f8f">TaskAllocator</a> = <a class="el" href="../../d0/d75/structBloomberg_1_1quantum_1_1StackAllocator.html">StackAllocator</a>&lt; <a class="el" href="../../d0/d90/classBloomberg_1_1quantum_1_1Task.html">Task</a>, __QUANTUM_TASK_ALLOC_SIZE &gt;</td></tr>
+<tr class="separator:ac92fc09d9f3ed4dbc0c98347d66c6f8f"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a15cc22a3e0070643a8cfefe6b83d3107"><td class="memTemplParams" colspan="2">template&lt;class RET &gt; </td></tr>
 <tr class="memitem:a15cc22a3e0070643a8cfefe6b83d3107"><td class="memTemplItemLeft" align="right" valign="top">using&#160;</td><td class="memTemplItemRight" valign="bottom"><a class="el" href="../../dc/d48/namespaceBloomberg_1_1quantum.html#a15cc22a3e0070643a8cfefe6b83d3107">CoroContext</a> = <a class="el" href="../../d5/dd1/structBloomberg_1_1quantum_1_1ICoroContext.html">ICoroContext</a>&lt; RET &gt;</td></tr>
 <tr class="separator:a15cc22a3e0070643a8cfefe6b83d3107"><td class="memSeparator" colspan="2">&#160;</td></tr>
@@ -256,6 +278,8 @@ Typedefs</h2></td></tr>
 <tr class="memitem:a08491d91daba4c4b5f7a71b872dce37b"><td class="memTemplParams" colspan="2">template&lt;class T &gt; </td></tr>
 <tr class="memitem:a08491d91daba4c4b5f7a71b872dce37b"><td class="memTemplItemLeft" align="right" valign="top">using&#160;</td><td class="memTemplItemRight" valign="bottom"><a class="el" href="../../dc/d48/namespaceBloomberg_1_1quantum.html#a08491d91daba4c4b5f7a71b872dce37b">CoroPromise</a> = <a class="el" href="../../d7/dc1/structBloomberg_1_1quantum_1_1ICoroPromise.html">ICoroPromise</a>&lt; <a class="el" href="../../d1/d15/classBloomberg_1_1quantum_1_1Promise.html">Promise</a>, T &gt;</td></tr>
 <tr class="separator:a08491d91daba4c4b5f7a71b872dce37b"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a8a48c732495dfe1af2d8bf0e3febe94f"><td class="memItemLeft" align="right" valign="top">using&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../dc/d48/namespaceBloomberg_1_1quantum.html#a8a48c732495dfe1af2d8bf0e3febe94f">QueueListAllocator</a> = <a class="el" href="../../d0/d75/structBloomberg_1_1quantum_1_1StackAllocator.html">StackAllocator</a>&lt; <a class="el" href="../../df/daf/structBloomberg_1_1quantum_1_1ITask.html#a6c5b8216547b11f3f0e0e6bc7d20956d">ITask::Ptr</a>, __QUANTUM_QUEUE_LIST_ALLOC_SIZE &gt;</td></tr>
+<tr class="separator:a8a48c732495dfe1af2d8bf0e3febe94f"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:aa9da8335ae6292074d0ccaf31b85bf35"><td class="memTemplParams" colspan="2">template&lt;class RET &gt; </td></tr>
 <tr class="memitem:aa9da8335ae6292074d0ccaf31b85bf35"><td class="memTemplItemLeft" align="right" valign="top">using&#160;</td><td class="memTemplItemRight" valign="bottom"><a class="el" href="../../dc/d48/namespaceBloomberg_1_1quantum.html#aa9da8335ae6292074d0ccaf31b85bf35">ThreadContext</a> = <a class="el" href="../../da/de3/structBloomberg_1_1quantum_1_1IThreadContext.html">IThreadContext</a>&lt; RET &gt;</td></tr>
 <tr class="separator:aa9da8335ae6292074d0ccaf31b85bf35"><td class="memSeparator" colspan="2">&#160;</td></tr>
@@ -265,6 +289,8 @@ Typedefs</h2></td></tr>
 <tr class="memitem:a070b5d65adcdb9051ab34b5a8e9a1af9"><td class="memTemplParams" colspan="2">template&lt;class T &gt; </td></tr>
 <tr class="memitem:a070b5d65adcdb9051ab34b5a8e9a1af9"><td class="memTemplItemLeft" align="right" valign="top">using&#160;</td><td class="memTemplItemRight" valign="bottom"><a class="el" href="../../dc/d48/namespaceBloomberg_1_1quantum.html#a070b5d65adcdb9051ab34b5a8e9a1af9">ThreadPromise</a> = <a class="el" href="../../da/deb/structBloomberg_1_1quantum_1_1IThreadPromise.html">IThreadPromise</a>&lt; <a class="el" href="../../d1/d15/classBloomberg_1_1quantum_1_1Promise.html">Promise</a>, T &gt;</td></tr>
 <tr class="separator:a070b5d65adcdb9051ab34b5a8e9a1af9"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a0322110282aa0ded0fb7e7eefb29c9d0"><td class="memItemLeft" align="right" valign="top">using&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../dc/d48/namespaceBloomberg_1_1quantum.html#a0322110282aa0ded0fb7e7eefb29c9d0">CoroStackAllocator</a> = <a class="el" href="../../de/d0e/structBloomberg_1_1quantum_1_1CoroutinePoolAllocatorProxy.html">CoroutinePoolAllocatorProxy</a>&lt; <a class="el" href="../../d4/df4/structBloomberg_1_1quantum_1_1StackTraitsProxy.html">StackTraitsProxy</a> &gt;</td></tr>
+<tr class="separator:a0322110282aa0ded0fb7e7eefb29c9d0"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a1f84cd11aaef5c4bd676d0472d78e5cd"><td class="memItemLeft" align="right" valign="top">using&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../dc/d48/namespaceBloomberg_1_1quantum.html#a1f84cd11aaef5c4bd676d0472d78e5cd">YieldingThread</a> = <a class="el" href="../../dd/d4a/structBloomberg_1_1quantum_1_1YieldingThreadDuration.html">YieldingThreadDuration</a>&lt; std::chrono::milliseconds &gt;</td></tr>
 <tr class="separator:a1f84cd11aaef5c4bd676d0472d78e5cd"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table><table class="memberdecls">
@@ -293,14 +319,6 @@ Enumerations</h2></td></tr>
 </table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a name="func-members"></a>
 Functions</h2></td></tr>
-<tr class="memitem:a532d2772561acd9af09af148db5d95e0"><td class="memItemLeft" align="right" valign="top"><a class="el" href="../../dc/d48/namespaceBloomberg_1_1quantum.html#a9dadf869ae934b5bccf7ba433666f416">ContextAllocator</a> &amp;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../dc/d48/namespaceBloomberg_1_1quantum.html#a532d2772561acd9af09af148db5d95e0">GetContextAllocator</a> ()</td></tr>
-<tr class="separator:a532d2772561acd9af09af148db5d95e0"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:acb71586ec8ece1cca36286a450b67e2b"><td class="memItemLeft" align="right" valign="top"><a class="el" href="../../dc/d48/namespaceBloomberg_1_1quantum.html#a63f2ac2442e71224fb5e0d6ace99e53a">FutureAllocator</a> &amp;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../dc/d48/namespaceBloomberg_1_1quantum.html#acb71586ec8ece1cca36286a450b67e2b">GetFutureAllocator</a> ()</td></tr>
-<tr class="separator:acb71586ec8ece1cca36286a450b67e2b"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:ab64987c28a2ec8abe19ada701d89824c"><td class="memItemLeft" align="right" valign="top"><a class="el" href="../../dc/d48/namespaceBloomberg_1_1quantum.html#a8220854a72439e5e0188a71f14ffb257">IoTaskAllocator</a> &amp;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../dc/d48/namespaceBloomberg_1_1quantum.html#ab64987c28a2ec8abe19ada701d89824c">GetIoTaskAllocator</a> ()</td></tr>
-<tr class="separator:ab64987c28a2ec8abe19ada701d89824c"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a396c7fffe6d65a1190e6407a4dc52c91"><td class="memItemLeft" align="right" valign="top"><a class="el" href="../../dc/d48/namespaceBloomberg_1_1quantum.html#a6922601f110cb4ae6015c5d5cafe5a58">PromiseAllocator</a> &amp;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../dc/d48/namespaceBloomberg_1_1quantum.html#a396c7fffe6d65a1190e6407a4dc52c91">GetPromiseAllocator</a> ()</td></tr>
-<tr class="separator:a396c7fffe6d65a1190e6407a4dc52c91"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a75c5cdadd35fd61b43b04b55d718a927"><td class="memItemLeft" align="right" valign="top"><a class="el" href="../../d1/d7b/classBloomberg_1_1quantum_1_1QueueStatistics.html">QueueStatistics</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../dc/d48/namespaceBloomberg_1_1quantum.html#a75c5cdadd35fd61b43b04b55d718a927">operator+</a> (<a class="el" href="../../d1/d7b/classBloomberg_1_1quantum_1_1QueueStatistics.html">QueueStatistics</a> lhs, const <a class="el" href="../../d5/de7/structBloomberg_1_1quantum_1_1IQueueStatistics.html">IQueueStatistics</a> &amp;rhs)</td></tr>
 <tr class="separator:a75c5cdadd35fd61b43b04b55d718a927"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:af910e15f8a8d99a2c848a9f424835f6a"><td class="memItemLeft" align="right" valign="top">std::ostream &amp;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../dc/d48/namespaceBloomberg_1_1quantum.html#af910e15f8a8d99a2c848a9f424835f6a">operator&lt;&lt;</a> (std::ostream &amp;out, const <a class="el" href="../../d5/de7/structBloomberg_1_1quantum_1_1IQueueStatistics.html">IQueueStatistics</a> &amp;stats)</td></tr>
@@ -312,20 +330,18 @@ Functions</h2></td></tr>
 <tr class="memitem:a0f21d0f802a9ff45476fc34eadf136bf"><td class="memTemplParams" colspan="2">template&lt;typename RET , typename... ARGS&gt; </td></tr>
 <tr class="memitem:a0f21d0f802a9ff45476fc34eadf136bf"><td class="memTemplItemLeft" align="right" valign="top">RET&#160;</td><td class="memTemplItemRight" valign="bottom"><a class="el" href="../../dc/d48/namespaceBloomberg_1_1quantum.html#a0f21d0f802a9ff45476fc34eadf136bf">apply</a> (const std::function&lt; RET(ARGS...)&gt; &amp;func, std::tuple&lt; ARGS... &gt; &amp;tuple)</td></tr>
 <tr class="separator:a0f21d0f802a9ff45476fc34eadf136bf"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a63bdb8aa90db07dff890bd272bae4ed2"><td class="memItemLeft" align="right" valign="top"><a class="el" href="../../dc/d48/namespaceBloomberg_1_1quantum.html#a0ad248c217486bf21c5ae0ae81dfa06d">TaskAllocator</a> &amp;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../dc/d48/namespaceBloomberg_1_1quantum.html#a63bdb8aa90db07dff890bd272bae4ed2">GetTaskAllocator</a> ()</td></tr>
-<tr class="separator:a63bdb8aa90db07dff890bd272bae4ed2"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a4206774a667bbdbc8c8cc1fd905e051c"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../dc/d48/namespaceBloomberg_1_1quantum.html#a4206774a667bbdbc8c8cc1fd905e051c">ThrowFutureException</a> (<a class="el" href="../../dc/d48/namespaceBloomberg_1_1quantum.html#aae5974140a54463c3c55040f00e6f70b">FutureState</a> state)</td></tr>
 <tr class="separator:a4206774a667bbdbc8c8cc1fd905e051c"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table>
 <h2 class="groupheader">Typedef Documentation</h2>
-<a id="a9dadf869ae934b5bccf7ba433666f416"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a9dadf869ae934b5bccf7ba433666f416">&#9670;&nbsp;</a></span>ContextAllocator</h2>
+<a id="a4c489223386c94e8f0841e2688cca80e"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a4c489223386c94e8f0841e2688cca80e">&#9670;&nbsp;</a></span>ContextAllocator</h2>
 
 <div class="memitem">
 <div class="memproto">
       <table class="memname">
         <tr>
-          <td class="memname">using <a class="el" href="../../dc/d48/namespaceBloomberg_1_1quantum.html#a9dadf869ae934b5bccf7ba433666f416">Bloomberg::quantum::ContextAllocator</a> = typedef <a class="el" href="../../d0/d75/structBloomberg_1_1quantum_1_1StackAllocator.html">StackAllocator</a>&lt;<a class="el" href="../../d8/df7/classBloomberg_1_1quantum_1_1Context.html">Context</a>&lt;int&gt;, __QUANTUM_CONTEXT_ALLOC&gt;</td>
+          <td class="memname">using <a class="el" href="../../dc/d48/namespaceBloomberg_1_1quantum.html#a4c489223386c94e8f0841e2688cca80e">Bloomberg::quantum::ContextAllocator</a> = typedef <a class="el" href="../../d0/d75/structBloomberg_1_1quantum_1_1StackAllocator.html">StackAllocator</a>&lt;<a class="el" href="../../d8/df7/classBloomberg_1_1quantum_1_1Context.html">Context</a>&lt;int&gt;, __QUANTUM_CONTEXT_ALLOC_SIZE&gt;</td>
         </tr>
       </table>
 </div><div class="memdoc">
@@ -380,56 +396,84 @@ template&lt;class T &gt; </div>
 
 </div>
 </div>
-<a id="a63f2ac2442e71224fb5e0d6ace99e53a"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a63f2ac2442e71224fb5e0d6ace99e53a">&#9670;&nbsp;</a></span>FutureAllocator</h2>
+<a id="a0322110282aa0ded0fb7e7eefb29c9d0"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a0322110282aa0ded0fb7e7eefb29c9d0">&#9670;&nbsp;</a></span>CoroStackAllocator</h2>
 
 <div class="memitem">
 <div class="memproto">
       <table class="memname">
         <tr>
-          <td class="memname">using <a class="el" href="../../dc/d48/namespaceBloomberg_1_1quantum.html#a63f2ac2442e71224fb5e0d6ace99e53a">Bloomberg::quantum::FutureAllocator</a> = typedef <a class="el" href="../../d0/d75/structBloomberg_1_1quantum_1_1StackAllocator.html">StackAllocator</a>&lt;<a class="el" href="../../dc/d14/classBloomberg_1_1quantum_1_1Future.html">Future</a>&lt;int&gt;, __QUANTUM_FUTURE_ALLOC&gt;</td>
+          <td class="memname">using <a class="el" href="../../dc/d48/namespaceBloomberg_1_1quantum.html#a0322110282aa0ded0fb7e7eefb29c9d0">Bloomberg::quantum::CoroStackAllocator</a> = typedef <a class="el" href="../../de/d0e/structBloomberg_1_1quantum_1_1CoroutinePoolAllocatorProxy.html">CoroutinePoolAllocatorProxy</a>&lt;<a class="el" href="../../d4/df4/structBloomberg_1_1quantum_1_1StackTraitsProxy.html">StackTraitsProxy</a>&gt;</td>
         </tr>
       </table>
 </div><div class="memdoc">
 
 </div>
 </div>
-<a id="a8220854a72439e5e0188a71f14ffb257"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a8220854a72439e5e0188a71f14ffb257">&#9670;&nbsp;</a></span>IoTaskAllocator</h2>
+<a id="a17ad7c3baf65051199af60f377a00fa0"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a17ad7c3baf65051199af60f377a00fa0">&#9670;&nbsp;</a></span>FutureAllocator</h2>
 
 <div class="memitem">
 <div class="memproto">
       <table class="memname">
         <tr>
-          <td class="memname">using <a class="el" href="../../dc/d48/namespaceBloomberg_1_1quantum.html#a8220854a72439e5e0188a71f14ffb257">Bloomberg::quantum::IoTaskAllocator</a> = typedef <a class="el" href="../../d0/d75/structBloomberg_1_1quantum_1_1StackAllocator.html">StackAllocator</a>&lt;<a class="el" href="../../d4/d8b/classBloomberg_1_1quantum_1_1IoTask.html">IoTask</a>, __QUANTUM_IO_TASK_ALLOC&gt;</td>
+          <td class="memname">using <a class="el" href="../../dc/d48/namespaceBloomberg_1_1quantum.html#a17ad7c3baf65051199af60f377a00fa0">Bloomberg::quantum::FutureAllocator</a> = typedef <a class="el" href="../../d0/d75/structBloomberg_1_1quantum_1_1StackAllocator.html">StackAllocator</a>&lt;<a class="el" href="../../dc/d14/classBloomberg_1_1quantum_1_1Future.html">Future</a>&lt;int&gt;, __QUANTUM_FUTURE_ALLOC_SIZE&gt;</td>
         </tr>
       </table>
 </div><div class="memdoc">
 
 </div>
 </div>
-<a id="a6922601f110cb4ae6015c5d5cafe5a58"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a6922601f110cb4ae6015c5d5cafe5a58">&#9670;&nbsp;</a></span>PromiseAllocator</h2>
+<a id="a739e7eaec89907476af7a3be87950b9b"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a739e7eaec89907476af7a3be87950b9b">&#9670;&nbsp;</a></span>IoTaskAllocator</h2>
 
 <div class="memitem">
 <div class="memproto">
       <table class="memname">
         <tr>
-          <td class="memname">using <a class="el" href="../../dc/d48/namespaceBloomberg_1_1quantum.html#a6922601f110cb4ae6015c5d5cafe5a58">Bloomberg::quantum::PromiseAllocator</a> = typedef <a class="el" href="../../d0/d75/structBloomberg_1_1quantum_1_1StackAllocator.html">StackAllocator</a>&lt;<a class="el" href="../../d1/d15/classBloomberg_1_1quantum_1_1Promise.html">Promise</a>&lt;int&gt;, __QUANTUM_PROMISE_ALLOC&gt;</td>
+          <td class="memname">using <a class="el" href="../../dc/d48/namespaceBloomberg_1_1quantum.html#a739e7eaec89907476af7a3be87950b9b">Bloomberg::quantum::IoTaskAllocator</a> = typedef <a class="el" href="../../d0/d75/structBloomberg_1_1quantum_1_1StackAllocator.html">StackAllocator</a>&lt;<a class="el" href="../../d4/d8b/classBloomberg_1_1quantum_1_1IoTask.html">IoTask</a>, __QUANTUM_IO_TASK_ALLOC_SIZE&gt;</td>
         </tr>
       </table>
 </div><div class="memdoc">
 
 </div>
 </div>
-<a id="a0ad248c217486bf21c5ae0ae81dfa06d"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a0ad248c217486bf21c5ae0ae81dfa06d">&#9670;&nbsp;</a></span>TaskAllocator</h2>
+<a id="a1a2e0d923f82da056e0f6be6b599491d"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a1a2e0d923f82da056e0f6be6b599491d">&#9670;&nbsp;</a></span>PromiseAllocator</h2>
 
 <div class="memitem">
 <div class="memproto">
       <table class="memname">
         <tr>
-          <td class="memname">using <a class="el" href="../../dc/d48/namespaceBloomberg_1_1quantum.html#a0ad248c217486bf21c5ae0ae81dfa06d">Bloomberg::quantum::TaskAllocator</a> = typedef <a class="el" href="../../d0/d75/structBloomberg_1_1quantum_1_1StackAllocator.html">StackAllocator</a>&lt;<a class="el" href="../../d0/d90/classBloomberg_1_1quantum_1_1Task.html">Task</a>, __QUANTUM_TASK_ALLOC&gt;</td>
+          <td class="memname">using <a class="el" href="../../dc/d48/namespaceBloomberg_1_1quantum.html#a1a2e0d923f82da056e0f6be6b599491d">Bloomberg::quantum::PromiseAllocator</a> = typedef <a class="el" href="../../d0/d75/structBloomberg_1_1quantum_1_1StackAllocator.html">StackAllocator</a>&lt;<a class="el" href="../../d1/d15/classBloomberg_1_1quantum_1_1Promise.html">Promise</a>&lt;int&gt;, __QUANTUM_PROMISE_ALLOC_SIZE&gt;</td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+</div>
+</div>
+<a id="a8a48c732495dfe1af2d8bf0e3febe94f"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a8a48c732495dfe1af2d8bf0e3febe94f">&#9670;&nbsp;</a></span>QueueListAllocator</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">using <a class="el" href="../../dc/d48/namespaceBloomberg_1_1quantum.html#a8a48c732495dfe1af2d8bf0e3febe94f">Bloomberg::quantum::QueueListAllocator</a> = typedef <a class="el" href="../../d0/d75/structBloomberg_1_1quantum_1_1StackAllocator.html">StackAllocator</a>&lt;<a class="el" href="../../df/daf/structBloomberg_1_1quantum_1_1ITask.html#a6c5b8216547b11f3f0e0e6bc7d20956d">ITask::Ptr</a>, __QUANTUM_QUEUE_LIST_ALLOC_SIZE&gt;</td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+</div>
+</div>
+<a id="ac92fc09d9f3ed4dbc0c98347d66c6f8f"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#ac92fc09d9f3ed4dbc0c98347d66c6f8f">&#9670;&nbsp;</a></span>TaskAllocator</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">using <a class="el" href="../../dc/d48/namespaceBloomberg_1_1quantum.html#ac92fc09d9f3ed4dbc0c98347d66c6f8f">Bloomberg::quantum::TaskAllocator</a> = typedef <a class="el" href="../../d0/d75/structBloomberg_1_1quantum_1_1StackAllocator.html">StackAllocator</a>&lt;<a class="el" href="../../d0/d90/classBloomberg_1_1quantum_1_1Task.html">Task</a>, __QUANTUM_TASK_ALLOC_SIZE&gt;</td>
         </tr>
       </table>
 </div><div class="memdoc">
@@ -636,131 +680,6 @@ template&lt;typename RET , typename... ARGS, size_t... I&gt; </div>
           <td></td><td></td>
         </tr>
       </table>
-</div><div class="memdoc">
-
-</div>
-</div>
-<a id="a532d2772561acd9af09af148db5d95e0"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a532d2772561acd9af09af148db5d95e0">&#9670;&nbsp;</a></span>GetContextAllocator()</h2>
-
-<div class="memitem">
-<div class="memproto">
-<table class="mlabels">
-  <tr>
-  <td class="mlabels-left">
-      <table class="memname">
-        <tr>
-          <td class="memname"><a class="el" href="../../dc/d48/namespaceBloomberg_1_1quantum.html#a9dadf869ae934b5bccf7ba433666f416">ContextAllocator</a>&amp; Bloomberg::quantum::GetContextAllocator </td>
-          <td>(</td>
-          <td class="paramname"></td><td>)</td>
-          <td></td>
-        </tr>
-      </table>
-  </td>
-  <td class="mlabels-right">
-<span class="mlabels"><span class="mlabel">inline</span></span>  </td>
-  </tr>
-</table>
-</div><div class="memdoc">
-
-</div>
-</div>
-<a id="acb71586ec8ece1cca36286a450b67e2b"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#acb71586ec8ece1cca36286a450b67e2b">&#9670;&nbsp;</a></span>GetFutureAllocator()</h2>
-
-<div class="memitem">
-<div class="memproto">
-<table class="mlabels">
-  <tr>
-  <td class="mlabels-left">
-      <table class="memname">
-        <tr>
-          <td class="memname"><a class="el" href="../../dc/d48/namespaceBloomberg_1_1quantum.html#a63f2ac2442e71224fb5e0d6ace99e53a">FutureAllocator</a>&amp; Bloomberg::quantum::GetFutureAllocator </td>
-          <td>(</td>
-          <td class="paramname"></td><td>)</td>
-          <td></td>
-        </tr>
-      </table>
-  </td>
-  <td class="mlabels-right">
-<span class="mlabels"><span class="mlabel">inline</span></span>  </td>
-  </tr>
-</table>
-</div><div class="memdoc">
-
-</div>
-</div>
-<a id="ab64987c28a2ec8abe19ada701d89824c"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#ab64987c28a2ec8abe19ada701d89824c">&#9670;&nbsp;</a></span>GetIoTaskAllocator()</h2>
-
-<div class="memitem">
-<div class="memproto">
-<table class="mlabels">
-  <tr>
-  <td class="mlabels-left">
-      <table class="memname">
-        <tr>
-          <td class="memname"><a class="el" href="../../dc/d48/namespaceBloomberg_1_1quantum.html#a8220854a72439e5e0188a71f14ffb257">IoTaskAllocator</a>&amp; Bloomberg::quantum::GetIoTaskAllocator </td>
-          <td>(</td>
-          <td class="paramname"></td><td>)</td>
-          <td></td>
-        </tr>
-      </table>
-  </td>
-  <td class="mlabels-right">
-<span class="mlabels"><span class="mlabel">inline</span></span>  </td>
-  </tr>
-</table>
-</div><div class="memdoc">
-
-</div>
-</div>
-<a id="a396c7fffe6d65a1190e6407a4dc52c91"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a396c7fffe6d65a1190e6407a4dc52c91">&#9670;&nbsp;</a></span>GetPromiseAllocator()</h2>
-
-<div class="memitem">
-<div class="memproto">
-<table class="mlabels">
-  <tr>
-  <td class="mlabels-left">
-      <table class="memname">
-        <tr>
-          <td class="memname"><a class="el" href="../../dc/d48/namespaceBloomberg_1_1quantum.html#a6922601f110cb4ae6015c5d5cafe5a58">PromiseAllocator</a>&amp; Bloomberg::quantum::GetPromiseAllocator </td>
-          <td>(</td>
-          <td class="paramname"></td><td>)</td>
-          <td></td>
-        </tr>
-      </table>
-  </td>
-  <td class="mlabels-right">
-<span class="mlabels"><span class="mlabel">inline</span></span>  </td>
-  </tr>
-</table>
-</div><div class="memdoc">
-
-</div>
-</div>
-<a id="a63bdb8aa90db07dff890bd272bae4ed2"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a63bdb8aa90db07dff890bd272bae4ed2">&#9670;&nbsp;</a></span>GetTaskAllocator()</h2>
-
-<div class="memitem">
-<div class="memproto">
-<table class="mlabels">
-  <tr>
-  <td class="mlabels-left">
-      <table class="memname">
-        <tr>
-          <td class="memname"><a class="el" href="../../dc/d48/namespaceBloomberg_1_1quantum.html#a0ad248c217486bf21c5ae0ae81dfa06d">TaskAllocator</a>&amp; Bloomberg::quantum::GetTaskAllocator </td>
-          <td>(</td>
-          <td class="paramname"></td><td>)</td>
-          <td></td>
-        </tr>
-      </table>
-  </td>
-  <td class="mlabels-right">
-<span class="mlabels"><span class="mlabel">inline</span></span>  </td>
-  </tr>
-</table>
 </div><div class="memdoc">
 
 </div>

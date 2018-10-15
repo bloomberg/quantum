@@ -83,12 +83,11 @@ var menudata={children:[
 {text:"w",url:"functions_func_w.html#index_w"},
 {text:"y",url:"functions_func_y.html#index_y"},
 {text:"~",url:"functions_func_0x7e.html#index_0x7e"}]},
-{text:"Variables",url:"functions_vars.html"},
 {text:"Typedefs",url:"functions_type.html",children:[
+{text:"a",url:"functions_type.html#index_a"},
 {text:"b",url:"functions_type.html#index_b"},
 {text:"c",url:"functions_type.html#index_c"},
 {text:"d",url:"functions_type.html#index_d"},
-{text:"h",url:"functions_type.html#index_h"},
 {text:"i",url:"functions_type.html#index_i"},
 {text:"o",url:"functions_type.html#index_o"},
 {text:"p",url:"functions_type.html#index_p"},

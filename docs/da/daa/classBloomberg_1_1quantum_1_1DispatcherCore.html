@@ -127,6 +127,10 @@ Public Member Functions</h2></td></tr>
 <tr class="separator:a826579f9aaf8b89a38bbc45c16e865b3"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a2f58dcf2f653fb41460b97c48d467d5d"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../da/daa/classBloomberg_1_1quantum_1_1DispatcherCore.html#a2f58dcf2f653fb41460b97c48d467d5d">postAsyncIo</a> (<a class="el" href="../../d4/d8b/classBloomberg_1_1quantum_1_1IoTask.html#af433efa37f8b3dffd03e3aa614acc9f5">IoTask::Ptr</a> task)</td></tr>
 <tr class="separator:a2f58dcf2f653fb41460b97c48d467d5d"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a717239b790a7ceadd80099bad1bf919c"><td class="memItemLeft" align="right" valign="top">int&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../da/daa/classBloomberg_1_1quantum_1_1DispatcherCore.html#a717239b790a7ceadd80099bad1bf919c">getNumCoroutineThreads</a> () const</td></tr>
+<tr class="separator:a717239b790a7ceadd80099bad1bf919c"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a5ea94d05eaa30d66636a574f9c26d00e"><td class="memItemLeft" align="right" valign="top">int&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../da/daa/classBloomberg_1_1quantum_1_1DispatcherCore.html#a5ea94d05eaa30d66636a574f9c26d00e">getNumIoThreads</a> () const</td></tr>
+<tr class="separator:a5ea94d05eaa30d66636a574f9c26d00e"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="inherit_header pub_methods_structBloomberg_1_1quantum_1_1ITerminate"><td colspan="2" onclick="javascript:toggleInherit('pub_methods_structBloomberg_1_1quantum_1_1ITerminate')"><img src="../../closed.png" alt="-"/>&#160;Public Member Functions inherited from <a class="el" href="../../d9/ddb/structBloomberg_1_1quantum_1_1ITerminate.html">Bloomberg::quantum::ITerminate</a></td></tr>
 <tr class="memitem:a4086a8ce16fc2482ee77701d387b14d8 inherit pub_methods_structBloomberg_1_1quantum_1_1ITerminate"><td class="memItemLeft" align="right" valign="top">virtual&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d9/ddb/structBloomberg_1_1quantum_1_1ITerminate.html#a4086a8ce16fc2482ee77701d387b14d8">~ITerminate</a> ()=default</td></tr>
 <tr class="memdesc:a4086a8ce16fc2482ee77701d387b14d8 inherit pub_methods_structBloomberg_1_1quantum_1_1ITerminate"><td class="mdescLeft">&#160;</td><td class="mdescRight">Virtual destructor. This function is explicitly left empty.  <a href="../../d9/ddb/structBloomberg_1_1quantum_1_1ITerminate.html#a4086a8ce16fc2482ee77701d387b14d8">More...</a><br /></td></tr>
@@ -134,7 +138,7 @@ Public Member Functions</h2></td></tr>
 </table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a name="friends"></a>
 Friends</h2></td></tr>
-<tr class="memitem:acd5fe358f6b65302efac8b21d418d1b8"><td class="memItemLeft" align="right" valign="top">class&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../da/daa/classBloomberg_1_1quantum_1_1DispatcherCore.html#acd5fe358f6b65302efac8b21d418d1b8">TaskDispatcher</a></td></tr>
+<tr class="memitem:acd5fe358f6b65302efac8b21d418d1b8"><td class="memItemLeft" align="right" valign="top"><a class="el" href="../../d9/d6d/classclass.html">class</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../da/daa/classBloomberg_1_1quantum_1_1DispatcherCore.html#acd5fe358f6b65302efac8b21d418d1b8">TaskDispatcher</a></td></tr>
 <tr class="separator:acd5fe358f6b65302efac8b21d418d1b8"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table>
 <a name="details" id="details"></a><h2 class="groupheader">Detailed Description</h2>
@@ -192,6 +196,56 @@ Friends</h2></td></tr>
           <td></td>
           <td>)</td>
           <td></td><td> const</td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">inline</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+</div>
+</div>
+<a id="a717239b790a7ceadd80099bad1bf919c"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a717239b790a7ceadd80099bad1bf919c">&#9670;&nbsp;</a></span>getNumCoroutineThreads()</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">int Bloomberg::quantum::DispatcherCore::getNumCoroutineThreads </td>
+          <td>(</td>
+          <td class="paramname"></td><td>)</td>
+          <td> const</td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">inline</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+</div>
+</div>
+<a id="a5ea94d05eaa30d66636a574f9c26d00e"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a5ea94d05eaa30d66636a574f9c26d00e">&#9670;&nbsp;</a></span>getNumIoThreads()</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">int Bloomberg::quantum::DispatcherCore::getNumIoThreads </td>
+          <td>(</td>
+          <td class="paramname"></td><td>)</td>
+          <td> const</td>
         </tr>
       </table>
   </td>
@@ -393,7 +447,7 @@ Friends</h2></td></tr>
   <td class="mlabels-left">
       <table class="memname">
         <tr>
-          <td class="memname">friend class <a class="el" href="../../d7/da1/classBloomberg_1_1quantum_1_1TaskDispatcher.html">TaskDispatcher</a></td>
+          <td class="memname">friend <a class="el" href="../../d9/d6d/classclass.html">class</a> <a class="el" href="../../d7/da1/classBloomberg_1_1quantum_1_1TaskDispatcher.html">TaskDispatcher</a></td>
         </tr>
       </table>
   </td>

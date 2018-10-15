@@ -279,6 +279,12 @@ Public Member Functions</h2></td></tr>
 <tr class="memitem:ad0e4de68ff35d05d0191986b8b73c42d"><td class="memTemplParams" colspan="2">template&lt;class OTHER_RET &gt; </td></tr>
 <tr class="memitem:ad0e4de68ff35d05d0191986b8b73c42d"><td class="memTemplItemLeft" align="right" valign="top">const OTHER_RET &amp;&#160;</td><td class="memTemplItemRight" valign="bottom"><a class="el" href="../../d8/df7/classBloomberg_1_1quantum_1_1Context.html#ad0e4de68ff35d05d0191986b8b73c42d">getPrevRef</a> (<a class="el" href="../../d3/d63/structBloomberg_1_1quantum_1_1ICoroSync.html#a109b2c4b7d70d53d48bb640a9d849b29">ICoroSync::Ptr</a> sync)</td></tr>
 <tr class="separator:ad0e4de68ff35d05d0191986b8b73c42d"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a66b2fe051e1b72e6a045cb0a3e57b9d2"><td class="memItemLeft" align="right" valign="top">int&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d8/df7/classBloomberg_1_1quantum_1_1Context.html#a66b2fe051e1b72e6a045cb0a3e57b9d2">getNumCoroutineThreads</a> () const</td></tr>
+<tr class="memdesc:a66b2fe051e1b72e6a045cb0a3e57b9d2"><td class="mdescLeft">&#160;</td><td class="mdescRight">Returns the number of underlying coroutine threads as specified in the dispatcher constructor. If -1 was passed than this number essentially indicates the number of cores.  <a href="#a66b2fe051e1b72e6a045cb0a3e57b9d2">More...</a><br /></td></tr>
+<tr class="separator:a66b2fe051e1b72e6a045cb0a3e57b9d2"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a5855eee0ab54a2d606cdc96196816a74"><td class="memItemLeft" align="right" valign="top">int&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d8/df7/classBloomberg_1_1quantum_1_1Context.html#a5855eee0ab54a2d606cdc96196816a74">getNumIoThreads</a> () const</td></tr>
+<tr class="memdesc:a5855eee0ab54a2d606cdc96196816a74"><td class="mdescLeft">&#160;</td><td class="mdescRight">Returns the number of underlying IO threads as specified in the dispatcher constructor.  <a href="#a5855eee0ab54a2d606cdc96196816a74">More...</a><br /></td></tr>
+<tr class="separator:a5855eee0ab54a2d606cdc96196816a74"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:aaa28d456ec74988a9502a955c636bc13"><td class="memTemplParams" colspan="2">template&lt;class OTHER_RET , class FUNC , class ... ARGS&gt; </td></tr>
 <tr class="memitem:aaa28d456ec74988a9502a955c636bc13"><td class="memTemplItemLeft" align="right" valign="top"><a class="el" href="../../d8/df7/classBloomberg_1_1quantum_1_1Context.html">Context</a>&lt; OTHER_RET &gt;::<a class="el" href="../../d8/db0/structBloomberg_1_1quantum_1_1IContextBase.html#ac92e5d294479f777fd01f5621e4f8db9">Ptr</a>&#160;</td><td class="memTemplItemRight" valign="bottom"><a class="el" href="../../d8/df7/classBloomberg_1_1quantum_1_1Context.html#aaa28d456ec74988a9502a955c636bc13">post</a> (FUNC &amp;&amp;func, ARGS &amp;&amp;... args)</td></tr>
 <tr class="memdesc:aaa28d456ec74988a9502a955c636bc13"><td class="mdescLeft">&#160;</td><td class="mdescRight">Post a coroutine to run asynchronously.  <a href="#aaa28d456ec74988a9502a955c636bc13">More...</a><br /></td></tr>
@@ -351,14 +357,14 @@ Static Public Member Functions</h2></td></tr>
 </table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a name="friends"></a>
 Friends</h2></td></tr>
-<tr class="memitem:a9c2751ecdc9d2563d06622f8f100ef88"><td class="memItemLeft" align="right" valign="top">class&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d8/df7/classBloomberg_1_1quantum_1_1Context.html#a9c2751ecdc9d2563d06622f8f100ef88">Util</a></td></tr>
+<tr class="memitem:a9c2751ecdc9d2563d06622f8f100ef88"><td class="memItemLeft" align="right" valign="top"><a class="el" href="../../d9/d6d/classclass.html">class</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d8/df7/classBloomberg_1_1quantum_1_1Context.html#a9c2751ecdc9d2563d06622f8f100ef88">Util</a></td></tr>
 <tr class="separator:a9c2751ecdc9d2563d06622f8f100ef88"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:aaa7728226b6ce66782e8816b1658dd9a"><td class="memItemLeft" align="right" valign="top">class&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d8/df7/classBloomberg_1_1quantum_1_1Context.html#aaa7728226b6ce66782e8816b1658dd9a">Task</a></td></tr>
+<tr class="memitem:aaa7728226b6ce66782e8816b1658dd9a"><td class="memItemLeft" align="right" valign="top"><a class="el" href="../../d9/d6d/classclass.html">class</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d8/df7/classBloomberg_1_1quantum_1_1Context.html#aaa7728226b6ce66782e8816b1658dd9a">Task</a></td></tr>
 <tr class="separator:aaa7728226b6ce66782e8816b1658dd9a"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:acd5fe358f6b65302efac8b21d418d1b8"><td class="memItemLeft" align="right" valign="top">class&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d8/df7/classBloomberg_1_1quantum_1_1Context.html#acd5fe358f6b65302efac8b21d418d1b8">TaskDispatcher</a></td></tr>
+<tr class="memitem:acd5fe358f6b65302efac8b21d418d1b8"><td class="memItemLeft" align="right" valign="top"><a class="el" href="../../d9/d6d/classclass.html">class</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d8/df7/classBloomberg_1_1quantum_1_1Context.html#acd5fe358f6b65302efac8b21d418d1b8">TaskDispatcher</a></td></tr>
 <tr class="separator:acd5fe358f6b65302efac8b21d418d1b8"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a655724ff396688037fb9bef66afc3f4e"><td class="memTemplParams" colspan="2">template&lt;class OTHER_RET &gt; </td></tr>
-<tr class="memitem:a655724ff396688037fb9bef66afc3f4e"><td class="memTemplItemLeft" align="right" valign="top">class&#160;</td><td class="memTemplItemRight" valign="bottom"><a class="el" href="../../d8/df7/classBloomberg_1_1quantum_1_1Context.html#a655724ff396688037fb9bef66afc3f4e">Context</a></td></tr>
+<tr class="memitem:a655724ff396688037fb9bef66afc3f4e"><td class="memTemplItemLeft" align="right" valign="top"><a class="el" href="../../d9/d6d/classclass.html">class</a>&#160;</td><td class="memTemplItemRight" valign="bottom"><a class="el" href="../../d8/df7/classBloomberg_1_1quantum_1_1Context.html#a655724ff396688037fb9bef66afc3f4e">Context</a></td></tr>
 <tr class="separator:a655724ff396688037fb9bef66afc3f4e"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table>
 <a name="details" id="details"></a><h2 class="groupheader">Detailed Description</h2>
@@ -736,6 +742,56 @@ template&lt;class OTHER_RET &gt; </div>
 <dl class="section note"><dt>Note</dt><dd>Blocks until the future is ready or until an exception is thrown. Once this function returns, the future is invalidated (i.e. cannot be read again). </dd></dl>
 
 <p>Implements <a class="el" href="../../d5/dd1/structBloomberg_1_1quantum_1_1ICoroContext.html#a7665c8187bebe6096a4046333009a011">Bloomberg::quantum::ICoroContext&lt; RET &gt;</a>.</p>
+
+</div>
+</div>
+<a id="a66b2fe051e1b72e6a045cb0a3e57b9d2"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a66b2fe051e1b72e6a045cb0a3e57b9d2">&#9670;&nbsp;</a></span>getNumCoroutineThreads()</h2>
+
+<div class="memitem">
+<div class="memproto">
+<div class="memtemplate">
+template&lt;class RET &gt; </div>
+      <table class="memname">
+        <tr>
+          <td class="memname">int <a class="el" href="../../d8/df7/classBloomberg_1_1quantum_1_1Context.html">Bloomberg::quantum::Context</a>&lt; RET &gt;::getNumCoroutineThreads </td>
+          <td>(</td>
+          <td class="paramname"></td><td>)</td>
+          <td> const</td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p>Returns the number of underlying coroutine threads as specified in the dispatcher constructor. If -1 was passed than this number essentially indicates the number of cores. </p>
+<dl class="section return"><dt>Returns</dt><dd>The number of threads. </dd></dl>
+<dl class="section note"><dt>Note</dt><dd>Each thread services its own queueId, therefore this number can be used when assigning coroutines to a specific queue. </dd></dl>
+
+<p>Implements <a class="el" href="../../d5/dd1/structBloomberg_1_1quantum_1_1ICoroContext.html#a0fadac955b2b32d87d1b8e505dce39c3">Bloomberg::quantum::ICoroContext&lt; RET &gt;</a>.</p>
+
+</div>
+</div>
+<a id="a5855eee0ab54a2d606cdc96196816a74"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a5855eee0ab54a2d606cdc96196816a74">&#9670;&nbsp;</a></span>getNumIoThreads()</h2>
+
+<div class="memitem">
+<div class="memproto">
+<div class="memtemplate">
+template&lt;class RET &gt; </div>
+      <table class="memname">
+        <tr>
+          <td class="memname">int <a class="el" href="../../d8/df7/classBloomberg_1_1quantum_1_1Context.html">Bloomberg::quantum::Context</a>&lt; RET &gt;::getNumIoThreads </td>
+          <td>(</td>
+          <td class="paramname"></td><td>)</td>
+          <td> const</td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p>Returns the number of underlying IO threads as specified in the dispatcher constructor. </p>
+<dl class="section return"><dt>Returns</dt><dd>The number of threads. </dd></dl>
+<dl class="section note"><dt>Note</dt><dd>Each thread services its own queueId, therefore this number can be used when assigning IO tasks to a specific queue. </dd></dl>
+
+<p>Implements <a class="el" href="../../d5/dd1/structBloomberg_1_1quantum_1_1ICoroContext.html#a1efdbf7df3818aec9bc8fd98a5bfc640">Bloomberg::quantum::ICoroContext&lt; RET &gt;</a>.</p>
 
 </div>
 </div>
@@ -2562,7 +2618,7 @@ template&lt;class OTHER_RET &gt; </div>
   <td class="mlabels-left">
       <table class="memname">
         <tr>
-          <td class="memname">friend class <a class="el" href="../../d8/df7/classBloomberg_1_1quantum_1_1Context.html">Context</a></td>
+          <td class="memname">friend <a class="el" href="../../d9/d6d/classclass.html">class</a> <a class="el" href="../../d8/df7/classBloomberg_1_1quantum_1_1Context.html">Context</a></td>
         </tr>
       </table>
   </td>
@@ -2586,7 +2642,7 @@ template&lt;class RET&gt; </div>
   <td class="mlabels-left">
       <table class="memname">
         <tr>
-          <td class="memname">friend class <a class="el" href="../../d0/d90/classBloomberg_1_1quantum_1_1Task.html">Task</a></td>
+          <td class="memname">friend <a class="el" href="../../d9/d6d/classclass.html">class</a> <a class="el" href="../../d0/d90/classBloomberg_1_1quantum_1_1Task.html">Task</a></td>
         </tr>
       </table>
   </td>
@@ -2610,7 +2666,7 @@ template&lt;class RET&gt; </div>
   <td class="mlabels-left">
       <table class="memname">
         <tr>
-          <td class="memname">friend class <a class="el" href="../../d7/da1/classBloomberg_1_1quantum_1_1TaskDispatcher.html">TaskDispatcher</a></td>
+          <td class="memname">friend <a class="el" href="../../d9/d6d/classclass.html">class</a> <a class="el" href="../../d7/da1/classBloomberg_1_1quantum_1_1TaskDispatcher.html">TaskDispatcher</a></td>
         </tr>
       </table>
   </td>
@@ -2634,7 +2690,7 @@ template&lt;class RET&gt; </div>
   <td class="mlabels-left">
       <table class="memname">
         <tr>
-          <td class="memname">friend class <a class="el" href="../../d1/db1/structBloomberg_1_1quantum_1_1Util.html">Util</a></td>
+          <td class="memname">friend <a class="el" href="../../d9/d6d/classclass.html">class</a> <a class="el" href="../../d1/db1/structBloomberg_1_1quantum_1_1Util.html">Util</a></td>
         </tr>
       </table>
   </td>

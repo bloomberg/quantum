@@ -1,4 +1,5 @@
 var searchData=
 [
+  ['heapallocator',['HeapAllocator',['../d2/da6/structBloomberg_1_1quantum_1_1HeapAllocator.html#a2de28a682c771e256543bea251336328',1,'Bloomberg::quantum::HeapAllocator::HeapAllocator(index_type size)'],['../d2/da6/structBloomberg_1_1quantum_1_1HeapAllocator.html#a134b67fcfe3bc5ba988357e7b547711a',1,'Bloomberg::quantum::HeapAllocator::HeapAllocator(const this_type &amp;other)'],['../d2/da6/structBloomberg_1_1quantum_1_1HeapAllocator.html#a3395f9c1f6a3bbe0f12740911ed6a36c',1,'Bloomberg::quantum::HeapAllocator::HeapAllocator(this_type &amp;&amp;other)'],['../d2/da6/structBloomberg_1_1quantum_1_1HeapAllocator.html#ae2d4a589c1e82b4b3014f188a4be090b',1,'Bloomberg::quantum::HeapAllocator::HeapAllocator(const HeapAllocator&lt; U &gt; &amp;other)']]],
   ['highprioritycount',['highPriorityCount',['../d5/de7/structBloomberg_1_1quantum_1_1IQueueStatistics.html#a57abfaf4bdf6674e4ea8740f988e1546',1,'Bloomberg::quantum::IQueueStatistics::highPriorityCount()'],['../d1/d7b/classBloomberg_1_1quantum_1_1QueueStatistics.html#a9a9b275f3ba7ca4931b3c8c70cb168ed',1,'Bloomberg::quantum::QueueStatistics::highPriorityCount()']]]
 ];

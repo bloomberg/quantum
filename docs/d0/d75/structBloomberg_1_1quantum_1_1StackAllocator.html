@@ -89,16 +89,26 @@ $(document).ready(function(){initNavTree('d0/d75/structBloomberg_1_1quantum_1_1S
 <a href="#nested-classes">Classes</a> &#124;
 <a href="#pub-types">Public Types</a> &#124;
 <a href="#pub-methods">Public Member Functions</a> &#124;
+<a href="#pub-static-methods">Static Public Member Functions</a> &#124;
 <a href="../../dc/de5/structBloomberg_1_1quantum_1_1StackAllocator-members.html">List of all members</a>  </div>
   <div class="headertitle">
 <div class="title">Bloomberg::quantum::StackAllocator&lt; T, SIZE &gt; Struct Template Reference</div>  </div>
 </div><!--header-->
 <div class="contents">
 
-<p>Provides fast (quasi zero-time) in-place allocation for STL containers. Types are allocated from a contiguous buffer on the stack. When the buffer is exhausted, allocation is delegated to the heap. The default buffer size is 1000.  
+<p>Provides a stack-based object pool to the underlying <a class="el" href="../../d7/dd7/structBloomberg_1_1quantum_1_1ContiguousPoolManager.html" title="Provides fast (quasi zero-time) in-place allocation for STL containers. Objects are allocated from a ...">ContiguousPoolManager</a>. The default buffer size is 1000.  
  <a href="../../d0/d75/structBloomberg_1_1quantum_1_1StackAllocator.html#details">More...</a></p>
 
 <p><code>#include &lt;<a class="el" href="../../d7/dd5/quantum__stack__allocator_8h_source.html">quantum_stack_allocator.h</a>&gt;</code></p>
+<div class="dynheader">
+Inheritance diagram for Bloomberg::quantum::StackAllocator&lt; T, SIZE &gt;:</div>
+<div class="dyncontent">
+ <div class="center">
+  <img src="../../d0/d75/structBloomberg_1_1quantum_1_1StackAllocator.png" usemap="#Bloomberg::quantum::StackAllocator_3C_20T_2C_20SIZE_20_3E_map" alt=""/>
+  <map id="Bloomberg::quantum::StackAllocator_3C_20T_2C_20SIZE_20_3E_map" name="Bloomberg::quantum::StackAllocator_3C_20T_2C_20SIZE_20_3E_map">
+<area href="../../d7/dd7/structBloomberg_1_1quantum_1_1ContiguousPoolManager.html" title="Provides fast (quasi zero-time) in-place allocation for STL containers. Objects are allocated from a ..." alt="Bloomberg::quantum::ContiguousPoolManager&lt; T &gt;" shape="rect" coords="0,0,300,24"/>
+</map>
+ </div></div>
 <table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a name="nested-classes"></a>
 Classes</h2></td></tr>
@@ -111,13 +121,13 @@ Public Types</h2></td></tr>
 <tr class="separator:a3c1a5d3715e56a22b82c0c19ca416cba"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a48c237f5a8fff7f18e97febc743b42ca"><td class="memItemLeft" align="right" valign="top">typedef T&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d0/d75/structBloomberg_1_1quantum_1_1StackAllocator.html#a48c237f5a8fff7f18e97febc743b42ca">value_type</a></td></tr>
 <tr class="separator:a48c237f5a8fff7f18e97febc743b42ca"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:afb0b543ebb88f939d5e2a0428d55a322"><td class="memItemLeft" align="right" valign="top">typedef <a class="el" href="../../d0/d75/structBloomberg_1_1quantum_1_1StackAllocator.html#a48c237f5a8fff7f18e97febc743b42ca">value_type</a> *&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d0/d75/structBloomberg_1_1quantum_1_1StackAllocator.html#afb0b543ebb88f939d5e2a0428d55a322">pointer</a></td></tr>
+<tr class="memitem:afb0b543ebb88f939d5e2a0428d55a322"><td class="memItemLeft" align="right" valign="top">typedef <a class="el" href="../../d7/dd7/structBloomberg_1_1quantum_1_1ContiguousPoolManager.html#adada271ce39fa67c3952f0a843aa15e4">value_type</a> *&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d0/d75/structBloomberg_1_1quantum_1_1StackAllocator.html#afb0b543ebb88f939d5e2a0428d55a322">pointer</a></td></tr>
 <tr class="separator:afb0b543ebb88f939d5e2a0428d55a322"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a05e7902556797a2afbfb1cae784853eb"><td class="memItemLeft" align="right" valign="top">typedef const <a class="el" href="../../d0/d75/structBloomberg_1_1quantum_1_1StackAllocator.html#a48c237f5a8fff7f18e97febc743b42ca">value_type</a> *&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d0/d75/structBloomberg_1_1quantum_1_1StackAllocator.html#a05e7902556797a2afbfb1cae784853eb">const_pointer</a></td></tr>
+<tr class="memitem:a05e7902556797a2afbfb1cae784853eb"><td class="memItemLeft" align="right" valign="top">typedef const <a class="el" href="../../d7/dd7/structBloomberg_1_1quantum_1_1ContiguousPoolManager.html#adada271ce39fa67c3952f0a843aa15e4">value_type</a> *&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d0/d75/structBloomberg_1_1quantum_1_1StackAllocator.html#a05e7902556797a2afbfb1cae784853eb">const_pointer</a></td></tr>
 <tr class="separator:a05e7902556797a2afbfb1cae784853eb"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a22ed084ed290666b67f54842e9049911"><td class="memItemLeft" align="right" valign="top">typedef <a class="el" href="../../d0/d75/structBloomberg_1_1quantum_1_1StackAllocator.html#a48c237f5a8fff7f18e97febc743b42ca">value_type</a> &amp;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d0/d75/structBloomberg_1_1quantum_1_1StackAllocator.html#a22ed084ed290666b67f54842e9049911">reference</a></td></tr>
+<tr class="memitem:a22ed084ed290666b67f54842e9049911"><td class="memItemLeft" align="right" valign="top">typedef <a class="el" href="../../d7/dd7/structBloomberg_1_1quantum_1_1ContiguousPoolManager.html#adada271ce39fa67c3952f0a843aa15e4">value_type</a> &amp;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d0/d75/structBloomberg_1_1quantum_1_1StackAllocator.html#a22ed084ed290666b67f54842e9049911">reference</a></td></tr>
 <tr class="separator:a22ed084ed290666b67f54842e9049911"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a0105578676ae5eb432c356f71cef0263"><td class="memItemLeft" align="right" valign="top">typedef const <a class="el" href="../../d0/d75/structBloomberg_1_1quantum_1_1StackAllocator.html#a48c237f5a8fff7f18e97febc743b42ca">value_type</a> &amp;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d0/d75/structBloomberg_1_1quantum_1_1StackAllocator.html#a0105578676ae5eb432c356f71cef0263">const_reference</a></td></tr>
+<tr class="memitem:a0105578676ae5eb432c356f71cef0263"><td class="memItemLeft" align="right" valign="top">typedef const <a class="el" href="../../d7/dd7/structBloomberg_1_1quantum_1_1ContiguousPoolManager.html#adada271ce39fa67c3952f0a843aa15e4">value_type</a> &amp;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d0/d75/structBloomberg_1_1quantum_1_1StackAllocator.html#a0105578676ae5eb432c356f71cef0263">const_reference</a></td></tr>
 <tr class="separator:a0105578676ae5eb432c356f71cef0263"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a40635fcee2b862d3267aebb13fccc2da"><td class="memItemLeft" align="right" valign="top">typedef size_t&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d0/d75/structBloomberg_1_1quantum_1_1StackAllocator.html#a40635fcee2b862d3267aebb13fccc2da">size_type</a></td></tr>
 <tr class="separator:a40635fcee2b862d3267aebb13fccc2da"><td class="memSeparator" colspan="2">&#160;</td></tr>
@@ -129,67 +139,110 @@ Public Types</h2></td></tr>
 <tr class="separator:a3969fa542b465d690e78e520cd52246e"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a1ea7c6056316ed4e73652045dde737ae"><td class="memItemLeft" align="right" valign="top">typedef std::false_type&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d0/d75/structBloomberg_1_1quantum_1_1StackAllocator.html#a1ea7c6056316ed4e73652045dde737ae">propagate_on_container_swap</a></td></tr>
 <tr class="separator:a1ea7c6056316ed4e73652045dde737ae"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:ae63fa0521fee8711291dd2895fea5f1a"><td class="memItemLeft" align="right" valign="top">typedef std::atomic_int&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d0/d75/structBloomberg_1_1quantum_1_1StackAllocator.html#ae63fa0521fee8711291dd2895fea5f1a">header_type</a></td></tr>
-<tr class="separator:ae63fa0521fee8711291dd2895fea5f1a"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a0395e74e701fec9d97bb47235995a628"><td class="memItemLeft" align="right" valign="top">typedef std::true_type&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d0/d75/structBloomberg_1_1quantum_1_1StackAllocator.html#a0395e74e701fec9d97bb47235995a628">is_always_equal</a></td></tr>
-<tr class="separator:a0395e74e701fec9d97bb47235995a628"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a5bc7a5ee8dee7095791c9a5c9cc38833"><td class="memItemLeft" align="right" valign="top">typedef <a class="el" href="../../dc/df6/structBloomberg_1_1quantum_1_1pos__index.html">pos_index</a>&lt; SIZE &gt;::type&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d0/d75/structBloomberg_1_1quantum_1_1StackAllocator.html#a5bc7a5ee8dee7095791c9a5c9cc38833">index_type</a></td></tr>
-<tr class="separator:a5bc7a5ee8dee7095791c9a5c9cc38833"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a302a667364f149f7f3179b366192a0b9"><td class="memItemLeft" align="right" valign="top">typedef std::aligned_storage&lt; sizeof(<a class="el" href="../../d0/d75/structBloomberg_1_1quantum_1_1StackAllocator.html#a48c237f5a8fff7f18e97febc743b42ca">value_type</a>), alignof(<a class="el" href="../../d0/d75/structBloomberg_1_1quantum_1_1StackAllocator.html#a48c237f5a8fff7f18e97febc743b42ca">value_type</a>)&gt;::type&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d0/d75/structBloomberg_1_1quantum_1_1StackAllocator.html#a302a667364f149f7f3179b366192a0b9">buffer_type</a></td></tr>
-<tr class="separator:a302a667364f149f7f3179b366192a0b9"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ab546275349acd0d256e93eddc70ec886"><td class="memItemLeft" align="right" valign="top">typedef std::false_type&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d0/d75/structBloomberg_1_1quantum_1_1StackAllocator.html#ab546275349acd0d256e93eddc70ec886">is_always_equal</a></td></tr>
+<tr class="separator:ab546275349acd0d256e93eddc70ec886"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a656e67323f60779a49afa607a701b609"><td class="memItemLeft" align="right" valign="top">typedef std::true_type&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d0/d75/structBloomberg_1_1quantum_1_1StackAllocator.html#a656e67323f60779a49afa607a701b609">default_constructor</a></td></tr>
+<tr class="separator:a656e67323f60779a49afa607a701b609"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ab4a911914d100c699c1223a61e0545b5"><td class="memItemLeft" align="right" valign="top">typedef std::aligned_storage&lt; sizeof(<a class="el" href="../../d7/dd7/structBloomberg_1_1quantum_1_1ContiguousPoolManager.html#adada271ce39fa67c3952f0a843aa15e4">value_type</a>), alignof(<a class="el" href="../../d7/dd7/structBloomberg_1_1quantum_1_1ContiguousPoolManager.html#adada271ce39fa67c3952f0a843aa15e4">value_type</a>)&gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d0/d75/structBloomberg_1_1quantum_1_1StackAllocator.html#ab4a911914d100c699c1223a61e0545b5">storage_type</a></td></tr>
+<tr class="separator:ab4a911914d100c699c1223a61e0545b5"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a46f1913434b78086f8e2df69cfca0108"><td class="memItemLeft" align="right" valign="top">typedef storage_type::type&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d0/d75/structBloomberg_1_1quantum_1_1StackAllocator.html#a46f1913434b78086f8e2df69cfca0108">aligned_type</a></td></tr>
+<tr class="separator:a46f1913434b78086f8e2df69cfca0108"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="inherit_header pub_types_structBloomberg_1_1quantum_1_1ContiguousPoolManager"><td colspan="2" onclick="javascript:toggleInherit('pub_types_structBloomberg_1_1quantum_1_1ContiguousPoolManager')"><img src="../../closed.png" alt="-"/>&#160;Public Types inherited from <a class="el" href="../../d7/dd7/structBloomberg_1_1quantum_1_1ContiguousPoolManager.html">Bloomberg::quantum::ContiguousPoolManager&lt; T &gt;</a></td></tr>
+<tr class="memitem:ab5ff9f006979d3dced0c3073d6342d83 inherit pub_types_structBloomberg_1_1quantum_1_1ContiguousPoolManager"><td class="memItemLeft" align="right" valign="top">typedef <a class="el" href="../../d7/dd7/structBloomberg_1_1quantum_1_1ContiguousPoolManager.html">ContiguousPoolManager</a>&lt; T &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d7/dd7/structBloomberg_1_1quantum_1_1ContiguousPoolManager.html#ab5ff9f006979d3dced0c3073d6342d83">this_type</a></td></tr>
+<tr class="separator:ab5ff9f006979d3dced0c3073d6342d83 inherit pub_types_structBloomberg_1_1quantum_1_1ContiguousPoolManager"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:adada271ce39fa67c3952f0a843aa15e4 inherit pub_types_structBloomberg_1_1quantum_1_1ContiguousPoolManager"><td class="memItemLeft" align="right" valign="top">typedef T&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d7/dd7/structBloomberg_1_1quantum_1_1ContiguousPoolManager.html#adada271ce39fa67c3952f0a843aa15e4">value_type</a></td></tr>
+<tr class="separator:adada271ce39fa67c3952f0a843aa15e4 inherit pub_types_structBloomberg_1_1quantum_1_1ContiguousPoolManager"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:aeb88577cc102c74bf30fa1f5e9148b06 inherit pub_types_structBloomberg_1_1quantum_1_1ContiguousPoolManager"><td class="memItemLeft" align="right" valign="top">typedef <a class="el" href="../../d7/dd7/structBloomberg_1_1quantum_1_1ContiguousPoolManager.html#adada271ce39fa67c3952f0a843aa15e4">value_type</a> *&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d7/dd7/structBloomberg_1_1quantum_1_1ContiguousPoolManager.html#aeb88577cc102c74bf30fa1f5e9148b06">pointer</a></td></tr>
+<tr class="separator:aeb88577cc102c74bf30fa1f5e9148b06 inherit pub_types_structBloomberg_1_1quantum_1_1ContiguousPoolManager"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a9966f4ed46109194b7ec871728d62227 inherit pub_types_structBloomberg_1_1quantum_1_1ContiguousPoolManager"><td class="memItemLeft" align="right" valign="top">typedef const <a class="el" href="../../d7/dd7/structBloomberg_1_1quantum_1_1ContiguousPoolManager.html#adada271ce39fa67c3952f0a843aa15e4">value_type</a> *&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d7/dd7/structBloomberg_1_1quantum_1_1ContiguousPoolManager.html#a9966f4ed46109194b7ec871728d62227">const_pointer</a></td></tr>
+<tr class="separator:a9966f4ed46109194b7ec871728d62227 inherit pub_types_structBloomberg_1_1quantum_1_1ContiguousPoolManager"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a70231087bf90f3a401e83cf2ae62ea6e inherit pub_types_structBloomberg_1_1quantum_1_1ContiguousPoolManager"><td class="memItemLeft" align="right" valign="top">typedef <a class="el" href="../../d7/dd7/structBloomberg_1_1quantum_1_1ContiguousPoolManager.html#adada271ce39fa67c3952f0a843aa15e4">value_type</a> &amp;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d7/dd7/structBloomberg_1_1quantum_1_1ContiguousPoolManager.html#a70231087bf90f3a401e83cf2ae62ea6e">reference</a></td></tr>
+<tr class="separator:a70231087bf90f3a401e83cf2ae62ea6e inherit pub_types_structBloomberg_1_1quantum_1_1ContiguousPoolManager"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a370ae8a85f331436158330918fc48da7 inherit pub_types_structBloomberg_1_1quantum_1_1ContiguousPoolManager"><td class="memItemLeft" align="right" valign="top">typedef const <a class="el" href="../../d7/dd7/structBloomberg_1_1quantum_1_1ContiguousPoolManager.html#adada271ce39fa67c3952f0a843aa15e4">value_type</a> &amp;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d7/dd7/structBloomberg_1_1quantum_1_1ContiguousPoolManager.html#a370ae8a85f331436158330918fc48da7">const_reference</a></td></tr>
+<tr class="separator:a370ae8a85f331436158330918fc48da7 inherit pub_types_structBloomberg_1_1quantum_1_1ContiguousPoolManager"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a607f0a9f933d984aae6f8271782c9699 inherit pub_types_structBloomberg_1_1quantum_1_1ContiguousPoolManager"><td class="memItemLeft" align="right" valign="top">typedef size_t&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d7/dd7/structBloomberg_1_1quantum_1_1ContiguousPoolManager.html#a607f0a9f933d984aae6f8271782c9699">size_type</a></td></tr>
+<tr class="separator:a607f0a9f933d984aae6f8271782c9699 inherit pub_types_structBloomberg_1_1quantum_1_1ContiguousPoolManager"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a7e8f7392f749b6c449b29ec9c41ffe93 inherit pub_types_structBloomberg_1_1quantum_1_1ContiguousPoolManager"><td class="memItemLeft" align="right" valign="top">typedef uint16_t&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d7/dd7/structBloomberg_1_1quantum_1_1ContiguousPoolManager.html#a7e8f7392f749b6c449b29ec9c41ffe93">index_type</a></td></tr>
+<tr class="separator:a7e8f7392f749b6c449b29ec9c41ffe93 inherit pub_types_structBloomberg_1_1quantum_1_1ContiguousPoolManager"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a364afc3144233b46e4205c38aa73fe91 inherit pub_types_structBloomberg_1_1quantum_1_1ContiguousPoolManager"><td class="memItemLeft" align="right" valign="top">typedef std::aligned_storage&lt; sizeof(T), alignof(T)&gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d7/dd7/structBloomberg_1_1quantum_1_1ContiguousPoolManager.html#a364afc3144233b46e4205c38aa73fe91">storage_type</a></td></tr>
+<tr class="separator:a364afc3144233b46e4205c38aa73fe91 inherit pub_types_structBloomberg_1_1quantum_1_1ContiguousPoolManager"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a6b8a18b452b90efa6ea7e0f3f5aef381 inherit pub_types_structBloomberg_1_1quantum_1_1ContiguousPoolManager"><td class="memItemLeft" align="right" valign="top">typedef storage_type::type&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d7/dd7/structBloomberg_1_1quantum_1_1ContiguousPoolManager.html#a6b8a18b452b90efa6ea7e0f3f5aef381">aligned_type</a></td></tr>
+<tr class="separator:a6b8a18b452b90efa6ea7e0f3f5aef381 inherit pub_types_structBloomberg_1_1quantum_1_1ContiguousPoolManager"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a name="pub-methods"></a>
 Public Member Functions</h2></td></tr>
 <tr class="memitem:ae515ea0a2f5f03d75af7cf31f7af02da"><td class="memItemLeft" align="right" valign="top">&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d0/d75/structBloomberg_1_1quantum_1_1StackAllocator.html#ae515ea0a2f5f03d75af7cf31f7af02da">StackAllocator</a> ()</td></tr>
 <tr class="separator:ae515ea0a2f5f03d75af7cf31f7af02da"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:ab9d91509b9dff14d363560fd639a1b17"><td class="memItemLeft" align="right" valign="top">&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d0/d75/structBloomberg_1_1quantum_1_1StackAllocator.html#ab9d91509b9dff14d363560fd639a1b17">StackAllocator</a> (const <a class="el" href="../../d0/d75/structBloomberg_1_1quantum_1_1StackAllocator.html#a3c1a5d3715e56a22b82c0c19ca416cba">this_type</a> &amp;)</td></tr>
+<tr class="memitem:ab9d91509b9dff14d363560fd639a1b17"><td class="memItemLeft" align="right" valign="top">&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d0/d75/structBloomberg_1_1quantum_1_1StackAllocator.html#ab9d91509b9dff14d363560fd639a1b17">StackAllocator</a> (const <a class="el" href="../../d7/dd7/structBloomberg_1_1quantum_1_1ContiguousPoolManager.html#ab5ff9f006979d3dced0c3073d6342d83">this_type</a> &amp;)</td></tr>
 <tr class="separator:ab9d91509b9dff14d363560fd639a1b17"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:ab2ea253e7508d915128c8aad1e723215"><td class="memItemLeft" align="right" valign="top">&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d0/d75/structBloomberg_1_1quantum_1_1StackAllocator.html#ab2ea253e7508d915128c8aad1e723215">StackAllocator</a> (<a class="el" href="../../d0/d75/structBloomberg_1_1quantum_1_1StackAllocator.html#a3c1a5d3715e56a22b82c0c19ca416cba">this_type</a> &amp;&amp;)</td></tr>
-<tr class="separator:ab2ea253e7508d915128c8aad1e723215"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ab445f717b9eaa17f6b1b18e74577e7c7"><td class="memItemLeft" align="right" valign="top"><a class="el" href="../../d0/d75/structBloomberg_1_1quantum_1_1StackAllocator.html">StackAllocator</a> &amp;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d0/d75/structBloomberg_1_1quantum_1_1StackAllocator.html#ab445f717b9eaa17f6b1b18e74577e7c7">operator=</a> (const <a class="el" href="../../d7/dd7/structBloomberg_1_1quantum_1_1ContiguousPoolManager.html#ab5ff9f006979d3dced0c3073d6342d83">this_type</a> &amp;)</td></tr>
+<tr class="separator:ab445f717b9eaa17f6b1b18e74577e7c7"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:aea1eda9f23a75b993b58668077f138d1"><td class="memTemplParams" colspan="2">template&lt;typename U &gt; </td></tr>
 <tr class="memitem:aea1eda9f23a75b993b58668077f138d1"><td class="memTemplItemLeft" align="right" valign="top">&#160;</td><td class="memTemplItemRight" valign="bottom"><a class="el" href="../../d0/d75/structBloomberg_1_1quantum_1_1StackAllocator.html#aea1eda9f23a75b993b58668077f138d1">StackAllocator</a> (const <a class="el" href="../../d0/d75/structBloomberg_1_1quantum_1_1StackAllocator.html">StackAllocator</a>&lt; U, SIZE &gt; &amp;)</td></tr>
 <tr class="separator:aea1eda9f23a75b993b58668077f138d1"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:ab445f717b9eaa17f6b1b18e74577e7c7"><td class="memItemLeft" align="right" valign="top"><a class="el" href="../../d0/d75/structBloomberg_1_1quantum_1_1StackAllocator.html">StackAllocator</a> &amp;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d0/d75/structBloomberg_1_1quantum_1_1StackAllocator.html#ab445f717b9eaa17f6b1b18e74577e7c7">operator=</a> (const <a class="el" href="../../d0/d75/structBloomberg_1_1quantum_1_1StackAllocator.html#a3c1a5d3715e56a22b82c0c19ca416cba">this_type</a> &amp;)</td></tr>
-<tr class="separator:ab445f717b9eaa17f6b1b18e74577e7c7"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:aa651db35ff7349386d707fec21b5d29e"><td class="memItemLeft" align="right" valign="top"><a class="el" href="../../d0/d75/structBloomberg_1_1quantum_1_1StackAllocator.html">StackAllocator</a> &amp;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d0/d75/structBloomberg_1_1quantum_1_1StackAllocator.html#aa651db35ff7349386d707fec21b5d29e">operator=</a> (<a class="el" href="../../d0/d75/structBloomberg_1_1quantum_1_1StackAllocator.html#a3c1a5d3715e56a22b82c0c19ca416cba">this_type</a> &amp;&amp;)</td></tr>
-<tr class="separator:aa651db35ff7349386d707fec21b5d29e"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:ad7ec8fec7ec051fccad351f69875124a"><td class="memTemplParams" colspan="2">template&lt;typename U &gt; </td></tr>
 <tr class="memitem:ad7ec8fec7ec051fccad351f69875124a"><td class="memTemplItemLeft" align="right" valign="top"><a class="el" href="../../d0/d75/structBloomberg_1_1quantum_1_1StackAllocator.html">StackAllocator</a> &amp;&#160;</td><td class="memTemplItemRight" valign="bottom"><a class="el" href="../../d0/d75/structBloomberg_1_1quantum_1_1StackAllocator.html#ad7ec8fec7ec051fccad351f69875124a">operator=</a> (const <a class="el" href="../../d0/d75/structBloomberg_1_1quantum_1_1StackAllocator.html">StackAllocator</a>&lt; U, SIZE &gt; &amp;)</td></tr>
 <tr class="separator:ad7ec8fec7ec051fccad351f69875124a"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:aa3c8cb250aeeb67b29f002543964aee0"><td class="memItemLeft" align="right" valign="top"><a class="el" href="../../d0/d75/structBloomberg_1_1quantum_1_1StackAllocator.html#afb0b543ebb88f939d5e2a0428d55a322">pointer</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d0/d75/structBloomberg_1_1quantum_1_1StackAllocator.html#aa3c8cb250aeeb67b29f002543964aee0">address</a> (<a class="el" href="../../d0/d75/structBloomberg_1_1quantum_1_1StackAllocator.html#a22ed084ed290666b67f54842e9049911">reference</a> x) const</td></tr>
-<tr class="separator:aa3c8cb250aeeb67b29f002543964aee0"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a5bed34d56cd6760f1a37526c75a3be5a"><td class="memItemLeft" align="right" valign="top"><a class="el" href="../../d0/d75/structBloomberg_1_1quantum_1_1StackAllocator.html#a05e7902556797a2afbfb1cae784853eb">const_pointer</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d0/d75/structBloomberg_1_1quantum_1_1StackAllocator.html#a5bed34d56cd6760f1a37526c75a3be5a">address</a> (<a class="el" href="../../d0/d75/structBloomberg_1_1quantum_1_1StackAllocator.html#a0105578676ae5eb432c356f71cef0263">const_reference</a> x) const</td></tr>
-<tr class="separator:a5bed34d56cd6760f1a37526c75a3be5a"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a935c671140b87b89ed8a5e247973d9c5"><td class="memItemLeft" align="right" valign="top"><a class="el" href="../../d0/d75/structBloomberg_1_1quantum_1_1StackAllocator.html#a40635fcee2b862d3267aebb13fccc2da">size_type</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d0/d75/structBloomberg_1_1quantum_1_1StackAllocator.html#a935c671140b87b89ed8a5e247973d9c5">max_size</a> () const</td></tr>
-<tr class="separator:a935c671140b87b89ed8a5e247973d9c5"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a4a0ce866d4f24f5bbeb4d040e05fedd5"><td class="memTemplParams" colspan="2">template&lt;typename... Args&gt; </td></tr>
-<tr class="memitem:a4a0ce866d4f24f5bbeb4d040e05fedd5"><td class="memTemplItemLeft" align="right" valign="top">void&#160;</td><td class="memTemplItemRight" valign="bottom"><a class="el" href="../../d0/d75/structBloomberg_1_1quantum_1_1StackAllocator.html#a4a0ce866d4f24f5bbeb4d040e05fedd5">construct</a> (T *p, Args &amp;&amp;... args)</td></tr>
-<tr class="separator:a4a0ce866d4f24f5bbeb4d040e05fedd5"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:aa6bf9f34241a04679115e2af6edc21f9"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d0/d75/structBloomberg_1_1quantum_1_1StackAllocator.html#aa6bf9f34241a04679115e2af6edc21f9">destroy</a> (<a class="el" href="../../d0/d75/structBloomberg_1_1quantum_1_1StackAllocator.html#afb0b543ebb88f939d5e2a0428d55a322">pointer</a> p)</td></tr>
-<tr class="separator:aa6bf9f34241a04679115e2af6edc21f9"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a7b3563f318adbb1f72742a2a421d5be6"><td class="memItemLeft" align="right" valign="top"><a class="el" href="../../d0/d75/structBloomberg_1_1quantum_1_1StackAllocator.html#afb0b543ebb88f939d5e2a0428d55a322">pointer</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d0/d75/structBloomberg_1_1quantum_1_1StackAllocator.html#a7b3563f318adbb1f72742a2a421d5be6">allocate</a> (<a class="el" href="../../d0/d75/structBloomberg_1_1quantum_1_1StackAllocator.html#a40635fcee2b862d3267aebb13fccc2da">size_type</a>=1, std::allocator&lt; void &gt;::<a class="el" href="../../d0/d75/structBloomberg_1_1quantum_1_1StackAllocator.html#a05e7902556797a2afbfb1cae784853eb">const_pointer</a>=0)</td></tr>
-<tr class="separator:a7b3563f318adbb1f72742a2a421d5be6"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a85cbf0c1be35f0f963b54a02b168684a"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d0/d75/structBloomberg_1_1quantum_1_1StackAllocator.html#a85cbf0c1be35f0f963b54a02b168684a">deallocate</a> (<a class="el" href="../../d0/d75/structBloomberg_1_1quantum_1_1StackAllocator.html#afb0b543ebb88f939d5e2a0428d55a322">pointer</a> p, <a class="el" href="../../d0/d75/structBloomberg_1_1quantum_1_1StackAllocator.html#a40635fcee2b862d3267aebb13fccc2da">size_type</a>=1)</td></tr>
-<tr class="separator:a85cbf0c1be35f0f963b54a02b168684a"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:ac36078e9bb88d444e46ff1d46013bd4b"><td class="memTemplParams" colspan="2">template&lt;typename... Args&gt; </td></tr>
-<tr class="memitem:ac36078e9bb88d444e46ff1d46013bd4b"><td class="memTemplItemLeft" align="right" valign="top"><a class="el" href="../../d0/d75/structBloomberg_1_1quantum_1_1StackAllocator.html#afb0b543ebb88f939d5e2a0428d55a322">pointer</a>&#160;</td><td class="memTemplItemRight" valign="bottom"><a class="el" href="../../d0/d75/structBloomberg_1_1quantum_1_1StackAllocator.html#ac36078e9bb88d444e46ff1d46013bd4b">create</a> (Args &amp;&amp;... args)</td></tr>
-<tr class="separator:ac36078e9bb88d444e46ff1d46013bd4b"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a84d70322d58286dc56f165c634a3bb41"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d0/d75/structBloomberg_1_1quantum_1_1StackAllocator.html#a84d70322d58286dc56f165c634a3bb41">dispose</a> (<a class="el" href="../../d0/d75/structBloomberg_1_1quantum_1_1StackAllocator.html#afb0b543ebb88f939d5e2a0428d55a322">pointer</a> p)</td></tr>
-<tr class="separator:a84d70322d58286dc56f165c634a3bb41"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:aa822c38c66fe1e6bd0b8a8b158db48a7"><td class="memItemLeft" align="right" valign="top">size_t&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d0/d75/structBloomberg_1_1quantum_1_1StackAllocator.html#aa822c38c66fe1e6bd0b8a8b158db48a7">allocatedBlocks</a> () const</td></tr>
-<tr class="separator:aa822c38c66fe1e6bd0b8a8b158db48a7"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a5e5fa9bfa19f49c59c533b284fd008e0"><td class="memItemLeft" align="right" valign="top">size_t&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d0/d75/structBloomberg_1_1quantum_1_1StackAllocator.html#a5e5fa9bfa19f49c59c533b284fd008e0">allocatedHeapBlocks</a> () const</td></tr>
-<tr class="separator:a5e5fa9bfa19f49c59c533b284fd008e0"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a376fa17b11e6c20abd2cacd2093a5cb9"><td class="memItemLeft" align="right" valign="top">bool&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d0/d75/structBloomberg_1_1quantum_1_1StackAllocator.html#a376fa17b11e6c20abd2cacd2093a5cb9">isFull</a> () const</td></tr>
-<tr class="separator:a376fa17b11e6c20abd2cacd2093a5cb9"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:ae5e2a98aefb0faa150f97b53602cf1fe"><td class="memItemLeft" align="right" valign="top">bool&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d0/d75/structBloomberg_1_1quantum_1_1StackAllocator.html#ae5e2a98aefb0faa150f97b53602cf1fe">isEmpty</a> () const</td></tr>
-<tr class="separator:ae5e2a98aefb0faa150f97b53602cf1fe"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a7b635d9ec1def35001fb4bb2e8eeb9f9"><td class="memItemLeft" align="right" valign="top">bool&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d0/d75/structBloomberg_1_1quantum_1_1StackAllocator.html#a7b635d9ec1def35001fb4bb2e8eeb9f9">operator==</a> (const <a class="el" href="../../d7/dd7/structBloomberg_1_1quantum_1_1ContiguousPoolManager.html#ab5ff9f006979d3dced0c3073d6342d83">this_type</a> &amp;other) const</td></tr>
+<tr class="separator:a7b635d9ec1def35001fb4bb2e8eeb9f9"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:abf209573080ba0b74487c81bcf74f188"><td class="memItemLeft" align="right" valign="top">bool&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d0/d75/structBloomberg_1_1quantum_1_1StackAllocator.html#abf209573080ba0b74487c81bcf74f188">operator!=</a> (const <a class="el" href="../../d7/dd7/structBloomberg_1_1quantum_1_1ContiguousPoolManager.html#ab5ff9f006979d3dced0c3073d6342d83">this_type</a> &amp;other) const</td></tr>
+<tr class="separator:abf209573080ba0b74487c81bcf74f188"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="inherit_header pub_methods_structBloomberg_1_1quantum_1_1ContiguousPoolManager"><td colspan="2" onclick="javascript:toggleInherit('pub_methods_structBloomberg_1_1quantum_1_1ContiguousPoolManager')"><img src="../../closed.png" alt="-"/>&#160;Public Member Functions inherited from <a class="el" href="../../d7/dd7/structBloomberg_1_1quantum_1_1ContiguousPoolManager.html">Bloomberg::quantum::ContiguousPoolManager&lt; T &gt;</a></td></tr>
+<tr class="memitem:a9bbcbe5df3a9df7316c959399273fd8e inherit pub_methods_structBloomberg_1_1quantum_1_1ContiguousPoolManager"><td class="memItemLeft" align="right" valign="top">&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d7/dd7/structBloomberg_1_1quantum_1_1ContiguousPoolManager.html#a9bbcbe5df3a9df7316c959399273fd8e">ContiguousPoolManager</a> ()</td></tr>
+<tr class="separator:a9bbcbe5df3a9df7316c959399273fd8e inherit pub_methods_structBloomberg_1_1quantum_1_1ContiguousPoolManager"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a56e473dd228bfd318892fbc7a58ae56b inherit pub_methods_structBloomberg_1_1quantum_1_1ContiguousPoolManager"><td class="memItemLeft" align="right" valign="top">&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d7/dd7/structBloomberg_1_1quantum_1_1ContiguousPoolManager.html#a56e473dd228bfd318892fbc7a58ae56b">ContiguousPoolManager</a> (<a class="el" href="../../d7/dd7/structBloomberg_1_1quantum_1_1ContiguousPoolManager.html#a6b8a18b452b90efa6ea7e0f3f5aef381">aligned_type</a> *buffer, <a class="el" href="../../d7/dd7/structBloomberg_1_1quantum_1_1ContiguousPoolManager.html#a7e8f7392f749b6c449b29ec9c41ffe93">index_type</a> size)</td></tr>
+<tr class="separator:a56e473dd228bfd318892fbc7a58ae56b inherit pub_methods_structBloomberg_1_1quantum_1_1ContiguousPoolManager"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a66df31afa0730bab0c45363aa9e54064 inherit pub_methods_structBloomberg_1_1quantum_1_1ContiguousPoolManager"><td class="memItemLeft" align="right" valign="top">&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d7/dd7/structBloomberg_1_1quantum_1_1ContiguousPoolManager.html#a66df31afa0730bab0c45363aa9e54064">ContiguousPoolManager</a> (const <a class="el" href="../../d7/dd7/structBloomberg_1_1quantum_1_1ContiguousPoolManager.html#ab5ff9f006979d3dced0c3073d6342d83">this_type</a> &amp;)=delete</td></tr>
+<tr class="separator:a66df31afa0730bab0c45363aa9e54064 inherit pub_methods_structBloomberg_1_1quantum_1_1ContiguousPoolManager"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a1a8bd5af1d7c49013799e4df23985fc1 inherit pub_methods_structBloomberg_1_1quantum_1_1ContiguousPoolManager"><td class="memItemLeft" align="right" valign="top">&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d7/dd7/structBloomberg_1_1quantum_1_1ContiguousPoolManager.html#a1a8bd5af1d7c49013799e4df23985fc1">ContiguousPoolManager</a> (<a class="el" href="../../d7/dd7/structBloomberg_1_1quantum_1_1ContiguousPoolManager.html#ab5ff9f006979d3dced0c3073d6342d83">this_type</a> &amp;&amp;)</td></tr>
+<tr class="separator:a1a8bd5af1d7c49013799e4df23985fc1 inherit pub_methods_structBloomberg_1_1quantum_1_1ContiguousPoolManager"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ae7cacc7f9b788b8d5e832376530d2916 inherit pub_methods_structBloomberg_1_1quantum_1_1ContiguousPoolManager"><td class="memItemLeft" align="right" valign="top"><a class="el" href="../../d7/dd7/structBloomberg_1_1quantum_1_1ContiguousPoolManager.html">ContiguousPoolManager</a> &amp;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d7/dd7/structBloomberg_1_1quantum_1_1ContiguousPoolManager.html#ae7cacc7f9b788b8d5e832376530d2916">operator=</a> (const <a class="el" href="../../d7/dd7/structBloomberg_1_1quantum_1_1ContiguousPoolManager.html#ab5ff9f006979d3dced0c3073d6342d83">this_type</a> &amp;)=delete</td></tr>
+<tr class="separator:ae7cacc7f9b788b8d5e832376530d2916 inherit pub_methods_structBloomberg_1_1quantum_1_1ContiguousPoolManager"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a49a90492c07ea97657d4250145a4f1f5 inherit pub_methods_structBloomberg_1_1quantum_1_1ContiguousPoolManager"><td class="memItemLeft" align="right" valign="top"><a class="el" href="../../d7/dd7/structBloomberg_1_1quantum_1_1ContiguousPoolManager.html">ContiguousPoolManager</a> &amp;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d7/dd7/structBloomberg_1_1quantum_1_1ContiguousPoolManager.html#a49a90492c07ea97657d4250145a4f1f5">operator=</a> (<a class="el" href="../../d7/dd7/structBloomberg_1_1quantum_1_1ContiguousPoolManager.html#ab5ff9f006979d3dced0c3073d6342d83">this_type</a> &amp;&amp;)</td></tr>
+<tr class="separator:a49a90492c07ea97657d4250145a4f1f5 inherit pub_methods_structBloomberg_1_1quantum_1_1ContiguousPoolManager"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a9d2e84213284a0b4af17db13328fcf06 inherit pub_methods_structBloomberg_1_1quantum_1_1ContiguousPoolManager"><td class="memItemLeft" align="right" valign="top">virtual&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d7/dd7/structBloomberg_1_1quantum_1_1ContiguousPoolManager.html#a9d2e84213284a0b4af17db13328fcf06">~ContiguousPoolManager</a> ()</td></tr>
+<tr class="separator:a9d2e84213284a0b4af17db13328fcf06 inherit pub_methods_structBloomberg_1_1quantum_1_1ContiguousPoolManager"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a0f5acf44ccc4c2ea07fd98b0d7f5fb6f inherit pub_methods_structBloomberg_1_1quantum_1_1ContiguousPoolManager"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d7/dd7/structBloomberg_1_1quantum_1_1ContiguousPoolManager.html#a0f5acf44ccc4c2ea07fd98b0d7f5fb6f">setBuffer</a> (<a class="el" href="../../d7/dd7/structBloomberg_1_1quantum_1_1ContiguousPoolManager.html#a6b8a18b452b90efa6ea7e0f3f5aef381">aligned_type</a> *buffer, <a class="el" href="../../d7/dd7/structBloomberg_1_1quantum_1_1ContiguousPoolManager.html#a7e8f7392f749b6c449b29ec9c41ffe93">index_type</a> size)</td></tr>
+<tr class="separator:a0f5acf44ccc4c2ea07fd98b0d7f5fb6f inherit pub_methods_structBloomberg_1_1quantum_1_1ContiguousPoolManager"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a4ccb951931457400159657d1e88f07fd inherit pub_methods_structBloomberg_1_1quantum_1_1ContiguousPoolManager"><td class="memItemLeft" align="right" valign="top"><a class="el" href="../../d7/dd7/structBloomberg_1_1quantum_1_1ContiguousPoolManager.html#aeb88577cc102c74bf30fa1f5e9148b06">pointer</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d7/dd7/structBloomberg_1_1quantum_1_1ContiguousPoolManager.html#a4ccb951931457400159657d1e88f07fd">address</a> (<a class="el" href="../../d7/dd7/structBloomberg_1_1quantum_1_1ContiguousPoolManager.html#a70231087bf90f3a401e83cf2ae62ea6e">reference</a> x) const</td></tr>
+<tr class="separator:a4ccb951931457400159657d1e88f07fd inherit pub_methods_structBloomberg_1_1quantum_1_1ContiguousPoolManager"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a3881eeb88d00d625af416d759fbe754e inherit pub_methods_structBloomberg_1_1quantum_1_1ContiguousPoolManager"><td class="memItemLeft" align="right" valign="top"><a class="el" href="../../d7/dd7/structBloomberg_1_1quantum_1_1ContiguousPoolManager.html#a9966f4ed46109194b7ec871728d62227">const_pointer</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d7/dd7/structBloomberg_1_1quantum_1_1ContiguousPoolManager.html#a3881eeb88d00d625af416d759fbe754e">address</a> (<a class="el" href="../../d7/dd7/structBloomberg_1_1quantum_1_1ContiguousPoolManager.html#a370ae8a85f331436158330918fc48da7">const_reference</a> x) const</td></tr>
+<tr class="separator:a3881eeb88d00d625af416d759fbe754e inherit pub_methods_structBloomberg_1_1quantum_1_1ContiguousPoolManager"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ac55c23f1bf99a188eebbd09c59686063 inherit pub_methods_structBloomberg_1_1quantum_1_1ContiguousPoolManager"><td class="memItemLeft" align="right" valign="top"><a class="el" href="../../d7/dd7/structBloomberg_1_1quantum_1_1ContiguousPoolManager.html#a607f0a9f933d984aae6f8271782c9699">size_type</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d7/dd7/structBloomberg_1_1quantum_1_1ContiguousPoolManager.html#ac55c23f1bf99a188eebbd09c59686063">max_size</a> () const</td></tr>
+<tr class="separator:ac55c23f1bf99a188eebbd09c59686063 inherit pub_methods_structBloomberg_1_1quantum_1_1ContiguousPoolManager"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ac44f59ae32f80080e07a01ea3118c9ba inherit pub_methods_structBloomberg_1_1quantum_1_1ContiguousPoolManager"><td class="memTemplParams" colspan="2">template&lt;typename... Args&gt; </td></tr>
+<tr class="memitem:ac44f59ae32f80080e07a01ea3118c9ba inherit pub_methods_structBloomberg_1_1quantum_1_1ContiguousPoolManager"><td class="memTemplItemLeft" align="right" valign="top">void&#160;</td><td class="memTemplItemRight" valign="bottom"><a class="el" href="../../d7/dd7/structBloomberg_1_1quantum_1_1ContiguousPoolManager.html#ac44f59ae32f80080e07a01ea3118c9ba">construct</a> (T *p, Args &amp;&amp;... args)</td></tr>
+<tr class="separator:ac44f59ae32f80080e07a01ea3118c9ba inherit pub_methods_structBloomberg_1_1quantum_1_1ContiguousPoolManager"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a9cba179818bd0ca6e642945c3f2c6ac4 inherit pub_methods_structBloomberg_1_1quantum_1_1ContiguousPoolManager"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d7/dd7/structBloomberg_1_1quantum_1_1ContiguousPoolManager.html#a9cba179818bd0ca6e642945c3f2c6ac4">destroy</a> (<a class="el" href="../../d7/dd7/structBloomberg_1_1quantum_1_1ContiguousPoolManager.html#aeb88577cc102c74bf30fa1f5e9148b06">pointer</a> p)</td></tr>
+<tr class="separator:a9cba179818bd0ca6e642945c3f2c6ac4 inherit pub_methods_structBloomberg_1_1quantum_1_1ContiguousPoolManager"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a9f3e1b1c111e70c916d9e9b7f85cf2c0 inherit pub_methods_structBloomberg_1_1quantum_1_1ContiguousPoolManager"><td class="memItemLeft" align="right" valign="top"><a class="el" href="../../d7/dd7/structBloomberg_1_1quantum_1_1ContiguousPoolManager.html#aeb88577cc102c74bf30fa1f5e9148b06">pointer</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d7/dd7/structBloomberg_1_1quantum_1_1ContiguousPoolManager.html#a9f3e1b1c111e70c916d9e9b7f85cf2c0">allocate</a> (<a class="el" href="../../d7/dd7/structBloomberg_1_1quantum_1_1ContiguousPoolManager.html#a607f0a9f933d984aae6f8271782c9699">size_type</a>=1, <a class="el" href="../../d7/dd7/structBloomberg_1_1quantum_1_1ContiguousPoolManager.html#a9966f4ed46109194b7ec871728d62227">const_pointer</a>=0)</td></tr>
+<tr class="separator:a9f3e1b1c111e70c916d9e9b7f85cf2c0 inherit pub_methods_structBloomberg_1_1quantum_1_1ContiguousPoolManager"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ab743fe2f487385fde23c3a2ef2d89243 inherit pub_methods_structBloomberg_1_1quantum_1_1ContiguousPoolManager"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d7/dd7/structBloomberg_1_1quantum_1_1ContiguousPoolManager.html#ab743fe2f487385fde23c3a2ef2d89243">deallocate</a> (<a class="el" href="../../d7/dd7/structBloomberg_1_1quantum_1_1ContiguousPoolManager.html#aeb88577cc102c74bf30fa1f5e9148b06">pointer</a> p, <a class="el" href="../../d7/dd7/structBloomberg_1_1quantum_1_1ContiguousPoolManager.html#a607f0a9f933d984aae6f8271782c9699">size_type</a>=1)</td></tr>
+<tr class="separator:ab743fe2f487385fde23c3a2ef2d89243 inherit pub_methods_structBloomberg_1_1quantum_1_1ContiguousPoolManager"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ae06f41acb390c8011cf4f26f1309d974 inherit pub_methods_structBloomberg_1_1quantum_1_1ContiguousPoolManager"><td class="memTemplParams" colspan="2">template&lt;typename... Args&gt; </td></tr>
+<tr class="memitem:ae06f41acb390c8011cf4f26f1309d974 inherit pub_methods_structBloomberg_1_1quantum_1_1ContiguousPoolManager"><td class="memTemplItemLeft" align="right" valign="top"><a class="el" href="../../d7/dd7/structBloomberg_1_1quantum_1_1ContiguousPoolManager.html#aeb88577cc102c74bf30fa1f5e9148b06">pointer</a>&#160;</td><td class="memTemplItemRight" valign="bottom"><a class="el" href="../../d7/dd7/structBloomberg_1_1quantum_1_1ContiguousPoolManager.html#ae06f41acb390c8011cf4f26f1309d974">create</a> (Args &amp;&amp;... args)</td></tr>
+<tr class="separator:ae06f41acb390c8011cf4f26f1309d974 inherit pub_methods_structBloomberg_1_1quantum_1_1ContiguousPoolManager"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a2015cd0acf8c4d56e946b1a9734a57dc inherit pub_methods_structBloomberg_1_1quantum_1_1ContiguousPoolManager"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d7/dd7/structBloomberg_1_1quantum_1_1ContiguousPoolManager.html#a2015cd0acf8c4d56e946b1a9734a57dc">dispose</a> (<a class="el" href="../../d7/dd7/structBloomberg_1_1quantum_1_1ContiguousPoolManager.html#aeb88577cc102c74bf30fa1f5e9148b06">pointer</a> p)</td></tr>
+<tr class="separator:a2015cd0acf8c4d56e946b1a9734a57dc inherit pub_methods_structBloomberg_1_1quantum_1_1ContiguousPoolManager"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:aee05c8543d667aed2bc6888876018c2a inherit pub_methods_structBloomberg_1_1quantum_1_1ContiguousPoolManager"><td class="memItemLeft" align="right" valign="top">size_t&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d7/dd7/structBloomberg_1_1quantum_1_1ContiguousPoolManager.html#aee05c8543d667aed2bc6888876018c2a">allocatedBlocks</a> () const</td></tr>
+<tr class="separator:aee05c8543d667aed2bc6888876018c2a inherit pub_methods_structBloomberg_1_1quantum_1_1ContiguousPoolManager"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ad9825140773a5e4511210abac32df71c inherit pub_methods_structBloomberg_1_1quantum_1_1ContiguousPoolManager"><td class="memItemLeft" align="right" valign="top">size_t&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d7/dd7/structBloomberg_1_1quantum_1_1ContiguousPoolManager.html#ad9825140773a5e4511210abac32df71c">allocatedHeapBlocks</a> () const</td></tr>
+<tr class="separator:ad9825140773a5e4511210abac32df71c inherit pub_methods_structBloomberg_1_1quantum_1_1ContiguousPoolManager"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:aa2a1443d62df593f32a3b7579061cdcf inherit pub_methods_structBloomberg_1_1quantum_1_1ContiguousPoolManager"><td class="memItemLeft" align="right" valign="top">bool&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d7/dd7/structBloomberg_1_1quantum_1_1ContiguousPoolManager.html#aa2a1443d62df593f32a3b7579061cdcf">isFull</a> () const</td></tr>
+<tr class="separator:aa2a1443d62df593f32a3b7579061cdcf inherit pub_methods_structBloomberg_1_1quantum_1_1ContiguousPoolManager"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a0fd2d4b1efe36532cdb77c2c1a9c5f2c inherit pub_methods_structBloomberg_1_1quantum_1_1ContiguousPoolManager"><td class="memItemLeft" align="right" valign="top">bool&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d7/dd7/structBloomberg_1_1quantum_1_1ContiguousPoolManager.html#a0fd2d4b1efe36532cdb77c2c1a9c5f2c">isEmpty</a> () const</td></tr>
+<tr class="separator:a0fd2d4b1efe36532cdb77c2c1a9c5f2c inherit pub_methods_structBloomberg_1_1quantum_1_1ContiguousPoolManager"><td class="memSeparator" colspan="2">&#160;</td></tr>
+</table><table class="memberdecls">
+<tr class="heading"><td colspan="2"><h2 class="groupheader"><a name="pub-static-methods"></a>
+Static Public Member Functions</h2></td></tr>
+<tr class="memitem:aeea5ea2d8f241b6505778977a0a08b74"><td class="memItemLeft" align="right" valign="top">static <a class="el" href="../../d0/d75/structBloomberg_1_1quantum_1_1StackAllocator.html">StackAllocator</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d0/d75/structBloomberg_1_1quantum_1_1StackAllocator.html#aeea5ea2d8f241b6505778977a0a08b74">select_on_container_copy_construction</a> (const <a class="el" href="../../d0/d75/structBloomberg_1_1quantum_1_1StackAllocator.html">StackAllocator</a> &amp;other)</td></tr>
+<tr class="separator:aeea5ea2d8f241b6505778977a0a08b74"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table>
 <a name="details" id="details"></a><h2 class="groupheader">Detailed Description</h2>
 <div class="textblock"><h3>template&lt;typename T, unsigned int SIZE&gt;<br />
 struct Bloomberg::quantum::StackAllocator&lt; T, SIZE &gt;</h3>
 
-<p>Provides fast (quasi zero-time) in-place allocation for STL containers. Types are allocated from a contiguous buffer on the stack. When the buffer is exhausted, allocation is delegated to the heap. The default buffer size is 1000. </p>
+<p>Provides a stack-based object pool to the underlying <a class="el" href="../../d7/dd7/structBloomberg_1_1quantum_1_1ContiguousPoolManager.html" title="Provides fast (quasi zero-time) in-place allocation for STL containers. Objects are allocated from a ...">ContiguousPoolManager</a>. The default buffer size is 1000. </p>
 <dl class="tparams"><dt>Template Parameters</dt><dd>
   <table class="tparams">
     <tr><td class="paramname">T</td><td>The type to allocate. </td></tr>
@@ -199,8 +252,8 @@ struct Bloomberg::quantum::StackAllocator&lt; T, SIZE &gt;</h3>
 </dl>
 <dl class="section note"><dt>Note</dt><dd>This allocator is thread safe. For internal use only. </dd></dl>
 </div><h2 class="groupheader">Member Typedef Documentation</h2>
-<a id="a302a667364f149f7f3179b366192a0b9"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a302a667364f149f7f3179b366192a0b9">&#9670;&nbsp;</a></span>buffer_type</h2>
+<a id="a46f1913434b78086f8e2df69cfca0108"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a46f1913434b78086f8e2df69cfca0108">&#9670;&nbsp;</a></span>aligned_type</h2>
 
 <div class="memitem">
 <div class="memproto">
@@ -208,7 +261,7 @@ struct Bloomberg::quantum::StackAllocator&lt; T, SIZE &gt;</h3>
 template&lt;typename T, unsigned int SIZE&gt; </div>
       <table class="memname">
         <tr>
-          <td class="memname">typedef std::aligned_storage&lt;sizeof(<a class="el" href="../../d0/d75/structBloomberg_1_1quantum_1_1StackAllocator.html#a48c237f5a8fff7f18e97febc743b42ca">value_type</a>), alignof(<a class="el" href="../../d0/d75/structBloomberg_1_1quantum_1_1StackAllocator.html#a48c237f5a8fff7f18e97febc743b42ca">value_type</a>)&gt;::type <a class="el" href="../../d0/d75/structBloomberg_1_1quantum_1_1StackAllocator.html">Bloomberg::quantum::StackAllocator</a>&lt; T, SIZE &gt;::<a class="el" href="../../d0/d75/structBloomberg_1_1quantum_1_1StackAllocator.html#a302a667364f149f7f3179b366192a0b9">buffer_type</a></td>
+          <td class="memname">typedef storage_type::type <a class="el" href="../../d0/d75/structBloomberg_1_1quantum_1_1StackAllocator.html">Bloomberg::quantum::StackAllocator</a>&lt; T, SIZE &gt;::<a class="el" href="../../d7/dd7/structBloomberg_1_1quantum_1_1ContiguousPoolManager.html#a6b8a18b452b90efa6ea7e0f3f5aef381">aligned_type</a></td>
         </tr>
       </table>
 </div><div class="memdoc">
@@ -224,7 +277,7 @@ template&lt;typename T, unsigned int SIZE&gt; </div>
 template&lt;typename T, unsigned int SIZE&gt; </div>
       <table class="memname">
         <tr>
-          <td class="memname">typedef const <a class="el" href="../../d0/d75/structBloomberg_1_1quantum_1_1StackAllocator.html#a48c237f5a8fff7f18e97febc743b42ca">value_type</a>* <a class="el" href="../../d0/d75/structBloomberg_1_1quantum_1_1StackAllocator.html">Bloomberg::quantum::StackAllocator</a>&lt; T, SIZE &gt;::<a class="el" href="../../d0/d75/structBloomberg_1_1quantum_1_1StackAllocator.html#a05e7902556797a2afbfb1cae784853eb">const_pointer</a></td>
+          <td class="memname">typedef const <a class="el" href="../../d7/dd7/structBloomberg_1_1quantum_1_1ContiguousPoolManager.html#adada271ce39fa67c3952f0a843aa15e4">value_type</a>* <a class="el" href="../../d0/d75/structBloomberg_1_1quantum_1_1StackAllocator.html">Bloomberg::quantum::StackAllocator</a>&lt; T, SIZE &gt;::<a class="el" href="../../d7/dd7/structBloomberg_1_1quantum_1_1ContiguousPoolManager.html#a9966f4ed46109194b7ec871728d62227">const_pointer</a></td>
         </tr>
       </table>
 </div><div class="memdoc">
@@ -240,7 +293,23 @@ template&lt;typename T, unsigned int SIZE&gt; </div>
 template&lt;typename T, unsigned int SIZE&gt; </div>
       <table class="memname">
         <tr>
-          <td class="memname">typedef const <a class="el" href="../../d0/d75/structBloomberg_1_1quantum_1_1StackAllocator.html#a48c237f5a8fff7f18e97febc743b42ca">value_type</a>&amp; <a class="el" href="../../d0/d75/structBloomberg_1_1quantum_1_1StackAllocator.html">Bloomberg::quantum::StackAllocator</a>&lt; T, SIZE &gt;::<a class="el" href="../../d0/d75/structBloomberg_1_1quantum_1_1StackAllocator.html#a0105578676ae5eb432c356f71cef0263">const_reference</a></td>
+          <td class="memname">typedef const <a class="el" href="../../d7/dd7/structBloomberg_1_1quantum_1_1ContiguousPoolManager.html#adada271ce39fa67c3952f0a843aa15e4">value_type</a>&amp; <a class="el" href="../../d0/d75/structBloomberg_1_1quantum_1_1StackAllocator.html">Bloomberg::quantum::StackAllocator</a>&lt; T, SIZE &gt;::<a class="el" href="../../d7/dd7/structBloomberg_1_1quantum_1_1ContiguousPoolManager.html#a370ae8a85f331436158330918fc48da7">const_reference</a></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+</div>
+</div>
+<a id="a656e67323f60779a49afa607a701b609"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a656e67323f60779a49afa607a701b609">&#9670;&nbsp;</a></span>default_constructor</h2>
+
+<div class="memitem">
+<div class="memproto">
+<div class="memtemplate">
+template&lt;typename T, unsigned int SIZE&gt; </div>
+      <table class="memname">
+        <tr>
+          <td class="memname">typedef std::true_type <a class="el" href="../../d0/d75/structBloomberg_1_1quantum_1_1StackAllocator.html">Bloomberg::quantum::StackAllocator</a>&lt; T, SIZE &gt;::<a class="el" href="../../d0/d75/structBloomberg_1_1quantum_1_1StackAllocator.html#a656e67323f60779a49afa607a701b609">default_constructor</a></td>
         </tr>
       </table>
 </div><div class="memdoc">
@@ -263,8 +332,8 @@ template&lt;typename T, unsigned int SIZE&gt; </div>
 
 </div>
 </div>
-<a id="ae63fa0521fee8711291dd2895fea5f1a"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#ae63fa0521fee8711291dd2895fea5f1a">&#9670;&nbsp;</a></span>header_type</h2>
+<a id="ab546275349acd0d256e93eddc70ec886"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#ab546275349acd0d256e93eddc70ec886">&#9670;&nbsp;</a></span>is_always_equal</h2>
 
 <div class="memitem">
 <div class="memproto">
@@ -272,39 +341,7 @@ template&lt;typename T, unsigned int SIZE&gt; </div>
 template&lt;typename T, unsigned int SIZE&gt; </div>
       <table class="memname">
         <tr>
-          <td class="memname">typedef std::atomic_int <a class="el" href="../../d0/d75/structBloomberg_1_1quantum_1_1StackAllocator.html">Bloomberg::quantum::StackAllocator</a>&lt; T, SIZE &gt;::<a class="el" href="../../d0/d75/structBloomberg_1_1quantum_1_1StackAllocator.html#ae63fa0521fee8711291dd2895fea5f1a">header_type</a></td>
-        </tr>
-      </table>
-</div><div class="memdoc">
-
-</div>
-</div>
-<a id="a5bc7a5ee8dee7095791c9a5c9cc38833"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a5bc7a5ee8dee7095791c9a5c9cc38833">&#9670;&nbsp;</a></span>index_type</h2>
-
-<div class="memitem">
-<div class="memproto">
-<div class="memtemplate">
-template&lt;typename T, unsigned int SIZE&gt; </div>
-      <table class="memname">
-        <tr>
-          <td class="memname">typedef <a class="el" href="../../dc/df6/structBloomberg_1_1quantum_1_1pos__index.html">pos_index</a>&lt;SIZE&gt;::type <a class="el" href="../../d0/d75/structBloomberg_1_1quantum_1_1StackAllocator.html">Bloomberg::quantum::StackAllocator</a>&lt; T, SIZE &gt;::<a class="el" href="../../d0/d75/structBloomberg_1_1quantum_1_1StackAllocator.html#a5bc7a5ee8dee7095791c9a5c9cc38833">index_type</a></td>
-        </tr>
-      </table>
-</div><div class="memdoc">
-
-</div>
-</div>
-<a id="a0395e74e701fec9d97bb47235995a628"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a0395e74e701fec9d97bb47235995a628">&#9670;&nbsp;</a></span>is_always_equal</h2>
-
-<div class="memitem">
-<div class="memproto">
-<div class="memtemplate">
-template&lt;typename T, unsigned int SIZE&gt; </div>
-      <table class="memname">
-        <tr>
-          <td class="memname">typedef std::true_type <a class="el" href="../../d0/d75/structBloomberg_1_1quantum_1_1StackAllocator.html">Bloomberg::quantum::StackAllocator</a>&lt; T, SIZE &gt;::<a class="el" href="../../d0/d75/structBloomberg_1_1quantum_1_1StackAllocator.html#a0395e74e701fec9d97bb47235995a628">is_always_equal</a></td>
+          <td class="memname">typedef std::false_type <a class="el" href="../../d0/d75/structBloomberg_1_1quantum_1_1StackAllocator.html">Bloomberg::quantum::StackAllocator</a>&lt; T, SIZE &gt;::<a class="el" href="../../d0/d75/structBloomberg_1_1quantum_1_1StackAllocator.html#ab546275349acd0d256e93eddc70ec886">is_always_equal</a></td>
         </tr>
       </table>
 </div><div class="memdoc">
@@ -320,7 +357,7 @@ template&lt;typename T, unsigned int SIZE&gt; </div>
 template&lt;typename T, unsigned int SIZE&gt; </div>
       <table class="memname">
         <tr>
-          <td class="memname">typedef <a class="el" href="../../d0/d75/structBloomberg_1_1quantum_1_1StackAllocator.html#a48c237f5a8fff7f18e97febc743b42ca">value_type</a>* <a class="el" href="../../d0/d75/structBloomberg_1_1quantum_1_1StackAllocator.html">Bloomberg::quantum::StackAllocator</a>&lt; T, SIZE &gt;::<a class="el" href="../../d0/d75/structBloomberg_1_1quantum_1_1StackAllocator.html#afb0b543ebb88f939d5e2a0428d55a322">pointer</a></td>
+          <td class="memname">typedef <a class="el" href="../../d7/dd7/structBloomberg_1_1quantum_1_1ContiguousPoolManager.html#adada271ce39fa67c3952f0a843aa15e4">value_type</a>* <a class="el" href="../../d0/d75/structBloomberg_1_1quantum_1_1StackAllocator.html">Bloomberg::quantum::StackAllocator</a>&lt; T, SIZE &gt;::<a class="el" href="../../d7/dd7/structBloomberg_1_1quantum_1_1ContiguousPoolManager.html#aeb88577cc102c74bf30fa1f5e9148b06">pointer</a></td>
         </tr>
       </table>
 </div><div class="memdoc">
@@ -384,7 +421,7 @@ template&lt;typename T, unsigned int SIZE&gt; </div>
 template&lt;typename T, unsigned int SIZE&gt; </div>
       <table class="memname">
         <tr>
-          <td class="memname">typedef <a class="el" href="../../d0/d75/structBloomberg_1_1quantum_1_1StackAllocator.html#a48c237f5a8fff7f18e97febc743b42ca">value_type</a>&amp; <a class="el" href="../../d0/d75/structBloomberg_1_1quantum_1_1StackAllocator.html">Bloomberg::quantum::StackAllocator</a>&lt; T, SIZE &gt;::<a class="el" href="../../d0/d75/structBloomberg_1_1quantum_1_1StackAllocator.html#a22ed084ed290666b67f54842e9049911">reference</a></td>
+          <td class="memname">typedef <a class="el" href="../../d7/dd7/structBloomberg_1_1quantum_1_1ContiguousPoolManager.html#adada271ce39fa67c3952f0a843aa15e4">value_type</a>&amp; <a class="el" href="../../d0/d75/structBloomberg_1_1quantum_1_1StackAllocator.html">Bloomberg::quantum::StackAllocator</a>&lt; T, SIZE &gt;::<a class="el" href="../../d7/dd7/structBloomberg_1_1quantum_1_1ContiguousPoolManager.html#a70231087bf90f3a401e83cf2ae62ea6e">reference</a></td>
         </tr>
       </table>
 </div><div class="memdoc">
@@ -400,7 +437,23 @@ template&lt;typename T, unsigned int SIZE&gt; </div>
 template&lt;typename T, unsigned int SIZE&gt; </div>
       <table class="memname">
         <tr>
-          <td class="memname">typedef size_t <a class="el" href="../../d0/d75/structBloomberg_1_1quantum_1_1StackAllocator.html">Bloomberg::quantum::StackAllocator</a>&lt; T, SIZE &gt;::<a class="el" href="../../d0/d75/structBloomberg_1_1quantum_1_1StackAllocator.html#a40635fcee2b862d3267aebb13fccc2da">size_type</a></td>
+          <td class="memname">typedef size_t <a class="el" href="../../d0/d75/structBloomberg_1_1quantum_1_1StackAllocator.html">Bloomberg::quantum::StackAllocator</a>&lt; T, SIZE &gt;::<a class="el" href="../../d7/dd7/structBloomberg_1_1quantum_1_1ContiguousPoolManager.html#a607f0a9f933d984aae6f8271782c9699">size_type</a></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+</div>
+</div>
+<a id="ab4a911914d100c699c1223a61e0545b5"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#ab4a911914d100c699c1223a61e0545b5">&#9670;&nbsp;</a></span>storage_type</h2>
+
+<div class="memitem">
+<div class="memproto">
+<div class="memtemplate">
+template&lt;typename T, unsigned int SIZE&gt; </div>
+      <table class="memname">
+        <tr>
+          <td class="memname">typedef std::aligned_storage&lt;sizeof(<a class="el" href="../../d7/dd7/structBloomberg_1_1quantum_1_1ContiguousPoolManager.html#adada271ce39fa67c3952f0a843aa15e4">value_type</a>), alignof(<a class="el" href="../../d7/dd7/structBloomberg_1_1quantum_1_1ContiguousPoolManager.html#adada271ce39fa67c3952f0a843aa15e4">value_type</a>)&gt; <a class="el" href="../../d0/d75/structBloomberg_1_1quantum_1_1StackAllocator.html">Bloomberg::quantum::StackAllocator</a>&lt; T, SIZE &gt;::<a class="el" href="../../d7/dd7/structBloomberg_1_1quantum_1_1ContiguousPoolManager.html#a364afc3144233b46e4205c38aa73fe91">storage_type</a></td>
         </tr>
       </table>
 </div><div class="memdoc">
@@ -416,7 +469,7 @@ template&lt;typename T, unsigned int SIZE&gt; </div>
 template&lt;typename T, unsigned int SIZE&gt; </div>
       <table class="memname">
         <tr>
-          <td class="memname">typedef <a class="el" href="../../d0/d75/structBloomberg_1_1quantum_1_1StackAllocator.html">StackAllocator</a>&lt;T, SIZE&gt; <a class="el" href="../../d0/d75/structBloomberg_1_1quantum_1_1StackAllocator.html">Bloomberg::quantum::StackAllocator</a>&lt; T, SIZE &gt;::<a class="el" href="../../d0/d75/structBloomberg_1_1quantum_1_1StackAllocator.html#a3c1a5d3715e56a22b82c0c19ca416cba">this_type</a></td>
+          <td class="memname">typedef <a class="el" href="../../d0/d75/structBloomberg_1_1quantum_1_1StackAllocator.html">StackAllocator</a>&lt;T, SIZE&gt; <a class="el" href="../../d0/d75/structBloomberg_1_1quantum_1_1StackAllocator.html">Bloomberg::quantum::StackAllocator</a>&lt; T, SIZE &gt;::<a class="el" href="../../d7/dd7/structBloomberg_1_1quantum_1_1ContiguousPoolManager.html#ab5ff9f006979d3dced0c3073d6342d83">this_type</a></td>
         </tr>
       </table>
 </div><div class="memdoc">
@@ -432,7 +485,7 @@ template&lt;typename T, unsigned int SIZE&gt; </div>
 template&lt;typename T, unsigned int SIZE&gt; </div>
       <table class="memname">
         <tr>
-          <td class="memname">typedef T <a class="el" href="../../d0/d75/structBloomberg_1_1quantum_1_1StackAllocator.html">Bloomberg::quantum::StackAllocator</a>&lt; T, SIZE &gt;::<a class="el" href="../../d0/d75/structBloomberg_1_1quantum_1_1StackAllocator.html#a48c237f5a8fff7f18e97febc743b42ca">value_type</a></td>
+          <td class="memname">typedef T <a class="el" href="../../d0/d75/structBloomberg_1_1quantum_1_1StackAllocator.html">Bloomberg::quantum::StackAllocator</a>&lt; T, SIZE &gt;::<a class="el" href="../../d7/dd7/structBloomberg_1_1quantum_1_1ContiguousPoolManager.html#adada271ce39fa67c3952f0a843aa15e4">value_type</a></td>
         </tr>
       </table>
 </div><div class="memdoc">
@@ -441,26 +494,7 @@ template&lt;typename T, unsigned int SIZE&gt; </div>
 </div>
 <h2 class="groupheader">Constructor &amp; Destructor Documentation</h2>
 <a id="ae515ea0a2f5f03d75af7cf31f7af02da"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#ae515ea0a2f5f03d75af7cf31f7af02da">&#9670;&nbsp;</a></span>StackAllocator() <span class="overload">[1/4]</span></h2>
-
-<div class="memitem">
-<div class="memproto">
-<div class="memtemplate">
-template&lt;typename T , unsigned int SIZE&gt; </div>
-      <table class="memname">
-        <tr>
-          <td class="memname"><a class="el" href="../../d0/d75/structBloomberg_1_1quantum_1_1StackAllocator.html">Bloomberg::quantum::StackAllocator</a>&lt; T, SIZE &gt;::<a class="el" href="../../d0/d75/structBloomberg_1_1quantum_1_1StackAllocator.html">StackAllocator</a> </td>
-          <td>(</td>
-          <td class="paramname"></td><td>)</td>
-          <td></td>
-        </tr>
-      </table>
-</div><div class="memdoc">
-
-</div>
-</div>
-<a id="ab9d91509b9dff14d363560fd639a1b17"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#ab9d91509b9dff14d363560fd639a1b17">&#9670;&nbsp;</a></span>StackAllocator() <span class="overload">[2/4]</span></h2>
+<h2 class="memtitle"><span class="permalink"><a href="#ae515ea0a2f5f03d75af7cf31f7af02da">&#9670;&nbsp;</a></span>StackAllocator() <span class="overload">[1/3]</span></h2>
 
 <div class="memitem">
 <div class="memproto">
@@ -473,7 +507,6 @@ template&lt;typename T, unsigned int SIZE&gt; </div>
         <tr>
           <td class="memname"><a class="el" href="../../d0/d75/structBloomberg_1_1quantum_1_1StackAllocator.html">Bloomberg::quantum::StackAllocator</a>&lt; T, SIZE &gt;::<a class="el" href="../../d0/d75/structBloomberg_1_1quantum_1_1StackAllocator.html">StackAllocator</a> </td>
           <td>(</td>
-          <td class="paramtype">const <a class="el" href="../../d0/d75/structBloomberg_1_1quantum_1_1StackAllocator.html#a3c1a5d3715e56a22b82c0c19ca416cba">this_type</a> &amp;&#160;</td>
           <td class="paramname"></td><td>)</td>
           <td></td>
         </tr>
@@ -487,8 +520,8 @@ template&lt;typename T, unsigned int SIZE&gt; </div>
 
 </div>
 </div>
-<a id="ab2ea253e7508d915128c8aad1e723215"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#ab2ea253e7508d915128c8aad1e723215">&#9670;&nbsp;</a></span>StackAllocator() <span class="overload">[3/4]</span></h2>
+<a id="ab9d91509b9dff14d363560fd639a1b17"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#ab9d91509b9dff14d363560fd639a1b17">&#9670;&nbsp;</a></span>StackAllocator() <span class="overload">[2/3]</span></h2>
 
 <div class="memitem">
 <div class="memproto">
@@ -501,7 +534,7 @@ template&lt;typename T, unsigned int SIZE&gt; </div>
         <tr>
           <td class="memname"><a class="el" href="../../d0/d75/structBloomberg_1_1quantum_1_1StackAllocator.html">Bloomberg::quantum::StackAllocator</a>&lt; T, SIZE &gt;::<a class="el" href="../../d0/d75/structBloomberg_1_1quantum_1_1StackAllocator.html">StackAllocator</a> </td>
           <td>(</td>
-          <td class="paramtype"><a class="el" href="../../d0/d75/structBloomberg_1_1quantum_1_1StackAllocator.html#a3c1a5d3715e56a22b82c0c19ca416cba">this_type</a> &amp;&amp;&#160;</td>
+          <td class="paramtype">const <a class="el" href="../../d7/dd7/structBloomberg_1_1quantum_1_1ContiguousPoolManager.html#ab5ff9f006979d3dced0c3073d6342d83">this_type</a> &amp;&#160;</td>
           <td class="paramname"></td><td>)</td>
           <td></td>
         </tr>
@@ -516,7 +549,7 @@ template&lt;typename T, unsigned int SIZE&gt; </div>
 </div>
 </div>
 <a id="aea1eda9f23a75b993b58668077f138d1"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#aea1eda9f23a75b993b58668077f138d1">&#9670;&nbsp;</a></span>StackAllocator() <span class="overload">[4/4]</span></h2>
+<h2 class="memtitle"><span class="permalink"><a href="#aea1eda9f23a75b993b58668077f138d1">&#9670;&nbsp;</a></span>StackAllocator() <span class="overload">[3/3]</span></h2>
 
 <div class="memitem">
 <div class="memproto">
@@ -546,297 +579,8 @@ template&lt;typename U &gt; </div>
 </div>
 </div>
 <h2 class="groupheader">Member Function Documentation</h2>
-<a id="aa3c8cb250aeeb67b29f002543964aee0"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#aa3c8cb250aeeb67b29f002543964aee0">&#9670;&nbsp;</a></span>address() <span class="overload">[1/2]</span></h2>
-
-<div class="memitem">
-<div class="memproto">
-<div class="memtemplate">
-template&lt;typename T , unsigned int SIZE&gt; </div>
-      <table class="memname">
-        <tr>
-          <td class="memname"><a class="el" href="../../d0/d75/structBloomberg_1_1quantum_1_1StackAllocator.html">StackAllocator</a>&lt; T, SIZE &gt;::<a class="el" href="../../d0/d75/structBloomberg_1_1quantum_1_1StackAllocator.html#afb0b543ebb88f939d5e2a0428d55a322">pointer</a> <a class="el" href="../../d0/d75/structBloomberg_1_1quantum_1_1StackAllocator.html">Bloomberg::quantum::StackAllocator</a>&lt; T, SIZE &gt;::address </td>
-          <td>(</td>
-          <td class="paramtype"><a class="el" href="../../d0/d75/structBloomberg_1_1quantum_1_1StackAllocator.html#a22ed084ed290666b67f54842e9049911">reference</a>&#160;</td>
-          <td class="paramname"><em>x</em></td><td>)</td>
-          <td> const</td>
-        </tr>
-      </table>
-</div><div class="memdoc">
-
-</div>
-</div>
-<a id="a5bed34d56cd6760f1a37526c75a3be5a"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a5bed34d56cd6760f1a37526c75a3be5a">&#9670;&nbsp;</a></span>address() <span class="overload">[2/2]</span></h2>
-
-<div class="memitem">
-<div class="memproto">
-<div class="memtemplate">
-template&lt;typename T , unsigned int SIZE&gt; </div>
-      <table class="memname">
-        <tr>
-          <td class="memname"><a class="el" href="../../d0/d75/structBloomberg_1_1quantum_1_1StackAllocator.html">StackAllocator</a>&lt; T, SIZE &gt;::<a class="el" href="../../d0/d75/structBloomberg_1_1quantum_1_1StackAllocator.html#a05e7902556797a2afbfb1cae784853eb">const_pointer</a> <a class="el" href="../../d0/d75/structBloomberg_1_1quantum_1_1StackAllocator.html">Bloomberg::quantum::StackAllocator</a>&lt; T, SIZE &gt;::address </td>
-          <td>(</td>
-          <td class="paramtype"><a class="el" href="../../d0/d75/structBloomberg_1_1quantum_1_1StackAllocator.html#a0105578676ae5eb432c356f71cef0263">const_reference</a>&#160;</td>
-          <td class="paramname"><em>x</em></td><td>)</td>
-          <td> const</td>
-        </tr>
-      </table>
-</div><div class="memdoc">
-
-</div>
-</div>
-<a id="a7b3563f318adbb1f72742a2a421d5be6"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a7b3563f318adbb1f72742a2a421d5be6">&#9670;&nbsp;</a></span>allocate()</h2>
-
-<div class="memitem">
-<div class="memproto">
-<div class="memtemplate">
-template&lt;typename T , unsigned int SIZE&gt; </div>
-      <table class="memname">
-        <tr>
-          <td class="memname"><a class="el" href="../../d0/d75/structBloomberg_1_1quantum_1_1StackAllocator.html">StackAllocator</a>&lt; T, SIZE &gt;::<a class="el" href="../../d0/d75/structBloomberg_1_1quantum_1_1StackAllocator.html#afb0b543ebb88f939d5e2a0428d55a322">pointer</a> <a class="el" href="../../d0/d75/structBloomberg_1_1quantum_1_1StackAllocator.html">Bloomberg::quantum::StackAllocator</a>&lt; T, SIZE &gt;::allocate </td>
-          <td>(</td>
-          <td class="paramtype"><a class="el" href="../../d0/d75/structBloomberg_1_1quantum_1_1StackAllocator.html#a40635fcee2b862d3267aebb13fccc2da">size_type</a>&#160;</td>
-          <td class="paramname"> = <code>1</code>, </td>
-        </tr>
-        <tr>
-          <td class="paramkey"></td>
-          <td></td>
-          <td class="paramtype">std::allocator&lt; void &gt;::<a class="el" href="../../d0/d75/structBloomberg_1_1quantum_1_1StackAllocator.html#a05e7902556797a2afbfb1cae784853eb">const_pointer</a>&#160;</td>
-          <td class="paramname"> = <code>0</code>&#160;</td>
-        </tr>
-        <tr>
-          <td></td>
-          <td>)</td>
-          <td></td><td></td>
-        </tr>
-      </table>
-</div><div class="memdoc">
-
-</div>
-</div>
-<a id="aa822c38c66fe1e6bd0b8a8b158db48a7"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#aa822c38c66fe1e6bd0b8a8b158db48a7">&#9670;&nbsp;</a></span>allocatedBlocks()</h2>
-
-<div class="memitem">
-<div class="memproto">
-<div class="memtemplate">
-template&lt;typename T , unsigned int SIZE&gt; </div>
-      <table class="memname">
-        <tr>
-          <td class="memname">size_t <a class="el" href="../../d0/d75/structBloomberg_1_1quantum_1_1StackAllocator.html">Bloomberg::quantum::StackAllocator</a>&lt; T, SIZE &gt;::allocatedBlocks </td>
-          <td>(</td>
-          <td class="paramname"></td><td>)</td>
-          <td> const</td>
-        </tr>
-      </table>
-</div><div class="memdoc">
-
-</div>
-</div>
-<a id="a5e5fa9bfa19f49c59c533b284fd008e0"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a5e5fa9bfa19f49c59c533b284fd008e0">&#9670;&nbsp;</a></span>allocatedHeapBlocks()</h2>
-
-<div class="memitem">
-<div class="memproto">
-<div class="memtemplate">
-template&lt;typename T , unsigned int SIZE&gt; </div>
-      <table class="memname">
-        <tr>
-          <td class="memname">size_t <a class="el" href="../../d0/d75/structBloomberg_1_1quantum_1_1StackAllocator.html">Bloomberg::quantum::StackAllocator</a>&lt; T, SIZE &gt;::allocatedHeapBlocks </td>
-          <td>(</td>
-          <td class="paramname"></td><td>)</td>
-          <td> const</td>
-        </tr>
-      </table>
-</div><div class="memdoc">
-
-</div>
-</div>
-<a id="a4a0ce866d4f24f5bbeb4d040e05fedd5"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a4a0ce866d4f24f5bbeb4d040e05fedd5">&#9670;&nbsp;</a></span>construct()</h2>
-
-<div class="memitem">
-<div class="memproto">
-<div class="memtemplate">
-template&lt;typename T , unsigned int SIZE&gt; </div>
-<div class="memtemplate">
-template&lt;typename... Args&gt; </div>
-      <table class="memname">
-        <tr>
-          <td class="memname">void <a class="el" href="../../d0/d75/structBloomberg_1_1quantum_1_1StackAllocator.html">Bloomberg::quantum::StackAllocator</a>&lt; T, SIZE &gt;::construct </td>
-          <td>(</td>
-          <td class="paramtype">T *&#160;</td>
-          <td class="paramname"><em>p</em>, </td>
-        </tr>
-        <tr>
-          <td class="paramkey"></td>
-          <td></td>
-          <td class="paramtype">Args &amp;&amp;...&#160;</td>
-          <td class="paramname"><em>args</em>&#160;</td>
-        </tr>
-        <tr>
-          <td></td>
-          <td>)</td>
-          <td></td><td></td>
-        </tr>
-      </table>
-</div><div class="memdoc">
-
-</div>
-</div>
-<a id="ac36078e9bb88d444e46ff1d46013bd4b"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#ac36078e9bb88d444e46ff1d46013bd4b">&#9670;&nbsp;</a></span>create()</h2>
-
-<div class="memitem">
-<div class="memproto">
-<div class="memtemplate">
-template&lt;typename T , unsigned int SIZE&gt; </div>
-<div class="memtemplate">
-template&lt;typename... Args&gt; </div>
-      <table class="memname">
-        <tr>
-          <td class="memname"><a class="el" href="../../d0/d75/structBloomberg_1_1quantum_1_1StackAllocator.html">StackAllocator</a>&lt; T, SIZE &gt;::<a class="el" href="../../d0/d75/structBloomberg_1_1quantum_1_1StackAllocator.html#afb0b543ebb88f939d5e2a0428d55a322">pointer</a> <a class="el" href="../../d0/d75/structBloomberg_1_1quantum_1_1StackAllocator.html">Bloomberg::quantum::StackAllocator</a>&lt; T, SIZE &gt;::create </td>
-          <td>(</td>
-          <td class="paramtype">Args &amp;&amp;...&#160;</td>
-          <td class="paramname"><em>args</em></td><td>)</td>
-          <td></td>
-        </tr>
-      </table>
-</div><div class="memdoc">
-
-</div>
-</div>
-<a id="a85cbf0c1be35f0f963b54a02b168684a"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a85cbf0c1be35f0f963b54a02b168684a">&#9670;&nbsp;</a></span>deallocate()</h2>
-
-<div class="memitem">
-<div class="memproto">
-<div class="memtemplate">
-template&lt;typename T , unsigned int SIZE&gt; </div>
-      <table class="memname">
-        <tr>
-          <td class="memname">void <a class="el" href="../../d0/d75/structBloomberg_1_1quantum_1_1StackAllocator.html">Bloomberg::quantum::StackAllocator</a>&lt; T, SIZE &gt;::deallocate </td>
-          <td>(</td>
-          <td class="paramtype"><a class="el" href="../../d0/d75/structBloomberg_1_1quantum_1_1StackAllocator.html#afb0b543ebb88f939d5e2a0428d55a322">pointer</a>&#160;</td>
-          <td class="paramname"><em>p</em>, </td>
-        </tr>
-        <tr>
-          <td class="paramkey"></td>
-          <td></td>
-          <td class="paramtype"><a class="el" href="../../d0/d75/structBloomberg_1_1quantum_1_1StackAllocator.html#a40635fcee2b862d3267aebb13fccc2da">size_type</a>&#160;</td>
-          <td class="paramname"> = <code>1</code>&#160;</td>
-        </tr>
-        <tr>
-          <td></td>
-          <td>)</td>
-          <td></td><td></td>
-        </tr>
-      </table>
-</div><div class="memdoc">
-
-</div>
-</div>
-<a id="aa6bf9f34241a04679115e2af6edc21f9"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#aa6bf9f34241a04679115e2af6edc21f9">&#9670;&nbsp;</a></span>destroy()</h2>
-
-<div class="memitem">
-<div class="memproto">
-<div class="memtemplate">
-template&lt;typename T , unsigned int SIZE&gt; </div>
-      <table class="memname">
-        <tr>
-          <td class="memname">void <a class="el" href="../../d0/d75/structBloomberg_1_1quantum_1_1StackAllocator.html">Bloomberg::quantum::StackAllocator</a>&lt; T, SIZE &gt;::destroy </td>
-          <td>(</td>
-          <td class="paramtype"><a class="el" href="../../d0/d75/structBloomberg_1_1quantum_1_1StackAllocator.html#afb0b543ebb88f939d5e2a0428d55a322">pointer</a>&#160;</td>
-          <td class="paramname"><em>p</em></td><td>)</td>
-          <td></td>
-        </tr>
-      </table>
-</div><div class="memdoc">
-
-</div>
-</div>
-<a id="a84d70322d58286dc56f165c634a3bb41"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a84d70322d58286dc56f165c634a3bb41">&#9670;&nbsp;</a></span>dispose()</h2>
-
-<div class="memitem">
-<div class="memproto">
-<div class="memtemplate">
-template&lt;typename T , unsigned int SIZE&gt; </div>
-      <table class="memname">
-        <tr>
-          <td class="memname">void <a class="el" href="../../d0/d75/structBloomberg_1_1quantum_1_1StackAllocator.html">Bloomberg::quantum::StackAllocator</a>&lt; T, SIZE &gt;::dispose </td>
-          <td>(</td>
-          <td class="paramtype"><a class="el" href="../../d0/d75/structBloomberg_1_1quantum_1_1StackAllocator.html#afb0b543ebb88f939d5e2a0428d55a322">pointer</a>&#160;</td>
-          <td class="paramname"><em>p</em></td><td>)</td>
-          <td></td>
-        </tr>
-      </table>
-</div><div class="memdoc">
-
-</div>
-</div>
-<a id="ae5e2a98aefb0faa150f97b53602cf1fe"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#ae5e2a98aefb0faa150f97b53602cf1fe">&#9670;&nbsp;</a></span>isEmpty()</h2>
-
-<div class="memitem">
-<div class="memproto">
-<div class="memtemplate">
-template&lt;typename T , unsigned int SIZE&gt; </div>
-      <table class="memname">
-        <tr>
-          <td class="memname">bool <a class="el" href="../../d0/d75/structBloomberg_1_1quantum_1_1StackAllocator.html">Bloomberg::quantum::StackAllocator</a>&lt; T, SIZE &gt;::isEmpty </td>
-          <td>(</td>
-          <td class="paramname"></td><td>)</td>
-          <td> const</td>
-        </tr>
-      </table>
-</div><div class="memdoc">
-
-</div>
-</div>
-<a id="a376fa17b11e6c20abd2cacd2093a5cb9"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a376fa17b11e6c20abd2cacd2093a5cb9">&#9670;&nbsp;</a></span>isFull()</h2>
-
-<div class="memitem">
-<div class="memproto">
-<div class="memtemplate">
-template&lt;typename T , unsigned int SIZE&gt; </div>
-      <table class="memname">
-        <tr>
-          <td class="memname">bool <a class="el" href="../../d0/d75/structBloomberg_1_1quantum_1_1StackAllocator.html">Bloomberg::quantum::StackAllocator</a>&lt; T, SIZE &gt;::isFull </td>
-          <td>(</td>
-          <td class="paramname"></td><td>)</td>
-          <td> const</td>
-        </tr>
-      </table>
-</div><div class="memdoc">
-
-</div>
-</div>
-<a id="a935c671140b87b89ed8a5e247973d9c5"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a935c671140b87b89ed8a5e247973d9c5">&#9670;&nbsp;</a></span>max_size()</h2>
-
-<div class="memitem">
-<div class="memproto">
-<div class="memtemplate">
-template&lt;typename T , unsigned int SIZE&gt; </div>
-      <table class="memname">
-        <tr>
-          <td class="memname"><a class="el" href="../../d0/d75/structBloomberg_1_1quantum_1_1StackAllocator.html">StackAllocator</a>&lt; T, SIZE &gt;::<a class="el" href="../../d0/d75/structBloomberg_1_1quantum_1_1StackAllocator.html#a40635fcee2b862d3267aebb13fccc2da">size_type</a> <a class="el" href="../../d0/d75/structBloomberg_1_1quantum_1_1StackAllocator.html">Bloomberg::quantum::StackAllocator</a>&lt; T, SIZE &gt;::max_size </td>
-          <td>(</td>
-          <td class="paramname"></td><td>)</td>
-          <td> const</td>
-        </tr>
-      </table>
-</div><div class="memdoc">
-
-</div>
-</div>
-<a id="ab445f717b9eaa17f6b1b18e74577e7c7"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#ab445f717b9eaa17f6b1b18e74577e7c7">&#9670;&nbsp;</a></span>operator=() <span class="overload">[1/3]</span></h2>
+<a id="abf209573080ba0b74487c81bcf74f188"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#abf209573080ba0b74487c81bcf74f188">&#9670;&nbsp;</a></span>operator!=()</h2>
 
 <div class="memitem">
 <div class="memproto">
@@ -847,11 +591,11 @@ template&lt;typename T, unsigned int SIZE&gt; </div>
   <td class="mlabels-left">
       <table class="memname">
         <tr>
-          <td class="memname"><a class="el" href="../../d0/d75/structBloomberg_1_1quantum_1_1StackAllocator.html">StackAllocator</a>&amp; <a class="el" href="../../d0/d75/structBloomberg_1_1quantum_1_1StackAllocator.html">Bloomberg::quantum::StackAllocator</a>&lt; T, SIZE &gt;::operator= </td>
+          <td class="memname">bool <a class="el" href="../../d0/d75/structBloomberg_1_1quantum_1_1StackAllocator.html">Bloomberg::quantum::StackAllocator</a>&lt; T, SIZE &gt;::operator!= </td>
           <td>(</td>
-          <td class="paramtype">const <a class="el" href="../../d0/d75/structBloomberg_1_1quantum_1_1StackAllocator.html#a3c1a5d3715e56a22b82c0c19ca416cba">this_type</a> &amp;&#160;</td>
-          <td class="paramname"></td><td>)</td>
-          <td></td>
+          <td class="paramtype">const <a class="el" href="../../d7/dd7/structBloomberg_1_1quantum_1_1ContiguousPoolManager.html#ab5ff9f006979d3dced0c3073d6342d83">this_type</a> &amp;&#160;</td>
+          <td class="paramname"><em>other</em></td><td>)</td>
+          <td> const</td>
         </tr>
       </table>
   </td>
@@ -863,8 +607,8 @@ template&lt;typename T, unsigned int SIZE&gt; </div>
 
 </div>
 </div>
-<a id="aa651db35ff7349386d707fec21b5d29e"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#aa651db35ff7349386d707fec21b5d29e">&#9670;&nbsp;</a></span>operator=() <span class="overload">[2/3]</span></h2>
+<a id="ab445f717b9eaa17f6b1b18e74577e7c7"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#ab445f717b9eaa17f6b1b18e74577e7c7">&#9670;&nbsp;</a></span>operator=() <span class="overload">[1/2]</span></h2>
 
 <div class="memitem">
 <div class="memproto">
@@ -877,7 +621,7 @@ template&lt;typename T, unsigned int SIZE&gt; </div>
         <tr>
           <td class="memname"><a class="el" href="../../d0/d75/structBloomberg_1_1quantum_1_1StackAllocator.html">StackAllocator</a>&amp; <a class="el" href="../../d0/d75/structBloomberg_1_1quantum_1_1StackAllocator.html">Bloomberg::quantum::StackAllocator</a>&lt; T, SIZE &gt;::operator= </td>
           <td>(</td>
-          <td class="paramtype"><a class="el" href="../../d0/d75/structBloomberg_1_1quantum_1_1StackAllocator.html#a3c1a5d3715e56a22b82c0c19ca416cba">this_type</a> &amp;&amp;&#160;</td>
+          <td class="paramtype">const <a class="el" href="../../d7/dd7/structBloomberg_1_1quantum_1_1ContiguousPoolManager.html#ab5ff9f006979d3dced0c3073d6342d83">this_type</a> &amp;&#160;</td>
           <td class="paramname"></td><td>)</td>
           <td></td>
         </tr>
@@ -892,7 +636,7 @@ template&lt;typename T, unsigned int SIZE&gt; </div>
 </div>
 </div>
 <a id="ad7ec8fec7ec051fccad351f69875124a"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#ad7ec8fec7ec051fccad351f69875124a">&#9670;&nbsp;</a></span>operator=() <span class="overload">[3/3]</span></h2>
+<h2 class="memtitle"><span class="permalink"><a href="#ad7ec8fec7ec051fccad351f69875124a">&#9670;&nbsp;</a></span>operator=() <span class="overload">[2/2]</span></h2>
 
 <div class="memitem">
 <div class="memproto">
@@ -915,6 +659,62 @@ template&lt;typename U &gt; </div>
   </td>
   <td class="mlabels-right">
 <span class="mlabels"><span class="mlabel">inline</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+</div>
+</div>
+<a id="a7b635d9ec1def35001fb4bb2e8eeb9f9"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a7b635d9ec1def35001fb4bb2e8eeb9f9">&#9670;&nbsp;</a></span>operator==()</h2>
+
+<div class="memitem">
+<div class="memproto">
+<div class="memtemplate">
+template&lt;typename T, unsigned int SIZE&gt; </div>
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">bool <a class="el" href="../../d0/d75/structBloomberg_1_1quantum_1_1StackAllocator.html">Bloomberg::quantum::StackAllocator</a>&lt; T, SIZE &gt;::operator== </td>
+          <td>(</td>
+          <td class="paramtype">const <a class="el" href="../../d7/dd7/structBloomberg_1_1quantum_1_1ContiguousPoolManager.html#ab5ff9f006979d3dced0c3073d6342d83">this_type</a> &amp;&#160;</td>
+          <td class="paramname"><em>other</em></td><td>)</td>
+          <td> const</td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">inline</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+</div>
+</div>
+<a id="aeea5ea2d8f241b6505778977a0a08b74"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#aeea5ea2d8f241b6505778977a0a08b74">&#9670;&nbsp;</a></span>select_on_container_copy_construction()</h2>
+
+<div class="memitem">
+<div class="memproto">
+<div class="memtemplate">
+template&lt;typename T, unsigned int SIZE&gt; </div>
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">static <a class="el" href="../../d0/d75/structBloomberg_1_1quantum_1_1StackAllocator.html">StackAllocator</a> <a class="el" href="../../d0/d75/structBloomberg_1_1quantum_1_1StackAllocator.html">Bloomberg::quantum::StackAllocator</a>&lt; T, SIZE &gt;::select_on_container_copy_construction </td>
+          <td>(</td>
+          <td class="paramtype">const <a class="el" href="../../d0/d75/structBloomberg_1_1quantum_1_1StackAllocator.html">StackAllocator</a>&lt; T, SIZE &gt; &amp;&#160;</td>
+          <td class="paramname"><em>other</em></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">inline</span><span class="mlabel">static</span></span>  </td>
   </tr>
 </table>
 </div><div class="memdoc">

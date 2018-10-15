@@ -1,7 +1,23 @@
 var hierarchy =
 [
+    [ "Bloomberg::quantum::Allocator< AllocType >", "d7/df5/structBloomberg_1_1quantum_1_1Allocator.html", null ],
+    [ "allocator", null, [
+      [ "Bloomberg::quantum::StlAllocator< T >", "d7/dd7/structBloomberg_1_1quantum_1_1StlAllocator.html", null ]
+    ] ],
+    [ "Bloomberg::quantum::AllocatorTraits", "db/df0/structBloomberg_1_1quantum_1_1AllocatorTraits.html", null ],
+    [ "basic_fixedsize_stack", null, [
+      [ "Bloomberg::quantum::BoostAllocator< Traits >", "d1/d95/structBloomberg_1_1quantum_1_1BoostAllocator.html", null ]
+    ] ],
     [ "Bloomberg::quantum::Buffer< T >", "d1/d87/classBloomberg_1_1quantum_1_1Buffer.html", null ],
+    [ "class", "d9/d6d/classclass.html", null ],
     [ "Bloomberg::quantum::ConditionVariable", "da/d9d/classBloomberg_1_1quantum_1_1ConditionVariable.html", null ],
+    [ "Bloomberg::quantum::Configuration", "db/dda/classBloomberg_1_1quantum_1_1Configuration.html", null ],
+    [ "Bloomberg::quantum::ContiguousPoolManager< T >", "d7/dd7/structBloomberg_1_1quantum_1_1ContiguousPoolManager.html", [
+      [ "Bloomberg::quantum::HeapAllocator< T >", "d2/da6/structBloomberg_1_1quantum_1_1HeapAllocator.html", null ],
+      [ "Bloomberg::quantum::StackAllocator< T, SIZE >", "d0/d75/structBloomberg_1_1quantum_1_1StackAllocator.html", null ]
+    ] ],
+    [ "Bloomberg::quantum::CoroutinePoolAllocator< STACK_TRAITS >", "db/d67/structBloomberg_1_1quantum_1_1CoroutinePoolAllocator.html", null ],
+    [ "Bloomberg::quantum::CoroutinePoolAllocatorProxy< STACK_TRAITS >", "de/d0e/structBloomberg_1_1quantum_1_1CoroutinePoolAllocatorProxy.html", null ],
     [ "Bloomberg::quantum::Traits::DerivedFrom< D, THIS, B >", "db/db8/structBloomberg_1_1quantum_1_1Traits_1_1DerivedFrom.html", null ],
     [ "Bloomberg::quantum::Traits::DerivedFrom< PROMISE< T >, ICoroPromise< PROMISE, T >, IPromiseBase >", "db/db8/structBloomberg_1_1quantum_1_1Traits_1_1DerivedFrom.html", [
       [ "Bloomberg::quantum::ICoroPromise< PROMISE, T >", "d7/dc1/structBloomberg_1_1quantum_1_1ICoroPromise.html", null ]
@@ -38,11 +54,11 @@ var hierarchy =
       [ "Bloomberg::quantum::Traits::IsBuffer< T >", "da/d88/structBloomberg_1_1quantum_1_1Traits_1_1IsBuffer.html", null ]
     ] ],
     [ "Bloomberg::quantum::ITerminate::Guard", "d5/dae/classBloomberg_1_1quantum_1_1ITerminate_1_1Guard.html", null ],
-    [ "Bloomberg::quantum::SpinLock::Guard", "db/de4/classBloomberg_1_1quantum_1_1SpinLock_1_1Guard.html", null ],
-    [ "Bloomberg::quantum::Mutex::Guard", "d8/dbb/classBloomberg_1_1quantum_1_1Mutex_1_1Guard.html", null ],
     [ "ITerminate::Guard", "d2/dad/classITerminate_1_1Guard.html", null ],
     [ "Mutex::Guard", "df/df3/classMutex_1_1Guard.html", null ],
     [ "SpinLock::Guard", "de/d78/classSpinLock_1_1Guard.html", null ],
+    [ "Bloomberg::quantum::Mutex::Guard", "d8/dbb/classBloomberg_1_1quantum_1_1Mutex_1_1Guard.html", null ],
+    [ "Bloomberg::quantum::SpinLock::Guard", "db/de4/classBloomberg_1_1quantum_1_1SpinLock_1_1Guard.html", null ],
     [ "Bloomberg::quantum::IContextBase", "d8/db0/structBloomberg_1_1quantum_1_1IContextBase.html", [
       [ "Bloomberg::quantum::ICoroContextBase", "de/d67/structBloomberg_1_1quantum_1_1ICoroContextBase.html", [
         [ "Bloomberg::quantum::ICoroContext< RET >", "d5/dd1/structBloomberg_1_1quantum_1_1ICoroContext.html", [
@@ -63,9 +79,6 @@ var hierarchy =
     [ "Bloomberg::quantum::ICoroSync", "d3/d63/structBloomberg_1_1quantum_1_1ICoroSync.html", [
       [ "Bloomberg::quantum::ICoroContextBase", "de/d67/structBloomberg_1_1quantum_1_1ICoroContextBase.html", null ]
     ] ],
-    [ "Bloomberg::quantum::index< N >", "d3/df2/structBloomberg_1_1quantum_1_1index.html", null ],
-    [ "Bloomberg::quantum::index< 1 >", "d8/dd3/structBloomberg_1_1quantum_1_1index_3_011_01_4.html", null ],
-    [ "Bloomberg::quantum::index< 2 >", "d2/d2e/structBloomberg_1_1quantum_1_1index_3_012_01_4.html", null ],
     [ "Bloomberg::quantum::IQueueStatistics", "d5/de7/structBloomberg_1_1quantum_1_1IQueueStatistics.html", [
       [ "Bloomberg::quantum::QueueStatistics", "d1/d7b/classBloomberg_1_1quantum_1_1QueueStatistics.html", null ]
     ] ],
@@ -95,16 +108,17 @@ var hierarchy =
       ] ]
     ] ],
     [ "Bloomberg::quantum::Mutex", "d7/d71/classBloomberg_1_1quantum_1_1Mutex.html", null ],
-    [ "Bloomberg::quantum::pos_index< N >", "dc/df6/structBloomberg_1_1quantum_1_1pos__index.html", null ],
-    [ "Bloomberg::quantum::pos_index< SIZE >", "dc/df6/structBloomberg_1_1quantum_1_1pos__index.html", null ],
     [ "Bloomberg::quantum::StackAllocator< T, SIZE >::rebind< U >", "de/db5/structBloomberg_1_1quantum_1_1StackAllocator_1_1rebind.html", null ],
-    [ "Bloomberg::quantum::SpinLock::ReverseGuard", "dd/d36/classBloomberg_1_1quantum_1_1SpinLock_1_1ReverseGuard.html", null ],
-    [ "SpinLock::ReverseGuard", "dd/db5/classSpinLock_1_1ReverseGuard.html", null ],
+    [ "Bloomberg::quantum::HeapAllocator< T >::rebind< U >", "d1/d00/structBloomberg_1_1quantum_1_1HeapAllocator_1_1rebind.html", null ],
     [ "Bloomberg::quantum::Mutex::ReverseGuard", "d4/d39/classBloomberg_1_1quantum_1_1Mutex_1_1ReverseGuard.html", null ],
+    [ "Bloomberg::quantum::SpinLock::ReverseGuard", "dd/d36/classBloomberg_1_1quantum_1_1SpinLock_1_1ReverseGuard.html", null ],
     [ "Mutex::ReverseGuard", "de/d64/classMutex_1_1ReverseGuard.html", null ],
+    [ "SpinLock::ReverseGuard", "dd/db5/classSpinLock_1_1ReverseGuard.html", null ],
     [ "Bloomberg::quantum::SharedState< T >", "d2/df0/classBloomberg_1_1quantum_1_1SharedState.html", null ],
     [ "Bloomberg::quantum::SpinLock", "d1/d05/classBloomberg_1_1quantum_1_1SpinLock.html", null ],
-    [ "Bloomberg::quantum::StackAllocator< T, SIZE >", "d0/d75/structBloomberg_1_1quantum_1_1StackAllocator.html", null ],
+    [ "Bloomberg::quantum::StackTraits", "d7/d9d/structBloomberg_1_1quantum_1_1StackTraits.html", null ],
+    [ "Bloomberg::quantum::StackTraitsProxy", "d4/df4/structBloomberg_1_1quantum_1_1StackTraitsProxy.html", null ],
+    [ "Bloomberg::quantum::ThreadTraits", "d8/daf/structBloomberg_1_1quantum_1_1ThreadTraits.html", null ],
     [ "Bloomberg::quantum::Traits", "d6/d86/structBloomberg_1_1quantum_1_1Traits.html", null ],
     [ "true_type", null, [
       [ "Bloomberg::quantum::Traits::IsBuffer< Buffer< T > >", "d0/dc6/structBloomberg_1_1quantum_1_1Traits_1_1IsBuffer_3_01Buffer_3_01T_01_4_01_4.html", null ]
