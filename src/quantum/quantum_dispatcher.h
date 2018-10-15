@@ -158,6 +158,72 @@ public:
     typename ThreadFuture<RET>::Ptr
     postAsyncIo(int queueId, bool isHighPriority, FUNC&& func, ARGS&&... args);
     
+    /// @brief Applies the given unary function to all the elements in the range [first,last).
+    ///        This function runs in parallel.
+    /// @tparam RET The return value of the unary function.
+    /// @tparam UNARY_FUNC A unary function type. The unary function must take as its sole
+    ///         parameter a type == decltype(*it) where it in the range above.
+    /// @tparam InputIt The type of iterator.
+    /// @param first The first element in the range.
+    /// @param last The last element in the range (exclusive).
+    /// @param func The unary function.
+    /// @return A vector of values corresponding to the output of 'func' on every element in the range.
+    /// @note Use this function if InputIt meets the requirement of a RandomAccessIterator
+    /// @note Each func invocation will run inside its own coroutine instance.
+    template <class RET = int, class UNARY_FUNC, class InputIt>
+    std::vector<RET>
+    forEach(InputIt first, InputIt last, UNARY_FUNC&& func);
+    
+    /// @brief Applies the given unary function to all the elements in the range [first,first+num).
+    ///        This function runs in parallel.
+    /// @tparam RET The return value of the unary function.
+    /// @tparam UNARY_FUNC A unary function type. The unary function must take as its sole
+    ///         parameter a type == decltype(*it) where it in the range above.
+    /// @tparam InputIt The type of iterator.
+    /// @param first The first element in the range.
+    /// @param num The number of elements to iterate over.
+    /// @param func The unary function.
+    /// @return A vector of values corresponding to the output of 'func' on every element in the range.
+    /// @note Use this function if InputIt *does not* meet the requirement of a RandomAccessIterator.
+    /// @note Each func invocation will run inside its own coroutine instance.
+    template <class RET = int, class UNARY_FUNC, class InputIt>
+    std::vector<RET>
+    forEach(InputIt first, size_t num, UNARY_FUNC&& func);
+    
+    /// @brief Applies the given unary function to all the elements in the range [first,last).
+    ///        This function runs serially with respect to other functions in the same batch.
+    /// @tparam RET The return value of the unary function.
+    /// @tparam UNARY_FUNC A unary function type. The unary function must take as its sole
+    ///         parameter a type == decltype(*it) where it in the range above.
+    /// @tparam InputIt The type of iterator.
+    /// @param first The first element in the range.
+    /// @param last The last element in the range (exclusive).
+    /// @param func The unary function.
+    /// @return A vector of values corresponding to the output of 'func' on every element in the range.
+    /// @note Use this function if InputIt meets the requirement of a RandomAccessIterator.
+    /// @note The input range is split equally among coroutines and executed in batches. This function
+    ///       achieves higher throughput rates than the non-batched mode, if func() is CPU-bound.
+    template <class RET = int, class UNARY_FUNC, class InputIt>
+    std::vector<RET>
+    forEachBatch(InputIt first, InputIt last, UNARY_FUNC&& func);
+    
+    /// @brief Applies the given unary function to all the elements in the range [first,last).
+    ///        This function runs serially with respect to other functions in the same batch.
+    /// @tparam RET The return value of the unary function.f
+    /// @tparam UNARY_FUNC A unary function type. The unary function must take as its sole
+    ///         parameter a type == decltype(*it) where it in the range above.
+    /// @tparam InputIt The type of iterator.
+    /// @param first The first element in the range.
+    /// @param last The last element in the range (exclusive).
+    /// @param func The unary function.
+    /// @return A vector of values corresponding to the output of 'func' on every element in the range.
+    /// @note Use this function if InputIt *does not* meet the requirement of a RandomAccessIterator.
+    /// @note The input range is split equally among coroutines and executed in batches. This function
+    ///       achieves higher throughput rates than the non-batched mode, if func() is CPU-bound.
+    template <class RET = int, class UNARY_FUNC, class InputIt>
+    std::vector<RET>
+    forEachBatch(InputIt first, size_t num, UNARY_FUNC&& func);
+    
     /// @brief Signal all threads to immediately terminate and exit. All other pending coroutines and IO tasks will not complete.
     ///        Call this function for a fast shutdown of the dispatcher.
     /// @note This function blocks.

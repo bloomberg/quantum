@@ -885,6 +885,52 @@ TEST(StressTest, AsyncIoAnyQueueLoadBalance)
     EXPECT_EQ(10000, s.size()); //all elements unique
 }
 
+TEST(ForEachTest, Simple)
+{
+    std::vector<int> start{0,1,2,3,4,5,6,7,8,9};
+    std::vector<char> end{'a','b','c','d','e','f','g','h','i','j'};
+    std::vector<char> results = Dispatcher::instance().forEach<char>(start.begin(), start.end(),
+        [](int val)->char {
+        return 'a'+val;
+    });
+    EXPECT_EQ(end, results);
+}
+
+TEST(ForEachTest, SmallBatch)
+{
+    std::vector<int> start{0,1,2};
+    std::vector<char> end{'a','b','c'};
+    
+    std::vector<char> results = Dispatcher::instance().forEachBatch<char>(start.begin(), start.end(),
+        [](int val)->char
+    {
+        return 'a'+val;
+    });
+    EXPECT_EQ(end, results);
+}
+
+
+TEST(ForEachTest, LargeBatch)
+{
+    int num = 1003;
+    std::vector<int> start(num);
+    
+    //Build a large input vector
+    for (int i = 0; i < num; ++i) {
+        start[i]=i;
+    }
+    
+    std::vector<int> results = Dispatcher::instance().forEachBatch<int>(start.begin(), start.end(),
+        [](int val)->int {
+        return val*2; //double the value
+    });
+    
+    ASSERT_EQ(results.size(), num);
+    for (int i = 0; i < num; ++i) {
+        EXPECT_EQ(results[i], start[i]*2);
+    }
+}
+
 //This test **must** come last to make Valgrind happy.
 TEST(TestCleanup, DeleteDispatcherInstance)
 {

@@ -99,6 +99,84 @@ TaskDispatcher::postAsyncIo(int queueId,
     return postAsyncIoImpl<RET>(queueId, isHighPriority, std::forward<FUNC>(func), std::forward<ARGS>(args)...);
 }
 
+template <class RET, class UNARY_FUNC, class InputIt>
+std::vector<RET>
+TaskDispatcher::forEach(InputIt first, InputIt last, UNARY_FUNC&& func)
+{
+    return forEach<RET>(first, std::distance(first, last), std::forward<UNARY_FUNC>(func));
+}
+
+template <class RET, class UNARY_FUNC, class InputIt>
+std::vector<RET>
+TaskDispatcher::forEach(InputIt first, size_t num, UNARY_FUNC&& func)
+{
+    std::vector<RET> result;
+    std::vector<typename ThreadContext<RET>::Ptr> asyncResult;
+    result.reserve(num);
+    asyncResult.reserve(num);
+    for (size_t i = 0; i < num; ++i, ++first)
+    {
+        //Run the function
+        asyncResult.emplace_back(post<RET>([func, first](typename CoroContext<RET>::Ptr ctx)->int
+        {
+            return ctx->set(func(*first));
+        }));
+    }
+    for (auto&& tctx : asyncResult)
+    {
+        result.emplace_back(tctx->get());
+    }
+    return result;
+}
+
+template <class RET, class UNARY_FUNC, class InputIt>
+std::vector<RET>
+TaskDispatcher::forEachBatch(InputIt first, InputIt last, UNARY_FUNC&& func)
+{
+    return forEachBatch<RET>(first, std::distance(first, last), std::forward<UNARY_FUNC>(func));
+}
+
+template <class RET, class UNARY_FUNC, class InputIt>
+std::vector<RET>
+TaskDispatcher::forEachBatch(InputIt first, size_t num, UNARY_FUNC&& func)
+{
+    std::vector<RET> result;
+    result.reserve(num);
+    size_t numCoroThreads = getNumCoroutineThreads();
+    size_t numPerBatch = num/numCoroThreads;
+    size_t remainder = num%numCoroThreads;
+    std::vector<typename ThreadContext<std::vector<RET>>::Ptr> batchedResult;
+    batchedResult.reserve(numCoroThreads);
+    
+    // Post unto all the coroutine threads.
+    for (size_t i = 0; i < numCoroThreads; ++i)
+    {
+        //get the begin and end iterators for each batch
+        size_t num = (i < remainder) ? numPerBatch + 1 : numPerBatch;
+        if (!num) break;
+        batchedResult.emplace_back(post<std::vector<RET>>([func, first, num](typename CoroContext<std::vector<RET>>::Ptr ctx)->int
+        {
+            std::vector<RET> result;
+            auto inputIt = first;
+            for (size_t i = 0; i < num; ++i, ++inputIt)
+            {
+                result.emplace_back(func(*inputIt));
+            }
+            return ctx->set(std::move(result));
+        }));
+        std::advance(first, num);
+    }
+    //Get the results
+    for (auto&& tctx : batchedResult)
+    {
+        std::vector<RET> v = tctx->get();
+        result.insert(result.end(),
+                      std::move_iterator<typename std::vector<RET>::iterator>(v.begin()),
+                      std::move_iterator<typename std::vector<RET>::iterator>(v.end()));
+    }
+    return result;
+}
+
 inline
 void TaskDispatcher::terminate()
 {
