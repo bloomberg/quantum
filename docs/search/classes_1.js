@@ -1,5 +1,8 @@
 var searchData=
 [
-  ['conditionvariable',['ConditionVariable',['../da/d9d/classBloomberg_1_1quantum_1_1ConditionVariable.html',1,'Bloomberg::quantum']]],
-  ['context',['Context',['../d8/df7/classBloomberg_1_1quantum_1_1Context.html',1,'Bloomberg::quantum']]]
+  ['boostallocator',['BoostAllocator',['../d1/d95/structBloomberg_1_1quantum_1_1BoostAllocator.html',1,'Bloomberg::quantum']]],
+  ['brokenpromiseexception',['BrokenPromiseException',['../d1/d0d/structBloomberg_1_1quantum_1_1BrokenPromiseException.html',1,'Bloomberg::quantum']]],
+  ['buffer',['Buffer',['../d1/d87/classBloomberg_1_1quantum_1_1Buffer.html',1,'Bloomberg::quantum']]],
+  ['bufferclosedexception',['BufferClosedException',['../d2/dfa/structBloomberg_1_1quantum_1_1BufferClosedException.html',1,'Bloomberg::quantum']]],
+  ['bufferingdataexception',['BufferingDataException',['../d8/dde/structBloomberg_1_1quantum_1_1BufferingDataException.html',1,'Bloomberg::quantum']]]
 ];

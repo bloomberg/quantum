@@ -40,7 +40,6 @@ var NAVTREE =
       [ "Class Members", "functions.html", [
         [ "All", "functions.html", "functions_dup" ],
         [ "Functions", "functions_func.html", "functions_func" ],
-        [ "Variables", "functions_vars.html", null ],
         [ "Typedefs", "functions_type.html", null ],
         [ "Enumerations", "functions_enum.html", null ],
         [ "Related Functions", "functions_rela.html", null ]
@@ -52,8 +51,9 @@ var NAVTREE =
 var NAVTREEINDEX =
 [
 "annotated.html",
-"d5/dd1/structBloomberg_1_1quantum_1_1ICoroContext.html#a6d9efaec62d095c4ee4bb478bfd0e103",
-"dc/d14/classBloomberg_1_1quantum_1_1Future.html#a46ea5e0294918212b44320cb941f737c"
+"d4/dd1/classBloomberg_1_1quantum_1_1IoQueue.html#a2615663c17c3b491604287dcb99b7746",
+"da/d4d/structBloomberg_1_1quantum_1_1IThreadContextBase.html#a52d3339262492bdac8e51d6317a5c4e3",
+"functions_u.html"
 ];
 
 var SYNCONMSG = 'click to disable panel synchronisation';

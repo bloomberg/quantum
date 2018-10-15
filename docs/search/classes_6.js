@@ -1,4 +1,4 @@
 var searchData=
 [
-  ['mutex',['Mutex',['../d7/d71/classBloomberg_1_1quantum_1_1Mutex.html',1,'Bloomberg::quantum']]]
+  ['heapallocator',['HeapAllocator',['../d2/da6/structBloomberg_1_1quantum_1_1HeapAllocator.html',1,'Bloomberg::quantum']]]
 ];

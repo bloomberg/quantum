@@ -115,6 +115,15 @@ Public Member Functions</h2></td></tr>
 <tr class="memitem:a5965911fb56e01e2cab07e60257b10e3"><td class="memItemLeft" align="right" valign="top">virtual void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d5/de7/structBloomberg_1_1quantum_1_1IQueueStatistics.html#a5965911fb56e01e2cab07e60257b10e3">reset</a> ()=0</td></tr>
 <tr class="memdesc:a5965911fb56e01e2cab07e60257b10e3"><td class="mdescLeft">&#160;</td><td class="mdescRight">Reset all the counters to 0.  <a href="#a5965911fb56e01e2cab07e60257b10e3">More...</a><br /></td></tr>
 <tr class="separator:a5965911fb56e01e2cab07e60257b10e3"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a3e14b34e5974aa8761ebbbfba246c804"><td class="memItemLeft" align="right" valign="top">virtual size_t&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d5/de7/structBloomberg_1_1quantum_1_1IQueueStatistics.html#a3e14b34e5974aa8761ebbbfba246c804">numElements</a> () const =0</td></tr>
+<tr class="memdesc:a3e14b34e5974aa8761ebbbfba246c804"><td class="mdescLeft">&#160;</td><td class="mdescRight">Gets the current size of the queue.  <a href="#a3e14b34e5974aa8761ebbbfba246c804">More...</a><br /></td></tr>
+<tr class="separator:a3e14b34e5974aa8761ebbbfba246c804"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a3f66ea1d8b4299eca3a1d0ffbc398db0"><td class="memItemLeft" align="right" valign="top">virtual void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d5/de7/structBloomberg_1_1quantum_1_1IQueueStatistics.html#a3f66ea1d8b4299eca3a1d0ffbc398db0">incNumElements</a> ()=0</td></tr>
+<tr class="memdesc:a3f66ea1d8b4299eca3a1d0ffbc398db0"><td class="mdescLeft">&#160;</td><td class="mdescRight">Increment this counter.  <a href="#a3f66ea1d8b4299eca3a1d0ffbc398db0">More...</a><br /></td></tr>
+<tr class="separator:a3f66ea1d8b4299eca3a1d0ffbc398db0"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a600feae7a9b4579d2d1e822059327181"><td class="memItemLeft" align="right" valign="top">virtual void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d5/de7/structBloomberg_1_1quantum_1_1IQueueStatistics.html#a600feae7a9b4579d2d1e822059327181">decNumElements</a> ()=0</td></tr>
+<tr class="memdesc:a600feae7a9b4579d2d1e822059327181"><td class="mdescLeft">&#160;</td><td class="mdescRight">Decrement this counter.  <a href="#a600feae7a9b4579d2d1e822059327181">More...</a><br /></td></tr>
+<tr class="separator:a600feae7a9b4579d2d1e822059327181"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a6176b930ff7a4f13a387ba64504cee8d"><td class="memItemLeft" align="right" valign="top">virtual size_t&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d5/de7/structBloomberg_1_1quantum_1_1IQueueStatistics.html#a6176b930ff7a4f13a387ba64504cee8d">errorCount</a> () const =0</td></tr>
 <tr class="memdesc:a6176b930ff7a4f13a387ba64504cee8d"><td class="mdescLeft">&#160;</td><td class="mdescRight">Count of all coroutine and IO task execution errors on this queue.  <a href="#a6176b930ff7a4f13a387ba64504cee8d">More...</a><br /></td></tr>
 <tr class="separator:a6176b930ff7a4f13a387ba64504cee8d"><td class="memSeparator" colspan="2">&#160;</td></tr>
@@ -213,6 +222,35 @@ Public Member Functions</h2></td></tr>
 <dl class="section return"><dt>Returns</dt><dd>Counter value. </dd></dl>
 
 <p>Implemented in <a class="el" href="../../d1/d7b/classBloomberg_1_1quantum_1_1QueueStatistics.html#aba2b43009c256e48a4d39b123a1414ce">Bloomberg::quantum::QueueStatistics</a>.</p>
+
+</div>
+</div>
+<a id="a600feae7a9b4579d2d1e822059327181"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a600feae7a9b4579d2d1e822059327181">&#9670;&nbsp;</a></span>decNumElements()</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">virtual void Bloomberg::quantum::IQueueStatistics::decNumElements </td>
+          <td>(</td>
+          <td class="paramname"></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">pure virtual</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+<p>Decrement this counter. </p>
+
+<p>Implemented in <a class="el" href="../../d1/d7b/classBloomberg_1_1quantum_1_1QueueStatistics.html#af0f16899e7a494a52b00ddaed3fe67c6">Bloomberg::quantum::QueueStatistics</a>.</p>
 
 </div>
 </div>
@@ -363,6 +401,35 @@ Public Member Functions</h2></td></tr>
 
 </div>
 </div>
+<a id="a3f66ea1d8b4299eca3a1d0ffbc398db0"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a3f66ea1d8b4299eca3a1d0ffbc398db0">&#9670;&nbsp;</a></span>incNumElements()</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">virtual void Bloomberg::quantum::IQueueStatistics::incNumElements </td>
+          <td>(</td>
+          <td class="paramname"></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">pure virtual</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+<p>Increment this counter. </p>
+
+<p>Implemented in <a class="el" href="../../d1/d7b/classBloomberg_1_1quantum_1_1QueueStatistics.html#a20d2b8e6cdbec452423bc06fb9544a6e">Bloomberg::quantum::QueueStatistics</a>.</p>
+
+</div>
+</div>
 <a id="aa9f31b62999c9c1763bae1d24fa13a0d"></a>
 <h2 class="memtitle"><span class="permalink"><a href="#aa9f31b62999c9c1763bae1d24fa13a0d">&#9670;&nbsp;</a></span>incPostedCount()</h2>
 
@@ -447,6 +514,35 @@ Public Member Functions</h2></td></tr>
 <p>Increment this counter. </p>
 
 <p>Implemented in <a class="el" href="../../d1/d7b/classBloomberg_1_1quantum_1_1QueueStatistics.html#a0f705cdb4c8fece19ed107eefaa2e889">Bloomberg::quantum::QueueStatistics</a>.</p>
+
+</div>
+</div>
+<a id="a3e14b34e5974aa8761ebbbfba246c804"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a3e14b34e5974aa8761ebbbfba246c804">&#9670;&nbsp;</a></span>numElements()</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">virtual size_t Bloomberg::quantum::IQueueStatistics::numElements </td>
+          <td>(</td>
+          <td class="paramname"></td><td>)</td>
+          <td> const</td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">pure virtual</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+<p>Gets the current size of the queue. </p>
+
+<p>Implemented in <a class="el" href="../../d1/d7b/classBloomberg_1_1quantum_1_1QueueStatistics.html#afb914e5c8df8498c21d0dc4bef74540b">Bloomberg::quantum::QueueStatistics</a>.</p>
 
 </div>
 </div>

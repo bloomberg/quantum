@@ -170,6 +170,12 @@ Public Member Functions</h2></td></tr>
 <tr class="memitem:aef2bff661268949c9c598e0674ff7254"><td class="memTemplItemLeft" align="right" valign="top">int&#160;</td><td class="memTemplItemRight" valign="bottom"><a class="el" href="../../da/de3/structBloomberg_1_1quantum_1_1IThreadContext.html#aef2bff661268949c9c598e0674ff7254">closeBuffer</a> ()</td></tr>
 <tr class="memdesc:aef2bff661268949c9c598e0674ff7254"><td class="mdescLeft">&#160;</td><td class="mdescRight">Close a promise buffer.  <a href="#aef2bff661268949c9c598e0674ff7254">More...</a><br /></td></tr>
 <tr class="separator:aef2bff661268949c9c598e0674ff7254"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a974f72467140b4d4047d8b76d2011703"><td class="memItemLeft" align="right" valign="top">int&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../da/de3/structBloomberg_1_1quantum_1_1IThreadContext.html#a974f72467140b4d4047d8b76d2011703">getNumCoroutineThreads</a> () const</td></tr>
+<tr class="memdesc:a974f72467140b4d4047d8b76d2011703"><td class="mdescLeft">&#160;</td><td class="mdescRight">Returns the number of underlying coroutine threads as specified in the dispatcher constructor. If -1 was passed than this number essentially indicates the number of cores.  <a href="#a974f72467140b4d4047d8b76d2011703">More...</a><br /></td></tr>
+<tr class="separator:a974f72467140b4d4047d8b76d2011703"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:aaf40c9f4c874571d103a2b40c2dbf554"><td class="memItemLeft" align="right" valign="top">int&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../da/de3/structBloomberg_1_1quantum_1_1IThreadContext.html#aaf40c9f4c874571d103a2b40c2dbf554">getNumIoThreads</a> () const</td></tr>
+<tr class="memdesc:aaf40c9f4c874571d103a2b40c2dbf554"><td class="mdescLeft">&#160;</td><td class="mdescRight">Returns the number of underlying IO threads as specified in the dispatcher constructor.  <a href="#aaf40c9f4c874571d103a2b40c2dbf554">More...</a><br /></td></tr>
+<tr class="separator:aaf40c9f4c874571d103a2b40c2dbf554"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a1fefd57cd2d9d7b79825556e335be2c0"><td class="memTemplParams" colspan="2">template&lt;class OTHER_RET  = int, class FUNC , class ... ARGS&gt; </td></tr>
 <tr class="memitem:a1fefd57cd2d9d7b79825556e335be2c0"><td class="memTemplItemLeft" align="right" valign="top"><a class="el" href="../../da/de3/structBloomberg_1_1quantum_1_1IThreadContext.html">IThreadContext</a>&lt; OTHER_RET &gt;::<a class="el" href="../../d8/db0/structBloomberg_1_1quantum_1_1IContextBase.html#ac92e5d294479f777fd01f5621e4f8db9">Ptr</a>&#160;</td><td class="memTemplItemRight" valign="bottom"><a class="el" href="../../da/de3/structBloomberg_1_1quantum_1_1IThreadContext.html#a1fefd57cd2d9d7b79825556e335be2c0">then</a> (FUNC &amp;&amp;func, ARGS &amp;&amp;... args)</td></tr>
 <tr class="memdesc:a1fefd57cd2d9d7b79825556e335be2c0"><td class="mdescLeft">&#160;</td><td class="mdescRight">Posts a function to run asynchronously.  <a href="#a1fefd57cd2d9d7b79825556e335be2c0">More...</a><br /></td></tr>
@@ -423,6 +429,56 @@ template&lt;class OTHER_RET &gt; </div>
 <dl class="section note"><dt>Note</dt><dd>Blocks until the future is ready or until an exception is thrown. Once this function returns, the future is invalidated (i.e. cannot be read again). </dd></dl>
 
 <p>Implemented in <a class="el" href="../../d8/df7/classBloomberg_1_1quantum_1_1Context.html#ad65f25336079dce6bb7e27774e7b3ae3">Bloomberg::quantum::Context&lt; RET &gt;</a>.</p>
+
+</div>
+</div>
+<a id="a974f72467140b4d4047d8b76d2011703"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a974f72467140b4d4047d8b76d2011703">&#9670;&nbsp;</a></span>getNumCoroutineThreads()</h2>
+
+<div class="memitem">
+<div class="memproto">
+<div class="memtemplate">
+template&lt;class RET &gt; </div>
+      <table class="memname">
+        <tr>
+          <td class="memname">int <a class="el" href="../../da/de3/structBloomberg_1_1quantum_1_1IThreadContext.html">Bloomberg::quantum::IThreadContext</a>&lt; RET &gt;::getNumCoroutineThreads </td>
+          <td>(</td>
+          <td class="paramname"></td><td>)</td>
+          <td> const</td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p>Returns the number of underlying coroutine threads as specified in the dispatcher constructor. If -1 was passed than this number essentially indicates the number of cores. </p>
+<dl class="section return"><dt>Returns</dt><dd>The number of threads. </dd></dl>
+<dl class="section note"><dt>Note</dt><dd>Each thread services its own queueId, therefore this number can be used when assigning coroutines to a specific queue. </dd></dl>
+
+<p>Implemented in <a class="el" href="../../d8/df7/classBloomberg_1_1quantum_1_1Context.html#a66b2fe051e1b72e6a045cb0a3e57b9d2">Bloomberg::quantum::Context&lt; RET &gt;</a>.</p>
+
+</div>
+</div>
+<a id="aaf40c9f4c874571d103a2b40c2dbf554"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#aaf40c9f4c874571d103a2b40c2dbf554">&#9670;&nbsp;</a></span>getNumIoThreads()</h2>
+
+<div class="memitem">
+<div class="memproto">
+<div class="memtemplate">
+template&lt;class RET &gt; </div>
+      <table class="memname">
+        <tr>
+          <td class="memname">int <a class="el" href="../../da/de3/structBloomberg_1_1quantum_1_1IThreadContext.html">Bloomberg::quantum::IThreadContext</a>&lt; RET &gt;::getNumIoThreads </td>
+          <td>(</td>
+          <td class="paramname"></td><td>)</td>
+          <td> const</td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p>Returns the number of underlying IO threads as specified in the dispatcher constructor. </p>
+<dl class="section return"><dt>Returns</dt><dd>The number of threads. </dd></dl>
+<dl class="section note"><dt>Note</dt><dd>Each thread services its own queueId, therefore this number can be used when assigning IO tasks to a specific queue. </dd></dl>
+
+<p>Implemented in <a class="el" href="../../d8/df7/classBloomberg_1_1quantum_1_1Context.html#a5855eee0ab54a2d606cdc96196816a74">Bloomberg::quantum::Context&lt; RET &gt;</a>.</p>
 
 </div>
 </div>

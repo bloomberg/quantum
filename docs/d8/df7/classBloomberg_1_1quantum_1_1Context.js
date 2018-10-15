@@ -11,6 +11,8 @@ var classBloomberg_1_1quantum_1_1Context =
     [ "get", "d8/df7/classBloomberg_1_1quantum_1_1Context.html#ac4be3dac7142d63f47619fd27f301836", null ],
     [ "getAt", "d8/df7/classBloomberg_1_1quantum_1_1Context.html#ad65f25336079dce6bb7e27774e7b3ae3", null ],
     [ "getAt", "d8/df7/classBloomberg_1_1quantum_1_1Context.html#a91097e3ee4b01f9b12a4a558ad4d75bd", null ],
+    [ "getNumCoroutineThreads", "d8/df7/classBloomberg_1_1quantum_1_1Context.html#a66b2fe051e1b72e6a045cb0a3e57b9d2", null ],
+    [ "getNumIoThreads", "d8/df7/classBloomberg_1_1quantum_1_1Context.html#a5855eee0ab54a2d606cdc96196816a74", null ],
     [ "getPrev", "d8/df7/classBloomberg_1_1quantum_1_1Context.html#ad3cc3bc2cb9831a5df7dad5827ecdb6d", null ],
     [ "getPrevRef", "d8/df7/classBloomberg_1_1quantum_1_1Context.html#ad0e4de68ff35d05d0191986b8b73c42d", null ],
     [ "getRef", "d8/df7/classBloomberg_1_1quantum_1_1Context.html#a8b6130626534af906480cb4303f2d837", null ],

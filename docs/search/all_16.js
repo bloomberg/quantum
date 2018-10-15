@@ -2,9 +2,12 @@ var searchData=
 [
   ['_7econditionvariable',['~ConditionVariable',['../da/d9d/classBloomberg_1_1quantum_1_1ConditionVariable.html#a08203af67a4ce39ca5e1e6769708a38b',1,'Bloomberg::quantum::ConditionVariable']]],
   ['_7econtext',['~Context',['../d8/df7/classBloomberg_1_1quantum_1_1Context.html#a27f69b3023acdc46fc3145db80ea1b68',1,'Bloomberg::quantum::Context']]],
+  ['_7econtiguouspoolmanager',['~ContiguousPoolManager',['../d7/dd7/structBloomberg_1_1quantum_1_1ContiguousPoolManager.html#a9d2e84213284a0b4af17db13328fcf06',1,'Bloomberg::quantum::ContiguousPoolManager']]],
+  ['_7ecoroutinepoolallocator',['~CoroutinePoolAllocator',['../db/d67/structBloomberg_1_1quantum_1_1CoroutinePoolAllocator.html#a9da759340b01b6f4979c201b7594020b',1,'Bloomberg::quantum::CoroutinePoolAllocator']]],
   ['_7ederivedfrom',['~DerivedFrom',['../db/db8/structBloomberg_1_1quantum_1_1Traits_1_1DerivedFrom.html#a58de90b9397ea0c48c3cbe37866ddb3d',1,'Bloomberg::quantum::Traits::DerivedFrom']]],
   ['_7edispatchercore',['~DispatcherCore',['../da/daa/classBloomberg_1_1quantum_1_1DispatcherCore.html#ae747f986c1d7522fd4ed0c4b3de96732',1,'Bloomberg::quantum::DispatcherCore']]],
   ['_7eguard',['~Guard',['../d5/dae/classBloomberg_1_1quantum_1_1ITerminate_1_1Guard.html#a935713cd21906b3fd3b5c8b6346d902c',1,'Bloomberg::quantum::ITerminate::Guard::~Guard()'],['../d8/dbb/classBloomberg_1_1quantum_1_1Mutex_1_1Guard.html#a328f4a28d4e3f0a53bbf249ff81b4c3e',1,'Bloomberg::quantum::Mutex::Guard::~Guard()'],['../db/de4/classBloomberg_1_1quantum_1_1SpinLock_1_1Guard.html#ad5a1d7a7122a97faf3bb5bcb011739db',1,'Bloomberg::quantum::SpinLock::Guard::~Guard()']]],
+  ['_7eheapallocator',['~HeapAllocator',['../d2/da6/structBloomberg_1_1quantum_1_1HeapAllocator.html#a4c22a8c50d26f799f560dac507cab6fb',1,'Bloomberg::quantum::HeapAllocator']]],
   ['_7eicontextbase',['~IContextBase',['../d8/db0/structBloomberg_1_1quantum_1_1IContextBase.html#a39a012af6799019e99e1ab5364bb2c86',1,'Bloomberg::quantum::IContextBase']]],
   ['_7eicorofuturebase',['~ICoroFutureBase',['../dc/d82/structBloomberg_1_1quantum_1_1ICoroFutureBase.html#ac320a032b464b1578a67492dc78bd299',1,'Bloomberg::quantum::ICoroFutureBase']]],
   ['_7eicorosync',['~ICoroSync',['../d3/d63/structBloomberg_1_1quantum_1_1ICoroSync.html#a870e1b03e0c0b5a2310709310b78379b',1,'Bloomberg::quantum::ICoroSync']]],

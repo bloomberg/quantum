@@ -111,8 +111,8 @@ Inheritance diagram for Bloomberg::quantum::TaskQueue:</div>
 <table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a name="pub-types"></a>
 Public Types</h2></td></tr>
-<tr class="memitem:ac2dbf5f1247c4231cfb2470013fbad17"><td class="memItemLeft" align="right" valign="top">using&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d8/d06/classBloomberg_1_1quantum_1_1TaskQueue.html#ac2dbf5f1247c4231cfb2470013fbad17">TaskList</a> = std::list&lt; <a class="el" href="../../d0/d90/classBloomberg_1_1quantum_1_1Task.html#a2d6e0bcef2e9f07d966c9734f92f4969">Task::Ptr</a> &gt;</td></tr>
-<tr class="separator:ac2dbf5f1247c4231cfb2470013fbad17"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a1d5ae5e8b380c3b88f09f64ebce2e411"><td class="memItemLeft" align="right" valign="top">using&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d8/d06/classBloomberg_1_1quantum_1_1TaskQueue.html#a1d5ae5e8b380c3b88f09f64ebce2e411">TaskList</a> = std::list&lt; <a class="el" href="../../d0/d90/classBloomberg_1_1quantum_1_1Task.html#a2d6e0bcef2e9f07d966c9734f92f4969">Task::Ptr</a>, <a class="el" href="../../dc/d48/namespaceBloomberg_1_1quantum.html#a8a48c732495dfe1af2d8bf0e3febe94f">QueueListAllocator</a> &gt;</td></tr>
+<tr class="separator:a1d5ae5e8b380c3b88f09f64ebce2e411"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a2cc96b016e5f92f1f6e77f9bd0cb6783"><td class="memItemLeft" align="right" valign="top">using&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d8/d06/classBloomberg_1_1quantum_1_1TaskQueue.html#a2cc96b016e5f92f1f6e77f9bd0cb6783">TaskListIter</a> = TaskList::iterator</td></tr>
 <tr class="separator:a2cc96b016e5f92f1f6e77f9bd0cb6783"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="inherit_header pub_types_structBloomberg_1_1quantum_1_1IQueue"><td colspan="2" onclick="javascript:toggleInherit('pub_types_structBloomberg_1_1quantum_1_1IQueue')"><img src="../../closed.png" alt="-"/>&#160;Public Types inherited from <a class="el" href="../../d2/db0/structBloomberg_1_1quantum_1_1IQueue.html">Bloomberg::quantum::IQueue</a></td></tr>
@@ -133,16 +133,26 @@ Public Types</h2></td></tr>
 Public Member Functions</h2></td></tr>
 <tr class="memitem:a062eb69d9f40611e0240b17c9c753b95"><td class="memItemLeft" align="right" valign="top">&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d8/d06/classBloomberg_1_1quantum_1_1TaskQueue.html#a062eb69d9f40611e0240b17c9c753b95">TaskQueue</a> ()</td></tr>
 <tr class="separator:a062eb69d9f40611e0240b17c9c753b95"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ad4cb9388c90238f795da63c24c14b535"><td class="memItemLeft" align="right" valign="top">&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d8/d06/classBloomberg_1_1quantum_1_1TaskQueue.html#ad4cb9388c90238f795da63c24c14b535">TaskQueue</a> (const <a class="el" href="../../db/dda/classBloomberg_1_1quantum_1_1Configuration.html">Configuration</a> &amp;config)</td></tr>
+<tr class="separator:ad4cb9388c90238f795da63c24c14b535"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a0c00afd7ba315417bd63cc72ecef3379"><td class="memItemLeft" align="right" valign="top">&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d8/d06/classBloomberg_1_1quantum_1_1TaskQueue.html#a0c00afd7ba315417bd63cc72ecef3379">TaskQueue</a> (const <a class="el" href="../../d8/d06/classBloomberg_1_1quantum_1_1TaskQueue.html">TaskQueue</a> &amp;other)</td></tr>
+<tr class="separator:a0c00afd7ba315417bd63cc72ecef3379"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:aecf6bbaf5b044c5977672be15c4fd6ea"><td class="memItemLeft" align="right" valign="top">&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d8/d06/classBloomberg_1_1quantum_1_1TaskQueue.html#aecf6bbaf5b044c5977672be15c4fd6ea">TaskQueue</a> (<a class="el" href="../../d8/d06/classBloomberg_1_1quantum_1_1TaskQueue.html">TaskQueue</a> &amp;&amp;other)=default</td></tr>
+<tr class="separator:aecf6bbaf5b044c5977672be15c4fd6ea"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:ab139dd2134e5bacecc8e282ac63010fb"><td class="memItemLeft" align="right" valign="top">&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d8/d06/classBloomberg_1_1quantum_1_1TaskQueue.html#ab139dd2134e5bacecc8e282ac63010fb">~TaskQueue</a> ()</td></tr>
 <tr class="separator:ab139dd2134e5bacecc8e282ac63010fb"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a538a6332f83626076d5850438bbcdcc9"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d8/d06/classBloomberg_1_1quantum_1_1TaskQueue.html#a538a6332f83626076d5850438bbcdcc9">pinToCore</a> (int coreId) final</td></tr>
 <tr class="separator:a538a6332f83626076d5850438bbcdcc9"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a0b0a30fdf109f7b8ec549c194a6a0701"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d8/d06/classBloomberg_1_1quantum_1_1TaskQueue.html#a0b0a30fdf109f7b8ec549c194a6a0701">run</a> () final</td></tr>
 <tr class="separator:a0b0a30fdf109f7b8ec549c194a6a0701"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a005189575ae89c7f814e860aa560bfdf"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d8/d06/classBloomberg_1_1quantum_1_1TaskQueue.html#a005189575ae89c7f814e860aa560bfdf">enQueue</a> (<a class="el" href="../../df/daf/structBloomberg_1_1quantum_1_1ITask.html#a6c5b8216547b11f3f0e0e6bc7d20956d">ITask::Ptr</a> task) final</td></tr>
-<tr class="separator:a005189575ae89c7f814e860aa560bfdf"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:af5726b94fe68381fcd7bf5a348d832e0"><td class="memItemLeft" align="right" valign="top"><a class="el" href="../../df/daf/structBloomberg_1_1quantum_1_1ITask.html#a6c5b8216547b11f3f0e0e6bc7d20956d">ITask::Ptr</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d8/d06/classBloomberg_1_1quantum_1_1TaskQueue.html#af5726b94fe68381fcd7bf5a348d832e0">deQueue</a> () final</td></tr>
-<tr class="separator:af5726b94fe68381fcd7bf5a348d832e0"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:abf230e9bdc7bf07033f5afbb7a2f3cc3"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d8/d06/classBloomberg_1_1quantum_1_1TaskQueue.html#abf230e9bdc7bf07033f5afbb7a2f3cc3">enqueue</a> (<a class="el" href="../../df/daf/structBloomberg_1_1quantum_1_1ITask.html#a6c5b8216547b11f3f0e0e6bc7d20956d">ITask::Ptr</a> task) final</td></tr>
+<tr class="separator:abf230e9bdc7bf07033f5afbb7a2f3cc3"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:abe66c06fdb34f0dba8863ce115ad9388"><td class="memItemLeft" align="right" valign="top">bool&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d8/d06/classBloomberg_1_1quantum_1_1TaskQueue.html#abe66c06fdb34f0dba8863ce115ad9388">tryEnqueue</a> (<a class="el" href="../../df/daf/structBloomberg_1_1quantum_1_1ITask.html#a6c5b8216547b11f3f0e0e6bc7d20956d">ITask::Ptr</a> task) final</td></tr>
+<tr class="separator:abe66c06fdb34f0dba8863ce115ad9388"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a45cfdb8a415a15bdcd6e52b26c18f035"><td class="memItemLeft" align="right" valign="top"><a class="el" href="../../df/daf/structBloomberg_1_1quantum_1_1ITask.html#a6c5b8216547b11f3f0e0e6bc7d20956d">ITask::Ptr</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d8/d06/classBloomberg_1_1quantum_1_1TaskQueue.html#a45cfdb8a415a15bdcd6e52b26c18f035">dequeue</a> (std::atomic_bool &amp;hint) final</td></tr>
+<tr class="separator:a45cfdb8a415a15bdcd6e52b26c18f035"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ae7120fc5642802293e0fff8de45fcfa5"><td class="memItemLeft" align="right" valign="top"><a class="el" href="../../df/daf/structBloomberg_1_1quantum_1_1ITask.html#a6c5b8216547b11f3f0e0e6bc7d20956d">ITask::Ptr</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d8/d06/classBloomberg_1_1quantum_1_1TaskQueue.html#ae7120fc5642802293e0fff8de45fcfa5">tryDequeue</a> (std::atomic_bool &amp;hint) final</td></tr>
+<tr class="separator:ae7120fc5642802293e0fff8de45fcfa5"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a5307b142d43acd7adc5d6ca6dff84c27"><td class="memItemLeft" align="right" valign="top">size_t&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d8/d06/classBloomberg_1_1quantum_1_1TaskQueue.html#a5307b142d43acd7adc5d6ca6dff84c27">size</a> () const final</td></tr>
 <tr class="separator:a5307b142d43acd7adc5d6ca6dff84c27"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:ad2942c9d04b7c1d7eed395ee8186964e"><td class="memItemLeft" align="right" valign="top">bool&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d8/d06/classBloomberg_1_1quantum_1_1TaskQueue.html#ad2942c9d04b7c1d7eed395ee8186964e">empty</a> () const final</td></tr>
@@ -167,14 +177,14 @@ Public Member Functions</h2></td></tr>
 <div class="textblock"><p>Thread queue for running coroutines. </p>
 <dl class="section note"><dt>Note</dt><dd>For internal use only. </dd></dl>
 </div><h2 class="groupheader">Member Typedef Documentation</h2>
-<a id="ac2dbf5f1247c4231cfb2470013fbad17"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#ac2dbf5f1247c4231cfb2470013fbad17">&#9670;&nbsp;</a></span>TaskList</h2>
+<a id="a1d5ae5e8b380c3b88f09f64ebce2e411"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a1d5ae5e8b380c3b88f09f64ebce2e411">&#9670;&nbsp;</a></span>TaskList</h2>
 
 <div class="memitem">
 <div class="memproto">
       <table class="memname">
         <tr>
-          <td class="memname">using <a class="el" href="../../d8/d06/classBloomberg_1_1quantum_1_1TaskQueue.html#ac2dbf5f1247c4231cfb2470013fbad17">Bloomberg::quantum::TaskQueue::TaskList</a> =  std::list&lt;<a class="el" href="../../d0/d90/classBloomberg_1_1quantum_1_1Task.html#a2d6e0bcef2e9f07d966c9734f92f4969">Task::Ptr</a>&gt;</td>
+          <td class="memname">using <a class="el" href="../../d8/d06/classBloomberg_1_1quantum_1_1TaskQueue.html#a1d5ae5e8b380c3b88f09f64ebce2e411">Bloomberg::quantum::TaskQueue::TaskList</a> =  std::list&lt;<a class="el" href="../../d0/d90/classBloomberg_1_1quantum_1_1Task.html#a2d6e0bcef2e9f07d966c9734f92f4969">Task::Ptr</a>, <a class="el" href="../../dc/d48/namespaceBloomberg_1_1quantum.html#a8a48c732495dfe1af2d8bf0e3febe94f">QueueListAllocator</a>&gt;</td>
         </tr>
       </table>
 </div><div class="memdoc">
@@ -197,7 +207,7 @@ Public Member Functions</h2></td></tr>
 </div>
 <h2 class="groupheader">Constructor &amp; Destructor Documentation</h2>
 <a id="a062eb69d9f40611e0240b17c9c753b95"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a062eb69d9f40611e0240b17c9c753b95">&#9670;&nbsp;</a></span>TaskQueue()</h2>
+<h2 class="memtitle"><span class="permalink"><a href="#a062eb69d9f40611e0240b17c9c753b95">&#9670;&nbsp;</a></span>TaskQueue() <span class="overload">[1/4]</span></h2>
 
 <div class="memitem">
 <div class="memproto">
@@ -215,6 +225,84 @@ Public Member Functions</h2></td></tr>
   </td>
   <td class="mlabels-right">
 <span class="mlabels"><span class="mlabel">inline</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+</div>
+</div>
+<a id="ad4cb9388c90238f795da63c24c14b535"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#ad4cb9388c90238f795da63c24c14b535">&#9670;&nbsp;</a></span>TaskQueue() <span class="overload">[2/4]</span></h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">Bloomberg::quantum::TaskQueue::TaskQueue </td>
+          <td>(</td>
+          <td class="paramtype">const <a class="el" href="../../db/dda/classBloomberg_1_1quantum_1_1Configuration.html">Configuration</a> &amp;&#160;</td>
+          <td class="paramname"><em>config</em></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">inline</span><span class="mlabel">explicit</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+</div>
+</div>
+<a id="a0c00afd7ba315417bd63cc72ecef3379"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a0c00afd7ba315417bd63cc72ecef3379">&#9670;&nbsp;</a></span>TaskQueue() <span class="overload">[3/4]</span></h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">Bloomberg::quantum::TaskQueue::TaskQueue </td>
+          <td>(</td>
+          <td class="paramtype">const <a class="el" href="../../d8/d06/classBloomberg_1_1quantum_1_1TaskQueue.html">TaskQueue</a> &amp;&#160;</td>
+          <td class="paramname"><em>other</em></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">inline</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+</div>
+</div>
+<a id="aecf6bbaf5b044c5977672be15c4fd6ea"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#aecf6bbaf5b044c5977672be15c4fd6ea">&#9670;&nbsp;</a></span>TaskQueue() <span class="overload">[4/4]</span></h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">Bloomberg::quantum::TaskQueue::TaskQueue </td>
+          <td>(</td>
+          <td class="paramtype"><a class="el" href="../../d8/d06/classBloomberg_1_1quantum_1_1TaskQueue.html">TaskQueue</a> &amp;&amp;&#160;</td>
+          <td class="paramname"><em>other</em></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">default</span></span>  </td>
   </tr>
 </table>
 </div><div class="memdoc">
@@ -247,8 +335,8 @@ Public Member Functions</h2></td></tr>
 </div>
 </div>
 <h2 class="groupheader">Member Function Documentation</h2>
-<a id="af5726b94fe68381fcd7bf5a348d832e0"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#af5726b94fe68381fcd7bf5a348d832e0">&#9670;&nbsp;</a></span>deQueue()</h2>
+<a id="a45cfdb8a415a15bdcd6e52b26c18f035"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a45cfdb8a415a15bdcd6e52b26c18f035">&#9670;&nbsp;</a></span>dequeue()</h2>
 
 <div class="memitem">
 <div class="memproto">
@@ -257,9 +345,10 @@ Public Member Functions</h2></td></tr>
   <td class="mlabels-left">
       <table class="memname">
         <tr>
-          <td class="memname"><a class="el" href="../../df/daf/structBloomberg_1_1quantum_1_1ITask.html#a6c5b8216547b11f3f0e0e6bc7d20956d">ITask::Ptr</a> Bloomberg::quantum::TaskQueue::deQueue </td>
+          <td class="memname"><a class="el" href="../../df/daf/structBloomberg_1_1quantum_1_1ITask.html#a6c5b8216547b11f3f0e0e6bc7d20956d">ITask::Ptr</a> Bloomberg::quantum::TaskQueue::dequeue </td>
           <td>(</td>
-          <td class="paramname"></td><td>)</td>
+          <td class="paramtype">std::atomic_bool &amp;&#160;</td>
+          <td class="paramname"><em>hint</em></td><td>)</td>
           <td></td>
         </tr>
       </table>
@@ -270,7 +359,7 @@ Public Member Functions</h2></td></tr>
 </table>
 </div><div class="memdoc">
 
-<p>Implements <a class="el" href="../../d2/db0/structBloomberg_1_1quantum_1_1IQueue.html#a502dbb8bbe1af7a03d7944d8d126f9dc">Bloomberg::quantum::IQueue</a>.</p>
+<p>Implements <a class="el" href="../../d2/db0/structBloomberg_1_1quantum_1_1IQueue.html#a0e08ead7b9a2a82815c4be8a1dd69eb4">Bloomberg::quantum::IQueue</a>.</p>
 
 </div>
 </div>
@@ -301,8 +390,8 @@ Public Member Functions</h2></td></tr>
 
 </div>
 </div>
-<a id="a005189575ae89c7f814e860aa560bfdf"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a005189575ae89c7f814e860aa560bfdf">&#9670;&nbsp;</a></span>enQueue()</h2>
+<a id="abf230e9bdc7bf07033f5afbb7a2f3cc3"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#abf230e9bdc7bf07033f5afbb7a2f3cc3">&#9670;&nbsp;</a></span>enqueue()</h2>
 
 <div class="memitem">
 <div class="memproto">
@@ -311,7 +400,7 @@ Public Member Functions</h2></td></tr>
   <td class="mlabels-left">
       <table class="memname">
         <tr>
-          <td class="memname">void Bloomberg::quantum::TaskQueue::enQueue </td>
+          <td class="memname">void Bloomberg::quantum::TaskQueue::enqueue </td>
           <td>(</td>
           <td class="paramtype"><a class="el" href="../../df/daf/structBloomberg_1_1quantum_1_1ITask.html#a6c5b8216547b11f3f0e0e6bc7d20956d">ITask::Ptr</a>&#160;</td>
           <td class="paramname"><em>task</em></td><td>)</td>
@@ -325,7 +414,7 @@ Public Member Functions</h2></td></tr>
 </table>
 </div><div class="memdoc">
 
-<p>Implements <a class="el" href="../../d2/db0/structBloomberg_1_1quantum_1_1IQueue.html#acc4c904442a456121f39f63ad761fc9f">Bloomberg::quantum::IQueue</a>.</p>
+<p>Implements <a class="el" href="../../d2/db0/structBloomberg_1_1quantum_1_1IQueue.html#a3160aa0fd603f3fdefe94b5765ae3d06">Bloomberg::quantum::IQueue</a>.</p>
 
 </div>
 </div>
@@ -547,6 +636,62 @@ Public Member Functions</h2></td></tr>
 <dl class="section note"><dt>Note</dt><dd>This method should contain all logic necessary to properly cleanup this instance. </dd></dl>
 
 <p>Implements <a class="el" href="../../d9/ddb/structBloomberg_1_1quantum_1_1ITerminate.html#a66e42ce854b5afbb7742c5ffdaae8503">Bloomberg::quantum::ITerminate</a>.</p>
+
+</div>
+</div>
+<a id="ae7120fc5642802293e0fff8de45fcfa5"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#ae7120fc5642802293e0fff8de45fcfa5">&#9670;&nbsp;</a></span>tryDequeue()</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname"><a class="el" href="../../df/daf/structBloomberg_1_1quantum_1_1ITask.html#a6c5b8216547b11f3f0e0e6bc7d20956d">ITask::Ptr</a> Bloomberg::quantum::TaskQueue::tryDequeue </td>
+          <td>(</td>
+          <td class="paramtype">std::atomic_bool &amp;&#160;</td>
+          <td class="paramname"><em>hint</em></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">inline</span><span class="mlabel">final</span><span class="mlabel">virtual</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+<p>Implements <a class="el" href="../../d2/db0/structBloomberg_1_1quantum_1_1IQueue.html#a60aba8f2ed1ed1fef0054104aa7cc31f">Bloomberg::quantum::IQueue</a>.</p>
+
+</div>
+</div>
+<a id="abe66c06fdb34f0dba8863ce115ad9388"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#abe66c06fdb34f0dba8863ce115ad9388">&#9670;&nbsp;</a></span>tryEnqueue()</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">bool Bloomberg::quantum::TaskQueue::tryEnqueue </td>
+          <td>(</td>
+          <td class="paramtype"><a class="el" href="../../df/daf/structBloomberg_1_1quantum_1_1ITask.html#a6c5b8216547b11f3f0e0e6bc7d20956d">ITask::Ptr</a>&#160;</td>
+          <td class="paramname"><em>task</em></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">inline</span><span class="mlabel">final</span><span class="mlabel">virtual</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+<p>Implements <a class="el" href="../../d2/db0/structBloomberg_1_1quantum_1_1IQueue.html#a089cbdd69a554fe45fc46c608f470538">Bloomberg::quantum::IQueue</a>.</p>
 
 </div>
 </div>

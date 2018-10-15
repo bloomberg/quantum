@@ -7,6 +7,8 @@ var structBloomberg_1_1quantum_1_1ICoroContext =
     [ "finally", "d5/dd1/structBloomberg_1_1quantum_1_1ICoroContext.html#ab2841f20054de66e47c15144e2cc44a7", null ],
     [ "get", "d5/dd1/structBloomberg_1_1quantum_1_1ICoroContext.html#a735bfcba93be64c5c9febe9d8750f84e", null ],
     [ "getAt", "d5/dd1/structBloomberg_1_1quantum_1_1ICoroContext.html#a7665c8187bebe6096a4046333009a011", null ],
+    [ "getNumCoroutineThreads", "d5/dd1/structBloomberg_1_1quantum_1_1ICoroContext.html#a0fadac955b2b32d87d1b8e505dce39c3", null ],
+    [ "getNumIoThreads", "d5/dd1/structBloomberg_1_1quantum_1_1ICoroContext.html#a1efdbf7df3818aec9bc8fd98a5bfc640", null ],
     [ "getPrev", "d5/dd1/structBloomberg_1_1quantum_1_1ICoroContext.html#a26a9af20823a64e458e2e4f1aab6b1df", null ],
     [ "getPrevRef", "d5/dd1/structBloomberg_1_1quantum_1_1ICoroContext.html#a9d7f2250829eff22a17bb994e4b32cec", null ],
     [ "getRef", "d5/dd1/structBloomberg_1_1quantum_1_1ICoroContext.html#a6b905d024d6c2de6beb79e0724bba923", null ],

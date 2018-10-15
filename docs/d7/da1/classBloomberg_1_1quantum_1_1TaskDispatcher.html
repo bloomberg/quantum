@@ -109,9 +109,12 @@ Inheritance diagram for Bloomberg::quantum::TaskDispatcher:</div>
 <table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a name="pub-methods"></a>
 Public Member Functions</h2></td></tr>
-<tr class="memitem:a94395bb18ac8f73e840b8d4db862e0a2"><td class="memItemLeft" align="right" valign="top">&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d7/da1/classBloomberg_1_1quantum_1_1TaskDispatcher.html#a94395bb18ac8f73e840b8d4db862e0a2">TaskDispatcher</a> (int numCoroutineThreads=-1, int numIoThreads=5, bool pinCoroutineThreadsToCores=false)</td></tr>
+<tr class="memitem:a94395bb18ac8f73e840b8d4db862e0a2"><td class="memItemLeft" align="right" valign="top">DEPRECATED&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d7/da1/classBloomberg_1_1quantum_1_1TaskDispatcher.html#a94395bb18ac8f73e840b8d4db862e0a2">TaskDispatcher</a> (int numCoroutineThreads=-1, int numIoThreads=5, bool pinCoroutineThreadsToCores=false)</td></tr>
 <tr class="memdesc:a94395bb18ac8f73e840b8d4db862e0a2"><td class="mdescLeft">&#160;</td><td class="mdescRight">Constructor.  <a href="#a94395bb18ac8f73e840b8d4db862e0a2">More...</a><br /></td></tr>
 <tr class="separator:a94395bb18ac8f73e840b8d4db862e0a2"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ae0cdfa5803cb77612d2bd5f147a20bca"><td class="memItemLeft" align="right" valign="top">&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d7/da1/classBloomberg_1_1quantum_1_1TaskDispatcher.html#ae0cdfa5803cb77612d2bd5f147a20bca">TaskDispatcher</a> (const <a class="el" href="../../db/dda/classBloomberg_1_1quantum_1_1Configuration.html">Configuration</a> &amp;config)</td></tr>
+<tr class="memdesc:ae0cdfa5803cb77612d2bd5f147a20bca"><td class="mdescLeft">&#160;</td><td class="mdescRight">Constructor.  <a href="#ae0cdfa5803cb77612d2bd5f147a20bca">More...</a><br /></td></tr>
+<tr class="separator:ae0cdfa5803cb77612d2bd5f147a20bca"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a522d2d40e09c2f0c873dabe8238ab995"><td class="memItemLeft" align="right" valign="top">&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d7/da1/classBloomberg_1_1quantum_1_1TaskDispatcher.html#a522d2d40e09c2f0c873dabe8238ab995">~TaskDispatcher</a> ()</td></tr>
 <tr class="memdesc:a522d2d40e09c2f0c873dabe8238ab995"><td class="mdescLeft">&#160;</td><td class="mdescRight">Destructor.  <a href="#a522d2d40e09c2f0c873dabe8238ab995">More...</a><br /></td></tr>
 <tr class="separator:a522d2d40e09c2f0c873dabe8238ab995"><td class="memSeparator" colspan="2">&#160;</td></tr>
@@ -151,6 +154,12 @@ Public Member Functions</h2></td></tr>
 <tr class="memitem:a0ebacbaf77a182dd557d07028e44d3a7"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d7/da1/classBloomberg_1_1quantum_1_1TaskDispatcher.html#a0ebacbaf77a182dd557d07028e44d3a7">drain</a> ()</td></tr>
 <tr class="memdesc:a0ebacbaf77a182dd557d07028e44d3a7"><td class="mdescLeft">&#160;</td><td class="mdescRight">Drains all queues on this dispatcher object.  <a href="#a0ebacbaf77a182dd557d07028e44d3a7">More...</a><br /></td></tr>
 <tr class="separator:a0ebacbaf77a182dd557d07028e44d3a7"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a84ade451efeb6e1f9b47aea483c39552"><td class="memItemLeft" align="right" valign="top">int&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d7/da1/classBloomberg_1_1quantum_1_1TaskDispatcher.html#a84ade451efeb6e1f9b47aea483c39552">getNumCoroutineThreads</a> () const</td></tr>
+<tr class="memdesc:a84ade451efeb6e1f9b47aea483c39552"><td class="mdescLeft">&#160;</td><td class="mdescRight">Returns the number of underlying coroutine threads as specified in the constructor. If -1 was passed than this number essentially indicates the number of cores.  <a href="#a84ade451efeb6e1f9b47aea483c39552">More...</a><br /></td></tr>
+<tr class="separator:a84ade451efeb6e1f9b47aea483c39552"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a8dae6237038bfccb79af687ef18bfedc"><td class="memItemLeft" align="right" valign="top">int&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d7/da1/classBloomberg_1_1quantum_1_1TaskDispatcher.html#a8dae6237038bfccb79af687ef18bfedc">getNumIoThreads</a> () const</td></tr>
+<tr class="memdesc:a8dae6237038bfccb79af687ef18bfedc"><td class="mdescLeft">&#160;</td><td class="mdescRight">Returns the number of underlying IO threads as specified in the constructor.  <a href="#a8dae6237038bfccb79af687ef18bfedc">More...</a><br /></td></tr>
+<tr class="separator:a8dae6237038bfccb79af687ef18bfedc"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a8af2749f3e6953a1bda096b05c808e88"><td class="memItemLeft" align="right" valign="top"><a class="el" href="../../d1/d7b/classBloomberg_1_1quantum_1_1QueueStatistics.html">QueueStatistics</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d7/da1/classBloomberg_1_1quantum_1_1TaskDispatcher.html#a8af2749f3e6953a1bda096b05c808e88">stats</a> (<a class="el" href="../../d2/db0/structBloomberg_1_1quantum_1_1IQueue.html#a5d3e6340ac9844b3fabb6759e1b7facb">IQueue::QueueType</a> type=<a class="el" href="../../d2/db0/structBloomberg_1_1quantum_1_1IQueue.html#a5d3e6340ac9844b3fabb6759e1b7facbab1c94ca2fbc3e78fc30069c8d0f01680">IQueue::QueueType::All</a>, int queueId=(int) <a class="el" href="../../d2/db0/structBloomberg_1_1quantum_1_1IQueue.html#aec9f17dc0836162032f0239b2415649eab1c94ca2fbc3e78fc30069c8d0f01680">IQueue::QueueId::All</a>)</td></tr>
 <tr class="memdesc:a8af2749f3e6953a1bda096b05c808e88"><td class="mdescLeft">&#160;</td><td class="mdescRight">Returns a statistics object for the specified type and queue id.  <a href="#a8af2749f3e6953a1bda096b05c808e88">More...</a><br /></td></tr>
 <tr class="separator:a8af2749f3e6953a1bda096b05c808e88"><td class="memSeparator" colspan="2">&#160;</td></tr>
@@ -166,7 +175,7 @@ Public Member Functions</h2></td></tr>
 <div class="textblock"><p>Parallel execution engine used to run coroutines or IO tasks asynchronously. This class is the main entry point into the library. </p>
 </div><h2 class="groupheader">Constructor &amp; Destructor Documentation</h2>
 <a id="a94395bb18ac8f73e840b8d4db862e0a2"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a94395bb18ac8f73e840b8d4db862e0a2">&#9670;&nbsp;</a></span>TaskDispatcher()</h2>
+<h2 class="memtitle"><span class="permalink"><a href="#a94395bb18ac8f73e840b8d4db862e0a2">&#9670;&nbsp;</a></span>TaskDispatcher() <span class="overload">[1/2]</span></h2>
 
 <div class="memitem">
 <div class="memproto">
@@ -211,6 +220,41 @@ Public Member Functions</h2></td></tr>
     <tr><td class="paramdir">[in]</td><td class="paramname">numCoroutineThreads</td><td>Number of parallel threads running coroutines. -1 indicates one per core. </td></tr>
     <tr><td class="paramdir">[in]</td><td class="paramname">numIoThreads</td><td>Number of parallel threads running blocking IO calls. </td></tr>
     <tr><td class="paramdir">[in]</td><td class="paramname">pinCoroutineThreadsToCores</td><td>If set to true, it will pin all coroutine threads unto physical cores. provided numCoroutineThreads &lt;= cores. </td></tr>
+  </table>
+  </dd>
+</dl>
+<dl class="section warning"><dt>Warning</dt><dd>This constructor is deprecated and will be removed in v1.0. Use the configuration-based constructor instead. </dd></dl>
+
+</div>
+</div>
+<a id="ae0cdfa5803cb77612d2bd5f147a20bca"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#ae0cdfa5803cb77612d2bd5f147a20bca">&#9670;&nbsp;</a></span>TaskDispatcher() <span class="overload">[2/2]</span></h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">Bloomberg::quantum::TaskDispatcher::TaskDispatcher </td>
+          <td>(</td>
+          <td class="paramtype">const <a class="el" href="../../db/dda/classBloomberg_1_1quantum_1_1Configuration.html">Configuration</a> &amp;&#160;</td>
+          <td class="paramname"><em>config</em></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">inline</span><span class="mlabel">explicit</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+<p>Constructor. </p>
+<dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramname">config</td><td>The configuration for the Quantum dispatcher. </td></tr>
   </table>
   </dd>
 </dl>
@@ -318,6 +362,64 @@ Public Member Functions</h2></td></tr>
 </dl>
 <dl class="section return"><dt>Returns</dt><dd>True if empty, false otherwise. </dd></dl>
 <dl class="section note"><dt>Note</dt><dd><a class="el" href="../../d2/db0/structBloomberg_1_1quantum_1_1IQueue.html#aec9f17dc0836162032f0239b2415649eac90a13d8ec8fe53c6bb33fe10af6f2fe">IQueue::QueueId::Same</a> is an invalid queue id. <a class="el" href="../../d2/db0/structBloomberg_1_1quantum_1_1IQueue.html#aec9f17dc0836162032f0239b2415649eaed36a1ef76a59ee3f15180e0441188ad">IQueue::QueueId::Any</a> is only valid for IO queue type. When type <a class="el" href="../../d2/db0/structBloomberg_1_1quantum_1_1IQueue.html#a5d3e6340ac9844b3fabb6759e1b7facbab1c94ca2fbc3e78fc30069c8d0f01680">IQueue::QueueType::All</a> is specified, the queueId is not used and must be left at default value. </dd></dl>
+
+</div>
+</div>
+<a id="a84ade451efeb6e1f9b47aea483c39552"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a84ade451efeb6e1f9b47aea483c39552">&#9670;&nbsp;</a></span>getNumCoroutineThreads()</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">int Bloomberg::quantum::TaskDispatcher::getNumCoroutineThreads </td>
+          <td>(</td>
+          <td class="paramname"></td><td>)</td>
+          <td> const</td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">inline</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+<p>Returns the number of underlying coroutine threads as specified in the constructor. If -1 was passed than this number essentially indicates the number of cores. </p>
+<dl class="section return"><dt>Returns</dt><dd>The number of threads. </dd></dl>
+<dl class="section note"><dt>Note</dt><dd>Each thread services its own queueId, therefore this number can be used when assigning coroutines to a specific queue. </dd></dl>
+
+</div>
+</div>
+<a id="a8dae6237038bfccb79af687ef18bfedc"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a8dae6237038bfccb79af687ef18bfedc">&#9670;&nbsp;</a></span>getNumIoThreads()</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">int Bloomberg::quantum::TaskDispatcher::getNumIoThreads </td>
+          <td>(</td>
+          <td class="paramname"></td><td>)</td>
+          <td> const</td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">inline</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+<p>Returns the number of underlying IO threads as specified in the constructor. </p>
+<dl class="section return"><dt>Returns</dt><dd>The number of threads. </dd></dl>
+<dl class="section note"><dt>Note</dt><dd>Each thread services its own queueId, therefore this number can be used when assigning IO tasks to a specific queue. </dd></dl>
 
 </div>
 </div>

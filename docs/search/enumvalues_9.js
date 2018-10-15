@@ -1,4 +1,5 @@
 var searchData=
 [
-  ['running',['Running',['../df/daf/structBloomberg_1_1quantum_1_1ITask.html#a45b23ed79b48f3120e69510692fd3c0ba5bda814c4aedb126839228f1a3d92f09',1,'Bloomberg::quantum::ITask']]]
+  ['promisealreadysatisfied',['PromiseAlreadySatisfied',['../dc/d48/namespaceBloomberg_1_1quantum.html#aae5974140a54463c3c55040f00e6f70ba26bfa0eb1b346b9dd4ec67d295ad14a6',1,'Bloomberg::quantum']]],
+  ['promisenotsatisfied',['PromiseNotSatisfied',['../dc/d48/namespaceBloomberg_1_1quantum.html#aae5974140a54463c3c55040f00e6f70ba9f313dd07b53e94bc9b9b31be09f2079',1,'Bloomberg::quantum']]]
 ];

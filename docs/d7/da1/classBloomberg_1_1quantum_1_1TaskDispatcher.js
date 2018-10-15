@@ -1,9 +1,12 @@
 var classBloomberg_1_1quantum_1_1TaskDispatcher =
 [
     [ "TaskDispatcher", "d7/da1/classBloomberg_1_1quantum_1_1TaskDispatcher.html#a94395bb18ac8f73e840b8d4db862e0a2", null ],
+    [ "TaskDispatcher", "d7/da1/classBloomberg_1_1quantum_1_1TaskDispatcher.html#ae0cdfa5803cb77612d2bd5f147a20bca", null ],
     [ "~TaskDispatcher", "d7/da1/classBloomberg_1_1quantum_1_1TaskDispatcher.html#a522d2d40e09c2f0c873dabe8238ab995", null ],
     [ "drain", "d7/da1/classBloomberg_1_1quantum_1_1TaskDispatcher.html#a0ebacbaf77a182dd557d07028e44d3a7", null ],
     [ "empty", "d7/da1/classBloomberg_1_1quantum_1_1TaskDispatcher.html#a05f79df5e5a73ddc2a56d810ca14dfa0", null ],
+    [ "getNumCoroutineThreads", "d7/da1/classBloomberg_1_1quantum_1_1TaskDispatcher.html#a84ade451efeb6e1f9b47aea483c39552", null ],
+    [ "getNumIoThreads", "d7/da1/classBloomberg_1_1quantum_1_1TaskDispatcher.html#a8dae6237038bfccb79af687ef18bfedc", null ],
     [ "post", "d7/da1/classBloomberg_1_1quantum_1_1TaskDispatcher.html#acb7c47615adf07814411689063cc5a18", null ],
     [ "post", "d7/da1/classBloomberg_1_1quantum_1_1TaskDispatcher.html#aae0580cb74d923bfbc6ab481f613f0ee", null ],
     [ "postAsyncIo", "d7/da1/classBloomberg_1_1quantum_1_1TaskDispatcher.html#a0ec3a0b5fe25caba9f8f6d4750c3a523", null ],

@@ -1,4 +1,5 @@
 var searchData=
 [
-  ['weakptr',['WeakPtr',['../df/daf/structBloomberg_1_1quantum_1_1ITask.html#aae43ecce0c2cdbdfa677d9d0846f1e48',1,'Bloomberg::quantum::ITask::WeakPtr()'],['../d4/d03/structBloomberg_1_1quantum_1_1ITaskContinuation.html#a7f8bd7cd7729c363517994627df51a09',1,'Bloomberg::quantum::ITaskContinuation::WeakPtr()'],['../d4/d8b/classBloomberg_1_1quantum_1_1IoTask.html#ab48b088280ea26954a8bd9f789988dc4',1,'Bloomberg::quantum::IoTask::WeakPtr()'],['../d0/d90/classBloomberg_1_1quantum_1_1Task.html#a5a1f2d26f8f0edb3ac2ff31e36e497ca',1,'Bloomberg::quantum::Task::WeakPtr()']]]
+  ['value_5ftype',['value_type',['../d7/dd7/structBloomberg_1_1quantum_1_1ContiguousPoolManager.html#adada271ce39fa67c3952f0a843aa15e4',1,'Bloomberg::quantum::ContiguousPoolManager::value_type()'],['../d2/da6/structBloomberg_1_1quantum_1_1HeapAllocator.html#a2ade8826523d81fc0104ac8148a2c903',1,'Bloomberg::quantum::HeapAllocator::value_type()'],['../d0/d75/structBloomberg_1_1quantum_1_1StackAllocator.html#a48c237f5a8fff7f18e97febc743b42ca',1,'Bloomberg::quantum::StackAllocator::value_type()']]],
+  ['valuetype',['ValueType',['../d1/d87/classBloomberg_1_1quantum_1_1Buffer.html#acbc6c702c5afd327a72ecdfda84f92e1',1,'Bloomberg::quantum::Buffer']]]
 ];
