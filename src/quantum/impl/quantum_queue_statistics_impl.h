@@ -31,12 +31,31 @@ QueueStatistics::QueueStatistics()
 inline
 void QueueStatistics::reset()
 {
+    _numElements = 0;
     _errorCount = 0;
     _sharedQueueErrorCount = 0;
     _completedCount = 0;
     _sharedQueueCompletedCount = 0;
     _postedCount = 0;
     _highPriorityCount = 0;
+}
+
+inline
+size_t QueueStatistics::numElements() const
+{
+    return _numElements;
+}
+
+inline
+void QueueStatistics::incNumElements()
+{
+    ++_numElements;
+}
+
+inline
+void QueueStatistics::decNumElements()
+{
+    --_numElements;
 }
 
 inline
@@ -114,6 +133,7 @@ void QueueStatistics::incHighPriorityCount()
 inline
 void QueueStatistics::print(std::ostream& out) const
 {
+    out << "Num elemetns: " << _numElements << std::endl;
     out << "Num queued: " << _errorCount << std::endl;
     out << "Num completed: " << _completedCount << std::endl;
     out << "Num shared completed: " << _sharedQueueCompletedCount << std::endl;
@@ -125,6 +145,7 @@ void QueueStatistics::print(std::ostream& out) const
 inline
 QueueStatistics& QueueStatistics::operator+=(const IQueueStatistics& rhs)
 {
+    _numElements += rhs.numElements();
     _errorCount += rhs.errorCount();
     _sharedQueueErrorCount += rhs.sharedQueueErrorCount();
     _completedCount += rhs.completedCount();

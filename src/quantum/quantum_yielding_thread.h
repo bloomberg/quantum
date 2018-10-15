@@ -19,6 +19,7 @@
 #include <thread>
 #include <chrono>
 #include <quantum/quantum_util.h>
+#include <quantum/quantum_thread_traits.h>
 
 namespace Bloomberg {
 namespace quantum {
@@ -35,20 +36,20 @@ struct YieldingThreadDuration
     /// @brief Yields the current thread either via a busy wait loop or by sleeping it.
     ///        Behavior is determined at compile time.
     /// @param[in] time Time used for the sleep duration.
-    void operator()(size_t time = 10)
+    void operator()(DURATION time = std::chrono::duration_cast<DURATION>(ThreadTraits::yieldSleepIntervalMs()))
     {
-#ifdef __QUANTUM_YIELD_WITHOUT_SLEEP
-        //Busy wait
-        UNUSED(time);
-        std::this_thread::yield();
-#else
-        //Sleep wait
-        std::this_thread::sleep_for(DURATION(time));
-#endif
+        if (time == DURATION(0)) {
+            //Busy wait
+            std::this_thread::yield();
+        }
+        else {
+            //Sleep wait
+            std::this_thread::sleep_for(time);
+        }
     }
 };
 
-using YieldingThread = YieldingThreadDuration<std::chrono::milliseconds>; //1ms
+using YieldingThread = YieldingThreadDuration<std::chrono::milliseconds>;
 
 }}
 

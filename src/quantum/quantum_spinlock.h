@@ -17,6 +17,7 @@
 #define QUANTUM_SPINLOCK_H
 
 #include <atomic>
+#include <mutex>
 
 namespace Bloomberg {
 namespace quantum {
@@ -30,6 +31,8 @@ namespace quantum {
 class SpinLock
 {
 public:
+    using TryToLock = std::try_to_lock_t;
+    
     /// @brief Constructor. The object is in the unlocked state.
     SpinLock();
     
@@ -73,10 +76,29 @@ public:
         /// @note Blocks the current thread until the spinlock is acquired.
         explicit Guard(SpinLock& lock);
         
+        /// @brief Construct this object and tries to lock the passed-in spinlock.
+        /// @param[in] lock Spinlock which protects a scope during the lifetime of the Guard.
+        /// @note Attempts to lock the spinlock. Does not block.
+        Guard(SpinLock& lock, SpinLock::TryToLock);
+        
         /// @brief Destroy this object and unlock the underlying spinlock.
         ~Guard();
+        
+        /// @brief Acquire the underlying spinlock.
+        /// @note Blocks.
+        void lock();
+        
+        /// @brief Try to acquire the underlying spinlock.
+        /// @return True if spinlock is locked, false otherwise.
+        /// @note Does not block.
+        bool tryLock();
+        
+        /// @brief Indicates if this object owns the underlying spinlock.
+        /// @return True if ownership is acquired.
+        bool ownsLock() const;
     private:
         SpinLock&	_spinlock;
+        bool        _ownsLock;
     };
     
     //==============================================================================================

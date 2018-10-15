@@ -40,6 +40,12 @@ public:
     //===================================
     void reset() final;
     
+    size_t numElements() const final;
+    
+    void incNumElements() final;
+    
+    void decNumElements() final;
+    
     size_t errorCount() const final;
     
     void incErrorCount() final;
@@ -72,6 +78,7 @@ public:
                                      const IQueueStatistics& rhs);
 
 private:
+    size_t      _numElements;
     size_t      _errorCount;
     size_t      _sharedQueueErrorCount;
     size_t      _completedCount;

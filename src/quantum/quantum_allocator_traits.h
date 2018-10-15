@@ -37,6 +37,8 @@ namespace quantum {
 //==============================================================================================
 //                                 struct AllocatorTraits
 //==============================================================================================
+/// @struct AllocatorTraits.
+/// @brief Allows application-wide settings for the various allocators used by Quantum.
 struct AllocatorTraits {
     using size_type = uint16_t;
     

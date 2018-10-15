@@ -28,18 +28,36 @@ DispatcherCore::DispatcherCore(int numCoroutineThreads,
                                bool pinCoroutineThreadsToCores) :
     _coroQueues((numCoroutineThreads == -1) ? std::thread::hardware_concurrency() :
                 (numCoroutineThreads == 0) ? 1 : numCoroutineThreads),
-    _ioQueues((numIoThreads <= 0) ? 1 : numIoThreads, IoQueue(&_sharedIoQueue)),
+    _sharedIoQueues((numIoThreads <= 0) ? 1 : numIoThreads),
+    _ioQueues((numIoThreads <= 0) ? 1 : numIoThreads, IoQueue(Configuration(), &_sharedIoQueues)),
+    _loadBalanceSharedIoQueues(false),
     _terminated(ATOMIC_FLAG_INIT)
 {
     if (pinCoroutineThreadsToCores)
     {
-        if (_coroQueues.size() > std::thread::hardware_concurrency())
-        {
-            throw std::runtime_error("Number of queues exceeds cores.");
-        }
+        unsigned int cores = std::thread::hardware_concurrency();
         for (size_t i = 0; i < _coroQueues.size(); ++i)
         {
-            _coroQueues[i].pinToCore(i);
+            _coroQueues[i].pinToCore(i%cores);
+        }
+    }
+}
+
+inline
+DispatcherCore::DispatcherCore(const Configuration& config) :
+    _coroQueues((config.getNumCoroutineThreads() == -1) ? std::thread::hardware_concurrency() :
+                (config.getNumCoroutineThreads() == 0) ? 1 : config.getNumCoroutineThreads(), TaskQueue(config)),
+    _sharedIoQueues((config.getNumIoThreads() <= 0) ? 1 : config.getNumIoThreads(), IoQueue(config, nullptr)),
+    _ioQueues((config.getNumIoThreads() <= 0) ? 1 : config.getNumIoThreads(), IoQueue(config, &_sharedIoQueues)),
+    _loadBalanceSharedIoQueues(false),
+    _terminated(ATOMIC_FLAG_INIT)
+{
+    if (config.getPinCoroutineThreadsToCores())
+    {
+        unsigned int cores = std::thread::hardware_concurrency();
+        for (size_t i = 0; i < _coroQueues.size(); ++i)
+        {
+            _coroQueues[i].pinToCore(i%cores);
         }
     }
 }
@@ -63,7 +81,10 @@ void DispatcherCore::terminate()
         {
             queue.terminate();
         }
-        _sharedIoQueue.terminate();
+        for (auto&& queue : _sharedIoQueues)
+        {
+            queue.terminate();
+        }
     }
 }
 
@@ -144,12 +165,20 @@ size_t DispatcherCore::ioSize(int queueId) const
         {
             size += queue.size();
         }
-        size += _sharedIoQueue.size();
+        for (auto&& queue : _sharedIoQueues)
+        {
+            size += queue.size();
+        }
         return size;
     }
     else if (queueId == (int)IQueue::QueueId::Any)
     {
-        return _sharedIoQueue.size();
+        size_t size = 0;
+        for (auto&& queue : _sharedIoQueues)
+        {
+            size += queue.size();
+        }
+        return size;
     }
     return _ioQueues.at(queueId).size();
 }
@@ -161,13 +190,30 @@ bool DispatcherCore::ioEmpty(int queueId) const
     {
         for (auto&& queue : _ioQueues)
         {
-            if (!queue.empty()) return false;
+            if (!queue.empty())
+            {
+                return false;
+            }
         }
-        return _sharedIoQueue.empty();
+        for (auto&& queue : _sharedIoQueues)
+        {
+            if (!queue.empty())
+            {
+                return false;
+            }
+        }
+        return true;
     }
     else if (queueId == (int)IQueue::QueueId::Any)
     {
-        return _sharedIoQueue.empty();
+        for (auto&& queue : _sharedIoQueues)
+        {
+            if (!queue.empty())
+            {
+                return false;
+            }
+        }
+        return true;
     }
     return _ioQueues.at(queueId).empty();
 }
@@ -208,7 +254,7 @@ QueueStatistics DispatcherCore::coroStats(int queueId)
         {
             throw std::runtime_error("Invalid coroutine queue id");
         }
-        return static_cast<const QueueStatistics&>(_coroQueues[queueId].stats());
+        return static_cast<const QueueStatistics&>(_coroQueues.at(queueId).stats());
     }
 }
 
@@ -222,12 +268,20 @@ QueueStatistics DispatcherCore::ioStats(int queueId)
         {
             stats += queue.stats();
         }
-        stats += _sharedIoQueue.stats();
+        for (auto&& queue : _sharedIoQueues)
+        {
+            stats += queue.stats();
+        }
         return stats;
     }
     else if (queueId == (int)IQueue::QueueId::Any)
     {
-        return static_cast<const QueueStatistics&>(_sharedIoQueue.stats());
+        QueueStatistics stats;
+        for (auto&& queue : _sharedIoQueues)
+        {
+            stats += queue.stats();
+        }
+        return stats;
     }
     else
     {
@@ -235,7 +289,7 @@ QueueStatistics DispatcherCore::ioStats(int queueId)
         {
             throw std::runtime_error("Invalid IO queue id");
         }
-        return static_cast<const QueueStatistics&>(_ioQueues[queueId].stats());
+        return static_cast<const QueueStatistics&>(_ioQueues.at(queueId).stats());
     }
 }
 
@@ -246,7 +300,10 @@ void DispatcherCore::resetStats()
     {
         queue.stats().reset();
     }
-    _sharedIoQueue.stats().reset();
+    for (auto&& queue : _sharedIoQueues)
+    {
+        queue.stats().reset();
+    }
     for (auto&& queue : _ioQueues)
     {
         queue.stats().reset();
@@ -291,7 +348,7 @@ void DispatcherCore::post(Task::Ptr task)
         }
     }
     
-    _coroQueues[task->getQueueId()].enQueue(task);
+    _coroQueues.at(task->getQueueId()).enqueue(task);
     
 }
 
@@ -305,13 +362,26 @@ void DispatcherCore::postAsyncIo(IoTask::Ptr task)
     
     if (task->getQueueId() == (int)IQueue::QueueId::Any)
     {
-        //insert the task into the main queue
-        _sharedIoQueue.enQueue(task);
-        
-        //Signal all threads there is work to do
-        for (auto&& queue : _ioQueues)
+        if (_loadBalanceSharedIoQueues)
         {
-            queue.signalEmptyCondition(false);
+            static size_t index = 0;
+            //loop until we can find an queue that won't block
+            while (1) {
+                if (_sharedIoQueues.at(++index % _sharedIoQueues.size()).tryEnqueue(task)) {
+                    break;
+                }
+            }
+        }
+        else
+        {
+            //insert the task into the shared queue
+            _sharedIoQueues[0].enqueue(task);
+        
+            //Signal all threads there is work to do
+            for (auto&& queue : _ioQueues)
+            {
+                queue.signalEmptyCondition(false);
+            }
         }
     }
     else
@@ -322,7 +392,7 @@ void DispatcherCore::postAsyncIo(IoTask::Ptr task)
         }
         
         //Run on specific queue
-        _ioQueues[task->getQueueId()].enQueue(task);
+        _ioQueues.at(task->getQueueId()).enqueue(task);
     }
 }
 

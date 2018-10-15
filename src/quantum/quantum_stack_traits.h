@@ -24,10 +24,10 @@ namespace quantum {
 //==============================================================================================
 //                                 struct StackTraits
 //==============================================================================================
-/// @struct StackParameters.
-/// @brief Allows overrides for the coroutine stack traits which is used internally by the coroutine allocators.
+/// @struct StackTraits.
+/// @brief Allows application-wide overrides for the coroutine stack traits which are used
+///        internally by boost::coroutines2.
 /// @note See boost::context::stack_traits for details. Typically only the default size should be modified.
-
 struct StackTraits {
     /// @brief Get/set if the environment defines a limit for the stack size.
     /// @return Modifiable reference.

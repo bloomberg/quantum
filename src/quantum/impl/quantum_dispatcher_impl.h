@@ -32,6 +32,13 @@ TaskDispatcher::TaskDispatcher(int numCoroutineThreads,
 {}
 
 inline
+TaskDispatcher::TaskDispatcher(const Configuration& config) :
+    _dispatcher(config),
+    _drain(false),
+    _terminated(ATOMIC_FLAG_INIT)
+{}
+
+inline
 TaskDispatcher::~TaskDispatcher()
 {
     drain();

@@ -86,12 +86,12 @@ private:
     bool findContiguous(index_type n);
 
     //------------------------------- Members ----------------------------------
-    index_type      _size{0};
-    aligned_type*   _buffer{nullptr}; //non-owning
-    index_type*     _freeBlocks{nullptr};
-    ssize_t         _freeBlockIndex{-1};
-    size_t          _numHeapAllocatedBlocks{0};
-    SpinLock        _spinlock;
+    index_type          _size{0};
+    aligned_type*       _buffer{nullptr}; //non-owning
+    index_type*         _freeBlocks{nullptr};
+    ssize_t             _freeBlockIndex{-1};
+    size_t              _numHeapAllocatedBlocks{0};
+    mutable SpinLock    _spinlock;
 };
 
 }} //namespaces

@@ -24,6 +24,12 @@ namespace quantum {
 
 inline
 TaskQueue::TaskQueue() :
+    TaskQueue(Configuration())
+{
+}
+
+inline
+TaskQueue::TaskQueue(const Configuration&) :
     _queue(Allocator<QueueListAllocator>::instance(AllocatorTraits::queueListAllocSize())),
     _queueIt(_queue.end()),
     _isEmpty(true),
@@ -35,6 +41,13 @@ TaskQueue::TaskQueue() :
 }
 
 inline
+TaskQueue::TaskQueue(const TaskQueue&) :
+    TaskQueue()
+{
+
+}
+
+inline
 TaskQueue::~TaskQueue()
 {
     terminate();
@@ -43,8 +56,10 @@ TaskQueue::~TaskQueue()
 inline
 void TaskQueue::pinToCore(int coreId)
 {
+#ifdef _WIN32
+    SetThreadAffinityMask(_thread->native_handle(), 1 << coreId);
+#else
     int cpuSetSize = sizeof(cpu_set_t);
-    
     if (coreId >= 0 && (coreId <= cpuSetSize*8))
     {
         cpu_set_t cpuSet;
@@ -52,6 +67,7 @@ void TaskQueue::pinToCore(int coreId)
         CPU_SET(coreId, &cpuSet);
         pthread_setaffinity_np(_thread->native_handle(), cpuSetSize, &cpuSet);
     }
+#endif
 }
 
 inline
@@ -66,7 +82,7 @@ void TaskQueue::run()
                 std::unique_lock<std::mutex> lock(_notEmptyMutex);
                 //========================= BLOCK WHEN EMPTY =========================
                 //Wait for the queue to have at least one element
-                _notEmptyCond.wait(lock, [this]() -> bool { return !_isEmpty || _isInterrupted; });
+                _notEmptyCond.wait(lock, [this]()->bool { return !_isEmpty || _isInterrupted; });
             }
             
             if (_isInterrupted)
@@ -88,7 +104,6 @@ void TaskQueue::run()
             }
             
             //========================= START/RESUME COROUTINE =========================
-            _isIdle = false;
             int rc = task->run();
             _isIdle = true;
             //=========================== END/YIELD COROUTINE ==========================
@@ -131,14 +146,14 @@ void TaskQueue::run()
                 }
                 
                 //queue next task and de-queue current one
-                deQueue();
-                enQueue(nextTask);
+                enqueue(nextTask);
+                dequeue(_isIdle);
             }
         }
         catch (std::exception& ex)
         {
             UNUSED(ex);
-            deQueue(); //remove error task
+            dequeue(_isIdle); //remove error task
 #ifdef __QUANTUM_PRINT_DEBUG
             std::lock_guard<std::mutex> guard(Util::LogMutex());
             std::cerr << "Caught exception: " << ex.what() << std::endl;
@@ -146,7 +161,7 @@ void TaskQueue::run()
         }
         catch (...)
         {
-            deQueue(); //remove error task
+            dequeue(_isIdle); //remove error task
 #ifdef __QUANTUM_PRINT_DEBUG
             std::lock_guard<std::mutex> guard(Util::LogMutex());
             std::cerr << "Caught unknown exception." << std::endl;
@@ -156,7 +171,7 @@ void TaskQueue::run()
 }
 
 inline
-void TaskQueue::enQueue(ITask::Ptr task)
+void TaskQueue::enqueue(ITask::Ptr task)
 {
     if (!task)
     {
@@ -164,8 +179,28 @@ void TaskQueue::enQueue(ITask::Ptr task)
     }
     //========================= LOCKED SCOPE =========================
     SpinLock::Guard lock(_spinlock);
-    _stats.incPostedCount();
-    
+    doEnqueue(task);
+}
+
+inline
+bool TaskQueue::tryEnqueue(ITask::Ptr task)
+{
+    if (!task)
+    {
+        return false; //nothing to do
+    }
+    //========================= LOCKED SCOPE =========================
+    SpinLock::Guard lock(_spinlock, SpinLock::TryToLock{});
+    if (lock.ownsLock())
+    {
+        doEnqueue(task);
+    }
+    return lock.ownsLock();
+}
+
+inline
+void TaskQueue::doEnqueue(ITask::Ptr task)
+{
     //NOTE: _queueIt remains unchanged following this operation
     if (_queue.empty() || !task->isHighPriority())
     {
@@ -179,20 +214,49 @@ void TaskQueue::enQueue(ITask::Ptr task)
         //then the new task will be the last element in the queue
         _queue.insert(std::next(_queueIt), std::static_pointer_cast<Task>(task));
     }
-    if (task->isHighPriority()) _stats.incHighPriorityCount();
+    if (task->isHighPriority())
+    {
+        _stats.incHighPriorityCount();
+    }
+    _stats.incPostedCount();
+    _stats.incNumElements();
     signalEmptyCondition(false);
 }
 
 inline
-ITask::Ptr TaskQueue::deQueue()
+ITask::Ptr TaskQueue::dequeue(std::atomic_bool& hint)
 {
-    if (_queueIt != _queue.end())
+    //========================= LOCKED SCOPE =========================
+    SpinLock::Guard lock(_spinlock);
+    return doDequeue(hint);
+}
+
+inline
+ITask::Ptr TaskQueue::tryDequeue(std::atomic_bool& hint)
+{
+    //========================= LOCKED SCOPE =========================
+    SpinLock::Guard lock(_spinlock, SpinLock::TryToLock{});
+    if (lock.ownsLock())
+    {
+        return doDequeue(hint);
+    }
+    return nullptr;
+}
+
+inline
+ITask::Ptr TaskQueue::doDequeue(std::atomic_bool& hint)
+{
+    hint = (_queueIt == _queue.end());
+    if (!hint)
     {
         (*_queueIt)->terminate();
-        //========================= LOCKED SCOPE =========================
-        SpinLock::Guard lock(_spinlock);
         //Remove error task from the queue
         _queueIt = _queue.erase(_queueIt);
+        _stats.decNumElements();
+        if (_queueIt != _queue.end())
+        {
+            return *_queueIt;
+        }
     }
     return nullptr;
 }
@@ -203,8 +267,8 @@ size_t TaskQueue::size() const
 #if (__cplusplus >= 201703L)
     return _queue.size();
 #else
-    //Until c++17, list::size() takes linear time. It must also be protected, hence making code much slower.
-    return _stats.postedCount() - _stats.errorCount() - _stats.completedCount();
+    //Avoid linear time implementation
+    return _stats.numElements();
 #endif
 }
 
@@ -247,8 +311,11 @@ SpinLock& TaskQueue::getLock()
 inline
 void TaskQueue::signalEmptyCondition(bool value)
 {
-    std::lock_guard<std::mutex> lock(_notEmptyMutex);
-    _isEmpty = value;
+    {
+        //========================= LOCKED SCOPE =========================
+        std::lock_guard<std::mutex> lock(_notEmptyMutex);
+        _isEmpty = value;
+    }
     if (!value)
     {
         _notEmptyCond.notify_all();

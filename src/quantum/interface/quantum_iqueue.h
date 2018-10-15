@@ -42,9 +42,13 @@ struct IQueue : public ITerminate
     
     virtual void run() = 0;
     
-    virtual void enQueue(ITask::Ptr task) = 0;
+    virtual void enqueue(ITask::Ptr task) = 0;
     
-    virtual ITask::Ptr deQueue() = 0;
+    virtual bool tryEnqueue(ITask::Ptr task) = 0;
+    
+    virtual ITask::Ptr dequeue(std::atomic_bool& hint) = 0;
+    
+    virtual ITask::Ptr tryDequeue(std::atomic_bool& hint) = 0;
     
     virtual size_t size() const = 0;
     

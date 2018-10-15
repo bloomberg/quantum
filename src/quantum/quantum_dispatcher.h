@@ -17,6 +17,8 @@
 #define QUANTUM_DISPATCHER_H
 
 #include <quantum/quantum_context.h>
+#include <quantum/quantum_configuration.h>
+#include <quantum/quantum_macros.h>
 
 namespace Bloomberg {
 namespace quantum {
@@ -37,9 +39,15 @@ public:
     /// @param[in] numIoThreads Number of parallel threads running blocking IO calls.
     /// @param[in] pinCoroutineThreadsToCores If set to true, it will pin all coroutine threads unto physical cores.
     ///                                       provided numCoroutineThreads <= cores.
-    TaskDispatcher(int numCoroutineThreads = -1,
-                   int numIoThreads = 5,
-                   bool pinCoroutineThreadsToCores = false);
+    /// @warning This constructor is deprecated and will be removed in v1.0. Use the configuration-based
+    ///          constructor instead.
+    DEPRECATED TaskDispatcher(int numCoroutineThreads = -1,
+                              int numIoThreads = 5,
+                              bool pinCoroutineThreadsToCores = false);
+    
+    /// @brief Constructor.
+    /// @param config The configuration for the Quantum dispatcher.
+    explicit TaskDispatcher(const Configuration& config);
     
     /// @brief Destructor.
     /// @details Destroys the task dispatcher object. This will wait until all coroutines complete, signal

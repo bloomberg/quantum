@@ -31,6 +31,7 @@
 #include <quantum/quantum_spinlock.h>
 #include <quantum/quantum_yielding_thread.h>
 #include <quantum/quantum_queue_statistics.h>
+#include <quantum/quantum_configuration.h>
 
 namespace Bloomberg {
 namespace quantum {
@@ -49,15 +50,25 @@ public:
     
     TaskQueue();
     
+    explicit TaskQueue(const Configuration& config);
+    
+    TaskQueue(const TaskQueue& other);
+    
+    TaskQueue(TaskQueue&& other) = default;
+    
     ~TaskQueue();
     
     void pinToCore(int coreId) final;
     
     void run() final;
     
-    void enQueue(ITask::Ptr task) final;
+    void enqueue(ITask::Ptr task) final;
     
-    ITask::Ptr deQueue() final;
+    bool tryEnqueue(ITask::Ptr task) final;
+    
+    ITask::Ptr dequeue(std::atomic_bool& hint) final;
+    
+    ITask::Ptr tryDequeue(std::atomic_bool& hint) final;
     
     size_t size() const final;
     
@@ -75,11 +86,13 @@ public:
 
 private:
     TaskListIter advance();
+    void doEnqueue(ITask::Ptr task);
+    ITask::Ptr doDequeue(std::atomic_bool& hint);
     
     std::shared_ptr<std::thread>        _thread;
     TaskList                            _queue;
     TaskListIter                        _queueIt;
-    SpinLock                            _spinlock;
+    mutable SpinLock                    _spinlock;
     std::mutex                          _notEmptyMutex; //for accessing the condition variable
     std::condition_variable             _notEmptyCond;
     std::atomic_bool                    _isEmpty;

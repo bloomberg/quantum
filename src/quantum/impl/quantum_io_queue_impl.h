@@ -18,26 +18,33 @@
 //##############################################################################################
 //#################################### IMPLEMENTATIONS #########################################
 //##############################################################################################
+#include <cmath>
 
 namespace Bloomberg {
 namespace quantum {
 
 inline
-IoQueue::IoQueue() : IoQueue(nullptr)
+IoQueue::IoQueue() :
+    IoQueue(Configuration(), nullptr)
 {
-
 }
 
 inline
-IoQueue::IoQueue(IoQueue* sharedIoQueue) :
-    _sharedIoQueue(sharedIoQueue),
+IoQueue::IoQueue(const Configuration& config,
+                 std::vector<IoQueue>* sharedIoQueues) :
+    _sharedIoQueues(sharedIoQueues),
+    _loadBalanceSharedIoQueues(config.getLoadBalanceSharedIoQueues()),
+    _loadBalancePollIntervalMs(config.getLoadBalancePollIntervalMs()),
+    _loadBalancePollIntervalBackoffPolicy(config.getLoadBalancePollIntervalBackoffPolicy()),
+    _loadBalancePollIntervalNumBackoffs(config.getLoadBalancePollIntervalNumBackoffs()),
+    _loadBalanceBackoffNum(0),
     _queue(Allocator<QueueListAllocator>::instance(AllocatorTraits::queueListAllocSize())),
     _isEmpty(true),
     _isInterrupted(false),
     _isIdle(true),
     _terminated(ATOMIC_FLAG_INIT)
 {
-    if (_sharedIoQueue) {
+    if (_sharedIoQueues) {
         //The shared queue doesn't have its own thread
         _thread = std::make_shared<std::thread>(std::bind(&IoQueue::run, this));
     }
@@ -45,8 +52,23 @@ IoQueue::IoQueue(IoQueue* sharedIoQueue) :
 
 inline
 IoQueue::IoQueue(const IoQueue& other) :
-    IoQueue(other._sharedIoQueue)
-{}
+    _sharedIoQueues(other._sharedIoQueues),
+    _loadBalanceSharedIoQueues(other._loadBalanceSharedIoQueues),
+    _loadBalancePollIntervalMs(other._loadBalancePollIntervalMs),
+    _loadBalancePollIntervalBackoffPolicy(other._loadBalancePollIntervalBackoffPolicy),
+    _loadBalancePollIntervalNumBackoffs(other._loadBalancePollIntervalNumBackoffs),
+    _loadBalanceBackoffNum(0),
+    _queue(Allocator<QueueListAllocator>::instance(AllocatorTraits::queueListAllocSize())),
+    _isEmpty(true),
+    _isInterrupted(false),
+    _isIdle(true),
+    _terminated(ATOMIC_FLAG_INIT)
+{
+    if (_sharedIoQueues) {
+        //The shared queue doesn't have its own thread
+        _thread = std::make_shared<std::thread>(std::bind(&IoQueue::run, this));
+    }
+}
 
 inline
 IoQueue::~IoQueue()
@@ -67,7 +89,21 @@ void IoQueue::run()
     {
         try
         {
-            if (_isEmpty)
+            ITask::Ptr task;
+            if (_loadBalanceSharedIoQueues)
+            {
+                do
+                {
+                    task = grabWorkItemFromAll();
+                    if (task)
+                    {
+                        _loadBalanceBackoffNum = 0; //reset
+                        break;
+                    }
+                    YieldingThread()(getBackoffInterval());
+                } while (!_isInterrupted);
+            }
+            else if (_isEmpty)
             {
                 std::unique_lock<std::mutex> lock(_notEmptyMutex);
                 //========================= BLOCK WHEN EMPTY =========================
@@ -80,17 +116,19 @@ void IoQueue::run()
                 break;
             }
 
-            //Iterate to the next runnable task
-            ITask::Ptr task = grabWorkItem();
-            if (!task)
+            if (!_loadBalanceSharedIoQueues)
             {
-                continue;
+                //Iterate to the next runnable task
+                task = grabWorkItem();
+                if (!task)
+                {
+                    continue;
+                }
             }
             
             //========================= START TASK =========================
-            _isIdle = false;
             int rc = task->run();
-            _isIdle = true;
+            _isIdle = true; //completed task
             //========================== END TASK ==========================
 
             if (rc == (int)ITask::RetCode::Success)
@@ -148,7 +186,7 @@ void IoQueue::run()
 }
 
 inline
-void IoQueue::enQueue(ITask::Ptr task)
+void IoQueue::enqueue(ITask::Ptr task)
 {
     if (!task)
     {
@@ -156,7 +194,28 @@ void IoQueue::enQueue(ITask::Ptr task)
     }
     //========================= LOCKED SCOPE =========================
     SpinLock::Guard lock(_spinlock);
-    _stats.incPostedCount();
+    doEnqueue(task);
+}
+
+inline
+bool IoQueue::tryEnqueue(ITask::Ptr task)
+{
+    if (!task)
+    {
+        return false; //nothing to do
+    }
+    //========================= LOCKED SCOPE =========================
+    SpinLock::Guard lock(_spinlock, SpinLock::TryToLock{});
+    if (lock.ownsLock())
+    {
+        doEnqueue(task);
+    }
+    return lock.ownsLock();
+}
+
+inline
+void IoQueue::doEnqueue(ITask::Ptr task)
+{
     if (task->isHighPriority())
     {
         _stats.incHighPriorityCount();
@@ -166,48 +225,128 @@ void IoQueue::enQueue(ITask::Ptr task)
     {
         _queue.emplace_back(std::static_pointer_cast<IoTask>(task));
     }
-    signalEmptyCondition(false);
+    _stats.incPostedCount();
+    _stats.incNumElements();
+    if (!_loadBalanceSharedIoQueues)
+    {
+        signalEmptyCondition(false);
+    }
 }
 
-//Must be called from within a locked context
 inline
-ITask::Ptr IoQueue::deQueue()
+ITask::Ptr IoQueue::dequeue(std::atomic_bool& hint)
 {
-    if (_queue.empty())
+    if (_loadBalanceSharedIoQueues)
     {
-        return nullptr;
+        //========================= LOCKED SCOPE =========================
+        SpinLock::Guard lock(_spinlock);
+        return doDequeue(hint);
     }
-    ITask::Ptr task = std::move(_queue.front());
-    _queue.pop_front();
-    return task;
+    return doDequeue(hint);
+}
+
+inline
+ITask::Ptr IoQueue::tryDequeue(std::atomic_bool& hint)
+{
+    //========================= LOCKED SCOPE =========================
+    SpinLock::Guard lock(_spinlock, SpinLock::TryToLock{});
+    if (lock.ownsLock())
+    {
+        return doDequeue(hint);
+    }
+    return nullptr;
+}
+
+inline
+ITask::Ptr IoQueue::doDequeue(std::atomic_bool& hint)
+{
+    hint = _queue.empty();
+    if (!hint)
+    {
+        ITask::Ptr task = _queue.front();
+        _queue.pop_front();
+        _stats.decNumElements();
+        return task;
+    }
+    return nullptr;
+}
+
+inline
+ITask::Ptr IoQueue::tryDequeueFromShared()
+{
+    static size_t index = 0;
+    ITask::Ptr task;
+    size_t size = 0;
+    
+    for (size_t i = 0; i < (*_sharedIoQueues).size(); ++i)
+    {
+        IoQueue& queue = (*_sharedIoQueues)[++index % (*_sharedIoQueues).size()];
+        size += queue.size();
+        task = queue.tryDequeue(_isIdle);
+        if (task)
+        {
+            return task;
+        }
+    }
+
+    if (size) {
+        //try again
+        return tryDequeueFromShared();
+    }
+    return nullptr;
+}
+
+inline
+std::chrono::milliseconds IoQueue::getBackoffInterval()
+{
+    if (_loadBalanceBackoffNum < _loadBalancePollIntervalNumBackoffs) {
+        ++_loadBalanceBackoffNum;
+    }
+    if (_loadBalancePollIntervalBackoffPolicy == Configuration::BackoffPolicy::Linear)
+    {
+        return _loadBalancePollIntervalMs + (_loadBalancePollIntervalMs * _loadBalanceBackoffNum);
+    }
+    else
+    {
+        return _loadBalancePollIntervalMs * static_cast<size_t>(std::exp2(_loadBalanceBackoffNum));
+    }
 }
 
 inline
 size_t IoQueue::size() const
 {
 #if (__cplusplus >= 201703L)
+    if (_sharedIoQueues) {
+        return _isIdle ? _queue.size() : _queue.size() + 1;
+    }
     return _queue.size();
 #else
-    //Until c++17, list::size() takes linear time. It must also be protected, hence making code much slower.
-    return _stats.postedCount() -
-           _stats.errorCount() - _stats.sharedQueueErrorCount() - //errors
-           _stats.completedCount() - _stats.sharedQueueCompletedCount(); //successes
+    //Avoid linear time implementation
+    if (_sharedIoQueues) {
+        return _isIdle ? _stats.numElements() : _stats.numElements() + 1;
+    }
+    return _stats.numElements();
 #endif
 }
 
 inline
 bool IoQueue::empty() const
 {
-    return _queue.empty() && _isIdle;
+    if (_sharedIoQueues) {
+        return _queue.empty() && _isIdle;
+    }
+    return _queue.empty();
 }
 
 inline
 void IoQueue::terminate()
 {
-    if (!_terminated.test_and_set() && _sharedIoQueue)
+    if (!_terminated.test_and_set() && _sharedIoQueues)
     {
         _isInterrupted = true;
-        _notEmptyCond.notify_all();
+        if (!_loadBalanceSharedIoQueues) {
+            _notEmptyCond.notify_all();
+        }
         _thread->join();
         _queue.clear();
     }
@@ -228,8 +367,11 @@ SpinLock& IoQueue::getLock()
 inline
 void IoQueue::signalEmptyCondition(bool value)
 {
-    std::lock_guard<std::mutex> lock(_notEmptyMutex);
-    _isEmpty = value;
+    {
+        //========================= LOCKED SCOPE =========================
+        std::lock_guard<std::mutex> lock(_notEmptyMutex);
+        _isEmpty = value;
+    }
     if (!value)
     {
         _notEmptyCond.notify_all();
@@ -240,39 +382,66 @@ inline
 ITask::Ptr IoQueue::grabWorkItem()
 {
     static bool grabFromShared = false;
+    ITask::Ptr task = nullptr;
     grabFromShared = !grabFromShared;
+    
     if (grabFromShared) {
         //========================= LOCKED SCOPE (SHARED QUEUE) =========================
-        SpinLock::Guard lock(_sharedIoQueue->getLock());
-        ITask::Ptr task = _sharedIoQueue->deQueue();
+        SpinLock::Guard lock((*_sharedIoQueues)[0].getLock());
+        task = (*_sharedIoQueues)[0].dequeue(_isIdle);
         if (!task)
         {
             //========================= LOCKED SCOPE =========================
             SpinLock::Guard lock(_spinlock);
-            task = deQueue();
+            task = dequeue(_isIdle);
             if (!task)
             {
                 signalEmptyCondition(true);
             }
         }
-        return task;
     }
     else {
         //========================= LOCKED SCOPE =========================
         SpinLock::Guard lock(_spinlock);
-        ITask::Ptr task = deQueue();
+        task = dequeue(_isIdle);
         if (!task)
         {
             //========================= LOCKED SCOPE (SHARED QUEUE) =========================
-            SpinLock::Guard lock(_sharedIoQueue->getLock());
-            task = _sharedIoQueue->deQueue();
+            SpinLock::Guard lock((*_sharedIoQueues)[0].getLock());
+            task = (*_sharedIoQueues)[0].dequeue(_isIdle);
             if (!task)
             {
                 signalEmptyCondition(true);
             }
         }
-        return task;
     }
+    return task;
+}
+
+inline
+ITask::Ptr IoQueue::grabWorkItemFromAll()
+{
+    static bool grabFromShared = false;
+    ITask::Ptr task = nullptr;
+    grabFromShared = !grabFromShared;
+    
+    if (grabFromShared)
+    {
+        task = tryDequeueFromShared();
+        if (!task)
+        {
+            task = dequeue(_isIdle);
+        }
+    }
+    else
+    {
+        task = dequeue(_isIdle);
+        if (!task)
+        {
+            task = tryDequeueFromShared();
+        }
+    }
+    return task;
 }
 
 inline

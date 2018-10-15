@@ -41,6 +41,12 @@ struct StackTraitsProxy {
     static std::size_t maximum_size() { return StackTraits::maximumSize(); }
 };
 
+#ifndef __QUANTUM_USE_DEFAULT_CORO_ALLOCATOR
+    using CoroStackAllocator = CoroutinePoolAllocatorProxy<StackTraitsProxy>;
+#else
+    using CoroStackAllocator = BoostAllocator<StackTraitsProxy>;
+#endif
+
 //==============================================================================================
 //                                    struct Traits
 //==============================================================================================
@@ -48,11 +54,6 @@ struct StackTraitsProxy {
 /// @brief Contains definitions for various traits used by this library. For internal use only.
 struct Traits
 {
-#ifndef __QUANTUM_USE_DEFAULT_CORO_ALLOCATOR
-    using CoroStackAllocator = CoroutinePoolAllocatorProxy<StackTraitsProxy>;
-#else
-    using CoroStackAllocator = BoostAllocator<StackTraitsProxy>;
-#endif
     using BoostCoro = boost::coroutines2::coroutine<int&>;
     using Yield     = typename BoostCoro::pull_type;
     using Coroutine = typename BoostCoro::push_type;
