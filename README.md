@@ -17,6 +17,7 @@
 * Ability to write lock-free code by synchronizing coroutines on dedicated queues.
 * Coroutine-friendly mutexes and condition variables for locking critical code paths or synchronizing access to external objects.
 * Fast pre-allocated memory pools for internal objects and coroutines.
+* Parallel `forEach` operations which can easily be chained to solve map-reduce problems.
 * Stats and more...
 
 ### Sample code

@@ -889,7 +889,7 @@ TEST(ForEachTest, Simple)
 {
     std::vector<int> start{0,1,2,3,4,5,6,7,8,9};
     std::vector<char> end{'a','b','c','d','e','f','g','h','i','j'};
-    std::vector<char> results = Dispatcher::instance().forEach<char>(start.begin(), start.end(),
+    std::vector<char> results = Dispatcher::instance().forEachSync<char>(start.begin(), start.end(),
         [](int val)->char {
         return 'a'+val;
     });
@@ -901,7 +901,7 @@ TEST(ForEachTest, SmallBatch)
     std::vector<int> start{0,1,2};
     std::vector<char> end{'a','b','c'};
     
-    std::vector<char> results = Dispatcher::instance().forEachBatch<char>(start.begin(), start.end(),
+    std::vector<char> results = Dispatcher::instance().forEachBatchSync<char>(start.begin(), start.end(),
         [](int val)->char
     {
         return 'a'+val;
@@ -920,7 +920,7 @@ TEST(ForEachTest, LargeBatch)
         start[i]=i;
     }
     
-    std::vector<int> results = Dispatcher::instance().forEachBatch<int>(start.begin(), start.end(),
+    std::vector<int> results = Dispatcher::instance().forEachBatchSync<int>(start.begin(), start.end(),
         [](int val)->int {
         return val*2; //double the value
     });
