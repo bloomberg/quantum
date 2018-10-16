@@ -39,7 +39,7 @@ class Context : public IThreadContext<RET>,
 {
     friend class Util;
     friend class Task;
-    friend class TaskDispatcher;
+    friend class Dispatcher;
     template <class OTHER_RET> friend class Context;
     
 public:

@@ -36,7 +36,7 @@ int getDummyValue(CoroContext<int>::Ptr ctx)
 }
 
 // Create a dispatcher
-TaskDispatcher dispatcher;
+Dispatcher dispatcher;
 
 // Dispatch a work item to do some work and return a value
 int result = dispatcher.post(getDummyValue)->get();
@@ -47,7 +47,7 @@ Chaining tasks can also be straightforward. In this example we produce various t
 using namespace Bloomberg::quantum;
 
 // Create a dispatcher
-TaskDispatcher dispatcher;
+Dispatcher dispatcher;
 
 auto ctx = dispatcher.postFirst([](CoroContext<int>::Ptr ctx)->int {
     return ctx->set(55); //Set the 1st value

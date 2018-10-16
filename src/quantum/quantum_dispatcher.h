@@ -24,12 +24,12 @@ namespace Bloomberg {
 namespace quantum {
 
 //==============================================================================================
-//                                 class TaskDispatcher
+//                                 class Dispatcher
 //==============================================================================================
-/// @class TaskDispatcher.
+/// @class Dispatcher.
 /// @brief Parallel execution engine used to run coroutines or IO tasks asynchronously.
 ///        This class is the main entry point into the library.
-class TaskDispatcher : public ITerminate
+class Dispatcher : public ITerminate
 {
 public:
     /// @brief Constructor.
@@ -41,18 +41,18 @@ public:
     ///                                       provided numCoroutineThreads <= cores.
     /// @warning This constructor is deprecated and will be removed in v1.0. Use the configuration-based
     ///          constructor instead.
-    DEPRECATED TaskDispatcher(int numCoroutineThreads = -1,
-                              int numIoThreads = 5,
-                              bool pinCoroutineThreadsToCores = false);
+    DEPRECATED Dispatcher(int numCoroutineThreads = -1,
+                          int numIoThreads = 5,
+                          bool pinCoroutineThreadsToCores = false);
     
     /// @brief Constructor.
     /// @param config The configuration for the Quantum dispatcher.
-    explicit TaskDispatcher(const Configuration& config);
+    explicit Dispatcher(const Configuration& config);
     
     /// @brief Destructor.
     /// @details Destroys the task dispatcher object. This will wait until all coroutines complete, signal
     ///          all worker threads (coroutine and IO) to exit and join them.
-    ~TaskDispatcher();
+    ~Dispatcher();
     
     /// @brief Post a coroutine to run asynchronously.
     /// @details This method will post the coroutine on any thread available. Typically it will pick one which has the
@@ -318,6 +318,8 @@ private:
     bool                        _drain;
     std::atomic_flag            _terminated;
 };
+
+using TaskDispatcher = Dispatcher; //alias
 
 }}
 
