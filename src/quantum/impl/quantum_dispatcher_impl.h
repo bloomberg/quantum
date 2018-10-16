@@ -23,23 +23,23 @@ namespace Bloomberg {
 namespace quantum {
 
 inline
-TaskDispatcher::TaskDispatcher(int numCoroutineThreads,
-                               int numIoThreads,
-                               bool pinCoroutineThreadsToCores) :
+Dispatcher::Dispatcher(int numCoroutineThreads,
+                       int numIoThreads,
+                       bool pinCoroutineThreadsToCores) :
     _dispatcher(numCoroutineThreads, numIoThreads, pinCoroutineThreadsToCores),
     _drain(false),
     _terminated(ATOMIC_FLAG_INIT)
 {}
 
 inline
-TaskDispatcher::TaskDispatcher(const Configuration& config) :
+Dispatcher::Dispatcher(const Configuration& config) :
     _dispatcher(config),
     _drain(false),
     _terminated(ATOMIC_FLAG_INIT)
 {}
 
 inline
-TaskDispatcher::~TaskDispatcher()
+Dispatcher::~Dispatcher()
 {
     drain();
     terminate();
@@ -47,75 +47,81 @@ TaskDispatcher::~TaskDispatcher()
 
 template <class RET, class FUNC, class ... ARGS>
 typename ThreadContext<RET>::Ptr
-TaskDispatcher::post(FUNC&& func,
-                     ARGS&&... args)
+Dispatcher::post(FUNC&& func,
+                 ARGS&&... args)
 {
     return postImpl<RET>((int)IQueue::QueueId::Any, false, ITask::Type::Standalone, std::forward<FUNC>(func), std::forward<ARGS>(args)...);
 }
 
 template <class RET, class FUNC, class ... ARGS>
 typename ThreadContext<RET>::Ptr
-TaskDispatcher::post(int queueId,
-                     bool isHighPriority,
-                     FUNC&& func,
-                     ARGS&&... args)
+Dispatcher::post(int queueId,
+                 bool isHighPriority,
+                 FUNC&& func,
+                 ARGS&&... args)
 {
     return postImpl<RET>(queueId, isHighPriority, ITask::Type::Standalone, std::forward<FUNC>(func), std::forward<ARGS>(args)...);
 }
 
 template <class RET, class FUNC, class ... ARGS>
 typename ThreadContext<RET>::Ptr
-TaskDispatcher::postFirst(FUNC&& func,
-                          ARGS&&... args)
+Dispatcher::postFirst(FUNC&& func,
+                      ARGS&&... args)
 {
     return postImpl<RET>((int)IQueue::QueueId::Any, false, ITask::Type::First, std::forward<FUNC>(func), std::forward<ARGS>(args)...);
 }
 
 template <class RET, class FUNC, class ... ARGS>
 typename ThreadContext<RET>::Ptr
-TaskDispatcher::postFirst(int queueId,
-                          bool isHighPriority,
-                          FUNC&& func,
-                          ARGS&&... args)
+Dispatcher::postFirst(int queueId,
+                      bool isHighPriority,
+                      FUNC&& func,
+                      ARGS&&... args)
 {
     return postImpl<RET>(queueId, isHighPriority, ITask::Type::First, std::forward<FUNC>(func), std::forward<ARGS>(args)...);
 }
 
 template <class RET, class FUNC, class ... ARGS>
 typename ThreadFuture<RET>::Ptr
-TaskDispatcher::postAsyncIo(FUNC&& func,
-                            ARGS&&... args)
+Dispatcher::postAsyncIo(FUNC&& func,
+                        ARGS&&... args)
 {
     return postAsyncIoImpl<RET>((int)IQueue::QueueId::Any, false, std::forward<FUNC>(func), std::forward<ARGS>(args)...);
 }
 
 template <class RET, class FUNC, class ... ARGS>
 typename ThreadFuture<RET>::Ptr
-TaskDispatcher::postAsyncIo(int queueId,
-                            bool isHighPriority,
-                            FUNC&& func,
-                            ARGS&&... args)
+Dispatcher::postAsyncIo(int queueId,
+                        bool isHighPriority,
+                        FUNC&& func,
+                        ARGS&&... args)
 {
     return postAsyncIoImpl<RET>(queueId, isHighPriority, std::forward<FUNC>(func), std::forward<ARGS>(args)...);
 }
 
 template <class RET, class UNARY_FUNC, class INPUT_IT>
 std::vector<typename ThreadContext<RET>::Ptr>
-TaskDispatcher::forEach(INPUT_IT first, INPUT_IT last, UNARY_FUNC&& func)
+Dispatcher::forEach(INPUT_IT first,
+                    INPUT_IT last,
+                    UNARY_FUNC&& func)
 {
     return forEach<RET>(first, std::distance(first, last), std::forward<UNARY_FUNC>(func));
 }
 
 template <class RET, class UNARY_FUNC, class INPUT_IT>
 std::vector<RET>
-TaskDispatcher::forEachSync(INPUT_IT first, INPUT_IT last, UNARY_FUNC&& func)
+Dispatcher::forEachSync(INPUT_IT first,
+                        INPUT_IT last,
+                        UNARY_FUNC&& func)
 {
     return forEachSync<RET>(first, std::distance(first, last), std::forward<UNARY_FUNC>(func));
 }
 
 template <class RET, class UNARY_FUNC, class INPUT_IT>
 std::vector<typename ThreadContext<RET>::Ptr>
-TaskDispatcher::forEach(INPUT_IT first, size_t num, UNARY_FUNC&& func)
+Dispatcher::forEach(INPUT_IT first,
+                    size_t num,
+                    UNARY_FUNC&& func)
 {
     std::vector<typename ThreadContext<RET>::Ptr> asyncResult;
     asyncResult.reserve(num);
@@ -132,7 +138,9 @@ TaskDispatcher::forEach(INPUT_IT first, size_t num, UNARY_FUNC&& func)
 
 template <class RET, class UNARY_FUNC, class INPUT_IT>
 std::vector<RET>
-TaskDispatcher::forEachSync(INPUT_IT first, size_t num, UNARY_FUNC&& func)
+Dispatcher::forEachSync(INPUT_IT first,
+                        size_t num,
+                        UNARY_FUNC&& func)
 {
     std::vector<RET> result;
     result.reserve(num);
@@ -147,21 +155,27 @@ TaskDispatcher::forEachSync(INPUT_IT first, size_t num, UNARY_FUNC&& func)
 
 template <class RET, class UNARY_FUNC, class INPUT_IT>
 std::vector<typename ThreadContext<std::vector<RET>>::Ptr>
-TaskDispatcher::forEachBatch(INPUT_IT first, INPUT_IT last, UNARY_FUNC&& func)
+Dispatcher::forEachBatch(INPUT_IT first,
+                         INPUT_IT last,
+                         UNARY_FUNC&& func)
 {
     return forEachBatch<RET>(first, std::distance(first, last), std::forward<UNARY_FUNC>(func));
 }
 
 template <class RET, class UNARY_FUNC, class INPUT_IT>
 std::vector<RET>
-TaskDispatcher::forEachBatchSync(INPUT_IT first, INPUT_IT last, UNARY_FUNC&& func)
+Dispatcher::forEachBatchSync(INPUT_IT first,
+                             INPUT_IT last,
+                             UNARY_FUNC&& func)
 {
     return forEachBatchSync<RET>(first, std::distance(first, last), std::forward<UNARY_FUNC>(func));
 }
 
 template <class RET, class UNARY_FUNC, class INPUT_IT>
 std::vector<typename ThreadContext<std::vector<RET>>::Ptr>
-TaskDispatcher::forEachBatch(INPUT_IT first, size_t num, UNARY_FUNC&& func)
+Dispatcher::forEachBatch(INPUT_IT first,
+                         size_t num,
+                         UNARY_FUNC&& func)
 {
     size_t numCoroThreads = getNumCoroutineThreads();
     size_t numPerBatch = num/numCoroThreads;
@@ -195,7 +209,9 @@ TaskDispatcher::forEachBatch(INPUT_IT first, size_t num, UNARY_FUNC&& func)
 
 template <class RET, class UNARY_FUNC, class INPUT_IT>
 std::vector<RET>
-TaskDispatcher::forEachBatchSync(INPUT_IT first, size_t num, UNARY_FUNC&& func)
+Dispatcher::forEachBatchSync(INPUT_IT first,
+                             size_t num,
+                             UNARY_FUNC&& func)
 {
     std::vector<RET> result;
     result.reserve(num);
@@ -212,7 +228,7 @@ TaskDispatcher::forEachBatchSync(INPUT_IT first, size_t num, UNARY_FUNC&& func)
 }
 
 inline
-void TaskDispatcher::terminate()
+void Dispatcher::terminate()
 {
     if (!_terminated.test_and_set())
     {
@@ -221,21 +237,21 @@ void TaskDispatcher::terminate()
 }
 
 inline
-size_t TaskDispatcher::size(IQueue::QueueType type,
-                            int queueId) const
+size_t Dispatcher::size(IQueue::QueueType type,
+                        int queueId) const
 {
     return _dispatcher.size(type, queueId);
 }
 
 inline
-bool TaskDispatcher::empty(IQueue::QueueType type,
-                           int queueId) const
+bool Dispatcher::empty(IQueue::QueueType type,
+                       int queueId) const
 {
     return _dispatcher.empty(type, queueId);
 }
 
 inline
-void TaskDispatcher::drain()
+void Dispatcher::drain()
 {
     _drain = true;
     
@@ -254,37 +270,37 @@ void TaskDispatcher::drain()
 }
 
 inline
-int TaskDispatcher::getNumCoroutineThreads() const
+int Dispatcher::getNumCoroutineThreads() const
 {
     return _dispatcher.getNumCoroutineThreads();
 }
 
 inline
-int TaskDispatcher::getNumIoThreads() const
+int Dispatcher::getNumIoThreads() const
 {
     return _dispatcher.getNumIoThreads();
 }
 
 inline
-QueueStatistics TaskDispatcher::stats(IQueue::QueueType type,
-                                      int queueId)
+QueueStatistics Dispatcher::stats(IQueue::QueueType type,
+                                  int queueId)
 {
     return _dispatcher.stats(type, queueId);
 }
 
 inline
-void TaskDispatcher::resetStats()
+void Dispatcher::resetStats()
 {
     _dispatcher.resetStats();
 }
 
 template <class RET, class FUNC, class ... ARGS>
 typename ThreadContext<RET>::Ptr
-TaskDispatcher::postImpl(int queueId,
-                         bool isHighPriority,
-                         ITask::Type type,
-                         FUNC&& func,
-                         ARGS&&... args)
+Dispatcher::postImpl(int queueId,
+                     bool isHighPriority,
+                     ITask::Type type,
+                     FUNC&& func,
+                     ARGS&&... args)
 {
     if (_drain)
     {
@@ -313,10 +329,10 @@ TaskDispatcher::postImpl(int queueId,
 
 template <class RET, class FUNC, class ... ARGS>
 typename ThreadFuture<RET>::Ptr
-TaskDispatcher::postAsyncIoImpl(int queueId,
-                               bool isHighPriority,
-                               FUNC&& func,
-                               ARGS&&... args)
+Dispatcher::postAsyncIoImpl(int queueId,
+                            bool isHighPriority,
+                            FUNC&& func,
+                            ARGS&&... args)
 {
     if (_drain)
     {

@@ -45,7 +45,7 @@ namespace quantum {
 class DispatcherCore : public ITerminate
 {
 public:
-    friend class TaskDispatcher;
+    friend class Dispatcher;
     
     ~DispatcherCore();
     

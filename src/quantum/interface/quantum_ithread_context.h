@@ -162,7 +162,7 @@ struct IThreadContext : public IThreadContextBase
     /// whereas then() may be called zero or more times.
     ///
     /// @code
-    ///    IThreadContext<RET>::Ptr ctx = TaskDispatcher::postFirst()->then()->...->then()->onError()->finally()->end();
+    ///    IThreadContext<RET>::Ptr ctx = Dispatcher::postFirst()->then()->...->then()->onError()->finally()->end();
     /// @endcode
     //-----------------------------------------------------------------------------------------
     

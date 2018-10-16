@@ -22,10 +22,10 @@
 namespace quantum = Bloomberg::quantum;
 
 /// @brief Singleton class
-class Dispatcher
+class DispatcherSingleton
 {
 public:
-    static quantum::TaskDispatcher& createInstance(bool loadBalance)
+    static quantum::Dispatcher& createInstance(bool loadBalance)
     {
         if (_dispatcher == nullptr)
         {
@@ -34,12 +34,12 @@ public:
             config.setNumIoThreads(numThreads);
             config.setLoadBalanceSharedIoQueues(loadBalance);
             config.setLoadBalancePollIntervalMs(std::chrono::milliseconds(10));
-            _dispatcher = new quantum::TaskDispatcher(config);
+            _dispatcher = new quantum::Dispatcher(config);
         }
         return *_dispatcher;
     }
     
-    static quantum::TaskDispatcher& instance()
+    static quantum::Dispatcher& instance()
     {
         if (_dispatcher == nullptr)
         {
@@ -58,7 +58,7 @@ public:
     
     static constexpr int numThreads{5};
 private:
-    static quantum::TaskDispatcher*  _dispatcher;
+    static quantum::Dispatcher*  _dispatcher;
 };
 
 /// @brief Fixture used for certain tests
@@ -72,15 +72,15 @@ public:
     /// @brief Create a dispatcher object with equal number of coroutine and IO threads
     void SetUp()
     {
-        _dispatcher = &Dispatcher::instance();
+        _dispatcher = &DispatcherSingleton::instance();
     }
     
     void TearDown()
     {
-        Dispatcher::deleteInstance();
+        DispatcherSingleton::deleteInstance();
     }
 protected:
-    quantum::TaskDispatcher*  _dispatcher;
+    quantum::Dispatcher*  _dispatcher;
 };
 
 

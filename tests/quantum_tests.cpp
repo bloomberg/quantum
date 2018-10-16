@@ -22,9 +22,9 @@
 
 using namespace quantum;
 using ms = std::chrono::milliseconds;
-constexpr int Dispatcher::numCoro;
-constexpr int Dispatcher::numThreads;
-TaskDispatcher* Dispatcher::_dispatcher = nullptr;
+constexpr int DispatcherSingleton::numCoro;
+constexpr int DispatcherSingleton::numThreads;
+Dispatcher* DispatcherSingleton::_dispatcher = nullptr;
 
 //==============================================================================
 //                           TEST HELPERS
@@ -86,12 +86,12 @@ TEST_F(DispatcherFixture, Constructor)
 TEST_F(DispatcherFixture, CheckNumThreads)
 {
     IThreadContext<int>::Ptr tctx = _dispatcher->post([](CoroContext<int>::Ptr ctx)->int{
-        EXPECT_EQ(Dispatcher::numCoro, ctx->getNumCoroutineThreads());
-        EXPECT_EQ(Dispatcher::numThreads, ctx->getNumIoThreads());
+        EXPECT_EQ(DispatcherSingleton::numCoro, ctx->getNumCoroutineThreads());
+        EXPECT_EQ(DispatcherSingleton::numThreads, ctx->getNumIoThreads());
         return 0;
     });
-    EXPECT_EQ(Dispatcher::numCoro, tctx->getNumCoroutineThreads());
-    EXPECT_EQ(Dispatcher::numThreads, tctx->getNumIoThreads());
+    EXPECT_EQ(DispatcherSingleton::numCoro, tctx->getNumCoroutineThreads());
+    EXPECT_EQ(DispatcherSingleton::numThreads, tctx->getNumIoThreads());
 }
 
 TEST_F(DispatcherFixture, CheckCoroutineQueuing)
@@ -302,7 +302,7 @@ TEST(ParamtersTest, CheckParameterPassingInCoroutines)
     };
     
     auto t = std::forward_as_tuple(std::move(nc));
-    TaskDispatcher& dispatcher = Dispatcher::instance();
+    Dispatcher& dispatcher = DispatcherSingleton::instance();
     dispatcher.post(func, a, str, t, &dbl);
     dispatcher.drain();
     
@@ -316,7 +316,7 @@ TEST(ParamtersTest, CheckParameterPassingInCoroutines)
 TEST(ExecutionTest, DrainAllTasks)
 {
     //Turn the drain on and make sure we cannot queue any tasks
-    TaskDispatcher& dispatcher = Dispatcher::instance();
+    Dispatcher& dispatcher = DispatcherSingleton::instance();
     
     //Post a bunch of coroutines to run and wait for completion.
     for (int i = 0; i < 100; ++i)
@@ -354,7 +354,7 @@ TEST(ExecutionTest, YieldingBetweenTwoCoroutines)
     
     std::set<int> testSet; //this will contain [1,6]
     
-    TaskDispatcher& dispatcher = Dispatcher::instance();
+    Dispatcher& dispatcher = DispatcherSingleton::instance();
     
     dispatcher.post(3, false, func, testSet);
     dispatcher.post(3, false, func2, testSet);
@@ -366,7 +366,7 @@ TEST(ExecutionTest, YieldingBetweenTwoCoroutines)
 
 TEST(ExecutionTest, ChainCoroutinesFromDispatcher)
 {
-    TaskDispatcher& dispatcher = Dispatcher::instance();
+    Dispatcher& dispatcher = DispatcherSingleton::instance();
     int i = 1;
     std::vector<int> v;
     std::vector<int> validation{1,2,3,4};
@@ -385,7 +385,7 @@ TEST(ExecutionTest, ChainCoroutinesFromDispatcher)
 
 TEST(ExecutionTest, ChainCoroutinesFromCoroutineContext)
 {
-    TaskDispatcher& dispatcher = Dispatcher::instance();
+    Dispatcher& dispatcher = DispatcherSingleton::instance();
     int i = 1, err = 10, final = 20;
     std::vector<int> v;
     std::vector<int> validation{1,2,3,4,20};
@@ -412,7 +412,7 @@ TEST(ExecutionTest, ChainCoroutinesFromCoroutineContext)
 
 TEST(ExecutionTest, OnErrorTaskRuns)
 {
-    TaskDispatcher& dispatcher = Dispatcher::instance();
+    Dispatcher& dispatcher = DispatcherSingleton::instance();
     int i = 1, err = 10, final = 20;
     std::vector<int> v;
     std::vector<int> validation{1,2,10,20}; //includes error
@@ -440,7 +440,7 @@ TEST(ExecutionTest, OnErrorTaskRuns)
 
 TEST(ExecutionTest, FinallyAlwaysRuns)
 {
-    TaskDispatcher& dispatcher = Dispatcher::instance();
+    Dispatcher& dispatcher = DispatcherSingleton::instance();
     int i = 1, final = 20;
     std::vector<int> v;
     std::vector<int> validation{1,2,20}; //includes error
@@ -468,7 +468,7 @@ TEST(ExecutionTest, FinallyAlwaysRuns)
 
 TEST(ExecutionTest, CoroutineSleep)
 {
-    TaskDispatcher& dispatcher = Dispatcher::instance();
+    Dispatcher& dispatcher = DispatcherSingleton::instance();
     IThreadContext<int>::Ptr ctx = dispatcher.post([](ICoroContext<int>::Ptr ctx)->int{
         ctx->sleep(ms(100));
         return 0;
@@ -485,7 +485,7 @@ TEST(ExecutionTest, CoroutineSleep)
 
 TEST(PromiseTest, GetFutureFromCoroutine)
 {
-    TaskDispatcher& dispatcher = Dispatcher::instance();
+    Dispatcher& dispatcher = DispatcherSingleton::instance();
     IThreadContext<int>::Ptr ctx = dispatcher.post([](ICoroContext<int>::Ptr ctx)->int{
         return ctx->set(55); //Set the promise
     });
@@ -495,7 +495,7 @@ TEST(PromiseTest, GetFutureFromCoroutine)
 
 TEST(PromiseTest, GetFutureFromIoTask)
 {
-    TaskDispatcher& dispatcher = Dispatcher::instance();
+    Dispatcher& dispatcher = DispatcherSingleton::instance();
     ThreadContext<int>::Ptr ctx = dispatcher.post([](CoroContext<int>::Ptr ctx)->int{
         //post an IO task and get future from there
         CoroFuture<double>::Ptr fut = ctx->postAsyncIo<double>([](ThreadPromise<double>::Ptr promise)->int{
@@ -508,7 +508,7 @@ TEST(PromiseTest, GetFutureFromIoTask)
 
 TEST(PromiseTest, BufferedFuture)
 {
-    TaskDispatcher& dispatcher = Dispatcher::instance();
+    Dispatcher& dispatcher = DispatcherSingleton::instance();
     ThreadContext<Buffer<int>>::Ptr ctx = dispatcher.post<Buffer<int>>([](CoroContext<Buffer<int>>::Ptr ctx)->int{
         for (int d = 0; d < 5; d++)
         {
@@ -534,7 +534,7 @@ TEST(PromiseTest, BufferedFuture)
 
 TEST(PromiseTest, GetFutureReference)
 {
-    TaskDispatcher& dispatcher = Dispatcher::instance();
+    Dispatcher& dispatcher = DispatcherSingleton::instance();
     IThreadContext<int>::Ptr ctx = dispatcher.post([](ICoroContext<int>::Ptr ctx)->int{
         return ctx->set(55); //Set the promise
     });
@@ -546,7 +546,7 @@ TEST(PromiseTest, GetFutureReference)
 
 TEST(PromiseTest, GetIntermediateFutures)
 {
-    TaskDispatcher& dispatcher = Dispatcher::instance();
+    Dispatcher& dispatcher = DispatcherSingleton::instance();
     auto ctx = dispatcher.postFirst([](CoroContext<int>::Ptr ctx)->int {
         return ctx->set(55); //Set the promise
     })->then<double>([](CoroContext<double>::Ptr ctx)->int {
@@ -569,7 +569,7 @@ TEST(PromiseTest, GetIntermediateFutures)
 
 TEST(PromiseTest, GetPreviousFutures)
 {
-    TaskDispatcher& dispatcher = Dispatcher::instance();
+    Dispatcher& dispatcher = DispatcherSingleton::instance();
     auto ctx = dispatcher.postFirst([](CoroContext<int>::Ptr ctx)->int {
         return ctx->set(55); //Set the promise
     })->then<double>([](CoroContext<double>::Ptr ctx)->int {
@@ -590,7 +590,7 @@ TEST(PromiseTest, GetPreviousFutures)
 
 TEST(PromiseTest, BrokenPromiseInAsyncIo)
 {
-    TaskDispatcher& dispatcher = Dispatcher::instance();
+    Dispatcher& dispatcher = DispatcherSingleton::instance();
     ThreadContext<int>::Ptr ctx = dispatcher.post([](CoroContext<int>::Ptr ctx)->int{
         //post an IO task and get future from there
         CoroFuture<double>::Ptr fut = ctx->postAsyncIo<double>([](ThreadPromise<double>::Ptr promise)->int{
@@ -605,7 +605,7 @@ TEST(PromiseTest, BrokenPromiseInAsyncIo)
 
 TEST(PromiseTest, BreakPromiseByThrowingError)
 {
-    TaskDispatcher& dispatcher = Dispatcher::instance();
+    Dispatcher& dispatcher = DispatcherSingleton::instance();
     IThreadContext<int>::Ptr ctx = dispatcher.post([](ICoroContext<int>::Ptr)->int{
         throw std::runtime_error("don't set the promise");
     });
@@ -615,7 +615,7 @@ TEST(PromiseTest, BreakPromiseByThrowingError)
 
 TEST(PromiseTest, PromiseBrokenWhenOnError)
 {
-    TaskDispatcher& dispatcher = Dispatcher::instance();
+    Dispatcher& dispatcher = DispatcherSingleton::instance();
     int i = 1;
     
     auto func2 = [](CoroContext<int>::Ptr ctx, int& i)->int
@@ -649,7 +649,7 @@ TEST(PromiseTest, PromiseBrokenWhenOnError)
 
 TEST(PromiseTest, SetExceptionInPromise)
 {
-    TaskDispatcher& dispatcher = Dispatcher::instance();
+    Dispatcher& dispatcher = DispatcherSingleton::instance();
     IThreadContext<int>::Ptr ctx = dispatcher.post([](ICoroContext<int>::Ptr ctx)->int{
         try {
             throw 5;
@@ -664,7 +664,7 @@ TEST(PromiseTest, SetExceptionInPromise)
 
 TEST(PromiseTest, FutureTimeout)
 {
-    TaskDispatcher& dispatcher = Dispatcher::instance();
+    Dispatcher& dispatcher = DispatcherSingleton::instance();
     IThreadContext<int>::Ptr ctx = dispatcher.post([](ICoroContext<int>::Ptr ctx)->int{
         ctx->sleep(ms(300));
         return 0;
@@ -682,7 +682,7 @@ TEST(PromiseTest, FutureTimeout)
 
 TEST(PromiseTest, FutureWithoutTimeout)
 {
-    TaskDispatcher& dispatcher = Dispatcher::instance();
+    Dispatcher& dispatcher = DispatcherSingleton::instance();
     IThreadContext<int>::Ptr ctx = dispatcher.post([](ICoroContext<int>::Ptr ctx)->int{
         ctx->sleep(ms(100));
         return 0;
@@ -701,7 +701,7 @@ TEST(PromiseTest, FutureWithoutTimeout)
 
 TEST(PromiseTest, WaitForAllFutures)
 {
-    TaskDispatcher& dispatcher = Dispatcher::instance();
+    Dispatcher& dispatcher = DispatcherSingleton::instance();
     auto func = [](CoroContext<int>::Ptr ctx)->int {
         ctx->sleep(ms(50));
         return 0;
@@ -719,7 +719,7 @@ TEST(PromiseTest, WaitForAllFutures)
 
 TEST(MutexTest, LockingAndUnlocking)
 {
-    TaskDispatcher& dispatcher = Dispatcher::instance();
+    Dispatcher& dispatcher = DispatcherSingleton::instance();
     std::vector<int> v;
     
     quantum::Mutex m;
@@ -754,7 +754,7 @@ TEST(MutexTest, LockingAndUnlocking)
 
 TEST(MutexTest, SignalWithConditionVariable)
 {
-    TaskDispatcher& dispatcher = Dispatcher::instance();
+    Dispatcher& dispatcher = DispatcherSingleton::instance();
     std::vector<int> v;
     
     quantum::Mutex m;
@@ -793,7 +793,7 @@ TEST(MutexTest, SignalWithConditionVariable)
 
 TEST(StressTest, ParallelFibonacciSerie)
 {
-    TaskDispatcher& dispatcher = Dispatcher::instance();
+    Dispatcher& dispatcher = DispatcherSingleton::instance();
     
     for (int i = 0; i < 1; ++i)
     {
@@ -813,7 +813,7 @@ TEST(StressTest, ParallelFibonacciSerie)
 
 TEST(StressTest, RecursiveFibonacciSerie)
 {
-    ThreadContext<size_t>::Ptr tctx = Dispatcher::instance().post<size_t>(recursive_fib, fibInput);
+    ThreadContext<size_t>::Ptr tctx = DispatcherSingleton::instance().post<size_t>(recursive_fib, fibInput);
     EXPECT_EQ((size_t)fibValues[fibInput], tctx->get());
 }
 
@@ -824,8 +824,8 @@ TEST(StressTest, AsyncIo)
     std::vector<std::pair<int, int>> v;
     v.reserve(10000);
     for (int i = 0; i < 10000; ++i) {
-        int queueId = i % Dispatcher::instance().getNumIoThreads();
-        Dispatcher::instance().postAsyncIo<int>(queueId, false, [&m,&v,&s,queueId,i](ThreadPromise<int>::Ptr promise){
+        int queueId = i % DispatcherSingleton::instance().getNumIoThreads();
+        DispatcherSingleton::instance().postAsyncIo<int>(queueId, false, [&m,&v,&s,queueId,i](ThreadPromise<int>::Ptr promise){
             {
             std::lock_guard<std::mutex> lock(m);
             s.insert(std::make_pair(queueId, i));
@@ -834,7 +834,7 @@ TEST(StressTest, AsyncIo)
             return promise->set(0);
         });
     }
-    Dispatcher::instance().drain();
+    DispatcherSingleton::instance().drain();
     EXPECT_EQ(10000, v.size());
     EXPECT_EQ(10000, s.size()); //all elements unique
 }
@@ -846,8 +846,8 @@ TEST(StressTest, AsyncIoAnyQueue)
     std::vector<std::pair<int, int>> v;
     v.reserve(10000);
     for (int i = 0; i < 10000; ++i) {
-        int queueId = i % Dispatcher::instance().getNumIoThreads();
-        Dispatcher::instance().postAsyncIo<int>([&m,&v,&s,queueId,i](ThreadPromise<int>::Ptr promise){
+        int queueId = i % DispatcherSingleton::instance().getNumIoThreads();
+        DispatcherSingleton::instance().postAsyncIo<int>([&m,&v,&s,queueId,i](ThreadPromise<int>::Ptr promise){
             {
             std::lock_guard<std::mutex> lock(m);
             s.insert(std::make_pair(queueId, i));
@@ -856,22 +856,22 @@ TEST(StressTest, AsyncIoAnyQueue)
             return promise->set(0);
         });
     }
-    Dispatcher::instance().drain();
+    DispatcherSingleton::instance().drain();
     EXPECT_EQ(10000, v.size());
     EXPECT_EQ(10000, s.size()); //all elements unique
 }
 
 TEST(StressTest, AsyncIoAnyQueueLoadBalance)
 {
-    Dispatcher::deleteInstance();
-    Dispatcher::createInstance(true);
+    DispatcherSingleton::deleteInstance();
+    DispatcherSingleton::createInstance(true);
     std::mutex m;
     std::set<std::pair<int, int>> s; //queueId,iteration
     std::vector<std::pair<int, int>> v;
     v.reserve(10000);
     for (int i = 0; i < 10000; ++i) {
-        int queueId = i % Dispatcher::instance().getNumIoThreads();
-        Dispatcher::instance().postAsyncIo<int>([&m,&v,&s,queueId,i](ThreadPromise<int>::Ptr promise){
+        int queueId = i % DispatcherSingleton::instance().getNumIoThreads();
+        DispatcherSingleton::instance().postAsyncIo<int>([&m,&v,&s,queueId,i](ThreadPromise<int>::Ptr promise){
             {
             std::lock_guard<std::mutex> lock(m);
             s.insert(std::make_pair(queueId, i));
@@ -880,7 +880,7 @@ TEST(StressTest, AsyncIoAnyQueueLoadBalance)
             return promise->set(0);
         });
     }
-    Dispatcher::instance().drain();
+    DispatcherSingleton::instance().drain();
     EXPECT_EQ(10000, v.size());
     EXPECT_EQ(10000, s.size()); //all elements unique
 }
@@ -889,7 +889,7 @@ TEST(ForEachTest, Simple)
 {
     std::vector<int> start{0,1,2,3,4,5,6,7,8,9};
     std::vector<char> end{'a','b','c','d','e','f','g','h','i','j'};
-    std::vector<char> results = Dispatcher::instance().forEachSync<char>(start.begin(), start.end(),
+    std::vector<char> results = DispatcherSingleton::instance().forEachSync<char>(start.begin(), start.end(),
         [](int val)->char {
         return 'a'+val;
     });
@@ -901,7 +901,7 @@ TEST(ForEachTest, SmallBatch)
     std::vector<int> start{0,1,2};
     std::vector<char> end{'a','b','c'};
     
-    std::vector<char> results = Dispatcher::instance().forEachBatchSync<char>(start.begin(), start.end(),
+    std::vector<char> results = DispatcherSingleton::instance().forEachBatchSync<char>(start.begin(), start.end(),
         [](int val)->char
     {
         return 'a'+val;
@@ -920,7 +920,7 @@ TEST(ForEachTest, LargeBatch)
         start[i]=i;
     }
     
-    std::vector<int> results = Dispatcher::instance().forEachBatchSync<int>(start.begin(), start.end(),
+    std::vector<int> results = DispatcherSingleton::instance().forEachBatchSync<int>(start.begin(), start.end(),
         [](int val)->int {
         return val*2; //double the value
     });
@@ -934,7 +934,7 @@ TEST(ForEachTest, LargeBatch)
 //This test **must** come last to make Valgrind happy.
 TEST(TestCleanup, DeleteDispatcherInstance)
 {
-    Dispatcher::deleteInstance();
+    DispatcherSingleton::deleteInstance();
 }
 
 
