@@ -40,7 +40,7 @@ template <class RET, class FUNC, class ... ARGS>
 IoTask::IoTask(std::shared_ptr<Promise<RET>> promise,
                FUNC&& func,
                ARGS&&... args) :
-    _func(Util::BindIoCaller(promise,
+    _func(Util::bindIoCaller(promise,
                              std::forward<FUNC>(func),
                              std::forward<ARGS>(args)...)),
     _terminated(ATOMIC_FLAG_INIT),
@@ -55,7 +55,7 @@ IoTask::IoTask(std::shared_ptr<Promise<RET>> promise,
                bool isHighPriority,
                FUNC&& func,
                ARGS&&... args) :
-    _func(Util::BindIoCaller(promise,
+    _func(Util::bindIoCaller(promise,
                              std::forward<FUNC>(func),
                              std::forward<ARGS>(args)...)),
     _terminated(ATOMIC_FLAG_INIT),

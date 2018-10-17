@@ -265,6 +265,102 @@ ICoroContext<RET>::postAsyncIo(int queueId, bool isHighPriority, FUNC&& func, AR
     return static_cast<Impl*>(this)->template postAsyncIo<OTHER_RET>(queueId, isHighPriority, std::forward<FUNC>(func), std::forward<ARGS>(args)...);
 }
 
+template <class RET>
+template <class OTHER_RET, class UNARY_FUNC, class INPUT_IT, class>
+typename ICoroContext<std::vector<OTHER_RET>>::Ptr
+ICoroContext<RET>::forEach(INPUT_IT first,
+                           INPUT_IT last,
+                           UNARY_FUNC&& func)
+{
+    return static_cast<Impl*>(this)->template forEach<OTHER_RET>(first, last, std::forward<UNARY_FUNC>(func));
+}
+
+template <class RET>
+template <class OTHER_RET, class UNARY_FUNC, class INPUT_IT>
+typename ICoroContext<std::vector<OTHER_RET>>::Ptr
+ICoroContext<RET>::forEach(INPUT_IT first,
+                           size_t num,
+                           UNARY_FUNC&& func)
+{
+    return static_cast<Impl*>(this)->template forEach<OTHER_RET>(first, num, std::forward<UNARY_FUNC>(func));
+}
+
+template <class RET>
+template <class OTHER_RET, class UNARY_FUNC, class INPUT_IT, class>
+typename ICoroContext<std::vector<std::vector<OTHER_RET>>>::Ptr
+ICoroContext<RET>::forEachBatch(INPUT_IT first,
+                                INPUT_IT last,
+                                UNARY_FUNC&& func)
+{
+    return static_cast<Impl*>(this)->template forEachBatch<OTHER_RET>(first, last, std::forward<UNARY_FUNC>(func));
+}
+
+template <class RET>
+template <class OTHER_RET, class UNARY_FUNC, class INPUT_IT>
+typename ICoroContext<std::vector<std::vector<OTHER_RET>>>::Ptr
+ICoroContext<RET>::forEachBatch(INPUT_IT first,
+                                size_t num,
+                                UNARY_FUNC&& func)
+{
+    return static_cast<Impl*>(this)->template forEachBatch<OTHER_RET>(first, num, std::forward<UNARY_FUNC>(func));
+}
+
+template <class RET>
+template <class KEY,
+          class MAPPED_TYPE,
+          class REDUCED_TYPE,
+          class MAPPER_FUNC,
+          class REDUCER_FUNC,
+          class INPUT_IT>
+typename ICoroContext<std::map<KEY, REDUCED_TYPE>>::Ptr
+ICoroContext<RET>::mapReduce(INPUT_IT first, INPUT_IT last, MAPPER_FUNC&& mapper, REDUCER_FUNC&& reducer)
+{
+    return static_cast<Impl*>(this)->template mapReduce<KEY, MAPPED_TYPE, REDUCED_TYPE>
+        (first, last, std::forward<MAPPER_FUNC>(mapper), std::forward<REDUCER_FUNC>(reducer));
+}
+
+template <class RET>
+template <class KEY,
+          class MAPPED_TYPE,
+          class REDUCED_TYPE,
+          class MAPPER_FUNC,
+          class REDUCER_FUNC,
+          class INPUT_IT>
+typename ICoroContext<std::map<KEY, REDUCED_TYPE>>::Ptr
+ICoroContext<RET>::mapReduce(INPUT_IT first, size_t num, MAPPER_FUNC&& mapper, REDUCER_FUNC&& reducer)
+{
+    return static_cast<Impl*>(this)->template mapReduce<KEY, MAPPED_TYPE, REDUCED_TYPE>
+        (first, num, std::forward<MAPPER_FUNC>(mapper), std::forward<REDUCER_FUNC>(reducer));
+}
+
+template <class RET>
+template <class KEY,
+          class MAPPED_TYPE,
+          class REDUCED_TYPE,
+          class MAPPER_FUNC,
+          class REDUCER_FUNC,
+          class INPUT_IT>
+typename ICoroContext<std::map<KEY, REDUCED_TYPE>>::Ptr
+ICoroContext<RET>::mapReduceBatch(INPUT_IT first, INPUT_IT last, MAPPER_FUNC&& mapper, REDUCER_FUNC&& reducer)
+{
+    return static_cast<Impl*>(this)->template mapReduceBatch<KEY, MAPPED_TYPE, REDUCED_TYPE>
+        (first, last, std::forward<MAPPER_FUNC>(mapper), std::forward<REDUCER_FUNC>(reducer));
+}
+
+template <class RET>
+template <class KEY,
+          class MAPPED_TYPE,
+          class REDUCED_TYPE,
+          class MAPPER_FUNC,
+          class REDUCER_FUNC,
+          class INPUT_IT>
+typename ICoroContext<std::map<KEY, REDUCED_TYPE>>::Ptr
+ICoroContext<RET>::mapReduceBatch(INPUT_IT first, size_t num, MAPPER_FUNC&& mapper, REDUCER_FUNC&& reducer)
+{
+    return static_cast<Impl*>(this)->template mapReduceBatch<KEY, MAPPED_TYPE, REDUCED_TYPE>
+        (first, num, std::forward<MAPPER_FUNC>(mapper), std::forward<REDUCER_FUNC>(reducer));
+}
+
 //==============================================================================================
 //                                     class Context
 //==============================================================================================
@@ -557,6 +653,115 @@ Context<RET>::postAsyncIoImpl(int queueId, bool isHighPriority, FUNC&& func, ARG
                             IoTask::deleter);
     _dispatcher->postAsyncIo(task);
     return promise->getICoroFuture();
+}
+
+template <class RET>
+template <class OTHER_RET, class UNARY_FUNC, class INPUT_IT, class>
+typename Context<std::vector<OTHER_RET>>::Ptr
+Context<RET>::forEach(INPUT_IT first,
+                      INPUT_IT last,
+                      UNARY_FUNC&& func)
+{
+    return forEach<OTHER_RET>(first, std::distance(first, last), std::forward<UNARY_FUNC>(func));
+}
+
+template <class RET>
+template <class OTHER_RET, class UNARY_FUNC, class INPUT_IT>
+typename Context<std::vector<OTHER_RET>>::Ptr
+Context<RET>::forEach(INPUT_IT first,
+                      size_t num,
+                      UNARY_FUNC&& func)
+{
+    return post<std::vector<OTHER_RET>>(Util::forEachCoro<OTHER_RET, UNARY_FUNC, INPUT_IT>,
+                                        INPUT_IT{first},
+                                        size_t{num},
+                                        UNARY_FUNC{std::forward<UNARY_FUNC>(func)});
+}
+
+template <class RET>
+template <class OTHER_RET, class UNARY_FUNC, class INPUT_IT, class>
+typename Context<std::vector<std::vector<OTHER_RET>>>::Ptr
+Context<RET>::forEachBatch(INPUT_IT first,
+                           INPUT_IT last,
+                           UNARY_FUNC&& func)
+{
+    return forEachBatch<OTHER_RET>(first, std::distance(first, last), std::forward<UNARY_FUNC>(func));
+}
+
+template <class RET>
+template <class OTHER_RET, class UNARY_FUNC, class INPUT_IT>
+typename Context<std::vector<std::vector<OTHER_RET>>>::Ptr
+Context<RET>::forEachBatch(INPUT_IT first,
+                           size_t num,
+                           UNARY_FUNC&& func)
+{
+    return post<std::vector<std::vector<OTHER_RET>>>(Util::forEachBatchCoro<OTHER_RET, UNARY_FUNC, INPUT_IT>,
+                                                     INPUT_IT{first},
+                                                     size_t{num},
+                                                     UNARY_FUNC{std::forward<UNARY_FUNC>(func)},
+                                                     getNumCoroutineThreads());
+}
+
+template <class RET>
+template <class KEY,
+          class MAPPED_TYPE,
+          class REDUCED_TYPE,
+          class MAPPER_FUNC,
+          class REDUCER_FUNC,
+          class INPUT_IT>
+typename Context<std::map<KEY, REDUCED_TYPE>>::Ptr
+Context<RET>::mapReduce(INPUT_IT first, INPUT_IT last, MAPPER_FUNC&& mapper, REDUCER_FUNC&& reducer)
+{
+    return mapReduce(first, std::distance(first, last), std::forward<MAPPER_FUNC>(mapper), std::forward<REDUCER_FUNC>(reducer));
+}
+
+template <class RET>
+template <class KEY,
+          class MAPPED_TYPE,
+          class REDUCED_TYPE,
+          class MAPPER_FUNC,
+          class REDUCER_FUNC,
+          class INPUT_IT>
+typename Context<std::map<KEY, REDUCED_TYPE>>::Ptr
+Context<RET>::mapReduce(INPUT_IT first, size_t num, MAPPER_FUNC&& mapper, REDUCER_FUNC&& reducer)
+{
+    using ReducerOutput = std::map<KEY, REDUCED_TYPE>;
+    return post<ReducerOutput>(Util::mapReduceCoro<KEY, MAPPED_TYPE, REDUCED_TYPE, MAPPER_FUNC, REDUCER_FUNC, INPUT_IT>,
+                               INPUT_IT{first},
+                               size_t{num},
+                               MAPPER_FUNC{std::forward<MAPPER_FUNC>(mapper)},
+                               REDUCER_FUNC{std::forward<REDUCER_FUNC>(reducer)});
+}
+
+template <class RET>
+template <class KEY,
+          class MAPPED_TYPE,
+          class REDUCED_TYPE,
+          class MAPPER_FUNC,
+          class REDUCER_FUNC,
+          class INPUT_IT>
+typename Context<std::map<KEY, REDUCED_TYPE>>::Ptr
+Context<RET>::mapReduceBatch(INPUT_IT first, INPUT_IT last, MAPPER_FUNC&& mapper, REDUCER_FUNC&& reducer)
+{
+    return mapReduceBatch(first, std::distance(first, last), std::forward<MAPPER_FUNC>(mapper), std::forward<REDUCER_FUNC>(reducer));
+}
+
+template <class RET>
+template <class KEY,
+          class MAPPED_TYPE,
+          class REDUCED_TYPE,
+          class MAPPER_FUNC,
+          class REDUCER_FUNC,
+          class INPUT_IT>
+typename Context<std::map<KEY, REDUCED_TYPE>>::Ptr
+Context<RET>::mapReduceBatch(INPUT_IT first, size_t num, MAPPER_FUNC&& mapper, REDUCER_FUNC&& reducer)
+{
+    using ReducerOutput = std::map<KEY, REDUCED_TYPE>;
+    return post<ReducerOutput>(Util::mapReduceBatchCoro<KEY, MAPPED_TYPE, REDUCED_TYPE, MAPPER_FUNC, REDUCER_FUNC, INPUT_IT>,
+                               INPUT_IT{first},
+                               size_t{num},
+                               MAPPER_FUNC{std::forward<MAPPER_FUNC>(mapper)},
+                               REDUCER_FUNC{std::forward<REDUCER_FUNC>(reducer)});
 }
 
 template <class RET>

@@ -19,6 +19,7 @@
 #include <quantum/quantum_context.h>
 #include <quantum/quantum_configuration.h>
 #include <quantum/quantum_macros.h>
+#include <iterator>
 
 namespace Bloomberg {
 namespace quantum {
@@ -161,7 +162,7 @@ public:
     /// @brief Applies the given unary function to all the elements in the range [first,last).
     ///        This function runs in parallel.
     /// @tparam RET The return value of the unary function.
-    /// @tparam UNARY_FUNC A unary function of type <RET(*INPUT_IT)>.
+    /// @tparam UNARY_FUNC A unary function of type 'RET(*INPUT_IT)'.
     /// @tparam InputIt The type of iterator.
     /// @param first The first element in the range.
     /// @param last The last element in the range (exclusive).
@@ -169,85 +170,92 @@ public:
     /// @return A vector of future values corresponding to the output of 'func' on every element in the range.
     /// @note Use this function if InputIt meets the requirement of a RandomAccessIterator
     /// @note Each func invocation will run inside its own coroutine instance.
-    template <class RET = int, class UNARY_FUNC, class INPUT_IT>
-    std::vector<typename ThreadContext<RET>::Ptr>
+    template <class RET = int, class UNARY_FUNC, class INPUT_IT, class = Traits::IsInputIterator<INPUT_IT>>
+    typename ThreadContext<std::vector<RET>>::Ptr
     forEach(INPUT_IT first, INPUT_IT last, UNARY_FUNC&& func);
     
-    /// @brief The synchronous version of the forEach() above.
-    /// @return A vector of values corresponding to the output of 'func' on every element in the range.
-    /// @note This method blocks until all values are returned.
+    /// @brief Same as forEach() but takes a length as second argument in case INPUT_IT
+    ///        is not a random access iterator.
     template <class RET = int, class UNARY_FUNC, class INPUT_IT>
-    std::vector<RET>
-    forEachSync(INPUT_IT first, INPUT_IT last, UNARY_FUNC&& func);
-    
-    /// @brief Applies the given unary function to all the elements in the range [first,first+num).
-    ///        This function runs in parallel.
-    /// @tparam RET The return value of the unary function.
-    /// @tparam UNARY_FUNC A unary function of type <RET(*INPUT_IT)>.
-    /// @tparam InputIt The type of iterator.
-    /// @param first The first element in the range.
-    /// @param num The number of elements to iterate over.
-    /// @param func The unary function.
-    /// @return A vector of future values corresponding to the output of 'func' on every element in the range.
-    /// @note Use this function if InputIt *does not* meet the requirement of a RandomAccessIterator.
-    /// @note Each func invocation will run inside its own coroutine instance.
-    template <class RET = int, class UNARY_FUNC, class INPUT_IT>
-    std::vector<typename ThreadContext<RET>::Ptr>
+    typename ThreadContext<std::vector<RET>>::Ptr
     forEach(INPUT_IT first, size_t num, UNARY_FUNC&& func);
     
-    /// @brief The synchronous version of the forEach() above.
-    /// @return A vector of values corresponding to the output of 'func' on every element in the range.
-    /// @note This method blocks until all values are returned.
-    template <class RET = int, class UNARY_FUNC, class INPUT_IT>
-    std::vector<RET>
-    forEachSync(INPUT_IT first, size_t num, UNARY_FUNC&& func);
-    
-    /// @brief Applies the given unary function to all the elements in the range [first,last).
-    ///        This function runs serially with respect to other functions in the same batch.
-    /// @tparam RET The return value of the unary function.
-    /// @tparam UNARY_FUNC A unary function of type <RET(*INPUT_IT)>.
-    /// @tparam InputIt The type of iterator.
-    /// @param first The first element in the range.
-    /// @param last The last element in the range (exclusive).
-    /// @param func The unary function.
-    /// @return A vector of future value vectors corresponding to each execution batch.
+    /// @brief The batched version of forEach(). This function applies the given unary function
+    ///        to all the elements in the range [first,last). This function runs serially with respect
+    ///        to other functions in the same batch.
+    /// @return A vector of value vectors (i.e. one per batch).
     /// @note Use this function if InputIt meets the requirement of a RandomAccessIterator.
     /// @note The input range is split equally among coroutines and executed in batches. This function
     ///       achieves higher throughput rates than the non-batched mode, if func() is CPU-bound.
-    template <class RET = int, class UNARY_FUNC, class INPUT_IT>
-    std::vector<typename ThreadContext<std::vector<RET>>::Ptr>
+    template <class RET = int, class UNARY_FUNC, class INPUT_IT, class = Traits::IsInputIterator<INPUT_IT>>
+    typename ThreadContext<std::vector<std::vector<RET>>>::Ptr
     forEachBatch(INPUT_IT first, INPUT_IT last, UNARY_FUNC&& func);
     
-    /// @brief The synchronous version of the forEachBatch() above.
-    /// @return A vector of values corresponding to the output of 'func' on every element in the range.
-    /// @note This method blocks until all values are returned.
+    /// @brief Same as forEachBatch() but takes a length as second argument in case INPUT_IT
+    ///        is not a random access iterator.
     template <class RET = int, class UNARY_FUNC, class INPUT_IT>
-    std::vector<RET>
-    forEachBatchSync(INPUT_IT first, INPUT_IT last, UNARY_FUNC&& func);
-    
-    /// @brief Applies the given unary function to all the elements in the range [first,last).
-    ///        This function runs serially with respect to other functions in the same batch.
-    /// @tparam RET The return value of the unary function.
-    /// @tparam UNARY_FUNC A unary function of type <RET(*INPUT_IT)>.
-    /// @tparam InputIt The type of iterator.
-    /// @param first The first element in the range.
-    /// @param last The last element in the range (exclusive).
-    /// @param func The unary function.
-    /// @return A vector of future value vectors corresponding to each execution batch.
-    /// @note Use this function if InputIt *does not* meet the requirement of a RandomAccessIterator.
-    /// @note The input range is split equally among coroutines and executed in batches. This function
-    ///       achieves higher throughput rates than the non-batched mode, if func() is CPU-bound.
-    template <class RET = int, class UNARY_FUNC, class INPUT_IT>
-    std::vector<typename ThreadContext<std::vector<RET>>::Ptr>
+    typename ThreadContext<std::vector<std::vector<RET>>>::Ptr
     forEachBatch(INPUT_IT first, size_t num, UNARY_FUNC&& func);
     
-    /// @brief The synchronous version of the forEachBatch() above.
-    /// @return A vector of values corresponding to the output of 'func' on every element in the range.
-    /// @note This method blocks until all values are returned.
-    template <class RET = int, class UNARY_FUNC, class INPUT_IT>
-    std::vector<RET>
-    forEachBatchSync(INPUT_IT first, size_t num, UNARY_FUNC&& func);
+    /// @brief Implementation of map-reduce functionality.
+    /// @tparam KEY The KEY type used for mapping and reducing.
+    /// @tparam MAPPED_TYPE The output type after a map operation.
+    /// @tparam REDUCED_TYPE The output type after a reduce operation.
+    /// @tparam MAPPER_FUNC The mapper function having the signature
+    ///         'std::vector<std::pair<KEY,MAPPED_TYPE>>(*INPUT_IT)'
+    /// @tparam REDUCER_FUNC The reducer function having the signature
+    ///         'std::pair<KEY,REDUCED_TYPE>(std::pair<KEY, std::vector<MAPPED_TYPE>>&&)'
+    /// @tparam INPUT_IT The iterator type.
+    /// @param first The start iterator to a list of items to be processed in the range [first,last).
+    /// @param last The end iterator to a list of items (not inclusive).
+    /// @param mapper The mapper function.
+    /// @param reducer The reducer function.
+    /// @return A future to a reduced map of values.
+    /// @note Use this function if InputIt meets the requirement of a RandomAccessIterator.
+    template <class KEY,
+              class MAPPED_TYPE,
+              class REDUCED_TYPE,
+              class MAPPER_FUNC,
+              class REDUCER_FUNC,
+              class INPUT_IT>
+    typename ThreadContext<std::map<KEY, REDUCED_TYPE>>::Ptr
+    mapReduce(INPUT_IT first, INPUT_IT last, MAPPER_FUNC&& mapper, REDUCER_FUNC&& reducer);
+  
+    /// @brief Same as mapReduce() but takes a length as second argument in case INPUT_IT
+    ///        is not a random access iterator.
+    template <class KEY,
+              class MAPPED_TYPE,
+              class REDUCED_TYPE,
+              class MAPPER_FUNC,
+              class REDUCER_FUNC,
+              class INPUT_IT>
+    typename ThreadContext<std::map<KEY, REDUCED_TYPE>>::Ptr
+    mapReduce(INPUT_IT first, size_t num, MAPPER_FUNC&& mapper, REDUCER_FUNC&& reducer);
     
+    /// @brief This version of mapReduce() runs both the mapper and the reducer functions in batches
+    ///        for improved performance. This should be used in the case where the functions are
+    ///        more CPU intensive with little or no IO.
+    /// @note Use this function if InputIt meets the requirement of a RandomAccessIterator.
+    template <class KEY,
+              class MAPPED_TYPE,
+              class REDUCED_TYPE,
+              class MAPPER_FUNC,
+              class REDUCER_FUNC,
+              class INPUT_IT>
+    typename ThreadContext<std::map<KEY, REDUCED_TYPE>>::Ptr
+    mapReduceBatch(INPUT_IT first, INPUT_IT last, MAPPER_FUNC&& mapper, REDUCER_FUNC&& reducer);
+    
+    /// @brief Same as mapReduceBatch() but takes a length as second argument in case INPUT_IT
+    ///        is not a random access iterator.
+    template <class KEY,
+              class MAPPED_TYPE,
+              class REDUCED_TYPE,
+              class MAPPER_FUNC,
+              class REDUCER_FUNC,
+              class INPUT_IT>
+    typename ThreadContext<std::map<KEY, REDUCED_TYPE>>::Ptr
+    mapReduceBatch(INPUT_IT first, size_t num, MAPPER_FUNC&& mapper, REDUCER_FUNC&& reducer);
+
     /// @brief Signal all threads to immediately terminate and exit. All other pending coroutines and IO tasks will not complete.
     ///        Call this function for a fast shutdown of the dispatcher.
     /// @note This function blocks.

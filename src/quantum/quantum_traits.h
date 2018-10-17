@@ -58,6 +58,9 @@ struct Traits
     using Yield     = typename BoostCoro::pull_type;
     using Coroutine = typename BoostCoro::push_type;
     
+    template <class IT>
+    using IsInputIterator = std::enable_if_t<std::is_convertible<typename std::iterator_traits<IT>::iterator_category, std::input_iterator_tag>::value>;
+    
     //FUTURE BUFFER TRAIT
     template <class T>
     struct IsBuffer : std::false_type

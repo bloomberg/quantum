@@ -19,6 +19,8 @@
 //#################################### IMPLEMENTATIONS #########################################
 //##############################################################################################
 
+#include <quantum/quantum_util.h>
+
 namespace Bloomberg {
 namespace quantum {
 
@@ -99,8 +101,8 @@ Dispatcher::postAsyncIo(int queueId,
     return postAsyncIoImpl<RET>(queueId, isHighPriority, std::forward<FUNC>(func), std::forward<ARGS>(args)...);
 }
 
-template <class RET, class UNARY_FUNC, class INPUT_IT>
-std::vector<typename ThreadContext<RET>::Ptr>
+template <class RET, class UNARY_FUNC, class INPUT_IT, class>
+typename ThreadContext<std::vector<RET>>::Ptr
 Dispatcher::forEach(INPUT_IT first,
                     INPUT_IT last,
                     UNARY_FUNC&& func)
@@ -109,52 +111,19 @@ Dispatcher::forEach(INPUT_IT first,
 }
 
 template <class RET, class UNARY_FUNC, class INPUT_IT>
-std::vector<RET>
-Dispatcher::forEachSync(INPUT_IT first,
-                        INPUT_IT last,
-                        UNARY_FUNC&& func)
-{
-    return forEachSync<RET>(first, std::distance(first, last), std::forward<UNARY_FUNC>(func));
-}
-
-template <class RET, class UNARY_FUNC, class INPUT_IT>
-std::vector<typename ThreadContext<RET>::Ptr>
+typename ThreadContext<std::vector<RET>>::Ptr
 Dispatcher::forEach(INPUT_IT first,
                     size_t num,
                     UNARY_FUNC&& func)
 {
-    std::vector<typename ThreadContext<RET>::Ptr> asyncResult;
-    asyncResult.reserve(num);
-    for (size_t i = 0; i < num; ++i, ++first)
-    {
-        //Run the function
-        asyncResult.emplace_back(post<RET>([func, first](typename CoroContext<RET>::Ptr ctx)->int
-        {
-            return ctx->set(func(*first));
-        }));
-    }
-    return asyncResult;
+    return post<std::vector<RET>>(Util::forEachCoro<RET, UNARY_FUNC, INPUT_IT>,
+                                  INPUT_IT{first},
+                                  size_t{num},
+                                  UNARY_FUNC{std::forward<UNARY_FUNC>(func)});
 }
 
-template <class RET, class UNARY_FUNC, class INPUT_IT>
-std::vector<RET>
-Dispatcher::forEachSync(INPUT_IT first,
-                        size_t num,
-                        UNARY_FUNC&& func)
-{
-    std::vector<RET> result;
-    result.reserve(num);
-    auto asyncResult = forEach<RET>(first, num, std::forward<UNARY_FUNC>(func));
-    // Get the results
-    for (auto&& tctx : asyncResult)
-    {
-        result.emplace_back(tctx->get());
-    }
-    return result;
-}
-
-template <class RET, class UNARY_FUNC, class INPUT_IT>
-std::vector<typename ThreadContext<std::vector<RET>>::Ptr>
+template <class RET, class UNARY_FUNC, class INPUT_IT, class>
+typename ThreadContext<std::vector<std::vector<RET>>>::Ptr
 Dispatcher::forEachBatch(INPUT_IT first,
                          INPUT_IT last,
                          UNARY_FUNC&& func)
@@ -163,68 +132,74 @@ Dispatcher::forEachBatch(INPUT_IT first,
 }
 
 template <class RET, class UNARY_FUNC, class INPUT_IT>
-std::vector<RET>
-Dispatcher::forEachBatchSync(INPUT_IT first,
-                             INPUT_IT last,
-                             UNARY_FUNC&& func)
-{
-    return forEachBatchSync<RET>(first, std::distance(first, last), std::forward<UNARY_FUNC>(func));
-}
-
-template <class RET, class UNARY_FUNC, class INPUT_IT>
-std::vector<typename ThreadContext<std::vector<RET>>::Ptr>
+typename ThreadContext<std::vector<std::vector<RET>>>::Ptr
 Dispatcher::forEachBatch(INPUT_IT first,
                          size_t num,
                          UNARY_FUNC&& func)
 {
-    size_t numCoroThreads = getNumCoroutineThreads();
-    size_t numPerBatch = num/numCoroThreads;
-    size_t remainder = num%numCoroThreads;
-    std::vector<typename ThreadContext<std::vector<RET>>::Ptr> batchedAsyncResult;
-    batchedAsyncResult.reserve(numCoroThreads);
-    
-    // Post unto all the coroutine threads.
-    for (size_t i = 0; i < numCoroThreads; ++i)
-    {
-        //get the begin and end iterators for each batch
-        size_t num = (i < remainder) ? numPerBatch + 1 : numPerBatch;
-        if (!num)
-        {
-            break; //nothing to do
-        }
-        batchedAsyncResult.emplace_back(post<std::vector<RET>>([func, first, num](typename CoroContext<std::vector<RET>>::Ptr ctx)->int
-        {
-            std::vector<RET> result;
-            auto inputIt = first;
-            for (size_t i = 0; i < num; ++i, ++inputIt)
-            {
-                result.emplace_back(func(*inputIt));
-            }
-            return ctx->set(std::move(result));
-        }));
-        std::advance(first, num);
-    }
-    return batchedAsyncResult;
+    return post<std::vector<std::vector<RET>>>(Util::forEachBatchCoro<RET, UNARY_FUNC, INPUT_IT>,
+                                               INPUT_IT{first},
+                                               size_t{num},
+                                               UNARY_FUNC{std::forward<UNARY_FUNC>(func)},
+                                               getNumCoroutineThreads());
 }
 
-template <class RET, class UNARY_FUNC, class INPUT_IT>
-std::vector<RET>
-Dispatcher::forEachBatchSync(INPUT_IT first,
-                             size_t num,
-                             UNARY_FUNC&& func)
+template <class KEY,
+          class MAPPED_TYPE,
+          class REDUCED_TYPE,
+          class MAPPER_FUNC,
+          class REDUCER_FUNC,
+          class INPUT_IT>
+typename ThreadContext<std::map<KEY, REDUCED_TYPE>>::Ptr
+Dispatcher::mapReduce(INPUT_IT first, INPUT_IT last, MAPPER_FUNC&& mapper, REDUCER_FUNC&& reducer)
 {
-    std::vector<RET> result;
-    result.reserve(num);
-    auto batchedAsyncResult = forEachBatch<RET>(first, num, std::forward<UNARY_FUNC>(func));
-    // Get the results
-    for (auto&& tctx : batchedAsyncResult)
-    {
-        std::vector<RET> v = tctx->get();
-        result.insert(result.end(),
-                      std::move_iterator<typename std::vector<RET>::iterator>(v.begin()),
-                      std::move_iterator<typename std::vector<RET>::iterator>(v.end()));
-    }
-    return result;
+    return mapReduce(first, std::distance(first, last), std::forward<MAPPER_FUNC>(mapper), std::forward<REDUCER_FUNC>(reducer));
+}
+
+template <class KEY,
+          class MAPPED_TYPE,
+          class REDUCED_TYPE,
+          class MAPPER_FUNC,
+          class REDUCER_FUNC,
+          class INPUT_IT>
+typename ThreadContext<std::map<KEY, REDUCED_TYPE>>::Ptr
+Dispatcher::mapReduce(INPUT_IT first, size_t num, MAPPER_FUNC&& mapper, REDUCER_FUNC&& reducer)
+{
+    using ReducerOutput = std::map<KEY, REDUCED_TYPE>;
+    return post<ReducerOutput>(Util::mapReduceCoro<KEY, MAPPED_TYPE, REDUCED_TYPE, MAPPER_FUNC, REDUCER_FUNC, INPUT_IT>,
+                               INPUT_IT{first},
+                               size_t{num},
+                               MAPPER_FUNC{std::forward<MAPPER_FUNC>(mapper)},
+                               REDUCER_FUNC{std::forward<REDUCER_FUNC>(reducer)});
+}
+
+template <class KEY,
+          class MAPPED_TYPE,
+          class REDUCED_TYPE,
+          class MAPPER_FUNC,
+          class REDUCER_FUNC,
+          class INPUT_IT>
+typename ThreadContext<std::map<KEY, REDUCED_TYPE>>::Ptr
+Dispatcher::mapReduceBatch(INPUT_IT first, INPUT_IT last, MAPPER_FUNC&& mapper, REDUCER_FUNC&& reducer)
+{
+    return mapReduceBatch(first, std::distance(first, last), std::forward<MAPPER_FUNC>(mapper), std::forward<REDUCER_FUNC>(reducer));
+}
+
+template <class KEY,
+          class MAPPED_TYPE,
+          class REDUCED_TYPE,
+          class MAPPER_FUNC,
+          class REDUCER_FUNC,
+          class INPUT_IT>
+typename ThreadContext<std::map<KEY, REDUCED_TYPE>>::Ptr
+Dispatcher::mapReduceBatch(INPUT_IT first, size_t num, MAPPER_FUNC&& mapper, REDUCER_FUNC&& reducer)
+{
+    using ReducerOutput = std::map<KEY, REDUCED_TYPE>;
+    return post<ReducerOutput>(Util::mapReduceBatchCoro<KEY, MAPPED_TYPE, REDUCED_TYPE, MAPPER_FUNC, REDUCER_FUNC, INPUT_IT>,
+                               INPUT_IT{first},
+                               size_t{num},
+                               MAPPER_FUNC{std::forward<MAPPER_FUNC>(mapper)},
+                               REDUCER_FUNC{std::forward<REDUCER_FUNC>(reducer)});
 }
 
 inline

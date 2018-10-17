@@ -30,7 +30,7 @@ namespace quantum {
 
 template<class RET, class FUNC, class ...ARGS>
 constexpr std::function<void(Traits::Yield& yield)>
-Util::BindCaller(std::shared_ptr<Context<RET>> ctx, FUNC&& func, ARGS&& ...args0)
+Util::bindCaller(std::shared_ptr<Context<RET>> ctx, FUNC&& func, ARGS&& ...args0)
 {
     auto func0{std::forward<FUNC>(func)};
     std::tuple<ARGS...> tuple0{std::forward<ARGS>(args0)...};
@@ -70,7 +70,7 @@ Util::BindCaller(std::shared_ptr<Context<RET>> ctx, FUNC&& func, ARGS&& ...args0
 
 template<class RET, class FUNC, class ...ARGS>
 constexpr std::function<int()>
-Util::BindIoCaller(std::shared_ptr<Promise<RET>> promise, FUNC&& func, ARGS&& ...args0)
+Util::bindIoCaller(std::shared_ptr<Promise<RET>> promise, FUNC&& func, ARGS&& ...args0)
 {
     auto func0{std::forward<FUNC>(func)};
     std::tuple<ARGS...> tuple0{std::forward<ARGS>(args0)...};
@@ -111,7 +111,7 @@ Util::BindIoCaller(std::shared_ptr<Promise<RET>> promise, FUNC&& func, ARGS&& ..
 
 template<class RET, class FUNC, class ...ARGS>
 constexpr std::function<void(Traits::Yield& yield)>
-Util::BindCaller(std::shared_ptr<Context<RET>> ctx, FUNC&& func0, ARGS&& ...args0)
+Util::bindCaller(std::shared_ptr<Context<RET>> ctx, FUNC&& func0, ARGS&& ...args0)
 {
     return [ctx,
             func1{std::forward<FUNC>(func0)},
@@ -151,7 +151,7 @@ Util::BindCaller(std::shared_ptr<Context<RET>> ctx, FUNC&& func0, ARGS&& ...args
 
 template<class RET, class FUNC, class ...ARGS>
 constexpr std::function<int()>
-Util::BindIoCaller(std::shared_ptr<Promise<RET>> promise, FUNC&& func0, ARGS&& ...args0)
+Util::bindIoCaller(std::shared_ptr<Promise<RET>> promise, FUNC&& func0, ARGS&& ...args0)
 {
     return [promise,
             func1{std::forward<FUNC>(func0)},
@@ -189,6 +189,170 @@ Util::BindIoCaller(std::shared_ptr<Promise<RET>> promise, FUNC&& func0, ARGS&& .
 }
 
 #endif
+
+template <class RET, class UNARY_FUNC, class INPUT_IT>
+int Util::forEachCoro(typename CoroContext<std::vector<RET>>::Ptr ctx,
+                      INPUT_IT inputIt,
+                      size_t num,
+                      UNARY_FUNC&& func)
+{
+    std::vector<typename CoroContext<RET>::Ptr> asyncResults;
+    asyncResults.reserve(num);
+    for (size_t i = 0; i < num; ++i, ++inputIt)
+    {
+        //Run the function
+        asyncResults.emplace_back(ctx->template post<RET>([inputIt, &func](typename CoroContext<RET>::Ptr ctx)->int
+        {
+            return ctx->set(func(*inputIt));
+        }));
+    }
+    std::vector<RET> result;
+    result.reserve(num);
+    for (auto&& futureValue : asyncResults)
+    {
+        result.emplace_back(futureValue->get(ctx));
+    }
+    return ctx->set(std::move(result));
+}
+
+template <class RET, class UNARY_FUNC, class INPUT_IT>
+int Util::forEachBatchCoro(typename CoroContext<std::vector<std::vector<RET>>>::Ptr ctx,
+                           INPUT_IT inputIt,
+                           size_t num,
+                           UNARY_FUNC&& func,
+                           size_t numCoroutineThreads)
+{
+    size_t numPerBatch = num/numCoroutineThreads;
+    size_t remainder = num%numCoroutineThreads;
+    std::vector<typename CoroContext<std::vector<RET>>::Ptr> asyncResults;
+    asyncResults.reserve(numCoroutineThreads);
+    
+    // Post unto all the coroutine threads.
+    for (size_t i = 0; i < numCoroutineThreads; ++i)
+    {
+        //get the begin and end iterators for each batch
+        size_t batchSize = (i < remainder) ? numPerBatch + 1 : numPerBatch;
+        if (!batchSize)
+        {
+            break; //nothing to do
+        }
+        asyncResults.emplace_back(ctx->template post<std::vector<RET>>([inputIt, batchSize, &func](typename CoroContext<std::vector<RET>>::Ptr ctx)->int
+        {
+            std::vector<RET> result;
+            auto it = inputIt;
+            for (size_t j = 0; j < batchSize; ++j, ++it)
+            {
+                result.emplace_back(func(*it));
+            }
+            return ctx->set(std::move(result));
+        }));
+        std::advance(inputIt, batchSize);
+    }
+    
+    std::vector<std::vector<RET>> result;
+    result.reserve(numCoroutineThreads);
+    for (auto&& futureBatch : asyncResults)
+    {
+        result.emplace_back(futureBatch->get(ctx));
+    }
+    return ctx->set(std::move(result));
+}
+
+template <class KEY,
+          class MAPPED_TYPE,
+          class REDUCED_TYPE,
+          class MAPPER_FUNC,
+          class REDUCER_FUNC,
+          class INPUT_IT>
+int Util::mapReduceCoro(typename CoroContext<std::map<KEY, REDUCED_TYPE>>::Ptr ctx,
+                        INPUT_IT inputIt,
+                        size_t num,
+                        MAPPER_FUNC&& mapper,
+                        REDUCER_FUNC&& reducer)
+{
+    // Typedefs
+    using MappedResult = std::pair<KEY, MAPPED_TYPE>;
+    using MapperOutput = std::vector<MappedResult>;
+    using IndexerOutput = std::map<KEY, std::vector<MAPPED_TYPE>>;
+    using ReducedResult = std::pair<KEY, REDUCED_TYPE>;
+    using ReducerOutput = std::map<KEY, REDUCED_TYPE>;
+    
+    // Map stage
+    std::vector<MapperOutput> mapOutputs = ctx->template forEach<MapperOutput>
+        (inputIt, num, std::forward<MAPPER_FUNC>(mapper))->get(ctx);
+    
+    // Index stage
+    IndexerOutput indexerOutput;
+    for (auto&& v : mapOutputs)
+    {
+        for (auto&& p : v) {
+            indexerOutput[std::move(p.first)].emplace_back(std::move(p.second));
+        }
+    }
+    
+    // Reduce stage
+    std::vector<ReducedResult> reducedResults = ctx->template forEach<ReducedResult>
+        (indexerOutput.begin(), indexerOutput.size(), std::forward<REDUCER_FUNC>(reducer))->get(ctx);
+    
+    ReducerOutput reducerOutput;
+    for (auto&& r : reducedResults)
+    {
+        reducerOutput.emplace(std::move(r.first), std::move(r.second));
+    }
+    
+    return ctx->set(std::move(reducerOutput));
+}
+
+template <class KEY,
+          class MAPPED_TYPE,
+          class REDUCED_TYPE,
+          class MAPPER_FUNC,
+          class REDUCER_FUNC,
+          class INPUT_IT>
+int Util::mapReduceBatchCoro(typename CoroContext<std::map<KEY, REDUCED_TYPE>>::Ptr ctx,
+                             INPUT_IT inputIt,
+                             size_t num,
+                             MAPPER_FUNC&& mapper,
+                             REDUCER_FUNC&& reducer)
+{
+    // Typedefs
+    using MappedResult = std::pair<KEY, MAPPED_TYPE>;
+    using MapperOutput = std::vector<MappedResult>;
+    using IndexerOutput = std::map<KEY, std::vector<MAPPED_TYPE>>;
+    using ReducedResult = std::pair<KEY, REDUCED_TYPE>;
+    using ReducerOutput = std::map<KEY, REDUCED_TYPE>;
+    
+    // Map stage
+    std::vector<std::vector<MapperOutput>> mapOutputs = ctx->template forEachBatch<MapperOutput>
+        (inputIt, num, std::forward<MAPPER_FUNC>(mapper))->get(ctx);
+    
+    // Index stage
+    IndexerOutput indexerOutput;
+    for (auto&& partialMapOutput : mapOutputs)
+    {
+        for (auto&& v : partialMapOutput)
+        {
+            for (auto&& p : v) {
+                indexerOutput[p.first].emplace_back(std::move(p.second));
+            }
+        }
+    }
+    
+    // Reduce stage
+    std::vector<std::vector<ReducedResult>> reducedResults = ctx->template forEachBatch<ReducedResult>
+        (indexerOutput.begin(), indexerOutput.size(), std::forward<REDUCER_FUNC>(reducer))->get(ctx);
+    
+    ReducerOutput reducerOutput;
+    for (auto&& partialReducedResult : reducedResults)
+    {
+        for (auto&& r : partialReducedResult)
+        {
+            reducerOutput.emplace(std::move(r.first), std::move(r.second));
+        }
+    }
+    
+    return ctx->set(std::move(reducerOutput));
+}
 
 #ifdef __QUANTUM_PRINT_DEBUG
 std::mutex& Util::LogMutex()

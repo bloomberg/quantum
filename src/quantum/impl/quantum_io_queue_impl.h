@@ -128,7 +128,6 @@ void IoQueue::run()
             
             //========================= START TASK =========================
             int rc = task->run();
-            _isIdle = true; //completed task
             //========================== END TASK ==========================
 
             if (rc == (int)ITask::RetCode::Success)
@@ -315,6 +314,8 @@ std::chrono::milliseconds IoQueue::getBackoffInterval()
 inline
 size_t IoQueue::size() const
 {
+    //========================= LOCKED SCOPE =========================
+    SpinLock::Guard lock(_spinlock, SpinLock::TryToLock{});
 #if (__cplusplus >= 201703L)
     if (_sharedIoQueues) {
         return _isIdle ? _queue.size() : _queue.size() + 1;
@@ -332,6 +333,8 @@ size_t IoQueue::size() const
 inline
 bool IoQueue::empty() const
 {
+    //========================= LOCKED SCOPE =========================
+    SpinLock::Guard lock(_spinlock, SpinLock::TryToLock{});
     if (_sharedIoQueues) {
         return _queue.empty() && _isIdle;
     }
