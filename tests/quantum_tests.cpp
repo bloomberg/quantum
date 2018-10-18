@@ -889,10 +889,10 @@ TEST(ForEachTest, Simple)
 {
     std::vector<int> start{0,1,2,3,4,5,6,7,8,9};
     std::vector<char> end{'a','b','c','d','e','f','g','h','i','j'};
-    std::vector<char> results = DispatcherSingleton::instance().forEachSync<char>(start.begin(), start.end(),
+    std::vector<char> results = DispatcherSingleton::instance().forEach<char>(start.begin(), start.size(),
         [](int val)->char {
         return 'a'+val;
-    });
+    })->get();
     EXPECT_EQ(end, results);
 }
 
@@ -901,14 +901,17 @@ TEST(ForEachTest, SmallBatch)
     std::vector<int> start{0,1,2};
     std::vector<char> end{'a','b','c'};
     
-    std::vector<char> results = DispatcherSingleton::instance().forEachBatchSync<char>(start.begin(), start.end(),
+    std::vector<std::vector<char>> results = DispatcherSingleton::instance().forEachBatch<char>(start.begin(), start.size(),
         [](int val)->char
     {
         return 'a'+val;
-    });
-    EXPECT_EQ(end, results);
-}
+    })->get();
 
+    ASSERT_EQ(start.size(), results.size());
+    EXPECT_EQ(results[0].front(), end[0]);
+    EXPECT_EQ(results[1].front(), end[1]);
+    EXPECT_EQ(results[2].front(), end[2]);
+}
 
 TEST(ForEachTest, LargeBatch)
 {
@@ -920,15 +923,169 @@ TEST(ForEachTest, LargeBatch)
         start[i]=i;
     }
     
-    std::vector<int> results = DispatcherSingleton::instance().forEachBatchSync<int>(start.begin(), start.end(),
+    std::vector<std::vector<int>> results = DispatcherSingleton::instance().forEachBatch<int>(start.begin(), start.size(),
         [](int val)->int {
         return val*2; //double the value
-    });
+    })->get();
     
-    ASSERT_EQ(results.size(), num);
-    for (int i = 0; i < num; ++i) {
-        EXPECT_EQ(results[i], start[i]*2);
+    ASSERT_EQ(results.size(), DispatcherSingleton::instance().getNumCoroutineThreads());
+    
+    //Merge batches
+    std::vector<int> merged;
+    for (auto&& v : results) {
+        merged.insert(merged.end(), v.begin(), v.end());
     }
+    
+    ASSERT_EQ(num, merged.size());
+    for (size_t i = 0; i < merged.size(); ++i) {
+        EXPECT_EQ(merged[i], start[i]*2);
+    }
+}
+
+TEST(ForEachTest, LargeBatchFromCoroutine)
+{
+    DispatcherSingleton::instance().post([](CoroContext<int>::Ptr ctx)->int {
+        size_t num = 1003;
+        std::vector<int> start(num);
+    
+        std::vector<std::vector<int>> results = ctx->forEachBatch<int>(start.begin(), start.size(),
+            [](int val)->int {
+            return val*2; //double the value
+        })->get(ctx);
+        
+        EXPECT_EQ(DispatcherSingleton::instance().getNumCoroutineThreads(), results.size());
+        
+        //Merge batches
+        std::vector<int> merged;
+        for (auto&& v : results) {
+            merged.insert(merged.end(), v.begin(), v.end());
+        }
+        
+        size_t size = merged.size();
+        EXPECT_EQ(num, size);
+        for (size_t i = 0; i < size; ++i) {
+            EXPECT_EQ(merged[i], start[i]*2);
+        }
+        return ctx->set(0);
+    })->get();
+}
+
+TEST(MapReduce, OccuranceCount)
+{
+    //count the number of times a word of a specific length occurs
+    std::vector<std::vector<std::string>> input = {
+        {"a", "b", "aa", "aaa", "cccc" },
+        {"bb", "bbb", "bbbb", "a", "bb"},
+        {"aaa", "bb", "eee", "cccc", "d", "ddddd"},
+        {"eee", "d", "a" }
+    };
+    
+    std::map<std::string, size_t> result = DispatcherSingleton::instance().mapReduce<std::string, size_t, size_t>(input.begin(), input.size(),
+        //mapper
+        [](const std::vector<std::string>& input)->std::vector<std::pair<std::string, size_t>>
+        {
+            std::vector<std::pair<std::string, size_t>> out;
+            for (auto&& i : input) {
+                out.push_back({i, 1});
+            }
+            return out;
+        },
+        //reducer
+        [](std::pair<std::string, std::vector<size_t>>&& input)->std::pair<std::string, size_t>
+        {
+            size_t sum = 0;
+            for (auto&& i : input.second) {
+                sum += i;
+            }
+            return {std::move(input.first), sum};
+        })->get();
+    
+    ASSERT_EQ(result.size(), 11);
+    EXPECT_EQ(result["a"], 3);
+    EXPECT_EQ(result["aa"], 1);
+    EXPECT_EQ(result["aaa"], 2);
+    EXPECT_EQ(result["b"], 1);
+    EXPECT_EQ(result["bb"], 3);
+    EXPECT_EQ(result["bbb"], 1);
+    EXPECT_EQ(result["bbbb"], 1);
+    EXPECT_EQ(result["cccc"], 2);
+    EXPECT_EQ(result["d"], 2);
+    EXPECT_EQ(result["ddddd"], 1);
+    EXPECT_EQ(result["eee"], 2);
+}
+
+TEST(MapReduce, WordLength)
+{
+    //count the number of times each string occurs
+    std::vector<std::vector<std::string>> input = {
+        {"a", "b", "aa", "aaa", "cccc" },
+        {"bb", "bbb", "bbbb", "a", "bb"},
+        {"aaa", "bb", "eee", "cccc", "d", "ddddd"},
+        {"eee", "d", "a" }
+    };
+    
+    std::map<size_t, size_t> result = DispatcherSingleton::instance().mapReduceBatch<size_t, std::string, size_t>(input.begin(), input.size(),
+        //mapper
+        [](const std::vector<std::string>& input)->std::vector<std::pair<size_t, std::string>>
+        {
+            std::vector<std::pair<size_t, std::string>> out;
+            for (auto&& i : input) {
+                out.push_back({i.size(), i});
+            }
+            return out;
+        },
+        //reducer
+        [](std::pair<size_t, std::vector<std::string>>&& input)->std::pair<size_t, size_t>
+        {
+            return {input.first, input.second.size()};
+        })->get();
+    
+    ASSERT_EQ(result.size(), 5); //longest word 'ddddd'
+    EXPECT_EQ(result[1], 6);
+    EXPECT_EQ(result[2], 4);
+    EXPECT_EQ(result[3], 5);
+    EXPECT_EQ(result[4], 3);
+    EXPECT_EQ(result[5], 1);
+}
+
+TEST(MapReduce, WordLengthFromCoroutine)
+{
+    //count the number of times each string occurs
+    std::vector<std::vector<std::string>> input = {
+        {"a", "b", "aa", "aaa", "cccc" },
+        {"bb", "bbb", "bbbb", "a", "bb"},
+        {"aaa", "bb", "eee", "cccc", "d", "ddddd"},
+        {"eee", "d", "a" }
+    };
+    
+    DispatcherSingleton::instance().post([input](CoroContext<int>::Ptr ctx)->int
+    {
+        std::map<size_t, size_t> result = ctx->mapReduceBatch<size_t, std::string, size_t>(input.begin(), input.size(),
+        //mapper
+        [](const std::vector<std::string>& input)->std::vector<std::pair<size_t, std::string>>
+        {
+            std::vector<std::pair<size_t, std::string>> out;
+            for (auto&& i : input) {
+                out.push_back({i.size(), i});
+            }
+            return out;
+        },
+        //reducer
+        [](std::pair<size_t, std::vector<std::string>>&& input)->std::pair<size_t, size_t>
+        {
+            return {input.first, input.second.size()};
+        })->get(ctx);
+        
+        EXPECT_EQ(result.size(), 5); //longest word 'ddddd'
+        EXPECT_EQ(result[1], 6);
+        EXPECT_EQ(result[2], 4);
+        EXPECT_EQ(result[3], 5);
+        EXPECT_EQ(result[4], 3);
+        EXPECT_EQ(result[5], 1);
+        
+        return ctx->set(0);
+    
+    })->get();
 }
 
 //This test **must** come last to make Valgrind happy.

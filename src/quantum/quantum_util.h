@@ -20,6 +20,8 @@
 #include <functional>
 #include <utility>
 #include <iostream>
+#include <map>
+#include <vector>
 #include <quantum/quantum_traits.h>
 #include <quantum/interface/quantum_itask.h>
 #include <quantum/interface/quantum_icontext.h>
@@ -42,11 +44,54 @@ struct Util
 {
     template<class RET, class FUNC, class ...ARGS>
     static constexpr std::function<void(Traits::Yield& yield)>
-    BindCaller(std::shared_ptr<Context<RET>> ctx, FUNC&& func0, ARGS&& ...args0);
+    bindCaller(std::shared_ptr<Context<RET>> ctx, FUNC&& func0, ARGS&& ...args0);
     
     template<class RET, class FUNC, class ...ARGS>
     static constexpr std::function<int()>
-    BindIoCaller(std::shared_ptr<Promise<RET>> promise, FUNC&& func0, ARGS&& ...args0);
+    bindIoCaller(std::shared_ptr<Promise<RET>> promise, FUNC&& func0, ARGS&& ...args0);
+    
+    //------------------------------------------------------------------------------------------
+    //                                      ForEach
+    //------------------------------------------------------------------------------------------
+    template <class RET, class UNARY_FUNC, class INPUT_IT>
+    static int forEachCoro(typename CoroContext<std::vector<RET>>::Ptr ctx,
+                           INPUT_IT inputIt,
+                           size_t num,
+                           UNARY_FUNC&& func);
+    
+    template <class RET, class UNARY_FUNC, class INPUT_IT>
+    static int forEachBatchCoro(typename CoroContext<std::vector<std::vector<RET>>>::Ptr ctx,
+                                INPUT_IT inputIt,
+                                size_t num,
+                                UNARY_FUNC&& func,
+                                size_t numCoroutineThreads);
+    
+    //------------------------------------------------------------------------------------------
+    //                                      MapReduce
+    //------------------------------------------------------------------------------------------
+    template <class KEY,
+              class MAPPED_TYPE,
+              class REDUCED_TYPE,
+              class MAPPER_FUNC,
+              class REDUCER_FUNC,
+              class INPUT_IT>
+    static int mapReduceCoro(typename CoroContext<std::map<KEY, REDUCED_TYPE>>::Ptr ctx,
+                             INPUT_IT inputIt,
+                             size_t num,
+                             MAPPER_FUNC&& mapper,
+                             REDUCER_FUNC&& reducer);
+    
+    template <class KEY,
+              class MAPPED_TYPE,
+              class REDUCED_TYPE,
+              class MAPPER_FUNC,
+              class REDUCER_FUNC,
+              class INPUT_IT>
+    static int mapReduceBatchCoro(typename CoroContext<std::map<KEY, REDUCED_TYPE>>::Ptr ctx,
+                                  INPUT_IT inputIt,
+                                  size_t num,
+                                  MAPPER_FUNC&& mapper,
+                                  REDUCER_FUNC&& reducer);
     
 #ifdef __QUANTUM_PRINT_DEBUG
     //Synchronize logging

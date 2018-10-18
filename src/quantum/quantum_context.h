@@ -21,6 +21,7 @@
 #include <quantum/quantum_io_task.h>
 #include <quantum/quantum_dispatcher_core.h>
 #include <quantum/quantum_traits.h>
+#include <iterator>
 
 namespace Bloomberg {
 namespace quantum {
@@ -199,6 +200,64 @@ public:
     template <class OTHER_RET, class FUNC, class ... ARGS>
     typename ICoroFuture<OTHER_RET>::Ptr
     postAsyncIo(int queueId, bool isHighPriority, FUNC&& func, ARGS&&... args);
+    
+    //===================================
+    //           FOR EACH
+    //===================================
+    template <class OTHER_RET, class UNARY_FUNC, class INPUT_IT, class = Traits::IsInputIterator<INPUT_IT>>
+    typename Context<std::vector<OTHER_RET>>::Ptr
+    forEach(INPUT_IT first, INPUT_IT last, UNARY_FUNC&& func);
+    
+    template <class OTHER_RET, class UNARY_FUNC, class INPUT_IT>
+    typename Context<std::vector<OTHER_RET>>::Ptr
+    forEach(INPUT_IT first, size_t num, UNARY_FUNC&& func);
+    
+    template <class OTHER_RET, class UNARY_FUNC, class INPUT_IT, class = Traits::IsInputIterator<INPUT_IT>>
+    typename Context<std::vector<std::vector<OTHER_RET>>>::Ptr
+    forEachBatch(INPUT_IT first, INPUT_IT last, UNARY_FUNC&& func);
+
+    template <class OTHER_RET, class UNARY_FUNC, class INPUT_IT>
+    typename Context<std::vector<std::vector<OTHER_RET>>>::Ptr
+    forEachBatch(INPUT_IT first, size_t num, UNARY_FUNC&& func);
+    
+    //===================================
+    //           MAP REDUCE
+    //===================================
+    template <class KEY,
+              class MAPPED_TYPE,
+              class REDUCED_TYPE,
+              class MAPPER_FUNC,
+              class REDUCER_FUNC,
+              class INPUT_IT>
+    typename Context<std::map<KEY, REDUCED_TYPE>>::Ptr
+    mapReduce(INPUT_IT first, INPUT_IT last, MAPPER_FUNC&& mapper, REDUCER_FUNC&& reducer);
+    
+    template <class KEY,
+              class MAPPED_TYPE,
+              class REDUCED_TYPE,
+              class MAPPER_FUNC,
+              class REDUCER_FUNC,
+              class INPUT_IT>
+    typename Context<std::map<KEY, REDUCED_TYPE>>::Ptr
+    mapReduce(INPUT_IT first, size_t num, MAPPER_FUNC&& mapper, REDUCER_FUNC&& reducer);
+    
+    template <class KEY,
+              class MAPPED_TYPE,
+              class REDUCED_TYPE,
+              class MAPPER_FUNC,
+              class REDUCER_FUNC,
+              class INPUT_IT>
+    typename Context<std::map<KEY, REDUCED_TYPE>>::Ptr
+    mapReduceBatch(INPUT_IT first, INPUT_IT last, MAPPER_FUNC&& mapper, REDUCER_FUNC&& reducer);
+    
+    template <class KEY,
+              class MAPPED_TYPE,
+              class REDUCED_TYPE,
+              class MAPPER_FUNC,
+              class REDUCER_FUNC,
+              class INPUT_IT>
+    typename Context<std::map<KEY, REDUCED_TYPE>>::Ptr
+    mapReduceBatch(INPUT_IT first, size_t num, MAPPER_FUNC&& mapper, REDUCER_FUNC&& reducer);
     
     //===================================
     //           NEW / DELETE
