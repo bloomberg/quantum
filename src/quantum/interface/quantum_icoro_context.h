@@ -35,6 +35,7 @@ class Context;
 template <class RET>
 struct ICoroContext : public ICoroContextBase
 {
+    using ContextTag = CoroContextTag;
     using Ptr = std::shared_ptr<ICoroContext<RET>>;
     using Impl = Context<RET>;
     
@@ -313,7 +314,7 @@ struct ICoroContext : public ICoroContextBase
     /// @return A pointer to a coroutine future object which may be used to retrieve the result of the IO operation.
     /// @note This method does not block. The passed function will not be wrapped in a coroutine.
     template <class OTHER_RET = int, class FUNC, class ... ARGS>
-    typename ICoroFuture<OTHER_RET>::Ptr
+    CoroFuturePtr<OTHER_RET>
     postAsyncIo(FUNC&& func, ARGS&&... args);
     
     /// @brief Posts an IO function to run asynchronously on the IO thread pool.
@@ -333,7 +334,7 @@ struct ICoroContext : public ICoroContextBase
     /// @return A pointer to a coroutine future object which may be used to retrieve the result of the IO operation.
     /// @note This method does not block. The passed function will not be wrapped in a coroutine.
     template <class OTHER_RET = int, class FUNC, class ... ARGS>
-    typename ICoroFuture<OTHER_RET>::Ptr
+    CoroFuturePtr<OTHER_RET>
     postAsyncIo(int queueId, bool isHighPriority, FUNC&& func, ARGS&&... args);
     
     /// @brief Applies the given unary function to all the elements in the range [first,last).
@@ -341,9 +342,9 @@ struct ICoroContext : public ICoroContextBase
     /// @tparam OTHER_RET The return value of the unary function.
     /// @tparam UNARY_FUNC A unary function of type 'RET(*INPUT_IT)'.
     /// @tparam InputIt The type of iterator.
-    /// @param first The first element in the range.
-    /// @param last The last element in the range (exclusive).
-    /// @param func The unary function.
+    /// @param[in] first The first element in the range.
+    /// @param[in] last The last element in the range (exclusive).
+    /// @param[in] func The unary function.
     /// @return A vector of future values corresponding to the output of 'func' on every element in the range.
     /// @note Use this function if InputIt meets the requirement of a RandomAccessIterator
     /// @note Each func invocation will run inside its own coroutine instance.
@@ -356,9 +357,9 @@ struct ICoroContext : public ICoroContextBase
     /// @tparam OTHER_RET The return value of the unary function.
     /// @tparam UNARY_FUNC A unary function of type 'RET(*INPUT_IT)'.
     /// @tparam InputIt The type of iterator.
-    /// @param first The first element in the range.
-    /// @param num The number of elements to iterate over.
-    /// @param func The unary function.
+    /// @oaram[in] first The first element in the range.
+    /// @oaram[in] num The number of elements to iterate over.
+    /// @oaram[in] func The unary function.
     /// @return A vector of future values corresponding to the output of 'func' on every element in the range.
     /// @note Use this function if InputIt *does not* meet the requirement of a RandomAccessIterator.
     /// @note Each func invocation will run inside its own coroutine instance.
@@ -371,9 +372,9 @@ struct ICoroContext : public ICoroContextBase
     /// @tparam OTHER_RET The return value of the unary function.
     /// @tparam UNARY_FUNC A unary function of type 'RET(*INPUT_IT)'.
     /// @tparam InputIt The type of iterator.
-    /// @param first The first element in the range.
-    /// @param last The last element in the range (exclusive).
-    /// @param func The unary function.
+    /// @oaram[in] first The first element in the range.
+    /// @oaram[in] last The last element in the range (exclusive).
+    /// @oaram[in] func The unary function.
     /// @return A vector of value vectors (i.e. one per batch).
     /// @note Use this function if InputIt meets the requirement of a RandomAccessIterator.
     /// @note The input range is split equally among coroutines and executed in batches. This function
@@ -387,9 +388,9 @@ struct ICoroContext : public ICoroContextBase
     /// @tparam OTHER_RET The return value of the unary function.
     /// @tparam UNARY_FUNC A unary function of type 'RET(*INPUT_IT)'.
     /// @tparam InputIt The type of iterator.
-    /// @param first The first element in the range.
-    /// @param last The last element in the range (exclusive).
-    /// @param func The unary function.
+    /// @oaram[in] first The first element in the range.
+    /// @oaram[in] last The last element in the range (exclusive).
+    /// @oaram[in] func The unary function.
     /// @return A vector of value vectors (i.e. one per batch).
     /// @note Use this function if InputIt *does not* meet the requirement of a RandomAccessIterator.
     /// @note The input range is split equally among coroutines and executed in batches. This function
@@ -407,10 +408,10 @@ struct ICoroContext : public ICoroContextBase
     /// @tparam REDUCER_FUNC The reducer function having the signature
     ///         'std::pair<KEY,REDUCED_TYPE>(std::pair<KEY, std::vector<MAPPED_TYPE>>&&)'
     /// @tparam INPUT_IT The iterator type.
-    /// @param first The start iterator to a list of items to be processed in the range [first,last).
-    /// @param last The end iterator to a list of items (not inclusive).
-    /// @param mapper The mapper function.
-    /// @param reducer The reducer function.
+    /// @oaram[in] first The start iterator to a list of items to be processed in the range [first,last).
+    /// @oaram[in] last The end iterator to a list of items (not inclusive).
+    /// @oaram[in] mapper The mapper function.
+    /// @oaram[in] reducer The reducer function.
     /// @return A future to a reduced map of values.
     /// @note Use this function if InputIt meets the requirement of a RandomAccessIterator.
     template <class KEY,
@@ -460,6 +461,9 @@ struct ICoroContext : public ICoroContextBase
 
 template <class RET>
 using CoroContext = ICoroContext<RET>;
+
+template <class RET>
+using CoroContextPtr = typename ICoroContext<RET>::Ptr;
 
 }}
 

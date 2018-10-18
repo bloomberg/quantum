@@ -16,6 +16,7 @@
 #ifndef QUANTUM_ICORO_FUTURE_H
 #define QUANTUM_ICORO_FUTURE_H
 
+#include <quantum/interface/quantum_icontext_base.h>
 #include <quantum/interface/quantum_icoro_future_base.h>
 #include <quantum/quantum_traits.h>
 
@@ -33,6 +34,7 @@ class Future;
 template <class T>
 struct ICoroFuture : public ICoroFutureBase
 {
+    using ContextTag = CoroContextTag;
     using Ptr = std::shared_ptr<ICoroFuture<T>>;
     using Impl = Future<T>;
     
@@ -63,6 +65,9 @@ struct ICoroFuture : public ICoroFutureBase
 
 template <class T>
 using CoroFuture = ICoroFuture<T>;
+
+template <class T>
+using CoroFuturePtr = typename ICoroFuture<T>::Ptr;
 
 }}
 

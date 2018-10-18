@@ -36,6 +36,7 @@ class Context;
 template <class RET>
 struct IThreadContext : public IThreadContextBase
 {
+    using ContextTag = ThreadContextTag;
     using Ptr = std::shared_ptr<IThreadContext<RET>>;
     using Impl = Context<RET>;
     
@@ -229,6 +230,9 @@ struct IThreadContext : public IThreadContextBase
 
 template <class RET>
 using ThreadContext = IThreadContext<RET>;
+
+template <class RET>
+using ThreadContextPtr = typename IThreadContext<RET>::Ptr;
 
 }}
 

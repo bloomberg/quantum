@@ -20,6 +20,7 @@
 #include <quantum/quantum_configuration.h>
 #include <quantum/quantum_macros.h>
 #include <iterator>
+#include <chrono>
 
 namespace Bloomberg {
 namespace quantum {
@@ -47,7 +48,7 @@ public:
                           bool pinCoroutineThreadsToCores = false);
     
     /// @brief Constructor.
-    /// @param config The configuration for the Quantum dispatcher.
+    /// @oaram[in] config The configuration for the Quantum dispatcher.
     explicit Dispatcher(const Configuration& config);
     
     /// @brief Destructor.
@@ -69,7 +70,7 @@ public:
     /// @note This function is non-blocking and returns immediately. The returned thread context cannot be used to chain
     ///       further coroutines.
     template <class RET = int, class FUNC, class ... ARGS>
-    typename ThreadContext<RET>::Ptr
+    ThreadContextPtr<RET>
     post(FUNC&& func, ARGS&&... args);
     
     /// @brief Post a coroutine to run asynchronously on a specific queue (thread).
@@ -89,7 +90,7 @@ public:
     /// @note This function is non-blocking and returns immediately. The returned thread context cannot be used to chain
     ///       further coroutines.
     template <class RET = int, class FUNC, class ... ARGS>
-    typename ThreadContext<RET>::Ptr
+    ThreadContextPtr<RET>
     post(int queueId, bool isHighPriority, FUNC&& func, ARGS&&... args);
     
     /// @brief Post the first coroutine in a continuation chain to run asynchronously.
@@ -104,7 +105,7 @@ public:
     /// @note This function is non-blocking and returns immediately. The returned context can be used to chain other
     ///       coroutines which will run sequentially.
     template <class RET = int, class FUNC, class ... ARGS>
-    typename ThreadContext<RET>::Ptr
+    ThreadContextPtr<RET>
     postFirst(FUNC&& func, ARGS&&... args);
     
     /// @brief Post the first coroutine in a continuation chain to run asynchronously on a specific queue (thread).
@@ -124,7 +125,7 @@ public:
     /// @note This function is non-blocking and returns immediately. The returned context can be used to chain other
     ///       coroutines which will run sequentially.
     template <class RET = int, class FUNC, class ... ARGS>
-    typename ThreadContext<RET>::Ptr
+    ThreadContextPtr<RET>
     postFirst(int queueId, bool isHighPriority, FUNC&& func, ARGS&&... args);
     
     /// @brief Post a blocking IO (or long running) task to run asynchronously on the IO thread pool.
@@ -138,7 +139,7 @@ public:
     /// @return A pointer to a thread future object.
     /// @note This function is non-blocking and returns immediately. The passed function will not be wrapped in a coroutine.
     template <class RET = int, class FUNC, class ... ARGS>
-    typename ThreadFuture<RET>::Ptr
+    ThreadFuturePtr<RET>
     postAsyncIo(FUNC&& func, ARGS&&... args);
     
     /// @brief Post a blocking IO (or long running) task to run asynchronously on a specific thread in the IO thread pool.
@@ -156,7 +157,7 @@ public:
     /// @return A pointer to a thread future object.
     /// @note This function is non-blocking and returns immediately. The passed function will not be wrapped in a coroutine.
     template <class RET = int, class FUNC, class ... ARGS>
-    typename ThreadFuture<RET>::Ptr
+    ThreadFuturePtr<RET>
     postAsyncIo(int queueId, bool isHighPriority, FUNC&& func, ARGS&&... args);
     
     /// @brief Applies the given unary function to all the elements in the range [first,last).
@@ -164,20 +165,20 @@ public:
     /// @tparam RET The return value of the unary function.
     /// @tparam UNARY_FUNC A unary function of type 'RET(*INPUT_IT)'.
     /// @tparam InputIt The type of iterator.
-    /// @param first The first element in the range.
-    /// @param last The last element in the range (exclusive).
-    /// @param func The unary function.
+    /// @oaram[in] first The first element in the range.
+    /// @oaram[in] last The last element in the range (exclusive).
+    /// @oaram[in] func The unary function.
     /// @return A vector of future values corresponding to the output of 'func' on every element in the range.
     /// @note Use this function if InputIt meets the requirement of a RandomAccessIterator
     /// @note Each func invocation will run inside its own coroutine instance.
     template <class RET = int, class UNARY_FUNC, class INPUT_IT, class = Traits::IsInputIterator<INPUT_IT>>
-    typename ThreadContext<std::vector<RET>>::Ptr
+    ThreadContextPtr<std::vector<RET>>
     forEach(INPUT_IT first, INPUT_IT last, UNARY_FUNC&& func);
     
     /// @brief Same as forEach() but takes a length as second argument in case INPUT_IT
     ///        is not a random access iterator.
     template <class RET = int, class UNARY_FUNC, class INPUT_IT>
-    typename ThreadContext<std::vector<RET>>::Ptr
+    ThreadContextPtr<std::vector<RET>>
     forEach(INPUT_IT first, size_t num, UNARY_FUNC&& func);
     
     /// @brief The batched version of forEach(). This function applies the given unary function
@@ -188,13 +189,13 @@ public:
     /// @note The input range is split equally among coroutines and executed in batches. This function
     ///       achieves higher throughput rates than the non-batched mode, if func() is CPU-bound.
     template <class RET = int, class UNARY_FUNC, class INPUT_IT, class = Traits::IsInputIterator<INPUT_IT>>
-    typename ThreadContext<std::vector<std::vector<RET>>>::Ptr
+    ThreadContextPtr<std::vector<std::vector<RET>>>
     forEachBatch(INPUT_IT first, INPUT_IT last, UNARY_FUNC&& func);
     
     /// @brief Same as forEachBatch() but takes a length as second argument in case INPUT_IT
     ///        is not a random access iterator.
     template <class RET = int, class UNARY_FUNC, class INPUT_IT>
-    typename ThreadContext<std::vector<std::vector<RET>>>::Ptr
+    ThreadContextPtr<std::vector<std::vector<RET>>>
     forEachBatch(INPUT_IT first, size_t num, UNARY_FUNC&& func);
     
     /// @brief Implementation of map-reduce functionality.
@@ -206,10 +207,10 @@ public:
     /// @tparam REDUCER_FUNC The reducer function having the signature
     ///         'std::pair<KEY,REDUCED_TYPE>(std::pair<KEY, std::vector<MAPPED_TYPE>>&&)'
     /// @tparam INPUT_IT The iterator type.
-    /// @param first The start iterator to a list of items to be processed in the range [first,last).
-    /// @param last The end iterator to a list of items (not inclusive).
-    /// @param mapper The mapper function.
-    /// @param reducer The reducer function.
+    /// @oaram[in] first The start iterator to a list of items to be processed in the range [first,last).
+    /// @oaram[in] last The end iterator to a list of items (not inclusive).
+    /// @oaram[in] mapper The mapper function.
+    /// @oaram[in] reducer The reducer function.
     /// @return A future to a reduced map of values.
     /// @note Use this function if InputIt meets the requirement of a RandomAccessIterator.
     template <class KEY,
@@ -218,7 +219,7 @@ public:
               class MAPPER_FUNC,
               class REDUCER_FUNC,
               class INPUT_IT>
-    typename ThreadContext<std::map<KEY, REDUCED_TYPE>>::Ptr
+    ThreadContextPtr<std::map<KEY, REDUCED_TYPE>>
     mapReduce(INPUT_IT first, INPUT_IT last, MAPPER_FUNC&& mapper, REDUCER_FUNC&& reducer);
   
     /// @brief Same as mapReduce() but takes a length as second argument in case INPUT_IT
@@ -229,7 +230,7 @@ public:
               class MAPPER_FUNC,
               class REDUCER_FUNC,
               class INPUT_IT>
-    typename ThreadContext<std::map<KEY, REDUCED_TYPE>>::Ptr
+    ThreadContextPtr<std::map<KEY, REDUCED_TYPE>>
     mapReduce(INPUT_IT first, size_t num, MAPPER_FUNC&& mapper, REDUCER_FUNC&& reducer);
     
     /// @brief This version of mapReduce() runs both the mapper and the reducer functions in batches
@@ -242,7 +243,7 @@ public:
               class MAPPER_FUNC,
               class REDUCER_FUNC,
               class INPUT_IT>
-    typename ThreadContext<std::map<KEY, REDUCED_TYPE>>::Ptr
+    ThreadContextPtr<std::map<KEY, REDUCED_TYPE>>
     mapReduceBatch(INPUT_IT first, INPUT_IT last, MAPPER_FUNC&& mapper, REDUCER_FUNC&& reducer);
     
     /// @brief Same as mapReduceBatch() but takes a length as second argument in case INPUT_IT
@@ -253,7 +254,7 @@ public:
               class MAPPER_FUNC,
               class REDUCER_FUNC,
               class INPUT_IT>
-    typename ThreadContext<std::map<KEY, REDUCED_TYPE>>::Ptr
+    ThreadContextPtr<std::map<KEY, REDUCED_TYPE>>
     mapReduceBatch(INPUT_IT first, size_t num, MAPPER_FUNC&& mapper, REDUCER_FUNC&& reducer);
 
     /// @brief Signal all threads to immediately terminate and exit. All other pending coroutines and IO tasks will not complete.
@@ -282,9 +283,10 @@ public:
                int queueId = (int)IQueue::QueueId::All) const;
     
     /// @brief Drains all queues on this dispatcher object.
+    /// @param[in] timeout Maximum time for this function to wait. Set to 0 to wait indefinitely until all queues drain.
     /// @note This function blocks until all coroutines and IO tasks have completed. During this time, posting
     ///       of new tasks is disabled unless they are posted from within an already executing coroutine.
-    void drain();
+    void drain(std::chrono::milliseconds timeout = std::chrono::milliseconds::zero());
     
     /// @brief Returns the number of underlying coroutine threads as specified in the constructor. If -1 was passed
     ///        than this number essentially indicates the number of cores.
@@ -314,11 +316,11 @@ public:
     
 private:
     template <class RET, class FUNC, class ... ARGS>
-    typename ThreadContext<RET>::Ptr
+    ThreadContextPtr<RET>
     postImpl(int queueId, bool isHighPriority, ITask::Type type, FUNC&& func, ARGS&&... args);
     
     template <class RET, class FUNC, class ... ARGS>
-    typename ThreadFuture<RET>::Ptr
+    ThreadFuturePtr<RET>
     postAsyncIoImpl(int queueId, bool isHighPriority, FUNC&& func, ARGS&&... args);
     
     //Members

@@ -47,8 +47,8 @@ public:
     //Future interface accessors
     IThreadFutureBase::Ptr getIThreadFutureBase() const final;
     ICoroFutureBase::Ptr getICoroFutureBase() const final;
-    typename IThreadFuture<T>::Ptr getIThreadFuture() const;
-    typename ICoroFuture<T>::Ptr getICoroFuture() const;
+    ThreadFuturePtr<T> getIThreadFuture() const;
+    CoroFuturePtr<T> getICoroFuture() const;
     
     //ITerminate
     void terminate() final;
@@ -85,6 +85,9 @@ private:
     std::shared_ptr<SharedState<T>> _sharedState;
     std::atomic_flag                _terminated;
 };
+
+template <class T>
+using PromisePtr = typename Promise<T>::Ptr;
 
 }}
 

@@ -188,14 +188,14 @@ bool DispatcherCore::ioEmpty(int queueId) const
 {
     if (queueId == (int)IQueue::QueueId::All)
     {
-        for (auto&& queue : _ioQueues)
+        for (auto&& queue : _sharedIoQueues)
         {
             if (!queue.empty())
             {
                 return false;
             }
         }
-        for (auto&& queue : _sharedIoQueues)
+        for (auto&& queue : _ioQueues)
         {
             if (!queue.empty())
             {

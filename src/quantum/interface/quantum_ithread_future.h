@@ -16,6 +16,7 @@
 #ifndef QUANTUM_ITHREAD_FUTURE_H
 #define QUANTUM_ITHREAD_FUTURE_H
 
+#include <quantum/interface/quantum_icontext_base.h>
 #include <quantum/interface/quantum_icoro_future_base.h>
 #include <quantum/quantum_traits.h>
 
@@ -33,6 +34,7 @@ class Future;
 template <class T>
 struct IThreadFuture : public IThreadFutureBase
 {
+    using ContextTag = ThreadContextTag;
     using Ptr = std::shared_ptr<IThreadFuture<T>>;
     using Impl = Future<T>;
     
@@ -60,6 +62,9 @@ struct IThreadFuture : public IThreadFutureBase
 
 template <class T>
 using ThreadFuture = IThreadFuture<T>;
+
+template <class T>
+using ThreadFuturePtr = typename IThreadFuture<T>::Ptr;
 
 }}
 

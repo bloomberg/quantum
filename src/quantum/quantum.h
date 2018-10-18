@@ -53,6 +53,7 @@
 #include <quantum/quantum_future_state.h>
 #include <quantum/quantum_io_queue.h>
 #include <quantum/quantum_io_task.h>
+#include <quantum/quantum_future_joiner.h>
 #include <quantum/quantum_macros.h>
 #include <quantum/quantum_mutex.h>
 #include <quantum/quantum_promise.h>

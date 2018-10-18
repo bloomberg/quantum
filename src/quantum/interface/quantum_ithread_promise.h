@@ -16,6 +16,7 @@
 #ifndef QUANTUM_ITHREAD_PROMISE_H
 #define QUANTUM_ITHREAD_PROMISE_H
 
+#include <quantum/interface/quantum_icontext_base.h>
 #include <quantum/interface/quantum_ipromise_base.h>
 #include <quantum/interface/quantum_ifuture.h>
 #include <quantum/quantum_util.h>
@@ -35,6 +36,7 @@ struct IThreadPromise : public Traits::DerivedFrom<PROMISE<T>,
                                                    IThreadPromise<PROMISE, T>,
                                                    IPromiseBase>
 {
+    using ContextTag = ThreadContextTag;
     using Ptr = std::shared_ptr<IThreadPromise<PROMISE, T>>;
     using Impl = PROMISE<T>;
     
@@ -45,7 +47,7 @@ struct IThreadPromise : public Traits::DerivedFrom<PROMISE<T>,
     
     /// @brief Get the associated thread future.
     /// @return An interface to the associated future object sharing a common state.
-    virtual typename IThreadFuture<T>::Ptr getIThreadFuture() const = 0;
+    virtual ThreadFuturePtr<T> getIThreadFuture() const = 0;
     
     /// @brief Set the promised value.
     /// @tparam V The type of the value. Must be implicitly deduced by the compiler and should always be == T.
@@ -75,7 +77,10 @@ struct IThreadPromise : public Traits::DerivedFrom<PROMISE<T>,
 template <class T> class Promise;
 
 template <class T>
-using ThreadPromise = IThreadPromise<Promise, T>;
+using ThreadPromise = IThreadPromise<Promise,T>;
+
+template <class T>
+using ThreadPromisePtr = typename IThreadPromise<Promise,T>::Ptr;
 
 }}
 

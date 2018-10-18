@@ -16,6 +16,7 @@
 #ifndef QUANTUM_ICORO_PROMISE_H
 #define QUANTUM_ICORO_PROMISE_H
 
+#include <quantum/interface/quantum_icontext_base.h>
 #include <quantum/interface/quantum_ipromise_base.h>
 #include <quantum/quantum_util.h>
 
@@ -34,6 +35,7 @@ struct ICoroPromise : public Traits::DerivedFrom<PROMISE<T>,
                                                  ICoroPromise<PROMISE, T>,
                                                  IPromiseBase>
 {
+    using ContextTag = CoroContextTag;
     using Ptr = std::shared_ptr<ICoroPromise<PROMISE, T>>;
     using Impl = PROMISE<T>;
     
@@ -44,7 +46,7 @@ struct ICoroPromise : public Traits::DerivedFrom<PROMISE<T>,
     
     /// @brief Get the associated coroutine future.
     /// @return An interface to the associated future object sharing a common state.
-    virtual typename ICoroFuture<T>::Ptr getICoroFuture() const = 0;
+    virtual CoroFuturePtr<T> getICoroFuture() const = 0;
     
     /// @brief Set the promised value.
     /// @tparam V The type of the value. Must be implicitly deduced by the compiler and should always be == T.
@@ -73,8 +75,13 @@ struct ICoroPromise : public Traits::DerivedFrom<PROMISE<T>,
     int closeBuffer();
 };
 
+template <class T> class Promise;
+
 template <class T>
-using CoroPromise = ICoroPromise<Promise, T>;
+using CoroPromise = ICoroPromise<Promise,T>;
+
+template <class T>
+using CoroPromisePtr = typename ICoroPromise<Promise,T>::Ptr;
 
 }}
 
