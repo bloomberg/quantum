@@ -19,6 +19,7 @@
 #include <quantum/interface/quantum_icoro_context_base.h>
 #include <quantum/interface/quantum_icoro_future.h>
 #include <map>
+#include <vector>
 
 namespace Bloomberg {
 namespace quantum {
