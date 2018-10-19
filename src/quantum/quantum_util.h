@@ -54,13 +54,13 @@ struct Util
     //                                      ForEach
     //------------------------------------------------------------------------------------------
     template <class RET, class UNARY_FUNC, class INPUT_IT>
-    static int forEachCoro(typename CoroContext<std::vector<RET>>::Ptr ctx,
+    static int forEachCoro(CoroContextPtr<std::vector<RET>> ctx,
                            INPUT_IT inputIt,
                            size_t num,
                            UNARY_FUNC&& func);
     
     template <class RET, class UNARY_FUNC, class INPUT_IT>
-    static int forEachBatchCoro(typename CoroContext<std::vector<std::vector<RET>>>::Ptr ctx,
+    static int forEachBatchCoro(CoroContextPtr<std::vector<std::vector<RET>>> ctx,
                                 INPUT_IT inputIt,
                                 size_t num,
                                 UNARY_FUNC&& func,
@@ -75,7 +75,7 @@ struct Util
               class MAPPER_FUNC,
               class REDUCER_FUNC,
               class INPUT_IT>
-    static int mapReduceCoro(typename CoroContext<std::map<KEY, REDUCED_TYPE>>::Ptr ctx,
+    static int mapReduceCoro(CoroContextPtr<std::map<KEY, REDUCED_TYPE>> ctx,
                              INPUT_IT inputIt,
                              size_t num,
                              MAPPER_FUNC&& mapper,
@@ -87,7 +87,7 @@ struct Util
               class MAPPER_FUNC,
               class REDUCER_FUNC,
               class INPUT_IT>
-    static int mapReduceBatchCoro(typename CoroContext<std::map<KEY, REDUCED_TYPE>>::Ptr ctx,
+    static int mapReduceBatchCoro(CoroContextPtr<std::map<KEY, REDUCED_TYPE>> ctx,
                                   INPUT_IT inputIt,
                                   size_t num,
                                   MAPPER_FUNC&& mapper,

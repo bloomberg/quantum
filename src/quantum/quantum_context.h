@@ -194,11 +194,11 @@ public:
     //           BLOCKING IO
     //===================================
     template <class OTHER_RET, class FUNC, class ... ARGS>
-    typename ICoroFuture<OTHER_RET>::Ptr
+    CoroFuturePtr<OTHER_RET>
     postAsyncIo(FUNC&& func, ARGS&&... args);
     
     template <class OTHER_RET, class FUNC, class ... ARGS>
-    typename ICoroFuture<OTHER_RET>::Ptr
+    CoroFuturePtr<OTHER_RET>
     postAsyncIo(int queueId, bool isHighPriority, FUNC&& func, ARGS&&... args);
     
     //===================================
@@ -283,7 +283,7 @@ private:
     postImpl(int queueId, bool isHighPriority, ITask::Type type, FUNC&& func, ARGS&&... args);
     
     template <class OTHER_RET, class FUNC, class ... ARGS>
-    typename ICoroFuture<OTHER_RET>::Ptr
+    CoroFuturePtr<OTHER_RET>
     postAsyncIoImpl(int queueId, bool isHighPriority, FUNC&& func, ARGS&&... args);
     
     int index(int num) const;
@@ -300,6 +300,9 @@ private:
     std::atomic_int                     _signal;
     Traits::Yield*                      _yield;
 };
+
+template <class RET>
+using ContextPtr = typename Context<RET>::Ptr;
 
 }}
 

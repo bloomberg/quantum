@@ -48,7 +48,7 @@ Dispatcher::~Dispatcher()
 }
 
 template <class RET, class FUNC, class ... ARGS>
-typename ThreadContext<RET>::Ptr
+ThreadContextPtr<RET>
 Dispatcher::post(FUNC&& func,
                  ARGS&&... args)
 {
@@ -56,7 +56,7 @@ Dispatcher::post(FUNC&& func,
 }
 
 template <class RET, class FUNC, class ... ARGS>
-typename ThreadContext<RET>::Ptr
+ThreadContextPtr<RET>
 Dispatcher::post(int queueId,
                  bool isHighPriority,
                  FUNC&& func,
@@ -66,7 +66,7 @@ Dispatcher::post(int queueId,
 }
 
 template <class RET, class FUNC, class ... ARGS>
-typename ThreadContext<RET>::Ptr
+ThreadContextPtr<RET>
 Dispatcher::postFirst(FUNC&& func,
                       ARGS&&... args)
 {
@@ -74,7 +74,7 @@ Dispatcher::postFirst(FUNC&& func,
 }
 
 template <class RET, class FUNC, class ... ARGS>
-typename ThreadContext<RET>::Ptr
+ThreadContextPtr<RET>
 Dispatcher::postFirst(int queueId,
                       bool isHighPriority,
                       FUNC&& func,
@@ -84,7 +84,7 @@ Dispatcher::postFirst(int queueId,
 }
 
 template <class RET, class FUNC, class ... ARGS>
-typename ThreadFuture<RET>::Ptr
+ThreadFuturePtr<RET>
 Dispatcher::postAsyncIo(FUNC&& func,
                         ARGS&&... args)
 {
@@ -92,7 +92,7 @@ Dispatcher::postAsyncIo(FUNC&& func,
 }
 
 template <class RET, class FUNC, class ... ARGS>
-typename ThreadFuture<RET>::Ptr
+ThreadFuturePtr<RET>
 Dispatcher::postAsyncIo(int queueId,
                         bool isHighPriority,
                         FUNC&& func,
@@ -102,7 +102,7 @@ Dispatcher::postAsyncIo(int queueId,
 }
 
 template <class RET, class UNARY_FUNC, class INPUT_IT, class>
-typename ThreadContext<std::vector<RET>>::Ptr
+ThreadContextPtr<std::vector<RET>>
 Dispatcher::forEach(INPUT_IT first,
                     INPUT_IT last,
                     UNARY_FUNC&& func)
@@ -111,7 +111,7 @@ Dispatcher::forEach(INPUT_IT first,
 }
 
 template <class RET, class UNARY_FUNC, class INPUT_IT>
-typename ThreadContext<std::vector<RET>>::Ptr
+ThreadContextPtr<std::vector<RET>>
 Dispatcher::forEach(INPUT_IT first,
                     size_t num,
                     UNARY_FUNC&& func)
@@ -123,7 +123,7 @@ Dispatcher::forEach(INPUT_IT first,
 }
 
 template <class RET, class UNARY_FUNC, class INPUT_IT, class>
-typename ThreadContext<std::vector<std::vector<RET>>>::Ptr
+ThreadContextPtr<std::vector<std::vector<RET>>>
 Dispatcher::forEachBatch(INPUT_IT first,
                          INPUT_IT last,
                          UNARY_FUNC&& func)
@@ -132,7 +132,7 @@ Dispatcher::forEachBatch(INPUT_IT first,
 }
 
 template <class RET, class UNARY_FUNC, class INPUT_IT>
-typename ThreadContext<std::vector<std::vector<RET>>>::Ptr
+ThreadContextPtr<std::vector<std::vector<RET>>>
 Dispatcher::forEachBatch(INPUT_IT first,
                          size_t num,
                          UNARY_FUNC&& func)
@@ -150,7 +150,7 @@ template <class KEY,
           class MAPPER_FUNC,
           class REDUCER_FUNC,
           class INPUT_IT>
-typename ThreadContext<std::map<KEY, REDUCED_TYPE>>::Ptr
+ThreadContextPtr<std::map<KEY, REDUCED_TYPE>>
 Dispatcher::mapReduce(INPUT_IT first, INPUT_IT last, MAPPER_FUNC&& mapper, REDUCER_FUNC&& reducer)
 {
     return mapReduce(first, std::distance(first, last), std::forward<MAPPER_FUNC>(mapper), std::forward<REDUCER_FUNC>(reducer));
@@ -162,7 +162,7 @@ template <class KEY,
           class MAPPER_FUNC,
           class REDUCER_FUNC,
           class INPUT_IT>
-typename ThreadContext<std::map<KEY, REDUCED_TYPE>>::Ptr
+ThreadContextPtr<std::map<KEY, REDUCED_TYPE>>
 Dispatcher::mapReduce(INPUT_IT first, size_t num, MAPPER_FUNC&& mapper, REDUCER_FUNC&& reducer)
 {
     using ReducerOutput = std::map<KEY, REDUCED_TYPE>;
@@ -179,7 +179,7 @@ template <class KEY,
           class MAPPER_FUNC,
           class REDUCER_FUNC,
           class INPUT_IT>
-typename ThreadContext<std::map<KEY, REDUCED_TYPE>>::Ptr
+ThreadContextPtr<std::map<KEY, REDUCED_TYPE>>
 Dispatcher::mapReduceBatch(INPUT_IT first, INPUT_IT last, MAPPER_FUNC&& mapper, REDUCER_FUNC&& reducer)
 {
     return mapReduceBatch(first, std::distance(first, last), std::forward<MAPPER_FUNC>(mapper), std::forward<REDUCER_FUNC>(reducer));
@@ -191,7 +191,7 @@ template <class KEY,
           class MAPPER_FUNC,
           class REDUCER_FUNC,
           class INPUT_IT>
-typename ThreadContext<std::map<KEY, REDUCED_TYPE>>::Ptr
+ThreadContextPtr<std::map<KEY, REDUCED_TYPE>>
 Dispatcher::mapReduceBatch(INPUT_IT first, size_t num, MAPPER_FUNC&& mapper, REDUCER_FUNC&& reducer)
 {
     using ReducerOutput = std::map<KEY, REDUCED_TYPE>;
@@ -226,15 +226,28 @@ bool Dispatcher::empty(IQueue::QueueType type,
 }
 
 inline
-void Dispatcher::drain()
+void Dispatcher::drain(std::chrono::milliseconds timeout)
 {
     _drain = true;
+    
+    auto start = std::chrono::high_resolution_clock::now();
     
     //wait until all queues have completed their work
     YieldingThread yield;
     while (!empty())
     {
         yield();
+        
+        //check remaining time
+        if (timeout != std::chrono::milliseconds::zero())
+        {
+            auto present = std::chrono::high_resolution_clock::now();
+            if (std::chrono::duration_cast<std::chrono::milliseconds>(present-start) > timeout)
+            {
+                //timeout reached
+                break;
+            }
+        }
     }
     
 #ifdef __QUANTUM_PRINT_DEBUG
@@ -270,7 +283,7 @@ void Dispatcher::resetStats()
 }
 
 template <class RET, class FUNC, class ... ARGS>
-typename ThreadContext<RET>::Ptr
+ThreadContextPtr<RET>
 Dispatcher::postImpl(int queueId,
                      bool isHighPriority,
                      ITask::Type type,
@@ -285,8 +298,8 @@ Dispatcher::postImpl(int queueId,
     {
         throw std::runtime_error("Invalid coroutine queue id");
     }
-    auto ctx = typename Context<RET>::Ptr(new Context<RET>(_dispatcher),
-                                          Context<RET>::deleter);
+    auto ctx = ContextPtr<RET>(new Context<RET>(_dispatcher),
+                               Context<RET>::deleter);
     auto task = Task::Ptr(new Task(ctx,
                                    queueId,
                                    isHighPriority,
@@ -303,7 +316,7 @@ Dispatcher::postImpl(int queueId,
 }
 
 template <class RET, class FUNC, class ... ARGS>
-typename ThreadFuture<RET>::Ptr
+ThreadFuturePtr<RET>
 Dispatcher::postAsyncIoImpl(int queueId,
                             bool isHighPriority,
                             FUNC&& func,
@@ -317,7 +330,7 @@ Dispatcher::postAsyncIoImpl(int queueId,
     {
         throw std::runtime_error("Invalid IO queue id");
     }
-    auto promise = typename Promise<RET>::Ptr(new Promise<RET>(), Promise<RET>::deleter);
+    auto promise = PromisePtr<RET>(new Promise<RET>(), Promise<RET>::deleter);
     auto task = IoTask::Ptr(new IoTask(promise,
                                        queueId,
                                        isHighPriority,

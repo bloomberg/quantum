@@ -34,22 +34,22 @@ public:
                                       Exponential }; ///< Exponential backoff (doubles every time)
     
     /// @brief Set the number of threads running coroutines.
-    /// @param num The number of threads. Set to -1 to have one coroutine thread per core.
+    /// @oaram[in] num The number of threads. Set to -1 to have one coroutine thread per core.
     ///            Default is -1.
     void setNumCoroutineThreads(int num);
     
     /// @brief Set the number of threads running IO tasks.
-    /// @param num The number of threads. Default is 5.
+    /// @oaram[in] num The number of threads. Default is 5.
     void setNumIoThreads(int num);
     
     /// @brief Indicate if coroutine threads should be pinned to a core.
-    /// @param value True or False. Default is False.
+    /// @oaram[in] value True or False. Default is False.
     /// @note For best performance, the number of coroutine threads should
     ///       be <= the number of cores in the system.
     void setPinCoroutineThreadsToCores(bool value);
     
     /// @brief Load balancee the shared IO queues.
-    /// @param value If set to true, posting to the 'any' IO queue will result in
+    /// @oaram[in] value If set to true, posting to the 'any' IO queue will result in
     ///              the load being spread among N queues. This mode can provide higher
     ///              throughput if dealing with high task loads. Default is false.
     /// @note To achieve higher performance, the threads run in polling mode which
@@ -57,17 +57,17 @@ public:
     void setLoadBalanceSharedIoQueues(bool value);
     
     /// @brief Set the interval between IO thread polls.
-    /// @param interval Interval in milliseconds. Default is 100ms.
+    /// @oaram[in] interval Interval in milliseconds. Default is 100ms.
     /// @note Setting this to a higher value means it may take longer to react to the first
     ///       IO task posted, and vice-versa if the interval is lower.
     void setLoadBalancePollIntervalMs(std::chrono::milliseconds interval);
     
     /// @brief Set a backoff policy for the shared queue polling interval.
-    /// @param policy The backoff policy to use. Default is 'Linear'.
+    /// @oaram[in] policy The backoff policy to use. Default is 'Linear'.
     void setLoadBalancePollIntervalBackoffPolicy(BackoffPolicy policy);
     
     /// @brief Set the number of backoffs.
-    /// @param numBackoffs The number of backoff increments. Default is 0.
+    /// @oaram[in] numBackoffs The number of backoff increments. Default is 0.
     ///                    When the number of backoffs is reached, the poll interval remains unchanged thereafter.
     void setLoadBalancePollIntervalNumBackoffs(size_t numBackoffs);
     

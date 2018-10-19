@@ -127,14 +127,14 @@ template <class T>
 IThreadFutureBase::Ptr Promise<T>::getIThreadFutureBase() const
 {
     if (!_sharedState) ThrowFutureException(FutureState::NoState);
-    return typename Future<T>::Ptr(new Future<T>(_sharedState), Future<T>::deleter);
+    return FuturePtr<T>(new Future<T>(_sharedState), Future<T>::deleter);
 }
 
 template <class T>
 ICoroFutureBase::Ptr Promise<T>::getICoroFutureBase() const
 {
     if (!_sharedState) ThrowFutureException(FutureState::NoState);
-    return typename Future<T>::Ptr(new Future<T>(_sharedState), Future<T>::deleter);
+    return FuturePtr<T>(new Future<T>(_sharedState), Future<T>::deleter);
 }
 
 template <class T>
@@ -146,10 +146,10 @@ int Promise<T>::set(V&& value)
 }
 
 template <class T>
-typename IThreadFuture<T>::Ptr Promise<T>::getIThreadFuture() const
+ThreadFuturePtr<T> Promise<T>::getIThreadFuture() const
 {
     if (!_sharedState) ThrowFutureException(FutureState::NoState);
-    return typename Future<T>::Ptr(new Future<T>(_sharedState), Future<T>::deleter);
+    return FuturePtr<T>(new Future<T>(_sharedState), Future<T>::deleter);
 }
 
 template <class T>
@@ -161,10 +161,10 @@ int Promise<T>::set(ICoroSync::Ptr sync, V&& value)
 }
 
 template <class T>
-typename ICoroFuture<T>::Ptr Promise<T>::getICoroFuture() const
+CoroFuturePtr<T> Promise<T>::getICoroFuture() const
 {
     if (!_sharedState) ThrowFutureException(FutureState::NoState);
-    return typename Future<T>::Ptr(new Future<T>(_sharedState), Future<T>::deleter);
+    return FuturePtr<T>(new Future<T>(_sharedState), Future<T>::deleter);
 }
 
 template <class T>

@@ -22,6 +22,9 @@
 namespace Bloomberg {
 namespace quantum {
 
+struct CoroContextTag{};
+struct ThreadContextTag{};
+
 //==============================================================================================
 //                                  interface IContextBase
 //==============================================================================================

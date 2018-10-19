@@ -81,6 +81,9 @@ private:
     std::shared_ptr<SharedState<T>>     _sharedState;
 };
 
+template <class T>
+using FuturePtr = typename Future<T>::Ptr;
+
 }}
 
 #include <quantum/impl/quantum_future_impl.h>
