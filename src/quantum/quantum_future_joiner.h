@@ -37,12 +37,12 @@ template <class T>
 class FutureJoiner
 {
 public:
-    /// @brief Contructs a joiner with a 'Dispatcher' object.
+    /// @brief Contructs a joiner with a Dispatcher object.
     /// @param[in] dispatcher The address of a Dispatcher object.
     /// @note Use this constructor when joining N thread futures.
     explicit FutureJoiner(Dispatcher* dispatcher);
     
-    /// @brief Contructs a joiner with a 'Coroutine' context object.
+    /// @brief Contructs a joiner with a ICoroContext object.
     /// @param[in] dispatcher The coroutine context object.
     /// @note Use this constructor when joining N coroutine futures.
     explicit FutureJoiner(CoroContextPtr<T> dispatcher);

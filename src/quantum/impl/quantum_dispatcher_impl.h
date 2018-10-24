@@ -101,105 +101,111 @@ Dispatcher::postAsyncIo(int queueId,
     return postAsyncIoImpl<RET>(queueId, isHighPriority, std::forward<FUNC>(func), std::forward<ARGS>(args)...);
 }
 
-template <class RET, class UNARY_FUNC, class INPUT_IT, class>
+template <class RET, class INPUT_IT, class>
 ThreadContextPtr<std::vector<RET>>
 Dispatcher::forEach(INPUT_IT first,
                     INPUT_IT last,
-                    UNARY_FUNC&& func)
+                    Functions::ForEachFunc<RET, INPUT_IT> func)
 {
-    return forEach<RET>(first, std::distance(first, last), std::forward<UNARY_FUNC>(func));
+    return forEach<RET>(first, std::distance(first, last), std::move(func));
 }
 
-template <class RET, class UNARY_FUNC, class INPUT_IT>
+template <class RET, class INPUT_IT>
 ThreadContextPtr<std::vector<RET>>
 Dispatcher::forEach(INPUT_IT first,
                     size_t num,
-                    UNARY_FUNC&& func)
+                    Functions::ForEachFunc<RET, INPUT_IT> func)
 {
-    return post<std::vector<RET>>(Util::forEachCoro<RET, UNARY_FUNC, INPUT_IT>,
+    return post<std::vector<RET>>(Util::forEachCoro<RET, INPUT_IT>,
                                   INPUT_IT{first},
                                   size_t{num},
-                                  UNARY_FUNC{std::forward<UNARY_FUNC>(func)});
+                                  Functions::ForEachFunc<RET, INPUT_IT>{std::move(func)});
 }
 
-template <class RET, class UNARY_FUNC, class INPUT_IT, class>
+template <class RET, class INPUT_IT, class>
 ThreadContextPtr<std::vector<std::vector<RET>>>
 Dispatcher::forEachBatch(INPUT_IT first,
                          INPUT_IT last,
-                         UNARY_FUNC&& func)
+                         Functions::ForEachFunc<RET, INPUT_IT> func)
 {
-    return forEachBatch<RET>(first, std::distance(first, last), std::forward<UNARY_FUNC>(func));
+    return forEachBatch<RET>(first, std::distance(first, last), std::move(func));
 }
 
-template <class RET, class UNARY_FUNC, class INPUT_IT>
+template <class RET, class INPUT_IT>
 ThreadContextPtr<std::vector<std::vector<RET>>>
 Dispatcher::forEachBatch(INPUT_IT first,
                          size_t num,
-                         UNARY_FUNC&& func)
+                         Functions::ForEachFunc<RET, INPUT_IT> func)
 {
-    return post<std::vector<std::vector<RET>>>(Util::forEachBatchCoro<RET, UNARY_FUNC, INPUT_IT>,
+    return post<std::vector<std::vector<RET>>>(Util::forEachBatchCoro<RET, INPUT_IT>,
                                                INPUT_IT{first},
                                                size_t{num},
-                                               UNARY_FUNC{std::forward<UNARY_FUNC>(func)},
+                                               Functions::ForEachFunc<RET, INPUT_IT>{std::move(func)},
                                                getNumCoroutineThreads());
 }
 
 template <class KEY,
           class MAPPED_TYPE,
           class REDUCED_TYPE,
-          class MAPPER_FUNC,
-          class REDUCER_FUNC,
-          class INPUT_IT>
+          class INPUT_IT,
+          class>
 ThreadContextPtr<std::map<KEY, REDUCED_TYPE>>
-Dispatcher::mapReduce(INPUT_IT first, INPUT_IT last, MAPPER_FUNC&& mapper, REDUCER_FUNC&& reducer)
+Dispatcher::mapReduce(INPUT_IT first,
+                      INPUT_IT last,
+                      Functions::MapFunc<KEY, MAPPED_TYPE, INPUT_IT> mapper,
+                      Functions::ReduceFunc<KEY, MAPPED_TYPE, REDUCED_TYPE> reducer)
 {
-    return mapReduce(first, std::distance(first, last), std::forward<MAPPER_FUNC>(mapper), std::forward<REDUCER_FUNC>(reducer));
+    return mapReduce(first, std::distance(first, last), std::move(mapper), std::move(reducer));
 }
 
 template <class KEY,
           class MAPPED_TYPE,
           class REDUCED_TYPE,
-          class MAPPER_FUNC,
-          class REDUCER_FUNC,
           class INPUT_IT>
 ThreadContextPtr<std::map<KEY, REDUCED_TYPE>>
-Dispatcher::mapReduce(INPUT_IT first, size_t num, MAPPER_FUNC&& mapper, REDUCER_FUNC&& reducer)
+Dispatcher::mapReduce(INPUT_IT first,
+                      size_t num,
+                      Functions::MapFunc<KEY, MAPPED_TYPE, INPUT_IT> mapper,
+                      Functions::ReduceFunc<KEY, MAPPED_TYPE, REDUCED_TYPE> reducer)
 {
     using ReducerOutput = std::map<KEY, REDUCED_TYPE>;
-    return post<ReducerOutput>(Util::mapReduceCoro<KEY, MAPPED_TYPE, REDUCED_TYPE, MAPPER_FUNC, REDUCER_FUNC, INPUT_IT>,
+    return post<ReducerOutput>(Util::mapReduceCoro<KEY, MAPPED_TYPE, REDUCED_TYPE, INPUT_IT>,
                                INPUT_IT{first},
                                size_t{num},
-                               MAPPER_FUNC{std::forward<MAPPER_FUNC>(mapper)},
-                               REDUCER_FUNC{std::forward<REDUCER_FUNC>(reducer)});
+                               Functions::MapFunc<KEY, MAPPED_TYPE, INPUT_IT>{std::move(mapper)},
+                               Functions::ReduceFunc<KEY, MAPPED_TYPE, REDUCED_TYPE>{std::move(reducer)});
 }
 
 template <class KEY,
           class MAPPED_TYPE,
           class REDUCED_TYPE,
-          class MAPPER_FUNC,
-          class REDUCER_FUNC,
-          class INPUT_IT>
+          class INPUT_IT,
+          class>
 ThreadContextPtr<std::map<KEY, REDUCED_TYPE>>
-Dispatcher::mapReduceBatch(INPUT_IT first, INPUT_IT last, MAPPER_FUNC&& mapper, REDUCER_FUNC&& reducer)
+Dispatcher::mapReduceBatch(INPUT_IT first,
+                           INPUT_IT last,
+                           Functions::MapFunc<KEY, MAPPED_TYPE, INPUT_IT> mapper,
+                           Functions::ReduceFunc<KEY, MAPPED_TYPE, REDUCED_TYPE> reducer)
 {
-    return mapReduceBatch(first, std::distance(first, last), std::forward<MAPPER_FUNC>(mapper), std::forward<REDUCER_FUNC>(reducer));
+    return mapReduceBatch(first, std::distance(first, last), std::move(mapper), std::move(reducer));
 }
 
 template <class KEY,
           class MAPPED_TYPE,
           class REDUCED_TYPE,
-          class MAPPER_FUNC,
-          class REDUCER_FUNC,
           class INPUT_IT>
 ThreadContextPtr<std::map<KEY, REDUCED_TYPE>>
-Dispatcher::mapReduceBatch(INPUT_IT first, size_t num, MAPPER_FUNC&& mapper, REDUCER_FUNC&& reducer)
+Dispatcher::mapReduceBatch(INPUT_IT first,
+                           size_t num,
+                           Functions::MapFunc<KEY, MAPPED_TYPE, INPUT_IT> mapper,
+                           Functions::ReduceFunc<KEY, MAPPED_TYPE, REDUCED_TYPE> reducer)
 {
     using ReducerOutput = std::map<KEY, REDUCED_TYPE>;
-    return post<ReducerOutput>(Util::mapReduceBatchCoro<KEY, MAPPED_TYPE, REDUCED_TYPE, MAPPER_FUNC, REDUCER_FUNC, INPUT_IT>,
+    return post<ReducerOutput>(Util::mapReduceBatchCoro<KEY, MAPPED_TYPE, REDUCED_TYPE, INPUT_IT>,
                                INPUT_IT{first},
                                size_t{num},
-                               MAPPER_FUNC{std::forward<MAPPER_FUNC>(mapper)},
-                               REDUCER_FUNC{std::forward<REDUCER_FUNC>(reducer)});
+                               Functions::MapFunc<KEY, MAPPED_TYPE, INPUT_IT>{std::move(mapper)},
+                               Functions::ReduceFunc<KEY, MAPPED_TYPE, REDUCED_TYPE>{std::move(reducer)});
 }
 
 inline

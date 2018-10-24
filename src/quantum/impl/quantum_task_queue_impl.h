@@ -263,8 +263,6 @@ ITask::Ptr TaskQueue::doDequeue(std::atomic_bool& hint)
 inline
 size_t TaskQueue::size() const
 {
-    //========================= LOCKED SCOPE =========================
-    SpinLock::Guard lock(_spinlock, SpinLock::TryToLock{});
 #if (__cplusplus >= 201703L)
     return _queue.size();
 #else
@@ -276,8 +274,6 @@ size_t TaskQueue::size() const
 inline
 bool TaskQueue::empty() const
 {
-    //========================= LOCKED SCOPE =========================
-    SpinLock::Guard lock(_spinlock, SpinLock::TryToLock{});
     return _queue.empty();
 }
 

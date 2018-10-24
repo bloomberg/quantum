@@ -190,11 +190,11 @@ Util::bindIoCaller(std::shared_ptr<Promise<RET>> promise, FUNC&& func0, ARGS&& .
 
 #endif
 
-template <class RET, class UNARY_FUNC, class INPUT_IT>
+template <class RET, class INPUT_IT>
 int Util::forEachCoro(CoroContextPtr<std::vector<RET>> ctx,
                       INPUT_IT inputIt,
                       size_t num,
-                      UNARY_FUNC&& func)
+                      const Functions::ForEachFunc<RET, INPUT_IT>& func)
 {
     std::vector<CoroContextPtr<RET>> asyncResults;
     asyncResults.reserve(num);
@@ -215,11 +215,11 @@ int Util::forEachCoro(CoroContextPtr<std::vector<RET>> ctx,
     return ctx->set(std::move(result));
 }
 
-template <class RET, class UNARY_FUNC, class INPUT_IT>
+template <class RET, class INPUT_IT>
 int Util::forEachBatchCoro(CoroContextPtr<std::vector<std::vector<RET>>> ctx,
                            INPUT_IT inputIt,
                            size_t num,
-                           UNARY_FUNC&& func,
+                           const Functions::ForEachFunc<RET, INPUT_IT>& func,
                            size_t numCoroutineThreads)
 {
     size_t numPerBatch = num/numCoroutineThreads;
@@ -261,14 +261,12 @@ int Util::forEachBatchCoro(CoroContextPtr<std::vector<std::vector<RET>>> ctx,
 template <class KEY,
           class MAPPED_TYPE,
           class REDUCED_TYPE,
-          class MAPPER_FUNC,
-          class REDUCER_FUNC,
           class INPUT_IT>
 int Util::mapReduceCoro(CoroContextPtr<std::map<KEY, REDUCED_TYPE>> ctx,
                         INPUT_IT inputIt,
                         size_t num,
-                        MAPPER_FUNC&& mapper,
-                        REDUCER_FUNC&& reducer)
+                        const Functions::MapFunc<KEY, MAPPED_TYPE, INPUT_IT>& mapper,
+                        const Functions::ReduceFunc<KEY, MAPPED_TYPE, REDUCED_TYPE>& reducer)
 {
     // Typedefs
     using MappedResult = std::pair<KEY, MAPPED_TYPE>;
@@ -280,8 +278,7 @@ int Util::mapReduceCoro(CoroContextPtr<std::map<KEY, REDUCED_TYPE>> ctx,
     using ReducerOutput = std::map<KEY, REDUCED_TYPE>;
     
     // Map stage
-    IndexerInput indexerInput = ctx->template forEach<MapperOutput>
-        (inputIt, num, std::forward<MAPPER_FUNC>(mapper))->get(ctx);
+    IndexerInput indexerInput = ctx->template forEach<MapperOutput>(inputIt, num, mapper)->get(ctx);
     
     // Index stage
     IndexerOutput indexerOutput;
@@ -294,7 +291,7 @@ int Util::mapReduceCoro(CoroContextPtr<std::map<KEY, REDUCED_TYPE>> ctx,
     
     // Reduce stage
     ReducedResults reducedResults = ctx->template forEach<ReducedResult>
-        (indexerOutput.begin(), indexerOutput.size(), std::forward<REDUCER_FUNC>(reducer))->get(ctx);
+        (indexerOutput.begin(), indexerOutput.size(), reducer)->get(ctx);
     
     ReducerOutput reducerOutput;
     for (auto&& reducedResult : reducedResults)
@@ -308,14 +305,12 @@ int Util::mapReduceCoro(CoroContextPtr<std::map<KEY, REDUCED_TYPE>> ctx,
 template <class KEY,
           class MAPPED_TYPE,
           class REDUCED_TYPE,
-          class MAPPER_FUNC,
-          class REDUCER_FUNC,
           class INPUT_IT>
 int Util::mapReduceBatchCoro(CoroContextPtr<std::map<KEY, REDUCED_TYPE>> ctx,
                              INPUT_IT inputIt,
                              size_t num,
-                             MAPPER_FUNC&& mapper,
-                             REDUCER_FUNC&& reducer)
+                             const Functions::MapFunc<KEY, MAPPED_TYPE, INPUT_IT>& mapper,
+                             const Functions::ReduceFunc<KEY, MAPPED_TYPE, REDUCED_TYPE>& reducer)
 {
     // Typedefs
     using MappedResult = std::pair<KEY, MAPPED_TYPE>;
@@ -327,8 +322,7 @@ int Util::mapReduceBatchCoro(CoroContextPtr<std::map<KEY, REDUCED_TYPE>> ctx,
     using ReducerOutput = std::map<KEY, REDUCED_TYPE>;
     
     // Map stage
-    IndexerInput indexerInput = ctx->template forEachBatch<MapperOutput>
-        (inputIt, num, std::forward<MAPPER_FUNC>(mapper))->get(ctx);
+    IndexerInput indexerInput = ctx->template forEachBatch<MapperOutput>(inputIt, num, mapper)->get(ctx);
     
     // Index stage
     IndexerOutput indexerOutput;
@@ -337,14 +331,14 @@ int Util::mapReduceBatchCoro(CoroContextPtr<std::map<KEY, REDUCED_TYPE>> ctx,
         for (auto&& mapperOutput : partialMapOutput)
         {
             for (auto&& mapperResult : mapperOutput) {
-                indexerOutput[mapperResult.first].emplace_back(std::move(mapperResult.second));
+                indexerOutput[std::move(mapperResult.first)].emplace_back(std::move(mapperResult.second));
             }
         }
     }
     
     // Reduce stage
     ReducedResults reducedResults = ctx->template forEachBatch<ReducedResult>
-        (indexerOutput.begin(), indexerOutput.size(), std::forward<REDUCER_FUNC>(reducer))->get(ctx);
+        (indexerOutput.begin(), indexerOutput.size(), reducer)->get(ctx);
     
     ReducerOutput reducerOutput;
     for (auto&& partialReducedResult : reducedResults)
