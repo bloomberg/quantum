@@ -266,99 +266,105 @@ ICoroContext<RET>::postAsyncIo(int queueId, bool isHighPriority, FUNC&& func, AR
 }
 
 template <class RET>
-template <class OTHER_RET, class UNARY_FUNC, class INPUT_IT, class>
+template <class OTHER_RET, class INPUT_IT, class>
 CoroContextPtr<std::vector<OTHER_RET>>
 ICoroContext<RET>::forEach(INPUT_IT first,
                            INPUT_IT last,
-                           UNARY_FUNC&& func)
+                           Functions::ForEachFunc<OTHER_RET, INPUT_IT> func)
 {
-    return static_cast<Impl*>(this)->template forEach<OTHER_RET>(first, last, std::forward<UNARY_FUNC>(func));
+    return static_cast<Impl*>(this)->template forEach<OTHER_RET>(first, last, std::move(func));
 }
 
 template <class RET>
-template <class OTHER_RET, class UNARY_FUNC, class INPUT_IT>
+template <class OTHER_RET, class INPUT_IT>
 CoroContextPtr<std::vector<OTHER_RET>>
 ICoroContext<RET>::forEach(INPUT_IT first,
                            size_t num,
-                           UNARY_FUNC&& func)
+                           Functions::ForEachFunc<OTHER_RET, INPUT_IT> func)
 {
-    return static_cast<Impl*>(this)->template forEach<OTHER_RET>(first, num, std::forward<UNARY_FUNC>(func));
+    return static_cast<Impl*>(this)->template forEach<OTHER_RET>(first, num, std::move(func));
 }
 
 template <class RET>
-template <class OTHER_RET, class UNARY_FUNC, class INPUT_IT, class>
+template <class OTHER_RET, class INPUT_IT, class>
 CoroContextPtr<std::vector<std::vector<OTHER_RET>>>
 ICoroContext<RET>::forEachBatch(INPUT_IT first,
                                 INPUT_IT last,
-                                UNARY_FUNC&& func)
+                                Functions::ForEachFunc<OTHER_RET, INPUT_IT> func)
 {
-    return static_cast<Impl*>(this)->template forEachBatch<OTHER_RET>(first, last, std::forward<UNARY_FUNC>(func));
+    return static_cast<Impl*>(this)->template forEachBatch<OTHER_RET>(first, last, std::move(func));
 }
 
 template <class RET>
-template <class OTHER_RET, class UNARY_FUNC, class INPUT_IT>
+template <class OTHER_RET, class INPUT_IT>
 CoroContextPtr<std::vector<std::vector<OTHER_RET>>>
 ICoroContext<RET>::forEachBatch(INPUT_IT first,
                                 size_t num,
-                                UNARY_FUNC&& func)
+                                Functions::ForEachFunc<OTHER_RET, INPUT_IT> func)
 {
-    return static_cast<Impl*>(this)->template forEachBatch<OTHER_RET>(first, num, std::forward<UNARY_FUNC>(func));
+    return static_cast<Impl*>(this)->template forEachBatch<OTHER_RET>(first, num, std::move(func));
 }
 
 template <class RET>
 template <class KEY,
           class MAPPED_TYPE,
           class REDUCED_TYPE,
-          class MAPPER_FUNC,
-          class REDUCER_FUNC,
-          class INPUT_IT>
+          class INPUT_IT,
+          class>
 CoroContextPtr<std::map<KEY, REDUCED_TYPE>>
-ICoroContext<RET>::mapReduce(INPUT_IT first, INPUT_IT last, MAPPER_FUNC&& mapper, REDUCER_FUNC&& reducer)
+ICoroContext<RET>::mapReduce(INPUT_IT first,
+                             INPUT_IT last,
+                             Functions::MapFunc<KEY, MAPPED_TYPE, INPUT_IT> mapper,
+                             Functions::ReduceFunc<KEY, MAPPED_TYPE, REDUCED_TYPE> reducer)
 {
     return static_cast<Impl*>(this)->template mapReduce<KEY, MAPPED_TYPE, REDUCED_TYPE>
-        (first, last, std::forward<MAPPER_FUNC>(mapper), std::forward<REDUCER_FUNC>(reducer));
+        (first, last, std::move(mapper), std::move(reducer));
 }
 
 template <class RET>
 template <class KEY,
           class MAPPED_TYPE,
           class REDUCED_TYPE,
-          class MAPPER_FUNC,
-          class REDUCER_FUNC,
           class INPUT_IT>
 CoroContextPtr<std::map<KEY, REDUCED_TYPE>>
-ICoroContext<RET>::mapReduce(INPUT_IT first, size_t num, MAPPER_FUNC&& mapper, REDUCER_FUNC&& reducer)
+ICoroContext<RET>::mapReduce(INPUT_IT first,
+                             size_t num,
+                             Functions::MapFunc<KEY, MAPPED_TYPE, INPUT_IT> mapper,
+                             Functions::ReduceFunc<KEY, MAPPED_TYPE, REDUCED_TYPE> reducer)
 {
     return static_cast<Impl*>(this)->template mapReduce<KEY, MAPPED_TYPE, REDUCED_TYPE>
-        (first, num, std::forward<MAPPER_FUNC>(mapper), std::forward<REDUCER_FUNC>(reducer));
+        (first, num, std::move(mapper), std::move(reducer));
 }
 
 template <class RET>
 template <class KEY,
           class MAPPED_TYPE,
           class REDUCED_TYPE,
-          class MAPPER_FUNC,
-          class REDUCER_FUNC,
-          class INPUT_IT>
+          class INPUT_IT,
+          class>
 CoroContextPtr<std::map<KEY, REDUCED_TYPE>>
-ICoroContext<RET>::mapReduceBatch(INPUT_IT first, INPUT_IT last, MAPPER_FUNC&& mapper, REDUCER_FUNC&& reducer)
+ICoroContext<RET>::mapReduceBatch(INPUT_IT first,
+                                  INPUT_IT last,
+                                  Functions::MapFunc<KEY, MAPPED_TYPE, INPUT_IT> mapper,
+                                  Functions::ReduceFunc<KEY, MAPPED_TYPE, REDUCED_TYPE> reducer)
 {
     return static_cast<Impl*>(this)->template mapReduceBatch<KEY, MAPPED_TYPE, REDUCED_TYPE>
-        (first, last, std::forward<MAPPER_FUNC>(mapper), std::forward<REDUCER_FUNC>(reducer));
+        (first, last, std::move(mapper), std::move(reducer));
 }
 
 template <class RET>
 template <class KEY,
           class MAPPED_TYPE,
           class REDUCED_TYPE,
-          class MAPPER_FUNC,
-          class REDUCER_FUNC,
           class INPUT_IT>
 CoroContextPtr<std::map<KEY, REDUCED_TYPE>>
-ICoroContext<RET>::mapReduceBatch(INPUT_IT first, size_t num, MAPPER_FUNC&& mapper, REDUCER_FUNC&& reducer)
+ICoroContext<RET>::mapReduceBatch(INPUT_IT first,
+                                  size_t num,
+                                  Functions::MapFunc<KEY, MAPPED_TYPE, INPUT_IT> mapper,
+                                  Functions::ReduceFunc<KEY, MAPPED_TYPE, REDUCED_TYPE> reducer)
 {
     return static_cast<Impl*>(this)->template mapReduceBatch<KEY, MAPPED_TYPE, REDUCED_TYPE>
-        (first, num, std::forward<MAPPER_FUNC>(mapper), std::forward<REDUCER_FUNC>(reducer));
+        (first, num, std::move(mapper), std::move(reducer));
 }
 
 //==============================================================================================
@@ -656,49 +662,49 @@ Context<RET>::postAsyncIoImpl(int queueId, bool isHighPriority, FUNC&& func, ARG
 }
 
 template <class RET>
-template <class OTHER_RET, class UNARY_FUNC, class INPUT_IT, class>
+template <class OTHER_RET, class INPUT_IT, class>
 ContextPtr<std::vector<OTHER_RET>>
 Context<RET>::forEach(INPUT_IT first,
                       INPUT_IT last,
-                      UNARY_FUNC&& func)
+                      Functions::ForEachFunc<OTHER_RET, INPUT_IT> func)
 {
-    return forEach<OTHER_RET>(first, std::distance(first, last), std::forward<UNARY_FUNC>(func));
+    return forEach<OTHER_RET>(first, std::distance(first, last), std::move(func));
 }
 
 template <class RET>
-template <class OTHER_RET, class UNARY_FUNC, class INPUT_IT>
+template <class OTHER_RET, class INPUT_IT>
 ContextPtr<std::vector<OTHER_RET>>
 Context<RET>::forEach(INPUT_IT first,
                       size_t num,
-                      UNARY_FUNC&& func)
+                      Functions::ForEachFunc<OTHER_RET, INPUT_IT> func)
 {
-    return post<std::vector<OTHER_RET>>(Util::forEachCoro<OTHER_RET, UNARY_FUNC, INPUT_IT>,
+    return post<std::vector<OTHER_RET>>(Util::forEachCoro<OTHER_RET, INPUT_IT>,
                                         INPUT_IT{first},
                                         size_t{num},
-                                        UNARY_FUNC{std::forward<UNARY_FUNC>(func)});
+                                        Functions::ForEachFunc<OTHER_RET, INPUT_IT>{std::move(func)});
 }
 
 template <class RET>
-template <class OTHER_RET, class UNARY_FUNC, class INPUT_IT, class>
+template <class OTHER_RET, class INPUT_IT, class>
 ContextPtr<std::vector<std::vector<OTHER_RET>>>
 Context<RET>::forEachBatch(INPUT_IT first,
                            INPUT_IT last,
-                           UNARY_FUNC&& func)
+                           Functions::ForEachFunc<OTHER_RET, INPUT_IT> func)
 {
-    return forEachBatch<OTHER_RET>(first, std::distance(first, last), std::forward<UNARY_FUNC>(func));
+    return forEachBatch<OTHER_RET>(first, std::distance(first, last), std::move(func));
 }
 
 template <class RET>
-template <class OTHER_RET, class UNARY_FUNC, class INPUT_IT>
+template <class OTHER_RET, class INPUT_IT>
 ContextPtr<std::vector<std::vector<OTHER_RET>>>
 Context<RET>::forEachBatch(INPUT_IT first,
                            size_t num,
-                           UNARY_FUNC&& func)
+                           Functions::ForEachFunc<OTHER_RET, INPUT_IT> func)
 {
-    return post<std::vector<std::vector<OTHER_RET>>>(Util::forEachBatchCoro<OTHER_RET, UNARY_FUNC, INPUT_IT>,
+    return post<std::vector<std::vector<OTHER_RET>>>(Util::forEachBatchCoro<OTHER_RET, INPUT_IT>,
                                                      INPUT_IT{first},
                                                      size_t{num},
-                                                     UNARY_FUNC{std::forward<UNARY_FUNC>(func)},
+                                                     Functions::ForEachFunc<OTHER_RET, INPUT_IT>{std::move(func)},
                                                      getNumCoroutineThreads());
 }
 
@@ -706,62 +712,68 @@ template <class RET>
 template <class KEY,
           class MAPPED_TYPE,
           class REDUCED_TYPE,
-          class MAPPER_FUNC,
-          class REDUCER_FUNC,
-          class INPUT_IT>
+          class INPUT_IT,
+          class>
 ContextPtr<std::map<KEY, REDUCED_TYPE>>
-Context<RET>::mapReduce(INPUT_IT first, INPUT_IT last, MAPPER_FUNC&& mapper, REDUCER_FUNC&& reducer)
+Context<RET>::mapReduce(INPUT_IT first,
+                        INPUT_IT last,
+                        Functions::MapFunc<KEY, MAPPED_TYPE, INPUT_IT> mapper,
+                        Functions::ReduceFunc<KEY, MAPPED_TYPE, REDUCED_TYPE> reducer)
 {
-    return mapReduce(first, std::distance(first, last), std::forward<MAPPER_FUNC>(mapper), std::forward<REDUCER_FUNC>(reducer));
+    return mapReduce(first, std::distance(first, last), std::move(mapper), std::move(reducer));
 }
 
 template <class RET>
 template <class KEY,
           class MAPPED_TYPE,
           class REDUCED_TYPE,
-          class MAPPER_FUNC,
-          class REDUCER_FUNC,
           class INPUT_IT>
 ContextPtr<std::map<KEY, REDUCED_TYPE>>
-Context<RET>::mapReduce(INPUT_IT first, size_t num, MAPPER_FUNC&& mapper, REDUCER_FUNC&& reducer)
+Context<RET>::mapReduce(INPUT_IT first,
+                        size_t num,
+                        Functions::MapFunc<KEY, MAPPED_TYPE, INPUT_IT> mapper,
+                        Functions::ReduceFunc<KEY, MAPPED_TYPE, REDUCED_TYPE> reducer)
 {
     using ReducerOutput = std::map<KEY, REDUCED_TYPE>;
-    return post<ReducerOutput>(Util::mapReduceCoro<KEY, MAPPED_TYPE, REDUCED_TYPE, MAPPER_FUNC, REDUCER_FUNC, INPUT_IT>,
+    return post<ReducerOutput>(Util::mapReduceCoro<KEY, MAPPED_TYPE, REDUCED_TYPE, INPUT_IT>,
                                INPUT_IT{first},
                                size_t{num},
-                               MAPPER_FUNC{std::forward<MAPPER_FUNC>(mapper)},
-                               REDUCER_FUNC{std::forward<REDUCER_FUNC>(reducer)});
+                               Functions::MapFunc<KEY, MAPPED_TYPE, INPUT_IT>{std::move(mapper)},
+                               Functions::ReduceFunc<KEY, MAPPED_TYPE, REDUCED_TYPE>{std::move(reducer)});
 }
 
 template <class RET>
 template <class KEY,
           class MAPPED_TYPE,
           class REDUCED_TYPE,
-          class MAPPER_FUNC,
-          class REDUCER_FUNC,
-          class INPUT_IT>
+          class INPUT_IT,
+          class>
 ContextPtr<std::map<KEY, REDUCED_TYPE>>
-Context<RET>::mapReduceBatch(INPUT_IT first, INPUT_IT last, MAPPER_FUNC&& mapper, REDUCER_FUNC&& reducer)
+Context<RET>::mapReduceBatch(INPUT_IT first,
+                             INPUT_IT last,
+                             Functions::MapFunc<KEY, MAPPED_TYPE, INPUT_IT> mapper,
+                             Functions::ReduceFunc<KEY, MAPPED_TYPE, REDUCED_TYPE> reducer)
 {
-    return mapReduceBatch(first, std::distance(first, last), std::forward<MAPPER_FUNC>(mapper), std::forward<REDUCER_FUNC>(reducer));
+    return mapReduceBatch(first, std::distance(first, last), std::move(mapper), std::move(reducer));
 }
 
 template <class RET>
 template <class KEY,
           class MAPPED_TYPE,
           class REDUCED_TYPE,
-          class MAPPER_FUNC,
-          class REDUCER_FUNC,
           class INPUT_IT>
 ContextPtr<std::map<KEY, REDUCED_TYPE>>
-Context<RET>::mapReduceBatch(INPUT_IT first, size_t num, MAPPER_FUNC&& mapper, REDUCER_FUNC&& reducer)
+Context<RET>::mapReduceBatch(INPUT_IT first,
+                             size_t num,
+                             Functions::MapFunc<KEY, MAPPED_TYPE, INPUT_IT> mapper,
+                             Functions::ReduceFunc<KEY, MAPPED_TYPE, REDUCED_TYPE> reducer)
 {
     using ReducerOutput = std::map<KEY, REDUCED_TYPE>;
-    return post<ReducerOutput>(Util::mapReduceBatchCoro<KEY, MAPPED_TYPE, REDUCED_TYPE, MAPPER_FUNC, REDUCER_FUNC, INPUT_IT>,
+    return post<ReducerOutput>(Util::mapReduceBatchCoro<KEY, MAPPED_TYPE, REDUCED_TYPE, INPUT_IT>,
                                INPUT_IT{first},
                                size_t{num},
-                               MAPPER_FUNC{std::forward<MAPPER_FUNC>(mapper)},
-                               REDUCER_FUNC{std::forward<REDUCER_FUNC>(reducer)});
+                               Functions::MapFunc<KEY, MAPPED_TYPE, INPUT_IT>{std::move(mapper)},
+                               Functions::ReduceFunc<KEY, MAPPED_TYPE, REDUCED_TYPE>{std::move(reducer)});
 }
 
 template <class RET>
@@ -1067,9 +1079,3 @@ void Context<RET>::deleter(Context<RET>* p)
 }
 
 }}
-
-
-
-
-
-

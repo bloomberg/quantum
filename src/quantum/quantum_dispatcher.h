@@ -171,15 +171,15 @@ public:
     /// @return A vector of future values corresponding to the output of 'func' on every element in the range.
     /// @note Use this function if InputIt meets the requirement of a RandomAccessIterator
     /// @note Each func invocation will run inside its own coroutine instance.
-    template <class RET = int, class UNARY_FUNC, class INPUT_IT, class = Traits::IsInputIterator<INPUT_IT>>
+    template <class RET = int, class INPUT_IT, class = Traits::IsInputIterator<INPUT_IT>>
     ThreadContextPtr<std::vector<RET>>
-    forEach(INPUT_IT first, INPUT_IT last, UNARY_FUNC&& func);
+    forEach(INPUT_IT first, INPUT_IT last, Functions::ForEachFunc<RET, INPUT_IT> func);
     
     /// @brief Same as forEach() but takes a length as second argument in case INPUT_IT
     ///        is not a random access iterator.
-    template <class RET = int, class UNARY_FUNC, class INPUT_IT>
+    template <class RET = int, class INPUT_IT>
     ThreadContextPtr<std::vector<RET>>
-    forEach(INPUT_IT first, size_t num, UNARY_FUNC&& func);
+    forEach(INPUT_IT first, size_t num, Functions::ForEachFunc<RET, INPUT_IT> func);
     
     /// @brief The batched version of forEach(). This function applies the given unary function
     ///        to all the elements in the range [first,last). This function runs serially with respect
@@ -188,15 +188,15 @@ public:
     /// @note Use this function if InputIt meets the requirement of a RandomAccessIterator.
     /// @note The input range is split equally among coroutines and executed in batches. This function
     ///       achieves higher throughput rates than the non-batched mode, if func() is CPU-bound.
-    template <class RET = int, class UNARY_FUNC, class INPUT_IT, class = Traits::IsInputIterator<INPUT_IT>>
+    template <class RET = int, class INPUT_IT, class = Traits::IsInputIterator<INPUT_IT>>
     ThreadContextPtr<std::vector<std::vector<RET>>>
-    forEachBatch(INPUT_IT first, INPUT_IT last, UNARY_FUNC&& func);
+    forEachBatch(INPUT_IT first, INPUT_IT last, Functions::ForEachFunc<RET, INPUT_IT> func);
     
     /// @brief Same as forEachBatch() but takes a length as second argument in case INPUT_IT
     ///        is not a random access iterator.
-    template <class RET = int, class UNARY_FUNC, class INPUT_IT>
+    template <class RET = int, class INPUT_IT>
     ThreadContextPtr<std::vector<std::vector<RET>>>
-    forEachBatch(INPUT_IT first, size_t num, UNARY_FUNC&& func);
+    forEachBatch(INPUT_IT first, size_t num, Functions::ForEachFunc<RET, INPUT_IT> func);
     
     /// @brief Implementation of map-reduce functionality.
     /// @tparam KEY The KEY type used for mapping and reducing.
@@ -216,22 +216,25 @@ public:
     template <class KEY,
               class MAPPED_TYPE,
               class REDUCED_TYPE,
-              class MAPPER_FUNC,
-              class REDUCER_FUNC,
-              class INPUT_IT>
+              class INPUT_IT,
+              class = Traits::IsInputIterator<INPUT_IT>>
     ThreadContextPtr<std::map<KEY, REDUCED_TYPE>>
-    mapReduce(INPUT_IT first, INPUT_IT last, MAPPER_FUNC&& mapper, REDUCER_FUNC&& reducer);
+    mapReduce(INPUT_IT first,
+              INPUT_IT last,
+              Functions::MapFunc<KEY, MAPPED_TYPE, INPUT_IT> mapper,
+              Functions::ReduceFunc<KEY, MAPPED_TYPE, REDUCED_TYPE> reducer);
   
     /// @brief Same as mapReduce() but takes a length as second argument in case INPUT_IT
     ///        is not a random access iterator.
     template <class KEY,
               class MAPPED_TYPE,
               class REDUCED_TYPE,
-              class MAPPER_FUNC,
-              class REDUCER_FUNC,
               class INPUT_IT>
     ThreadContextPtr<std::map<KEY, REDUCED_TYPE>>
-    mapReduce(INPUT_IT first, size_t num, MAPPER_FUNC&& mapper, REDUCER_FUNC&& reducer);
+    mapReduce(INPUT_IT first,
+              size_t num,
+              Functions::MapFunc<KEY, MAPPED_TYPE, INPUT_IT> mapper,
+              Functions::ReduceFunc<KEY, MAPPED_TYPE, REDUCED_TYPE> reducer);
     
     /// @brief This version of mapReduce() runs both the mapper and the reducer functions in batches
     ///        for improved performance. This should be used in the case where the functions are
@@ -240,22 +243,25 @@ public:
     template <class KEY,
               class MAPPED_TYPE,
               class REDUCED_TYPE,
-              class MAPPER_FUNC,
-              class REDUCER_FUNC,
-              class INPUT_IT>
+              class INPUT_IT,
+              class = Traits::IsInputIterator<INPUT_IT>>
     ThreadContextPtr<std::map<KEY, REDUCED_TYPE>>
-    mapReduceBatch(INPUT_IT first, INPUT_IT last, MAPPER_FUNC&& mapper, REDUCER_FUNC&& reducer);
+    mapReduceBatch(INPUT_IT first,
+                   INPUT_IT last,
+                   Functions::MapFunc<KEY, MAPPED_TYPE, INPUT_IT> mapper,
+                   Functions::ReduceFunc<KEY, MAPPED_TYPE, REDUCED_TYPE> reducer);
     
     /// @brief Same as mapReduceBatch() but takes a length as second argument in case INPUT_IT
     ///        is not a random access iterator.
     template <class KEY,
               class MAPPED_TYPE,
               class REDUCED_TYPE,
-              class MAPPER_FUNC,
-              class REDUCER_FUNC,
               class INPUT_IT>
     ThreadContextPtr<std::map<KEY, REDUCED_TYPE>>
-    mapReduceBatch(INPUT_IT first, size_t num, MAPPER_FUNC&& mapper, REDUCER_FUNC&& reducer);
+    mapReduceBatch(INPUT_IT first,
+                   size_t num,
+                   Functions::MapFunc<KEY, MAPPED_TYPE, INPUT_IT> mapper,
+                   Functions::ReduceFunc<KEY, MAPPED_TYPE, REDUCED_TYPE> reducer);
 
     /// @brief Signal all threads to immediately terminate and exit. All other pending coroutines and IO tasks will not complete.
     ///        Call this function for a fast shutdown of the dispatcher.
@@ -336,4 +342,3 @@ using TaskDispatcher = Dispatcher; //alias
 #include <quantum/impl/quantum_dispatcher_impl.h>
 
 #endif //QUANTUM_DISPATCHER_H
-

@@ -204,21 +204,21 @@ public:
     //===================================
     //           FOR EACH
     //===================================
-    template <class OTHER_RET, class UNARY_FUNC, class INPUT_IT, class = Traits::IsInputIterator<INPUT_IT>>
+    template <class OTHER_RET, class INPUT_IT, class = Traits::IsInputIterator<INPUT_IT>>
     typename Context<std::vector<OTHER_RET>>::Ptr
-    forEach(INPUT_IT first, INPUT_IT last, UNARY_FUNC&& func);
+    forEach(INPUT_IT first, INPUT_IT last, Functions::ForEachFunc<OTHER_RET, INPUT_IT> func);
     
-    template <class OTHER_RET, class UNARY_FUNC, class INPUT_IT>
+    template <class OTHER_RET, class INPUT_IT>
     typename Context<std::vector<OTHER_RET>>::Ptr
-    forEach(INPUT_IT first, size_t num, UNARY_FUNC&& func);
+    forEach(INPUT_IT first, size_t num, Functions::ForEachFunc<OTHER_RET, INPUT_IT> func);
     
-    template <class OTHER_RET, class UNARY_FUNC, class INPUT_IT, class = Traits::IsInputIterator<INPUT_IT>>
+    template <class OTHER_RET, class INPUT_IT, class = Traits::IsInputIterator<INPUT_IT>>
     typename Context<std::vector<std::vector<OTHER_RET>>>::Ptr
-    forEachBatch(INPUT_IT first, INPUT_IT last, UNARY_FUNC&& func);
+    forEachBatch(INPUT_IT first, INPUT_IT last, Functions::ForEachFunc<OTHER_RET, INPUT_IT> func);
 
-    template <class OTHER_RET, class UNARY_FUNC, class INPUT_IT>
+    template <class OTHER_RET, class INPUT_IT>
     typename Context<std::vector<std::vector<OTHER_RET>>>::Ptr
-    forEachBatch(INPUT_IT first, size_t num, UNARY_FUNC&& func);
+    forEachBatch(INPUT_IT first, size_t num, Functions::ForEachFunc<OTHER_RET, INPUT_IT> func);
     
     //===================================
     //           MAP REDUCE
@@ -226,38 +226,44 @@ public:
     template <class KEY,
               class MAPPED_TYPE,
               class REDUCED_TYPE,
-              class MAPPER_FUNC,
-              class REDUCER_FUNC,
-              class INPUT_IT>
+              class INPUT_IT,
+              class = Traits::IsInputIterator<INPUT_IT>>
     typename Context<std::map<KEY, REDUCED_TYPE>>::Ptr
-    mapReduce(INPUT_IT first, INPUT_IT last, MAPPER_FUNC&& mapper, REDUCER_FUNC&& reducer);
+    mapReduce(INPUT_IT first,
+              INPUT_IT last,
+              Functions::MapFunc<KEY, MAPPED_TYPE, INPUT_IT> mapper,
+              Functions::ReduceFunc<KEY, MAPPED_TYPE, REDUCED_TYPE> reducer);
     
     template <class KEY,
               class MAPPED_TYPE,
               class REDUCED_TYPE,
-              class MAPPER_FUNC,
-              class REDUCER_FUNC,
               class INPUT_IT>
     typename Context<std::map<KEY, REDUCED_TYPE>>::Ptr
-    mapReduce(INPUT_IT first, size_t num, MAPPER_FUNC&& mapper, REDUCER_FUNC&& reducer);
+    mapReduce(INPUT_IT first,
+              size_t num,
+              Functions::MapFunc<KEY, MAPPED_TYPE, INPUT_IT> mapper,
+              Functions::ReduceFunc<KEY, MAPPED_TYPE, REDUCED_TYPE> reducer);
     
     template <class KEY,
               class MAPPED_TYPE,
               class REDUCED_TYPE,
-              class MAPPER_FUNC,
-              class REDUCER_FUNC,
-              class INPUT_IT>
+              class INPUT_IT,
+              class = Traits::IsInputIterator<INPUT_IT>>
     typename Context<std::map<KEY, REDUCED_TYPE>>::Ptr
-    mapReduceBatch(INPUT_IT first, INPUT_IT last, MAPPER_FUNC&& mapper, REDUCER_FUNC&& reducer);
+    mapReduceBatch(INPUT_IT first,
+                   INPUT_IT last,
+                   Functions::MapFunc<KEY, MAPPED_TYPE, INPUT_IT> mapper,
+                   Functions::ReduceFunc<KEY, MAPPED_TYPE, REDUCED_TYPE> reducer);
     
     template <class KEY,
               class MAPPED_TYPE,
               class REDUCED_TYPE,
-              class MAPPER_FUNC,
-              class REDUCER_FUNC,
               class INPUT_IT>
     typename Context<std::map<KEY, REDUCED_TYPE>>::Ptr
-    mapReduceBatch(INPUT_IT first, size_t num, MAPPER_FUNC&& mapper, REDUCER_FUNC&& reducer);
+    mapReduceBatch(INPUT_IT first,
+                   size_t num,
+                   Functions::MapFunc<KEY, MAPPED_TYPE, INPUT_IT> mapper,
+                   Functions::ReduceFunc<KEY, MAPPED_TYPE, REDUCED_TYPE> reducer);
     
     //===================================
     //           NEW / DELETE

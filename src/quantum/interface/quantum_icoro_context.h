@@ -16,6 +16,7 @@
 #ifndef DISPATCHER_ICORO_CONTEXT_H
 #define DISPATCHER_ICORO_CONTEXT_H
 
+#include <quantum/quantum_functions.h>
 #include <quantum/interface/quantum_icoro_context_base.h>
 #include <quantum/interface/quantum_icoro_future.h>
 #include <map>
@@ -349,9 +350,9 @@ struct ICoroContext : public ICoroContextBase
     /// @return A vector of future values corresponding to the output of 'func' on every element in the range.
     /// @note Use this function if InputIt meets the requirement of a RandomAccessIterator
     /// @note Each func invocation will run inside its own coroutine instance.
-    template <class OTHER_RET = int, class UNARY_FUNC, class INPUT_IT, class = Traits::IsInputIterator<INPUT_IT>>
+    template <class OTHER_RET = int, class INPUT_IT, class = Traits::IsInputIterator<INPUT_IT>>
     typename ICoroContext<std::vector<OTHER_RET>>::Ptr
-    forEach(INPUT_IT first, INPUT_IT last, UNARY_FUNC&& func);
+    forEach(INPUT_IT first, INPUT_IT last, Functions::ForEachFunc<OTHER_RET, INPUT_IT> func);
     
     /// @brief Applies the given unary function to all the elements in the range [first,first+num).
     ///        This function runs in parallel.
@@ -364,9 +365,9 @@ struct ICoroContext : public ICoroContextBase
     /// @return A vector of future values corresponding to the output of 'func' on every element in the range.
     /// @note Use this function if InputIt *does not* meet the requirement of a RandomAccessIterator.
     /// @note Each func invocation will run inside its own coroutine instance.
-    template <class OTHER_RET = int, class UNARY_FUNC, class INPUT_IT>
+    template <class OTHER_RET = int, class INPUT_IT>
     typename ICoroContext<std::vector<OTHER_RET>>::Ptr
-    forEach(INPUT_IT first, size_t num, UNARY_FUNC&& func);
+    forEach(INPUT_IT first, size_t num, Functions::ForEachFunc<OTHER_RET, INPUT_IT> func);
     
     /// @brief Applies the given unary function to all the elements in the range [first,last).
     ///        This function runs serially with respect to other functions in the same batch.
@@ -380,9 +381,9 @@ struct ICoroContext : public ICoroContextBase
     /// @note Use this function if InputIt meets the requirement of a RandomAccessIterator.
     /// @note The input range is split equally among coroutines and executed in batches. This function
     ///       achieves higher throughput rates than the non-batched mode, if func() is CPU-bound.
-    template <class OTHER_RET = int, class UNARY_FUNC, class INPUT_IT, class = Traits::IsInputIterator<INPUT_IT>>
+    template <class OTHER_RET = int, class INPUT_IT, class = Traits::IsInputIterator<INPUT_IT>>
     typename ICoroContext<std::vector<std::vector<OTHER_RET>>>::Ptr
-    forEachBatch(INPUT_IT first, INPUT_IT last, UNARY_FUNC&& func);
+    forEachBatch(INPUT_IT first, INPUT_IT last, Functions::ForEachFunc<OTHER_RET, INPUT_IT> func);
     
     /// @brief Applies the given unary function to all the elements in the range [first,last).
     ///        This function runs serially with respect to other functions in the same batch.
@@ -396,9 +397,9 @@ struct ICoroContext : public ICoroContextBase
     /// @note Use this function if InputIt *does not* meet the requirement of a RandomAccessIterator.
     /// @note The input range is split equally among coroutines and executed in batches. This function
     ///       achieves higher throughput rates than the non-batched mode, if func() is CPU-bound.
-    template <class OTHER_RET = int, class UNARY_FUNC, class INPUT_IT>
+    template <class OTHER_RET = int, class INPUT_IT>
     typename ICoroContext<std::vector<std::vector<OTHER_RET>>>::Ptr
-    forEachBatch(INPUT_IT first, size_t num, UNARY_FUNC&& func);
+    forEachBatch(INPUT_IT first, size_t num, Functions::ForEachFunc<OTHER_RET, INPUT_IT> func);
     
     /// @brief Implementation of map-reduce functionality.
     /// @tparam KEY The KEY type used for mapping and reducing.
@@ -418,22 +419,25 @@ struct ICoroContext : public ICoroContextBase
     template <class KEY,
               class MAPPED_TYPE,
               class REDUCED_TYPE,
-              class MAPPER_FUNC,
-              class REDUCER_FUNC,
-              class INPUT_IT>
+              class INPUT_IT,
+              class = Traits::IsInputIterator<INPUT_IT>>
     typename ICoroContext<std::map<KEY, REDUCED_TYPE>>::Ptr
-    mapReduce(INPUT_IT first, INPUT_IT last, MAPPER_FUNC&& mapper, REDUCER_FUNC&& reducer);
+    mapReduce(INPUT_IT first,
+              INPUT_IT last,
+              Functions::MapFunc<KEY, MAPPED_TYPE, INPUT_IT> mapper,
+              Functions::ReduceFunc<KEY, MAPPED_TYPE, REDUCED_TYPE> reducer);
   
     /// @brief Same as mapReduce() but takes a length as second argument in case INPUT_IT
     ///        is not a random access iterator.
     template <class KEY,
               class MAPPED_TYPE,
               class REDUCED_TYPE,
-              class MAPPER_FUNC,
-              class REDUCER_FUNC,
               class INPUT_IT>
     typename ICoroContext<std::map<KEY, REDUCED_TYPE>>::Ptr
-    mapReduce(INPUT_IT first, size_t num, MAPPER_FUNC&& mapper, REDUCER_FUNC&& reducer);
+    mapReduce(INPUT_IT first,
+              size_t num,
+              Functions::MapFunc<KEY, MAPPED_TYPE, INPUT_IT> mapper,
+              Functions::ReduceFunc<KEY, MAPPED_TYPE, REDUCED_TYPE> reducer);
     
     /// @brief This version of mapReduce() runs both the mapper and the reducer functions in batches
     ///        for improved performance. This should be used in the case where the functions are
@@ -442,22 +446,25 @@ struct ICoroContext : public ICoroContextBase
     template <class KEY,
               class MAPPED_TYPE,
               class REDUCED_TYPE,
-              class MAPPER_FUNC,
-              class REDUCER_FUNC,
-              class INPUT_IT>
+              class INPUT_IT,
+              class = Traits::IsInputIterator<INPUT_IT>>
     typename ICoroContext<std::map<KEY, REDUCED_TYPE>>::Ptr
-    mapReduceBatch(INPUT_IT first, INPUT_IT last, MAPPER_FUNC&& mapper, REDUCER_FUNC&& reducer);
+    mapReduceBatch(INPUT_IT first,
+                   INPUT_IT last,
+                   Functions::MapFunc<KEY, MAPPED_TYPE, INPUT_IT> mapper,
+                   Functions::ReduceFunc<KEY, MAPPED_TYPE, REDUCED_TYPE> reducer);
     
     /// @brief Same as mapReduceBatch() but takes a length as second argument in case INPUT_IT
     ///        is not a random access iterator.
     template <class KEY,
               class MAPPED_TYPE,
               class REDUCED_TYPE,
-              class MAPPER_FUNC,
-              class REDUCER_FUNC,
               class INPUT_IT>
     typename ICoroContext<std::map<KEY, REDUCED_TYPE>>::Ptr
-    mapReduceBatch(INPUT_IT first, size_t num, MAPPER_FUNC&& mapper, REDUCER_FUNC&& reducer);
+    mapReduceBatch(INPUT_IT first,
+                   size_t num,
+                   Functions::MapFunc<KEY, MAPPED_TYPE, INPUT_IT> mapper,
+                   Functions::ReduceFunc<KEY, MAPPED_TYPE, REDUCED_TYPE> reducer);
 };
 
 template <class RET>
