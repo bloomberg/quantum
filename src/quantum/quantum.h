@@ -49,6 +49,7 @@
 #include <quantum/quantum_coroutine_pool_allocator.h>
 #include <quantum/quantum_dispatcher.h>
 #include <quantum/quantum_dispatcher_core.h>
+#include <quantum/quantum_functions.h>
 #include <quantum/quantum_future.h>
 #include <quantum/quantum_future_joiner.h>
 #include <quantum/quantum_future_state.h>
