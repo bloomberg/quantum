@@ -32,6 +32,14 @@ class Configuration
 public:
      enum class BackoffPolicy : int { Linear,        ///< Linear backoff
                                       Exponential }; ///< Exponential backoff (doubles every time)
+                           
+    /// @brief Get the JSON schema corresponding to this configuration object.
+    /// @return The draft-04 compatible schema.
+    static const std::string& getJsonSchema();
+    
+    /// @brief Get the schema URI used to resolve remote JSON references '$ref'.
+    /// @return The URI.
+    static const std::string& getJsonSchemaUri();
     
     /// @brief Set the number of threads running coroutines.
     /// @oaram[in] num The number of threads. Set to -1 to have one coroutine thread per core.

@@ -23,6 +23,56 @@ namespace Bloomberg {
 namespace quantum {
 
 inline
+const std::string& Configuration::getJsonSchema()
+{
+    static std::string schema = R"JSON(
+    {
+        "$schema" : "http://json-schema.org/draft-04/schema#",
+        "$id" : "bloomberg:quantum.json",
+        "title": "Quantum library settings",
+        "type": "object",
+        "properties": {
+            "numCoroutineThreads": {
+                "type": "number"
+            },
+            "numIoThreads": {
+                "type": "number"
+            },
+            "pinToCores": {
+                "type": "boolean"
+            },
+            "loadBalanceSharedIoQueues": {
+                "type": "boolean"
+            },
+            "loadBalancePollIntervalMs": {
+                "type": "number"
+            },
+            "loadBalancePollIntervalBackoffPolicy": {
+                "type": "string",
+                "enum": [
+                    "exponential",
+                    "linear"
+                ]
+            },
+            "loadBalancePollIntervalNumBackoffs": {
+                "type": "number"
+            }
+        },
+        "additionalProperties": false,
+        "required": []
+    }
+    )JSON";
+    return schema;
+}
+
+inline
+const std::string& Configuration::getJsonSchemaUri()
+{
+    static std::string uri = "bloomberg:quantum.json";
+    return uri;
+}
+
+inline
 void Configuration::setNumCoroutineThreads(int num)
 {
     _numCoroutineThreads = num;
