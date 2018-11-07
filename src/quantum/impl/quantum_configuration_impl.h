@@ -33,29 +33,37 @@ const std::string& Configuration::getJsonSchema()
         "type": "object",
         "properties": {
             "numCoroutineThreads": {
-                "type": "number"
+                "type": "number",
+                "default": -1
             },
             "numIoThreads": {
-                "type": "number"
+                "type": "number",
+                "default": 5
+                
             },
             "pinToCores": {
-                "type": "boolean"
+                "type": "boolean",
+                "default": false
             },
             "loadBalanceSharedIoQueues": {
-                "type": "boolean"
+                "type": "boolean",
+                "default": false
             },
             "loadBalancePollIntervalMs": {
-                "type": "number"
+                "type": "number",
+                "default": 100
             },
             "loadBalancePollIntervalBackoffPolicy": {
                 "type": "string",
                 "enum": [
                     "exponential",
                     "linear"
-                ]
+                ],
+                "default": "linear"
             },
             "loadBalancePollIntervalNumBackoffs": {
-                "type": "number"
+                "type": "number",
+                "default": 0
             }
         },
         "additionalProperties": false,
