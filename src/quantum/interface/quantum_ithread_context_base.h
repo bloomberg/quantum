@@ -68,6 +68,8 @@ struct IThreadContextBase : public virtual IContextBase
     virtual void waitAll() const = 0;
 };
 
+using IThreadContextBasePtr = IThreadContextBase::Ptr;
+
 }}
 
 #endif //QUANTUM_ITHREAD_CONTEXT_BASE_H

@@ -106,6 +106,9 @@ private:
     std::atomic_flag            _terminated;
 };
 
+using TaskPtr = Task::Ptr;
+using TaskWeakPtr = Task::WeakPtr;
+
 }}
 
 #include <quantum/impl/quantum_task_impl.h>
