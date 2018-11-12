@@ -76,6 +76,8 @@ struct ICoroContextBase : public virtual IContextBase,
     virtual void waitAll(ICoroSync::Ptr sync) const = 0;
 };
 
+using ICoroContextBasePtr = ICoroContextBase::Ptr;
+
 }}
 
 #endif //QUANTUM_ICORO_CONTEXT_BASE_H

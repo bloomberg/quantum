@@ -63,6 +63,8 @@ struct IQueue : public ITerminate
     virtual bool isIdle() const = 0;
 };
 
+using IQueuePtr = IQueue::Ptr;
+
 #ifndef __QUANTUM_QUEUE_LIST_ALLOC_SIZE
     #define __QUANTUM_QUEUE_LIST_ALLOC_SIZE __QUANTUM_DEFAULT_POOL_ALLOC_SIZE
 #endif

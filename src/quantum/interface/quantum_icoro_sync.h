@@ -60,6 +60,8 @@ struct ICoroSync
     virtual void sleep(std::chrono::milliseconds timeMs) = 0;
 };
 
+using ICoroSyncPtr = ICoroSync::Ptr;
+
 }}
 
 #endif //QUANTUM_ICORO_SYNC_H

@@ -34,6 +34,8 @@ namespace quantum {
 class Dispatcher : public ITerminate
 {
 public:
+    using ContextTag = ThreadContextTag;
+    
     /// @brief Constructor.
     /// @details This will build two thread pools, one used for running parallel coroutines and another
     ///          used for running blocking IO tasks.

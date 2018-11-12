@@ -18,61 +18,94 @@
 //##############################################################################################
 //#################################### IMPLEMENTATIONS #########################################
 //##############################################################################################
+#include <type_traits>
 
 namespace Bloomberg {
 namespace quantum {
 
-template <class T>
-FutureJoiner<T>::FutureJoiner(Dispatcher* dispatcher) :
-    _threadDispatcher(dispatcher)
+template <class DISPATCHER>
+FutureJoiner<DISPATCHER>::FutureJoiner(DISPATCHER& dispatcher) :
+    _dispatcher(dispatcher)
 {
 }
 
-template <class T>
-FutureJoiner<T>::FutureJoiner(CoroContextPtr<T> dispatcher) :
-    _threadDispatcher(nullptr),
-    _coroDispatcher(dispatcher)
-{
-}
-
+template <class DISPATCHER>
 template <class T>
 ThreadFuturePtr<std::vector<T>>
-FutureJoiner<T>::operator()(std::vector<ThreadContextPtr<T>>&& futures)
+FutureJoiner<DISPATCHER>::operator()(std::vector<ThreadContextPtr<T>>&& futures)
 {
-    return join<ThreadContext>(typename ThreadContext<T>::ContextTag{}, std::move(futures));
+    static_assert(std::is_same<typename DISPATCHER::ContextTag, typename ThreadContext<T>::ContextTag>::value, "Wrong call context");
+    return join<ThreadContext,T>(typename DISPATCHER::ContextTag{}, std::move(futures));
 }
 
+template <class DISPATCHER>
 template <class T>
 ThreadFuturePtr<std::vector<T>>
-FutureJoiner<T>::operator()(std::vector<ThreadFuturePtr<T>>&& futures)
+FutureJoiner<DISPATCHER>::join(std::vector<ThreadContextPtr<T>>&& futures)
 {
-    return join<ThreadFuture>(typename ThreadFuture<T>::ContextTag{}, std::move(futures));
+    static_assert(std::is_same<typename DISPATCHER::ContextTag, typename ThreadContext<T>::ContextTag>::value, "Wrong call context");
+    return join<ThreadContext,T>(typename DISPATCHER::ContextTag{}, std::move(futures));
 }
 
+template <class DISPATCHER>
+template <class T>
+ThreadFuturePtr<std::vector<T>>
+FutureJoiner<DISPATCHER>::operator()(std::vector<ThreadFuturePtr<T>>&& futures)
+{
+    static_assert(std::is_same<typename DISPATCHER::ContextTag, typename ThreadContext<T>::ContextTag>::value, "Wrong call context");
+    return join<ThreadFuture,T>(typename DISPATCHER::ContextTag{}, std::move(futures));
+}
+
+template <class DISPATCHER>
+template <class T>
+ThreadFuturePtr<std::vector<T>>
+FutureJoiner<DISPATCHER>::join(std::vector<ThreadFuturePtr<T>>&& futures)
+{
+    static_assert(std::is_same<typename DISPATCHER::ContextTag, typename ThreadContext<T>::ContextTag>::value, "Wrong call context");
+    return join<ThreadFuture,T>(typename DISPATCHER::ContextTag{}, std::move(futures));
+}
+
+template <class DISPATCHER>
 template <class T>
 CoroContextPtr<std::vector<T>>
-FutureJoiner<T>::operator()(std::vector<CoroContextPtr<T>>&& futures)
+FutureJoiner<DISPATCHER>::operator()(std::vector<CoroContextPtr<T>>&& futures)
 {
-    return join<CoroContext>(typename CoroContext<T>::ContextTag{}, std::move(futures));
+    return join<CoroContext,T>(typename CoroContext<T>::ContextTag{}, std::move(futures));
 }
 
+template <class DISPATCHER>
 template <class T>
 CoroContextPtr<std::vector<T>>
-FutureJoiner<T>::operator()(std::vector<CoroFuturePtr<T>>&& futures)
+FutureJoiner<DISPATCHER>::join(std::vector<CoroContextPtr<T>>&& futures)
 {
-    return join<CoroFuture>(typename CoroFuture<T>::ContextTag{}, std::move(futures));
+    return join<CoroContext,T>(typename CoroContext<T>::ContextTag{}, std::move(futures));
 }
 
+template <class DISPATCHER>
 template <class T>
-template <template<class> class FUTURE>
-ThreadFuturePtr<std::vector<T>>
-FutureJoiner<T>::join(ThreadContextTag,
-                      std::vector<typename FUTURE<T>::Ptr>&& futures)
+CoroContextPtr<std::vector<T>>
+FutureJoiner<DISPATCHER>::operator()(std::vector<CoroFuturePtr<T>>&& futures)
 {
-    assert(_threadDispatcher);
+    return join<CoroFuture,T>(typename CoroFuture<T>::ContextTag{}, std::move(futures));
+}
+
+template <class DISPATCHER>
+template <class T>
+CoroContextPtr<std::vector<T>>
+FutureJoiner<DISPATCHER>::join(std::vector<CoroFuturePtr<T>>&& futures)
+{
+    return join<CoroFuture,T>(typename CoroFuture<T>::ContextTag{}, std::move(futures));
+}
+
+template <class DISPATCHER>
+template <template<class> class FUTURE, class T>
+ThreadFuturePtr<std::vector<T>>
+FutureJoiner<DISPATCHER>::join(ThreadContextTag,
+                               std::vector<typename FUTURE<T>::Ptr>&& futures)
+{
 #if (__cplusplus == 201103L)
     std::shared_ptr<std::vector<typename FUTURE<T>::Ptr>> containerPtr(new std::vector<typename FUTURE<T>::Ptr>(std::move(futures)));
-    return _threadDispatcher->template postAsyncIo<std::vector<T>>([containerPtr](ThreadPromisePtr<std::vector<T>> promise)
+    return _dispatcher.template postAsyncIo<std::vector<T>>([containerPtr](ThreadPromisePtr<std::vector<T>> promise)
     {
         std::vector<T> result;
         for (auto&& f : *containerPtr)
@@ -82,7 +115,7 @@ FutureJoiner<T>::join(ThreadContextTag,
         return promise->set(std::move(result));
     });
 #else
-    return _threadDispatcher->template postAsyncIo<std::vector<T>>([container{std::move(futures)}](ThreadPromisePtr<std::vector<T>> promise)
+    return _dispatcher.template postAsyncIo<std::vector<T>>([container{std::move(futures)}](ThreadPromisePtr<std::vector<T>> promise)
     {
         std::vector<T> result;
         for (auto&& f : container)
@@ -94,16 +127,15 @@ FutureJoiner<T>::join(ThreadContextTag,
 #endif
 }
 
-template <class T>
-template <template<class> class FUTURE>
+template <class DISPATCHER>
+template <template<class> class FUTURE, class T>
 typename FUTURE<std::vector<T>>::Ptr
-FutureJoiner<T>::join(CoroContextTag,
-                      std::vector<typename FUTURE<T>::Ptr>&& futures)
+FutureJoiner<DISPATCHER>::join(CoroContextTag,
+                               std::vector<typename FUTURE<T>::Ptr>&& futures)
 {
-    assert(_coroDispatcher);
 #if (__cplusplus == 201103L)
     std::shared_ptr<std::vector<typename FUTURE<T>::Ptr>> containerPtr(new std::vector<typename FUTURE<T>::Ptr>(std::move(futures)));
-    return _coroDispatcher->template post<std::vector<T>>([containerPtr](CoroContextPtr<std::vector<T>> ctx)
+    return _dispatcher.template post<std::vector<T>>([containerPtr](CoroContextPtr<std::vector<T>> ctx)
     {
         std::vector<T> result;
         for (auto&& f : *containerPtr)
@@ -113,7 +145,7 @@ FutureJoiner<T>::join(CoroContextTag,
         return ctx->set(std::move(result));
     });
 #else
-    return _coroDispatcher->template post<std::vector<T>>([container{std::move(futures)}](CoroContextPtr<std::vector<T>> ctx)
+    return _dispatcher.template post<std::vector<T>>([container{std::move(futures)}](CoroContextPtr<std::vector<T>> ctx)
     {
         std::vector<T> result;
         for (auto&& f : container)

@@ -1099,7 +1099,7 @@ TEST(FutureJoiner, JoinThreadFutures)
         }));
     }
     
-    std::vector<int> output = quantum::FutureJoiner<int>(&DispatcherSingleton::instance())(std::move(futures))->get();
+    std::vector<int> output = FutureJoiner<Dispatcher>(DispatcherSingleton::instance()).join<int>(std::move(futures))->get();
     EXPECT_EQ(output, std::vector<int>({0,1,2,3,4,5,6,7,8,9}));
 }
 
@@ -1107,7 +1107,7 @@ TEST(FutureJoiner, JoinCoroFutures)
 {
     std::vector<int> output;
     
-    DispatcherSingleton::instance().post([&output](CoroContext<int>::Ptr ctx)->int {
+    DispatcherSingleton::instance().post<double>([&output](CoroContext<double>::Ptr ctx)->int {
         std::vector<quantum::CoroContext<int>::Ptr> futures;
         for (int i = 0; i < 10; ++i) {
             futures.push_back(ctx->post<int>([i](CoroContext<int>::Ptr ctx2)->int {
@@ -1115,7 +1115,7 @@ TEST(FutureJoiner, JoinCoroFutures)
                 return ctx2->set(i);
             }));
         }
-        output = quantum::FutureJoiner<int>(ctx)(std::move(futures))->get(ctx);
+        output = FutureJoiner<CoroContext<double>>(*ctx).join<int>(std::move(futures))->get(ctx);
         return ctx->set(0);
     })->get();
     

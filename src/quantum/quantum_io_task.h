@@ -80,6 +80,9 @@ private:
     bool                    _isHighPriority;
 };
 
+using IoTaskPtr = IoTask::Ptr;
+using IoTaskWeakPtr = IoTask::WeakPtr;
+
 }}
 
 #include <quantum/impl/quantum_io_task_impl.h>
