@@ -39,6 +39,8 @@ struct ITaskAccessor : public ITerminate
     virtual bool isBlocked() = 0;
 };
 
+using ITaskAccessorPtr = ITaskAccessor::Ptr;
+
 }}
 
 #endif //QUANTUM_ITASK_ACCESSOR_H

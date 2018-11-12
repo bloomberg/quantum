@@ -61,6 +61,8 @@ struct IContextBase
     virtual int setException(std::exception_ptr ex) = 0;
 };
 
+using IContextBasePtr = IContextBase::Ptr;
+
 }}
 
 #endif //DISPATCHER_ICONTEXT_BASE_H

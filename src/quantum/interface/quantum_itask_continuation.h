@@ -45,6 +45,9 @@ struct ITaskContinuation : public ITask
     virtual Ptr getErrorHandlerOrFinalTask() = 0;
 };
 
+using ITaskContinuationPtr = ITaskContinuation::Ptr;
+using ITaskContinuationWeakPtr = ITaskContinuation::WeakPtr;
+
 }}
 
 #endif //QUANTUM_ITASKCONTINUATION_H

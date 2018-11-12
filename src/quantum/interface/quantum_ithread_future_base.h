@@ -51,6 +51,8 @@ struct IThreadFutureBase
     virtual std::future_status waitFor(std::chrono::milliseconds timeMs) const = 0;
 };
 
+using IThreadFutureBasePtr = IThreadFutureBase::Ptr;
+
 }}
 
 #endif //QUANTUM_ITHREAD_FUTURE_BASE_H

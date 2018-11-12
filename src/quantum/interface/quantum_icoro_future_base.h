@@ -54,6 +54,8 @@ struct ICoroFutureBase
                                        std::chrono::milliseconds timeMs) const = 0;
 };
 
+using ICoroFutureBasePtr = ICoroFutureBase::Ptr;
+
 }}
 
 #endif //QUANTUM_ICORO_FUTURE_BASE_H

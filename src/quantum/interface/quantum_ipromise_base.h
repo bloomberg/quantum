@@ -54,6 +54,8 @@ struct IPromiseBase : public ITerminate
     virtual ICoroFutureBase::Ptr getICoroFutureBase() const = 0;
 };
 
+using IPromiseBasePtr = IPromiseBase::Ptr;
+
 }}
 
 #endif //QUANTUM_IPROMISE_BASE_H

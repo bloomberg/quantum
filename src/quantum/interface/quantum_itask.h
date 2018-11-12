@@ -62,6 +62,9 @@ struct ITask : public ITerminate
     virtual bool isHighPriority() const = 0;
 };
 
+using ITaskPtr = ITask::Ptr;
+using ITaskWeakPtr = ITask::WeakPtr;
+
 }}
 
 #endif //QUANTUM_ITASK_H
