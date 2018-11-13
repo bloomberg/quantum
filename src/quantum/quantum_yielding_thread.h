@@ -18,7 +18,6 @@
 
 #include <thread>
 #include <chrono>
-#include <quantum/quantum_util.h>
 #include <quantum/quantum_thread_traits.h>
 
 namespace Bloomberg {

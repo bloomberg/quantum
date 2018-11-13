@@ -722,7 +722,7 @@ TEST(MutexTest, LockingAndUnlocking)
     Dispatcher& dispatcher = DispatcherSingleton::instance();
     std::vector<int> v;
     
-    quantum::Mutex m;
+    Mutex m;
     
     //lock the vector before posting the coroutines
     m.lock();
@@ -757,8 +757,8 @@ TEST(MutexTest, SignalWithConditionVariable)
     Dispatcher& dispatcher = DispatcherSingleton::instance();
     std::vector<int> v;
     
-    quantum::Mutex m;
-    quantum::ConditionVariable cv;
+    Mutex m;
+    ConditionVariable cv;
     
     //access the vector
     m.lock();
@@ -1090,7 +1090,7 @@ TEST(MapReduce, WordLengthFromCoroutine)
 
 TEST(FutureJoiner, JoinThreadFutures)
 {
-    std::vector<quantum::ThreadContext<int>::Ptr> futures;
+    std::vector<ThreadContext<int>::Ptr> futures;
     
     for (int i = 0; i < 10; ++i) {
         futures.push_back(DispatcherSingleton::instance().post<int>([i](CoroContext<int>::Ptr ctx)->int {
@@ -1099,7 +1099,7 @@ TEST(FutureJoiner, JoinThreadFutures)
         }));
     }
     
-    std::vector<int> output = FutureJoiner<Dispatcher>(DispatcherSingleton::instance()).join<int>(std::move(futures))->get();
+    std::vector<int> output = FutureJoiner<int>()(DispatcherSingleton::instance(), std::move(futures))->get();
     EXPECT_EQ(output, std::vector<int>({0,1,2,3,4,5,6,7,8,9}));
 }
 
@@ -1108,14 +1108,14 @@ TEST(FutureJoiner, JoinCoroFutures)
     std::vector<int> output;
     
     DispatcherSingleton::instance().post<double>([&output](CoroContext<double>::Ptr ctx)->int {
-        std::vector<quantum::CoroContext<int>::Ptr> futures;
+        std::vector<CoroContext<int>::Ptr> futures;
         for (int i = 0; i < 10; ++i) {
             futures.push_back(ctx->post<int>([i](CoroContext<int>::Ptr ctx2)->int {
                 ctx2->sleep(std::chrono::milliseconds(10));
                 return ctx2->set(i);
             }));
         }
-        output = FutureJoiner<CoroContext<double>>(*ctx).join<int>(std::move(futures))->get(ctx);
+        output = FutureJoiner<int>()(*ctx, std::move(futures))->get(ctx);
         return ctx->set(0);
     })->get();
     
