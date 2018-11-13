@@ -18,7 +18,6 @@
 
 #include <quantum/quantum_future.h>
 #include <quantum/interface/quantum_ipromise.h>
-#include <quantum/quantum_util.h>
 
 namespace Bloomberg {
 namespace quantum {

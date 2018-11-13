@@ -20,7 +20,9 @@
 #include <quantum/interface/quantum_ithread_future.h>
 #include <quantum/interface/quantum_icoro_context.h>
 #include <quantum/interface/quantum_icoro_future.h>
-#include <quantum/quantum_dispatcher.h>
+#include <quantum/impl/quantum_stl_impl.h>
+#include <vector>
+#include <type_traits>
 
 namespace Bloomberg {
 namespace quantum {
@@ -33,59 +35,31 @@ namespace quantum {
 /// @details Instead of waiting for N futures to complete, the user can join them and wait
 ///          on a single future which returns N values.
 /// @tparam T The type returned by the future.
-template <class DISPATCHER>
+template <typename T>
 class FutureJoiner
 {
 public:
-    /// @brief Construct a joiner with a Dispatcher object.
-    /// @param[in] dispatcher The address of a Dispatcher object.
-    /// @note Use this constructor when joining N thread futures.
-    explicit FutureJoiner(DISPATCHER& dispatcher);
-    
     /// @brief Join N thread futures.
-    /// @param[in] futures A vector of thread futures.
+    /// @param[in] futures A vector of thread futures of type T.
     /// @return A joined future to wait on.
-    /// @note Call this from a thread context only.
-    template <class T>
-    ThreadFuturePtr<std::vector<T>> operator()(std::vector<ThreadContextPtr<T>>&& futures);
-    template <class T>
-    ThreadFuturePtr<std::vector<T>> join(std::vector<ThreadContextPtr<T>>&& futures);
+    template <class DISPATCHER, class = std::enable_if_t<std::is_same<typename DISPATCHER::ContextTag,ThreadContextTag>::value>>
+    ThreadFuturePtr<std::vector<T>> operator()(DISPATCHER& dispatcher, std::vector<ThreadContextPtr<T>>&& futures);
     
-    /// @brief Join N thread futures.
-    /// @param[in] futures A vector of async IO futures.
-    /// @return A joined future to wait on.
-    /// @note Call this from a thread context only.
-    template <class T>
-    ThreadFuturePtr<std::vector<T>> operator()(std::vector<ThreadFuturePtr<T>>&& futures);
-    template <class T>
-    ThreadFuturePtr<std::vector<T>> join(std::vector<ThreadFuturePtr<T>>&& futures);
+    template <class DISPATCHER, class = std::enable_if_t<std::is_same<typename DISPATCHER::ContextTag,ThreadContextTag>::value>>
+    ThreadFuturePtr<std::vector<T>> operator()(DISPATCHER& dispatcher, std::vector<ThreadFuturePtr<T>>&& futures);
     
-    /// @brief Join N coroutine futures.
-    /// @param[in] futures A vector of coroutine futures.
-    /// @return A joined future to wait on.
-    /// @note Call this from a coroutine context only.
-    template <class T>
-    CoroContextPtr<std::vector<T>> operator()(std::vector<CoroContextPtr<T>>&& futures);
-    template <class T>
-    CoroContextPtr<std::vector<T>> join(std::vector<CoroContextPtr<T>>&& futures);
+    template <class DISPATCHER, class = std::enable_if_t<std::is_same<typename DISPATCHER::ContextTag,CoroContextTag>::value>>
+    CoroContextPtr<std::vector<T>> operator()(DISPATCHER& dispatcher, std::vector<CoroContextPtr<T>>&& futures);
     
-    /// @brief Join N coroutine futures.
-    /// @param[in] futures A vector of coroutine async IO futures.
-    /// @return A joined future to wait on.
-    /// @note Call this from a coroutine context only.
-    template <class T>
-    CoroContextPtr<std::vector<T>> operator()(std::vector<CoroFuturePtr<T>>&& futures);
-    template <class T>
-    CoroContextPtr<std::vector<T>> join(std::vector<CoroFuturePtr<T>>&& futures);
+    template <class DISPATCHER, class = std::enable_if_t<std::is_same<typename DISPATCHER::ContextTag,CoroContextTag>::value>>
+    CoroContextPtr<std::vector<T>> operator()(DISPATCHER& dispatcher, std::vector<CoroFuturePtr<T>>&& futures);
     
 private:
-    template <template<class> class FUTURE, class T>
-    ThreadFuturePtr<std::vector<T>> join(ThreadContextTag, std::vector<typename FUTURE<T>::Ptr>&& futures);
+    template <template<class> class FUTURE, class DISPATCHER>
+    ThreadFuturePtr<std::vector<T>> join(ThreadContextTag, DISPATCHER& dispatcher, std::vector<typename FUTURE<T>::Ptr>&& futures);
     
-    template <template<class> class FUTURE, class T>
-    typename FUTURE<std::vector<T>>::Ptr join(CoroContextTag, std::vector<typename FUTURE<T>::Ptr>&& futures);
-    
-    DISPATCHER& _dispatcher;
+    template <template<class> class FUTURE, class DISPATCHER>
+    CoroContextPtr<std::vector<T>> join(CoroContextTag, DISPATCHER& dispatcher, std::vector<typename FUTURE<T>::Ptr>&& futures);
 };
 
 }}

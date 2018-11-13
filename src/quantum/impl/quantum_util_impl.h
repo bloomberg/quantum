@@ -19,6 +19,7 @@
 //#################################### IMPLEMENTATIONS #########################################
 //##############################################################################################
 #include <quantum/impl/quantum_stl_impl.h>
+#include <quantum/quantum_future_joiner.h>
 
 namespace Bloomberg {
 namespace quantum {
@@ -206,13 +207,7 @@ int Util::forEachCoro(CoroContextPtr<std::vector<RET>> ctx,
             return ctx->set(func(*inputIt));
         }));
     }
-    std::vector<RET> result;
-    result.reserve(num);
-    for (auto&& futureValue : asyncResults)
-    {
-        result.emplace_back(futureValue->get(ctx));
-    }
-    return ctx->set(std::move(result));
+    return ctx->set(FutureJoiner<RET>()(*ctx, std::move(asyncResults))->get(ctx));
 }
 
 template <class RET, class INPUT_IT>
@@ -248,14 +243,7 @@ int Util::forEachBatchCoro(CoroContextPtr<std::vector<std::vector<RET>>> ctx,
         }));
         std::advance(inputIt, batchSize);
     }
-    
-    std::vector<std::vector<RET>> result;
-    result.reserve(numCoroutineThreads);
-    for (auto&& futureBatch : asyncResults)
-    {
-        result.emplace_back(futureBatch->get(ctx));
-    }
-    return ctx->set(std::move(result));
+    return ctx->set(FutureJoiner<std::vector<RET>>()(*ctx, std::move(asyncResults))->get(ctx));
 }
 
 template <class KEY,

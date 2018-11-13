@@ -18,6 +18,7 @@
 
 #include <tuple>
 #include <utility>
+#include <type_traits>
 
 namespace std {
 #if (__cplusplus == 201103L)
