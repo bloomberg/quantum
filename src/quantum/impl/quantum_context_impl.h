@@ -551,15 +551,17 @@ std::atomic_int& Context<RET>::signal()
 template <class RET>
 void Context<RET>::sleep(std::chrono::milliseconds timeMs)
 {
-    auto start = std::chrono::high_resolution_clock::now();
-    //wait until signalled or times out
-    while (1)
-    {
-        yield();
-        auto elapsed = std::chrono::high_resolution_clock::now() - start;
-        if (std::chrono::duration_cast<std::chrono::milliseconds>(elapsed) >= timeMs)
+    if (timeMs > std::chrono::milliseconds(0)) {
+        auto start = std::chrono::high_resolution_clock::now();
+        //wait until signalled or times out
+        while (1)
         {
-            break; //timeout expired
+            yield();
+            auto elapsed = std::chrono::high_resolution_clock::now() - start;
+            if (std::chrono::duration_cast<std::chrono::milliseconds>(elapsed) >= timeMs)
+            {
+                break; //timeout expired
+            }
         }
     }
 }

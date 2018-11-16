@@ -206,17 +206,18 @@ bool ConditionVariable::waitForImpl(YIELDING&& yield,
                                     PREDICATE predicate,
                                     std::atomic_int& signal)
 {
-    auto duration = time;
-    while (!predicate() && !_destroyed)
-    {
-        if (!waitForImpl(std::forward<YIELDING>(yield), mutex, duration, signal))
+    if (time > std::chrono::duration<REP, PERIOD>(0)) {
+        auto duration = time;
+        while (!predicate() && !_destroyed)
         {
-            //timeout
-            return predicate();
+            if (!waitForImpl(std::forward<YIELDING>(yield), mutex, duration, signal))
+            {
+                //timeout
+                return predicate();
+            }
         }
     }
-    //duration has not yet expired
-    return true;
+    return true; //duration has not yet expired
 }
 
 }}
