@@ -27,6 +27,7 @@
 #include <quantum/interface/quantum_itask.h>
 #include <quantum/interface/quantum_icontext.h>
 #include <quantum/interface/quantum_ipromise.h>
+#include <quantum/quantum_capture.h>
 
 namespace Bloomberg {
 namespace quantum {
@@ -44,11 +45,11 @@ template <class RET> class Promise;
 struct Util
 {
     template<class RET, class FUNC, class ...ARGS>
-    static constexpr std::function<void(Traits::Yield& yield)>
+    static Function<int(Traits::Yield&)>
     bindCaller(std::shared_ptr<Context<RET>> ctx, FUNC&& func0, ARGS&& ...args0);
     
     template<class RET, class FUNC, class ...ARGS>
-    static constexpr std::function<int()>
+    static Function<int()>
     bindIoCaller(std::shared_ptr<Promise<RET>> promise, FUNC&& func0, ARGS&& ...args0);
     
     //------------------------------------------------------------------------------------------

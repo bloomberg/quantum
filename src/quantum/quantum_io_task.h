@@ -18,6 +18,7 @@
 
 #include <functional>
 #include <quantum/interface/quantum_itask.h>
+#include <quantum/quantum_capture.h>
 #include <quantum/quantum_promise.h>
 #include <quantum/quantum_util.h>
 
@@ -74,7 +75,7 @@ public:
     static void deleter(IoTask* p);
     
 private:
-    std::function<int()>    _func;      //the current runnable io function
+    Function<int()>         _func;      //the current runnable io function
     std::atomic_flag        _terminated;
     int                     _queueId;
     bool                    _isHighPriority;
