@@ -26,6 +26,9 @@ namespace std {
     template< bool B, class T = void >
     using enable_if_t = typename std::enable_if<B,T>::type;
     
+    template<typename T>
+    using remove_reference_t = typename std::remove_reference<T>::type;
+    
     template<typename _Tp, _Tp... _Idx>
     struct integer_sequence
     {
@@ -62,26 +65,30 @@ namespace Bloomberg {
 namespace quantum {
 
 #if (__cplusplus <= 201402L)
-    template <typename RET, typename... ARGS, size_t...I>
-    RET apply_impl(const std::function<RET(ARGS...)>& func,
-                   std::tuple<ARGS...>& tuple,
-                   std::index_sequence<I...>)
+    template <typename FUNC, typename...ARGS>
+    struct ReturnOf
     {
-        return func(std::forward<ARGS>(std::get<I>(tuple))...);
-    }
-    
-    template <typename RET, typename... ARGS>
-    RET apply(const std::function<RET(ARGS...)>& func, std::tuple<ARGS...>& tuple)
-    {
-        return apply_impl(func, tuple, std::index_sequence_for<ARGS...>{});
-    }
+        using Type = typename std::result_of<FUNC(ARGS...)>::type;
+    };
 #else
-    template <typename RET, typename... ARGS>
-    RET apply(const std::function<RET(ARGS...)>& func, std::tuple<ARGS...>& tuple)
+    template <typename FUNC, typename...ARGS>
+    struct ReturnOf
     {
-        return std::apply(func, tuple);
-    }
+        using Type = std::invoke_result_t<FUNC, ARGS...>;
+    };
 #endif
+
+template <typename RET, typename FUNC, typename... ARGS, size_t...I, typename...T>
+RET apply_impl(FUNC&& func, std::tuple<ARGS...>&& tuple, std::index_sequence<I...>, T&&...t)
+{
+    return std::forward<FUNC>(func)(std::forward<T>(t)..., std::forward<ARGS>(std::get<I>(std::move(tuple)))...);
+}
+
+template <typename RET, typename FUNC, typename... ARGS, typename...T>
+RET apply(FUNC&& func, std::tuple<ARGS...>&& tuple, T&&...t)
+{
+    return apply_impl<RET>(std::forward<FUNC>(func), std::move(tuple), std::index_sequence_for<ARGS...>{}, std::forward<T>(t)...);
+}
 
 } //namespace quantum
 } //namespace Bloomberg

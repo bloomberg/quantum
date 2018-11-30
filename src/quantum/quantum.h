@@ -42,6 +42,7 @@
 #include <quantum/quantum_allocator.h>
 #include <quantum/quantum_allocator_traits.h>
 #include <quantum/quantum_buffer.h>
+#include <quantum/quantum_capture.h>
 #include <quantum/quantum_condition_variable.h>
 #include <quantum/quantum_configuration.h>
 #include <quantum/quantum_context.h>

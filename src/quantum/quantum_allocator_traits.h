@@ -34,6 +34,10 @@ namespace quantum {
     #define __QUANTUM_DEFAULT_CORO_POOL_ALLOC_SIZE 200
 #endif
 
+#ifndef __QUANTUM_FUNCTION_ALLOC_SIZE
+    #define __QUANTUM_FUNCTION_ALLOC_SIZE 128
+#endif
+
 //==============================================================================================
 //                                 struct AllocatorTraits
 //==============================================================================================

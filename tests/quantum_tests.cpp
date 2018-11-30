@@ -274,6 +274,7 @@ TEST_F(DispatcherFixture, CheckCoroutineErrors)
 }
 
 struct NonCopyable {
+    NonCopyable() = delete;
     NonCopyable(const std::string& str) : _str(str){}
     NonCopyable(const NonCopyable&) = delete;
     NonCopyable(NonCopyable&&) = default;
@@ -287,28 +288,32 @@ TEST(ParamtersTest, CheckParameterPassingInCoroutines)
     //Test pass by value, reference and address.
     int a = 5;
     std::string str = "original";
+    std::string str2 = "original2";
     NonCopyable nc("move");
     double dbl = 4.321;
     
-    auto func = [&](CoroContext<int>::Ptr, int byVal, std::string& byRef, std::tuple<NonCopyable&&>& byRvalue, double* byAddress)->int {
+    auto func = [&](CoroContext<int>::Ptr ctx, int byVal, std::string& byRef, std::string&& byRvalue, NonCopyable&& byRvalueNoCopy, double* byAddress)->int {
         //modify all passed-in values
-        byVal = 6; UNUSED(byVal);
+        EXPECT_EQ(5, byVal);
+        byVal = 6;
+        EXPECT_NE(a, byVal);
         byRef = "changed";
         EXPECT_EQ(byRef.data(), str.data());
         *byAddress = 6.543;
-        NonCopyable s = std::move(std::get<0>(byRvalue));
-        EXPECT_STREQ("move", s._str.c_str());
-        return 0;
+        EXPECT_NE(str2.c_str(), byRvalue.c_str());
+        std::string tempStr(std::move(byRvalue));
+        EXPECT_STREQ("original2", tempStr.c_str());
+        NonCopyable tempStr2 = std::move(byRvalueNoCopy);
+        EXPECT_STREQ("move", tempStr2._str.c_str());
+        return ctx->set(0);
     };
     
-    auto t = std::forward_as_tuple(std::move(nc));
-    Dispatcher& dispatcher = DispatcherSingleton::instance();
-    dispatcher.post(func, a, str, t, &dbl);
-    dispatcher.drain();
+    DispatcherSingleton::instance().post(func, a, str, std::move(str2), std::move(nc), &dbl)->get();
     
     //Validate values
     EXPECT_EQ(5, a);
     EXPECT_STREQ("changed", str.c_str());
+    EXPECT_TRUE(str2.empty());
     EXPECT_EQ(0, (int)nc._str.size());
     EXPECT_DOUBLE_EQ(6.543, dbl);
 }
