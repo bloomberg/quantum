@@ -254,10 +254,10 @@ ITask::Ptr TaskQueue::doDequeue(std::atomic_bool& hint)
         _stats.decNumElements();
         if (_queueIt != _queue.end())
         {
-            return *_queueIt;
+            _queueIt = std::prev(_queueIt); //rewind by 1 since advance() will increment it again
         }
     }
-    return nullptr;
+    return nullptr; //not used!
 }
 
 inline
