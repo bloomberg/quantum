@@ -19,6 +19,8 @@
 #include <vector>
 #include <set>
 #include <map>
+#include <unordered_map>
+#include <list>
 
 using namespace quantum;
 using ms = std::chrono::milliseconds;
@@ -1125,6 +1127,44 @@ TEST(FutureJoiner, JoinCoroFutures)
     })->get();
     
     EXPECT_EQ(output, std::vector<int>({0,1,2,3,4,5,6,7,8,9}));
+}
+
+TEST(SerializeExecution, Basic)
+{
+    std::unordered_map<int, CoroContextPtr<int>> entryMap;
+    std::list<std::pair<int, std::string>> input { {1,"1_1"}, {2,"2_1"}, {2,"2_2"}, {1,"1_2"}, {1,"1_3"},
+                                                   {2,"2_3"}, {3,"3_1"}, {3,"3_2"}, {1,"1_4"}, {1,"1_5"},
+                                                   {2,"2_4"}, {1,"1_6"}, {3,"3_3"}, {1,"1_7"} };
+    std::vector<std::string> output1,output2,output3;
+    
+    auto runner = [&](CoroContextPtr<int> ctx, int id, std::string&& str)->int {
+        CoroContextPtr<int>& prev_ctx = entryMap[id]; //get ref to previous context
+        prev_ctx = ctx->post(1, false, [&, str2 = std::move(str), prev_ctx, id](CoroContextPtr<int> ctx2)->int{
+            if (prev_ctx) {
+                prev_ctx->get(ctx2); //yield to another coroutine until previous job completes
+            }
+            if (id == 1) {
+                output1.push_back(str2);
+            }
+            else if (id == 2) {
+                output2.push_back(str2);
+            }
+            else {
+                output3.push_back(str2);
+            }
+            return ctx2->set(0);
+        });
+        return 0;
+    };
+    
+    for (auto&& p : input) {
+        DispatcherSingleton::instance().post(0, false, runner, p.first, std::move(p.second));
+    }
+    DispatcherSingleton::instance().drain();
+    
+    EXPECT_EQ(std::vector<std::string>({"1_1","1_2","1_3","1_4","1_5","1_6","1_7"}), output1);
+    EXPECT_EQ(std::vector<std::string>({"2_1","2_2","2_3","2_4"}), output2);
+    EXPECT_EQ(std::vector<std::string>({"3_1","3_2","3_3"}), output3);
 }
 
 //This test **must** come last to make Valgrind happy.
