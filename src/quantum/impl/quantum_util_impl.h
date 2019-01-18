@@ -142,6 +142,7 @@ int Util::forEachBatchCoro(CoroContextPtr<std::vector<std::vector<RET>>> ctx,
         asyncResults.emplace_back(ctx->template post<std::vector<RET>>([inputIt, batchSize, &func](CoroContextPtr<std::vector<RET>> ctx)->int
         {
             std::vector<RET> result;
+            result.reserve(batchSize);
             auto it = inputIt;
             for (size_t j = 0; j < batchSize; ++j, ++it)
             {
