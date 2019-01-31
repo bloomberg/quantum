@@ -99,6 +99,7 @@ private:
     std::atomic_bool                    _isInterrupted;
     std::atomic_bool                    _isIdle;
     std::atomic_flag                    _terminated;
+    bool                                _isAdvanced;
     QueueStatistics                     _stats;
 };
 

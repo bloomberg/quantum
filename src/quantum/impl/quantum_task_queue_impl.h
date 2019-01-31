@@ -35,7 +35,8 @@ TaskQueue::TaskQueue(const Configuration&) :
     _isEmpty(true),
     _isInterrupted(false),
     _isIdle(true),
-    _terminated(ATOMIC_FLAG_INIT)
+    _terminated(ATOMIC_FLAG_INIT),
+    _isAdvanced(false)
 {
     _thread = std::make_shared<std::thread>(std::bind(&TaskQueue::run, this));
 }
@@ -252,10 +253,7 @@ ITask::Ptr TaskQueue::doDequeue(std::atomic_bool& hint)
         //Remove error task from the queue
         _queueIt = _queue.erase(_queueIt);
         _stats.decNumElements();
-        if (_queueIt != _queue.end())
-        {
-            _queueIt = std::prev(_queueIt); //rewind by 1 since advance() will increment it again
-        }
+        _isAdvanced = true; //_queueIt now points to the next element in the list or to _queue.end()
     }
     return nullptr; //not used!
 }
@@ -327,10 +325,11 @@ TaskQueue::TaskListIter TaskQueue::advance()
     //========================= LOCKED SCOPE =========================
     SpinLock::Guard lock(_spinlock);
     //Iterate to the next element
-    if ((_queueIt == _queue.end()) || (++_queueIt == _queue.end()))
+    if ((_queueIt == _queue.end()) || (!_isAdvanced && (++_queueIt == _queue.end())))
     {
         _queueIt = _queue.begin();
     }
+    _isAdvanced = false; //reset flag
     if (_queueIt == _queue.end())
     {
         signalEmptyCondition(true);
