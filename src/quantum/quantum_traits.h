@@ -27,7 +27,7 @@ namespace quantum {
 
 #define UNUSED(x) (void)(x) //remove compiler warnings
 
-template <class T>
+template <class T, class ALLOCATOR = std::allocator<T>>
 class Buffer; //fwd declaration
 
 //==============================================================================================
@@ -78,6 +78,9 @@ struct Traits
         operator B&() { return static_cast<D&>(static_cast<THIS&>(*this)); }
     };
 };
+
+template <class BUF>
+using BufferValue = typename std::enable_if_t<Traits::IsBuffer<BUF>::value, BUF>::ValueType;
 
 }}
 

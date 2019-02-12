@@ -61,7 +61,7 @@ struct IThreadPromise : public Traits::DerivedFrom<PROMISE<T>,
     /// @param[in] value Value to push at the end of the buffer.
     /// @note Method available for buffered futures only. Once the buffer is closed, no more Push
     ///       operations are allowed.
-    template <class BUF = T, class V = typename std::enable_if_t<Traits::IsBuffer<BUF>::value, BUF>::ValueType>
+    template <class BUF = T, class V = BufferValue<BUF>>
     void push(V &&value);
     
     /// @brief Close a promise buffer.
@@ -69,7 +69,7 @@ struct IThreadPromise : public Traits::DerivedFrom<PROMISE<T>,
     /// @note Once closed no more Pushes can be made into the buffer. The corresponding future can still Pull values until
     ///       the buffer is empty.
     /// @return 0 on success.
-    template <class BUF = T, class = std::enable_if_t<Traits::IsBuffer<BUF>::value>>
+    template <class BUF = T, class V = BufferValue<BUF>>
     int closeBuffer();
 };
 

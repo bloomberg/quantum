@@ -275,7 +275,7 @@ V SharedState<T>::pull(bool& isBufferClosed)
     //========= LOCKED SCOPE =========
     Mutex::Guard lock(_mutex);
     BufferStatus status;
-    V out{};
+    V out;
     isBufferClosed = true;
     _cond.wait(_mutex, [&status, &out, this]()->bool
     {
@@ -299,7 +299,7 @@ V SharedState<T>::pull(ICoroSync::Ptr sync, bool& isBufferClosed)
     //========= LOCKED SCOPE =========
     Mutex::Guard lock(sync, _mutex);
     BufferStatus status;
-    typename BUF::ValueType out;
+    V out;
     isBufferClosed = true;
     _cond.wait(sync, _mutex, [&status, &out, this]()->bool
     {
@@ -317,7 +317,7 @@ V SharedState<T>::pull(ICoroSync::Ptr sync, bool& isBufferClosed)
 }
 
 template <class T>
-template <class BUF, class>
+template <class BUF, class V>
 int SharedState<T>::closeBuffer()
 {
     //========= LOCKED SCOPE =========

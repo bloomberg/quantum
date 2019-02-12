@@ -19,6 +19,7 @@
 #include <iostream>
 #include <deque>
 #include <quantum/quantum_future_state.h>
+#include <quantum/quantum_traits.h>
 
 namespace Bloomberg {
 namespace quantum {
@@ -44,14 +45,14 @@ enum class BufferStatus
 ///        by a producer(s) and pulled-out (read) by a consumer(s).
 /// @tparam T Type of the contained value.
 /// @warning This class is not thread safe.
-template <class T>
+template <class T, class ALLOCATOR>
 class Buffer
 {
 public:
     using ValueType = T; ///< Type definition for the contained value.
     
     /// @brief Constructor
-    Buffer();
+    Buffer(const ALLOCATOR& alloc = ALLOCATOR());
     
     /// @brief Pushes a value at the end of the buffer. This increases the size of the buffer by one.
     /// @tparam V Type of the contained value. Must be inferred and always equal to T.
@@ -78,8 +79,8 @@ public:
     bool empty();
     
 private:
-    std::deque<T>   _buffer;
-    bool            _isClosed;
+    std::deque<T,ALLOCATOR>     _buffer;
+    bool                        _isClosed;
 };
 
 }}
