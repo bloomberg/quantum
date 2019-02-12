@@ -70,5 +70,6 @@
 #include <quantum/quantum_traits.h>
 #include <quantum/quantum_util.h>
 #include <quantum/quantum_yielding_thread.h>
+#include <quantum/util/quantum_sequencer.h>
 
 #endif //QUANTUM_H
