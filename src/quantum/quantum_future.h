@@ -53,7 +53,7 @@ public:
     T get() final;
     const T& getRef() const final;
     
-    template <class BUF = T, class V = typename std::enable_if_t<Traits::IsBuffer<BUF>::value, BUF>::ValueType>
+    template <class BUF = T, class V = BufferValue<BUF>>
     V pull(bool& isBufferClosed);
     
     //ICoroFutureBase
@@ -64,7 +64,7 @@ public:
     T get(ICoroSync::Ptr sync) final;
     const T& getRef(ICoroSync::Ptr sync) const final;
     
-    template <class BUF = T, class V = typename std::enable_if_t<Traits::IsBuffer<BUF>::value, BUF>::ValueType>
+    template <class BUF = T, class V = BufferValue<BUF>>
     V pull(ICoroSync::Ptr sync, bool& isBufferClosed);
     
     //===================================

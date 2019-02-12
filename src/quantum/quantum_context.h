@@ -120,19 +120,19 @@ public:
     template <class V = RET>
     int set(ICoroSync::Ptr sync, V&& value);
     
-    template <class BUF = RET, class V = typename std::enable_if_t<Traits::IsBuffer<BUF>::value, BUF>::ValueType>
+    template <class BUF = RET, class V = BufferValue<BUF>>
     void push(V &&value);
     
-    template <class BUF = RET, class V = typename std::enable_if_t<Traits::IsBuffer<BUF>::value, BUF>::ValueType>
+    template <class BUF = RET, class V = BufferValue<BUF>>
     void push(ICoroSync::Ptr sync, V &&value);
     
-    template <class BUF = RET, class V = typename std::enable_if_t<Traits::IsBuffer<BUF>::value, BUF>::ValueType>
+    template <class BUF = RET, class V = BufferValue<BUF>>
     V pull(bool& isBufferClosed);
     
-    template <class BUF = RET, class V = typename std::enable_if_t<Traits::IsBuffer<BUF>::value, BUF>::ValueType>
+    template <class BUF = RET, class V = BufferValue<BUF>>
     V pull(ICoroSync::Ptr sync, bool& isBufferClosed);
     
-    template <class BUF = RET, class = std::enable_if_t<Traits::IsBuffer<BUF>::value>>
+    template <class BUF = RET, class V = BufferValue<BUF>>
     int closeBuffer();
     
     template <class OTHER_RET>

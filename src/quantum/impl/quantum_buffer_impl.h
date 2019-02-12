@@ -22,14 +22,15 @@
 namespace Bloomberg {
 namespace quantum {
 
-template <class T>
-Buffer<T>::Buffer() :
+template <class T, class ALLOCATOR>
+Buffer<T,ALLOCATOR>::Buffer(const ALLOCATOR& allocator) :
+    _buffer(allocator),
     _isClosed(false)
 {}
 
-template <class T>
+template <class T, class ALLOCATOR>
 template <class V>
-BufferStatus Buffer<T>::push(V&& value)
+BufferStatus Buffer<T,ALLOCATOR>::push(V&& value)
 {
     if (_isClosed)
     {
@@ -39,8 +40,8 @@ BufferStatus Buffer<T>::push(V&& value)
     return BufferStatus::DataPosted;
 }
 
-template <class T>
-BufferStatus Buffer<T>::pull(T& value)
+template <class T, class ALLOCATOR>
+BufferStatus Buffer<T,ALLOCATOR>::pull(T& value)
 {
     if (_buffer.empty())
     {
@@ -51,20 +52,20 @@ BufferStatus Buffer<T>::pull(T& value)
     return BufferStatus::DataReceived;
 }
 
-template <class T>
-void Buffer<T>::close()
+template <class T, class ALLOCATOR>
+void Buffer<T,ALLOCATOR>::close()
 {
     _isClosed = true;
 }
 
-template <class T>
-size_t Buffer<T>::size()
+template <class T, class ALLOCATOR>
+size_t Buffer<T,ALLOCATOR>::size()
 {
     return _buffer.size();
 }
 
-template <class T>
-bool Buffer<T>::empty()
+template <class T, class ALLOCATOR>
+bool Buffer<T,ALLOCATOR>::empty()
 {
     return _buffer.empty();
 }

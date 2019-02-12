@@ -76,19 +76,19 @@ public:
     //=========================================================================
     //                         Buffered future access
     //=========================================================================
-    template <class BUF = T, class V = typename std::enable_if_t<Traits::IsBuffer<BUF>::value, BUF>::ValueType>
+    template <class BUF = T, class V = BufferValue<BUF>>
     void push(V&& value);
     
-    template <class BUF = T, class V = typename std::enable_if_t<Traits::IsBuffer<BUF>::value, BUF>::ValueType>
+    template <class BUF = T, class V = BufferValue<BUF>>
     void push(ICoroSync::Ptr sync, V&& value);
     
-    template <class BUF = T, class V = typename std::enable_if_t<Traits::IsBuffer<BUF>::value, BUF>::ValueType>
+    template <class BUF = T, class V = BufferValue<BUF>>
     V pull(bool& isBufferClosed);
     
-    template <class BUF = T, class V = typename std::enable_if_t<Traits::IsBuffer<BUF>::value, BUF>::ValueType>
+    template <class BUF = T, class V = BufferValue<BUF>>
     V pull(ICoroSync::Ptr sync, bool& isBufferClosed);
     
-    template <class BUF = T, class = std::enable_if_t<Traits::IsBuffer<BUF>::value>>
+    template <class BUF = T, class V = BufferValue<BUF>>
     int closeBuffer();
     
 private:
@@ -102,7 +102,7 @@ private:
     
     bool stateHasChanged() const;
     
-    template <class BUF = T, typename = std::enable_if_t<Traits::IsBuffer<BUF>::value>>
+    template <class BUF = T, class V = BufferValue<BUF>>
     bool bufferStateHasChanged(BufferStatus status) const;
     
     // ============================= MEMBERS ==============================

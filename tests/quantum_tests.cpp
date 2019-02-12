@@ -310,7 +310,7 @@ TEST(ParamtersTest, CheckParameterPassingInCoroutines)
         return ctx->set(0);
     };
     
-    DispatcherSingleton::instance().post(func, a, str, std::move(str2), std::move(nc), &dbl)->get();
+    DispatcherSingleton::instance().post(func, int(a), str, std::move(str2), std::move(nc), &dbl)->get();
     
     //Validate values
     EXPECT_EQ(5, a);

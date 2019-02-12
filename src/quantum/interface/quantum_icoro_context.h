@@ -114,7 +114,7 @@ struct ICoroContext : public ICoroContextBase
     /// @param[in] value Value to push at the end of the buffer.
     /// @note Method available for buffered futures only. Never blocks. Once the buffer is closed, no more Push
     ///       operations are allowed.
-    template <class BUF = RET, class V = typename std::enable_if_t<Traits::IsBuffer<BUF>::value, BUF>::ValueType>
+    template <class BUF = RET, class V = BufferValue<BUF>>
     void push(V &&value);
     
     /// @brief Pull a single value from the future buffer.
@@ -124,7 +124,7 @@ struct ICoroContext : public ICoroContextBase
     /// @param[out] isBufferClosed Indicates if this buffer is closed and no more Pull operations are allowed on it.
     /// @return The next value pulled out from the front of the buffer.
     /// @note Method available for buffered futures only. Blocks until one value is retrieved from the buffer.
-    template <class BUF = RET, class V = typename std::enable_if_t<Traits::IsBuffer<BUF>::value, BUF>::ValueType>
+    template <class BUF = RET, class V = BufferValue<BUF>>
     V pull(ICoroSync::Ptr sync, bool& isBufferClosed);
     
     /// @brief Close a promise buffer.
@@ -132,7 +132,7 @@ struct ICoroContext : public ICoroContextBase
     /// @note Once closed no more Pushes can be made into the buffer. The corresponding future can still Pull values until
     ///       the buffer is empty.
     /// @return 0 on success.
-    template <class BUF = RET, class = std::enable_if_t<Traits::IsBuffer<BUF>::value>>
+    template <class BUF = RET, class V = BufferValue<BUF>>
     int closeBuffer();
     
     /// @brief Returns the number of underlying coroutine threads as specified in the dispatcher constructor.

@@ -60,17 +60,17 @@ public:
     template <class V = T>
     int set(V&& value);
     
-    template <class BUF = T, class V = typename std::enable_if_t<Traits::IsBuffer<BUF>::value, BUF>::ValueType>
+    template <class BUF = T, class V = BufferValue<BUF>>
     void push(V &&value);
     
     //ICoroPromise
     template <class V = T>
     int set(ICoroSync::Ptr sync, V&& value);
     
-    template <class BUF = T, class V = typename std::enable_if_t<Traits::IsBuffer<BUF>::value, BUF>::ValueType>
+    template <class BUF = T, class V = BufferValue<BUF>>
     void push(ICoroSync::Ptr sync, V &&value);
     
-    template <class BUF = T, class = std::enable_if_t<Traits::IsBuffer<BUF>::value>>
+    template <class BUF = T, class V = BufferValue<BUF>>
     int closeBuffer();
     
     //===================================
