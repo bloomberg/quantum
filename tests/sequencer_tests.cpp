@@ -229,13 +229,13 @@ TEST(Sequencer, ExceptionHandler)
         if (id % exceptionFrequency == 0)
         {
             // post with generating exception
-            sequencer.postEx((int)IQueue::QueueId::Any, false, &sequenceKeys[id], sequenceKey, testData.makeTaskWithException(id, errorText));
+            sequencer.post(&sequenceKeys[id], (int)IQueue::QueueId::Any, false, sequenceKey, testData.makeTaskWithException(id, errorText));
             ++generatedExceptionCount;
         }
         else
         {
             // post with no exception generation
-            sequencer.postEx((int)IQueue::QueueId::Any, false, &sequenceKeys[id], sequenceKey, testData.makeTask(id));
+            sequencer.post(&sequenceKeys[id], (int)IQueue::QueueId::Any, false, sequenceKey, testData.makeTask(id));
         }
     }
     DispatcherSingleton::instance().drain();
@@ -498,7 +498,7 @@ TEST(Sequencer, CustomHashFunction)
     // the tasks must be ordered within the same sequenceKey
     for(auto sequenceKeyData : sequenceKeys) 
     {
-        for(size_t i = 1; i < sequenceKeyData.second.size(); ++i) 
+        for(size_t i = 1; i < sequenceKeyData.second.size(); ++i)
         {
             testData.ensureOrder(sequenceKeyData.second[i-1], sequenceKeyData.second[i]);
         }
