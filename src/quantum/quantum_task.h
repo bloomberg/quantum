@@ -26,7 +26,7 @@
 #include <quantum/interface/quantum_itask_continuation.h>
 #include <quantum/interface/quantum_itask_accessor.h>
 #include <quantum/quantum_traits.h>
-#include <quantum/quantum_util.h>
+#include <quantum/util/quantum_util.h>
 
 namespace Bloomberg {
 namespace quantum {

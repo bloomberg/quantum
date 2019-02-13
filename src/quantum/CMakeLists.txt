@@ -1,7 +1,10 @@
 # Local function to auto-generate main quantum.h header file
 function(make_quantum_header)
     set(QUANTUM_HEADER ${CMAKE_CURRENT_SOURCE_DIR}/quantum.h)
-    file(GLOB INCLUDE_HEADERS RELATIVE ${CMAKE_CURRENT_SOURCE_DIR} "*.h" "interface/*.h")
+    file(GLOB INCLUDE_HEADERS RELATIVE ${CMAKE_CURRENT_SOURCE_DIR}
+            "*.h"
+            "interface/*.h"
+            "util/*.h")
     list(SORT INCLUDE_HEADERS)
     foreach(header ${INCLUDE_HEADERS})
         if (NOT ${header} MATCHES "quantum.h")
@@ -20,6 +23,9 @@ make_quantum_header()
 file(GLOB INCLUDE_FILES "*.h")
 file(GLOB IMPL_INCLUDE_FILES "impl/*.h")
 file(GLOB INTERFACE_INCLUDE_FILES "interface/*.h")
+file(GLOB UTIL_INCLUDE_FILES "util/*.h")
+file(GLOB UTIL_IMPL_INCLUDE_FILES "util/impl/*.h")
+
 install(
     FILES ${INCLUDE_FILES}
     DESTINATION include/quantum
@@ -33,5 +39,15 @@ install(
 install(
     FILES ${INTERFACE_INCLUDE_FILES}
     DESTINATION include/quantum/interface/
+    COMPONENT Headers
+)
+install(
+    FILES ${UTIL_INCLUDE_FILES}
+    DESTINATION include/quantum/util/
+    COMPONENT Headers
+)
+install(
+    FILES ${UTIL_IMPL_INCLUDE_FILES}
+    DESTINATION include/quantum/util/impl
     COMPONENT Headers
 )

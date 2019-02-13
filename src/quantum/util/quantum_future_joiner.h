@@ -64,6 +64,6 @@ private:
 
 }}
 
-#include <quantum/impl/quantum_future_joiner_impl.h>
+#include <quantum/util/impl/quantum_future_joiner_impl.h>
 
 #endif //QUANTUM_FUTURE_JOINER_H

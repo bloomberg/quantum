@@ -210,31 +210,31 @@ Sequencer<SequenceKey, Hash, KeyEqual, Allocator>::trimSequenceKeys()
 }
 
 template <class SequenceKey, class Hash, class KeyEqual, class Allocator>
-SequencerKeyStatistics
+SequenceKeyStatistics
 Sequencer<SequenceKey, Hash, KeyEqual, Allocator>::getStatistics(const SequenceKey& sequenceKey)
 {
-    auto statsFunc = [this, sequenceKey](CoroContextPtr<SequencerKeyStatistics> ctx)->int
+    auto statsFunc = [this, sequenceKey](CoroContextPtr<SequenceKeyStatistics> ctx)->int
     {
-        SequencerKeyStatisticsWriter stats;
+        SequenceKeyStatisticsWriter stats;
         typename ContextMap::iterator ctxIt = _contexts.find(sequenceKey);
         if (ctxIt == _contexts.end())
         {
-            return ctx->set(SequencerKeyStatistics());
+            return ctx->set(SequenceKeyStatistics());
         }
-        return ctx->set(SequencerKeyStatistics(ctxIt->second.stats));
+        return ctx->set(SequenceKeyStatistics(ctxIt->second.stats));
     };
-    return _dispatcher.post<SequencerKeyStatistics>(_controllerQueueId, true, statsFunc)->get();
+    return _dispatcher.post<SequenceKeyStatistics>(_controllerQueueId, true, statsFunc)->get();
 }
 
 template <class SequenceKey, class Hash, class KeyEqual, class Allocator>
-SequencerKeyStatistics
+SequenceKeyStatistics
 Sequencer<SequenceKey, Hash, KeyEqual, Allocator>::getStatistics()
 {
-    auto statsFunc = [this](CoroContextPtr<SequencerKeyStatistics> ctx)->int
+    auto statsFunc = [this](CoroContextPtr<SequenceKeyStatistics> ctx)->int
     {
-        return ctx->set(SequencerKeyStatistics(_universalContext.stats));
+        return ctx->set(SequenceKeyStatistics(_universalContext.stats));
     };
-    return _dispatcher.post<SequencerKeyStatistics>(_controllerQueueId, true, statsFunc)->get();
+    return _dispatcher.post<SequenceKeyStatistics>(_controllerQueueId, true, statsFunc)->get();
 }
 
 template <class SequenceKey, class Hash, class KeyEqual, class Allocator>
@@ -255,7 +255,7 @@ Sequencer<SequenceKey, Hash, KeyEqual, Allocator>::waitForTwoDependents(
     CoroContextPtr<int> ctx,
     ICoroContextBasePtr dependent,
     ICoroContextBasePtr universalContext,
-    SequencerKeyStatisticsWriter& stats,
+    SequenceKeyStatisticsWriter& stats,
     void* opaque,
     const typename Sequencer<SequenceKey, Hash, KeyEqual, Allocator>::ExceptionCallback&
         exceptionCallback,
@@ -292,7 +292,7 @@ template <class FUNC, class ... ARGS>
 int
 Sequencer<SequenceKey, Hash, KeyEqual, Allocator>::waitForDependents(
     CoroContextPtr<int> ctx,
-    std::vector<std::pair<ICoroContextBasePtr, SequencerKeyStatisticsWriter*>>&& dependents,
+    std::vector<std::pair<ICoroContextBasePtr, SequenceKeyStatisticsWriter*>>&& dependents,
     void* opaque,
     const typename Sequencer<SequenceKey, Hash, KeyEqual, Allocator>::ExceptionCallback&
         exceptionCallback,
@@ -341,7 +341,7 @@ Sequencer<SequenceKey, Hash, KeyEqual, Allocator>::singleSequenceKeyTaskSchedule
         exceptionCallback,
     SequenceKey&& sequenceKey,
     ContextMap& contexts,
-    SequencerKeyData& universalContext,
+    SequenceKeyData& universalContext,
     FUNC&& func,
     ARGS&&... args)
 {
@@ -349,7 +349,7 @@ Sequencer<SequenceKey, Hash, KeyEqual, Allocator>::singleSequenceKeyTaskSchedule
     typename ContextMap::iterator contextIt = contexts.find(sequenceKey);
     if (contextIt == contexts.end())
     {
-        contextIt = contexts.emplace(sequenceKey, SequencerKeyData()).first;
+        contextIt = contexts.emplace(sequenceKey, SequenceKeyData()).first;
     }
     contextIt->second.stats.incrementPostedTaskCount();
     contextIt->second.stats.incrementPendingTaskCount();
@@ -380,12 +380,12 @@ Sequencer<SequenceKey, Hash, KeyEqual, Allocator>::multiSequenceKeyTaskScheduler
         exceptionCallback,
     std::vector<SequenceKey>&& sequenceKeys,
     ContextMap& contexts,
-    SequencerKeyData& universalContext,
+    SequenceKeyData& universalContext,
     FUNC&& func,
     ARGS&&... args)
 {
     // construct the dependent collection
-    std::vector<std::pair<ICoroContextBasePtr, SequencerKeyStatisticsWriter*>> dependents;
+    std::vector<std::pair<ICoroContextBasePtr, SequenceKeyStatisticsWriter*>> dependents;
     dependents.reserve(sequenceKeys.size() + 1);
     dependents.push_back(std::make_pair(universalContext.context, nullptr));
     for (const SequenceKey& sequenceKey : sequenceKeys)
@@ -427,12 +427,12 @@ Sequencer<SequenceKey, Hash, KeyEqual, Allocator>::universalTaskScheduler(
     const typename Sequencer<SequenceKey, Hash, KeyEqual, Allocator>::ExceptionCallback&
         exceptionCallback,
     ContextMap& contexts,
-    SequencerKeyData& universalContext,
+    SequenceKeyData& universalContext,
     FUNC&& func,
     ARGS&&... args)
 {
     // construct the dependent collection
-    std::vector<std::pair<ICoroContextBasePtr, SequencerKeyStatisticsWriter*>> dependents;
+    std::vector<std::pair<ICoroContextBasePtr, SequenceKeyStatisticsWriter*>> dependents;
     dependents.reserve(contexts.size() + 1);
     dependents.push_back(std::make_pair(universalContext.context, &universalContext.stats));
     for(typename ContextMap::iterator ctxIt = contexts.begin(); ctxIt != contexts.end(); )

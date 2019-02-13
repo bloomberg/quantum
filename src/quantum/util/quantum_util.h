@@ -99,6 +99,6 @@ struct Util
 
 }}
 
-#include <quantum/impl/quantum_util_impl.h>
+#include <quantum/util/impl/quantum_util_impl.h>
 
 #endif //QUANTUM_UTIL_H

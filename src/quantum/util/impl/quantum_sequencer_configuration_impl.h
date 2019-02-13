@@ -19,15 +19,15 @@
 //#################################### IMPLEMENTATIONS #########################################
 //##############################################################################################
 
-#include <quantum/util/quantum_sequencer_key_statistics.h>
+#include <quantum/util/quantum_sequence_key_statistics.h>
 
 namespace Bloomberg {
 namespace quantum {
 
-struct SequencerKeyData
+struct SequenceKeyData
 {
     ICoroContextBasePtr context;
-    SequencerKeyStatisticsWriter stats;
+    SequenceKeyStatisticsWriter stats;
 };
 
 template <class SequenceKey, class Hash, class KeyEqual, class Allocator>

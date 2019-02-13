@@ -23,21 +23,21 @@ namespace Bloomberg {
 namespace quantum {
 
 inline
-SequencerKeyStatistics::SequencerKeyStatistics(const SequencerKeyStatistics& that) :
+SequenceKeyStatistics::SequenceKeyStatistics(const SequenceKeyStatistics& that) :
     _postedTaskCount(that._postedTaskCount),
     _pendingTaskCount(that._pendingTaskCount.load())
 {
 }
 
 inline
-SequencerKeyStatistics::SequencerKeyStatistics(SequencerKeyStatistics&& that) :
+SequenceKeyStatistics::SequenceKeyStatistics(SequenceKeyStatistics&& that) :
     _postedTaskCount(std::move(that._postedTaskCount)),
     _pendingTaskCount(that._pendingTaskCount.load())
 {
 }
 
 inline
-SequencerKeyStatistics& SequencerKeyStatistics::operator = (SequencerKeyStatistics&& that)
+SequenceKeyStatistics& SequenceKeyStatistics::operator = (SequenceKeyStatistics&& that)
 {
     _postedTaskCount = std::move(that._postedTaskCount);
     _pendingTaskCount = that._pendingTaskCount.load();
@@ -45,7 +45,7 @@ SequencerKeyStatistics& SequencerKeyStatistics::operator = (SequencerKeyStatisti
 }
 
 inline
-SequencerKeyStatistics& SequencerKeyStatistics::operator = (const SequencerKeyStatistics& that)
+SequenceKeyStatistics& SequenceKeyStatistics::operator = (const SequenceKeyStatistics& that)
 {
     _postedTaskCount = that._postedTaskCount;
     _pendingTaskCount = _pendingTaskCount.load();
@@ -54,35 +54,35 @@ SequencerKeyStatistics& SequencerKeyStatistics::operator = (const SequencerKeySt
  
 inline
 size_t
-SequencerKeyStatistics::getPostedTaskCount() const
+SequenceKeyStatistics::getPostedTaskCount() const
 {
     return _postedTaskCount;
 }
 
 inline
 size_t
-SequencerKeyStatistics::getPendingTaskCount() const
+SequenceKeyStatistics::getPendingTaskCount() const
 {
     return _pendingTaskCount;
 }
  
 inline
 void
-SequencerKeyStatisticsWriter::incrementPostedTaskCount()
+SequenceKeyStatisticsWriter::incrementPostedTaskCount()
 {
     ++_postedTaskCount;
 }
  
 inline
 void
-SequencerKeyStatisticsWriter::incrementPendingTaskCount()
+SequenceKeyStatisticsWriter::incrementPendingTaskCount()
 {
     ++_pendingTaskCount;
 }
 
 inline
 void
-SequencerKeyStatisticsWriter::decrementPendingTaskCount()
+SequenceKeyStatisticsWriter::decrementPendingTaskCount()
 {
     --_pendingTaskCount;
 }
