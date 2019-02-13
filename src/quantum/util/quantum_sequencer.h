@@ -19,7 +19,7 @@
 #include <quantum/quantum_dispatcher.h>
 #include <quantum/interface/quantum_ithread_context_base.h>
 #include <quantum/util/quantum_sequencer_configuration.h>
-#include <quantum/util/quantum_sequencer_key_statistics.h>
+#include <quantum/util/quantum_sequence_key_statistics.h>
 #include <vector>
 #include <unordered_map>
  
@@ -32,14 +32,14 @@ namespace quantum {
 /// @class Sequencer.
 /// @brief Implementation of a key-based task sequencing with quantum.
 /// @tparam SequenceKey Type of the key based that sequenced tasks are associated with
-/// @tparam Hash Hash-function used for storing instances of SequncerKey in hash maps
-/// @tparam KeyEqual The equal-function used for storing instances of SequncerKey in hash maps
-/// @tparam Allocator The allocator used for storing instances of SequncerKey in hash maps
+/// @tparam Hash Hash-function used for storing instances of SequenceKey in hash maps
+/// @tparam KeyEqual The equal-function used for storing instances of SequenceKey in hash maps
+/// @tparam Allocator The allocator used for storing instances of SequenceKey in hash maps
     
 template <class SequenceKey,
           class Hash = std::hash<SequenceKey>,
           class KeyEqual = std::equal_to<SequenceKey>,
-          class Allocator = std::allocator<std::pair<const SequenceKey, SequencerKeyData>>>
+          class Allocator = std::allocator<std::pair<const SequenceKey, SequenceKeyData>>>
 class Sequencer
 {
 public:
@@ -75,7 +75,7 @@ public:
     ///                    IQueue::QueueId::Any.
     /// @param[in] isHighPriority If set to true, the sequencer coroutine will be scheduled right 
     ///                           after the currently executing coroutine on 'queueId'.
-    /// @param[in] opaque pointer to opaque data that is passed to the exception hander (if provided)
+    /// @param[in] opaque pointer to opaque data that is passed to the exception handler (if provided)
     ///            if an unhandled exception is thrown in func
     /// @param[in] sequenceKey SequenceKey object that the posted task is associated with
     /// @param[in] func Callable object.
@@ -109,7 +109,7 @@ public:
     ///                    IQueue::QueueId::Any.
     /// @param[in] isHighPriority If set to true, the sequencer coroutine will be scheduled right 
     ///                           after the currently executing coroutine on 'queueId'.
-    /// @param[in] opaque pointer to opaque data that is passed to the exception hander (if provided)
+    /// @param[in] opaque pointer to opaque data that is passed to the exception handler (if provided)
     ///            if an unhandled exception is thrown in func
     /// @param[in] sequenceKeys A collection of sequenceKey objects that the posted task is associated with
     /// @param[in] func Callable object.
@@ -152,7 +152,7 @@ public:
     ///                    IQueue::QueueId::Any.
     /// @param[in] isHighPriority If set to true, the sequencer coroutine will be scheduled right 
     ///                           after the currently executing coroutine on 'queueId'.
-    /// @param[in] opaque pointer to opaque data that is passed to the exception hander (if provided)
+    /// @param[in] opaque pointer to opaque data that is passed to the exception handler (if provided)
     ///            if an unhandled exception is thrown in func
     /// @param[in] func Callable object.
     /// @param[in] args Variable list of arguments passed to the callable object.
@@ -178,29 +178,29 @@ public:
     /// @param sequenceKey the key 
     /// @return the statistics objects for the specified key
     /// @note This function blocks until the statistics computation job posted to the dispatcher is finished.
-    SequencerKeyStatistics getStatistics(const SequenceKey& sequenceKey);
+    SequenceKeyStatistics getStatistics(const SequenceKey& sequenceKey);
 
     /// @brief Gets the sequencer statistics for jobs posted via postAll calls
     /// @return the statistics objects
     /// @note This function blocks until the statistics computation job posted to the dispatcher is finished.
-    SequencerKeyStatistics getStatistics();
+    SequenceKeyStatistics getStatistics();
 
 private:
-    using ContextMap = std::unordered_map<SequenceKey, SequencerKeyData, Hash, KeyEqual, Allocator>;
+    using ContextMap = std::unordered_map<SequenceKey, SequenceKeyData, Hash, KeyEqual, Allocator>;
     using ExceptionCallback = typename Configuration::ExceptionCallback;
 
     template <class FUNC, class ... ARGS>
     static int waitForTwoDependents(CoroContextPtr<int> ctx,
                                     ICoroContextBasePtr dependent,
                                     ICoroContextBasePtr universalContext,
-                                    SequencerKeyStatisticsWriter& stats,
+                                    SequenceKeyStatisticsWriter& stats,
                                     void* opaque, 
                                     const ExceptionCallback& exceptionCallback,
                                     FUNC&& func,
                                     ARGS&&... args);
     template <class FUNC, class ... ARGS>
     static int waitForDependents(CoroContextPtr<int> ctx,
-                                 std::vector<std::pair<ICoroContextBasePtr, SequencerKeyStatisticsWriter*>>&& dependents,
+                                 std::vector<std::pair<ICoroContextBasePtr, SequenceKeyStatisticsWriter*>>&& dependents,
                                  void* opaque,
                                  const ExceptionCallback& exceptionCallback,
                                  FUNC&& func,
@@ -213,7 +213,7 @@ private:
                                               const ExceptionCallback& exceptionCallback,
                                               SequenceKey&& sequenceKey,
                                               ContextMap& contexts,
-                                              SequencerKeyData& universalContext,
+                                              SequenceKeyData& universalContext,
                                               FUNC&& func,
                                               ARGS&&... args);
     template <class FUNC, class ... ARGS>
@@ -224,7 +224,7 @@ private:
                                              const ExceptionCallback& exceptionCallback,
                                              std::vector<SequenceKey>&& sequenceKeys,
                                              ContextMap& contexts,
-                                             SequencerKeyData& universalContext,
+                                             SequenceKeyData& universalContext,
                                              FUNC&& func,
                                              ARGS&&... args);
     template <class FUNC, class ... ARGS>
@@ -234,7 +234,7 @@ private:
                                       void* opaque, 
                                       const ExceptionCallback& exceptionCallback,
                                       ContextMap& contexts,
-                                      SequencerKeyData& universalContext,
+                                      SequenceKeyData& universalContext,
                                       FUNC&& func,
                                       ARGS&&... args);
     template <class FINAL_ACTION, class FUNC, class ... ARGS>
@@ -250,7 +250,7 @@ private:
 
     Dispatcher&              _dispatcher;
     int                      _controllerQueueId;
-    SequencerKeyData         _universalContext;
+    SequenceKeyData         _universalContext;
     ContextMap               _contexts;
     ExceptionCallback        _exceptionCallback;
 };

@@ -20,7 +20,7 @@
 #include <quantum/interface/quantum_itask.h>
 #include <quantum/quantum_capture.h>
 #include <quantum/quantum_promise.h>
-#include <quantum/quantum_util.h>
+#include <quantum/util/quantum_util.h>
 
 namespace Bloomberg {
 namespace quantum {

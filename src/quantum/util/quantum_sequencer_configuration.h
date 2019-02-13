@@ -23,7 +23,7 @@
 namespace Bloomberg {
 namespace quantum {
 
-struct SequencerKeyData;
+struct SequenceKeyData;
 
 //==============================================================================================
 //                                      class SequencerConfiguration
@@ -31,13 +31,13 @@ struct SequencerKeyData;
 /// @class SequencerConfiguration.
 /// @brief Implementation of a configuration class for Sequencer
 /// @tparam SequenceKey Type of the key based that sequenced tasks are associated with in Sequencer
-/// @tparam Hash Hash-function used for storing instances of SequncerKey in hash maps in Sequencer
-/// @tparam KeyEqual The equal-function used for storing instances of SequncerKey in hash maps in Sequencer
-/// @tparam Allocator The allocator used for storing instances of SequncerKey in hash maps in Sequencer
+/// @tparam Hash Hash-function used for storing instances of SequenceKey in hash maps in Sequencer
+/// @tparam KeyEqual The equal-function used for storing instances of SequenceKey in hash maps in Sequencer
+/// @tparam Allocator The allocator used for storing instances of SequenceKey in hash maps in Sequencer
 template <class SequenceKey,
           class Hash = std::hash<SequenceKey>,
           class KeyEqual = std::equal_to<SequenceKey>,
-          class Allocator = std::allocator<std::pair<const SequenceKey, SequencerKeyData>>>
+          class Allocator = std::allocator<std::pair<const SequenceKey, SequenceKeyData>>>
 class SequencerConfiguration
 {
 public: 
@@ -72,19 +72,19 @@ public:
     /// @return the hash function
     const Hash& getHash() const;
 
-    /// @brief Sets the comparison function to be used for all sequenceKey comparisons for the context hash map
+    /// @brief Sets the comparison function to be used for all SequenceKey comparisons for the context hash map
     /// @param keyEqual the comparison function
     void setKeyEqual(const KeyEqual& keyEqual);
 
-    /// @brief Gets the comparison function to be used for all sequenceKey comparisons for the context hash map
+    /// @brief Gets the comparison function to be used for all SequenceKey comparisons for the context hash map
     /// @return the comparison function
     const KeyEqual& getKeyEqual() const;
 
-    /// @brief Sets the allocator for all sequenceKey comparisons for the context hash map
+    /// @brief Sets the allocator for all SequenceKey comparisons for the context hash map
     /// @param allocator the allocator
     void setAllocator(const Allocator& allocator);
 
-    /// @brief Gets the allocator for all sequenceKey comparisons for the context hash map
+    /// @brief Gets the allocator for all SequenceKey comparisons for the context hash map
     /// @return the allocator
     const Allocator& getAllocator() const;
     

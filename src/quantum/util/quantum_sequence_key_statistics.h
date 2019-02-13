@@ -13,8 +13,8 @@
 ** See the License for the specific language governing permissions and
 ** limitations under the License.
 */
-#ifndef QUANTUM_SEQUENCER_KEY_STATISTICS_H
-#define QUANTUM_SEQUENCER_KEY_STATISTICS_H
+#ifndef QUANTUM_SEQUENCE_KEY_STATISTICS_H
+#define QUANTUM_SEQUENCE_KEY_STATISTICS_H
 
 #include <vector>
 #include <tuple>
@@ -24,27 +24,27 @@ namespace Bloomberg {
 namespace quantum {
 
 //==============================================================================================
-//                                      class SequencerKeyStatistics
+//                                  class SequenceKeyStatistics
 //==============================================================================================
-/// @class SequencerKeyStatistics.
-/// @brief Implementation of a statistics collection for a sequence key in Sequencer
-class SequencerKeyStatistics
+/// @class SequenceKeyStatistics.
+/// @brief Implementation of a statistics collection for a SequenceKey in Sequencer
+class SequenceKeyStatistics
 {
 public:
     /// @brief Constructor.
-    SequencerKeyStatistics() = default;
+    SequenceKeyStatistics() = default;
 
     /// @brief Constructor.
-    SequencerKeyStatistics(const SequencerKeyStatistics& that);
+    SequenceKeyStatistics(const SequenceKeyStatistics& that);
 
     /// @brief Constructor.
-    SequencerKeyStatistics(SequencerKeyStatistics&& that);
+    SequenceKeyStatistics(SequenceKeyStatistics&& that);
 
     /// @brief Assignment operator.
-    SequencerKeyStatistics& operator = (const SequencerKeyStatistics& that);
+    SequenceKeyStatistics& operator=(const SequenceKeyStatistics& that);
 
     /// @brief Assignment operator.
-    SequencerKeyStatistics& operator = (SequencerKeyStatistics&& that);
+    SequenceKeyStatistics& operator=(SequenceKeyStatistics&& that);
 
     /// @brief Gets the total number of tasks associated with the key that have been posted to the Sequencer
     ///        since the sequencer started tracking the key
@@ -64,11 +64,11 @@ protected:
 };
 
 //==============================================================================================
-//                                      class SequencerKeyStatisticsWriter
+//                                      class SequenceKeyStatisticsWriter
 //==============================================================================================
-/// @class SequencerKeyStatistics.
-/// @brief Implementation of a writer for the SequencerKeyStatistics
-class SequencerKeyStatisticsWriter: public SequencerKeyStatistics
+/// @class SequenceKeyStatistics.
+/// @brief Implementation of a writer for the SequenceKeyStatistics
+class SequenceKeyStatisticsWriter: public SequenceKeyStatistics
 {
 public:
     /// @brief Increments the total number of tasks associated with the key that have been posted to the Sequencer
@@ -84,6 +84,6 @@ public:
 
 }}
 
-#include <quantum/util/impl/quantum_sequencer_key_statistics_impl.h>
+#include <quantum/util/impl/quantum_sequence_key_statistics_impl.h>
 
-#endif //QUANTUM_SEQUENCER_KEY_STATISTICS_H
+#endif //QUANTUM_SEQUENCE_KEY_STATISTICS_H

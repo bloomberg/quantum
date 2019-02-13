@@ -52,7 +52,6 @@
 #include <quantum/quantum_dispatcher_core.h>
 #include <quantum/quantum_functions.h>
 #include <quantum/quantum_future.h>
-#include <quantum/quantum_future_joiner.h>
 #include <quantum/quantum_future_state.h>
 #include <quantum/quantum_io_queue.h>
 #include <quantum/quantum_io_task.h>
@@ -68,8 +67,11 @@
 #include <quantum/quantum_task_queue.h>
 #include <quantum/quantum_thread_traits.h>
 #include <quantum/quantum_traits.h>
-#include <quantum/quantum_util.h>
 #include <quantum/quantum_yielding_thread.h>
+#include <quantum/util/quantum_future_joiner.h>
 #include <quantum/util/quantum_sequencer.h>
+#include <quantum/util/quantum_sequencer_configuration.h>
+#include <quantum/util/quantum_sequence_key_statistics.h>
+#include <quantum/util/quantum_util.h>
 
 #endif //QUANTUM_H
