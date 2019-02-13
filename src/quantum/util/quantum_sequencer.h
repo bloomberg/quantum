@@ -83,7 +83,7 @@ public:
     /// @note This function is non-blocking and returns immediately.
     template <class FUNC, class ... ARGS>
     void
-    postEx(int queueId, bool isHighPriority, void* opaque, const SequenceKey& sequenceKey, FUNC&& func, ARGS&&... args);
+    post(void* opaque, int queueId, bool isHighPriority, const SequenceKey& sequenceKey, FUNC&& func, ARGS&&... args);
 
     /// @brief Post a coroutine to run asynchronously.
     /// @details This method will post the coroutine on any thread available
@@ -117,12 +117,12 @@ public:
     /// @note This function is non-blocking and returns immediately.
     template <class FUNC, class ... ARGS>
     void
-    postEx(int queueId, 
-           bool isHighPriority,
-           void* opaque,
-           const std::vector<SequenceKey>& sequenceKeys, 
-           FUNC&& func, 
-           ARGS&&... args);
+    post(void* opaque,
+         int queueId,
+         bool isHighPriority,
+         const std::vector<SequenceKey>& sequenceKeys,
+         FUNC&& func,
+         ARGS&&... args);
 
     /// @brief Post a coroutine to run asynchronously.
     /// @details This method will post the coroutine on any thread available 
@@ -160,7 +160,7 @@ public:
     /// @note This function is non-blocking and returns immediately.
     template <class FUNC, class ... ARGS>
     void
-    postAllEx(int queueId, bool isHighPriority, void* opaque, FUNC&& func, ARGS&&... args);
+    postAll(void* opaque, int queueId, bool isHighPriority, FUNC&& func, ARGS&&... args);
 
     /// @brief Trims the sequence keys not used by the sequencer anymore.
     /// @details It's recommented to call this function periodically to clean up state sequence keys. 
@@ -194,7 +194,7 @@ private:
                                     ICoroContextBasePtr dependent,
                                     ICoroContextBasePtr universalContext,
                                     SequenceKeyStatisticsWriter& stats,
-                                    void* opaque, 
+                                    void* opaque,
                                     const ExceptionCallback& exceptionCallback,
                                     FUNC&& func,
                                     ARGS&&... args);
@@ -209,7 +209,7 @@ private:
     static int singleSequenceKeyTaskScheduler(CoroContextPtr<int> ctx,
                                               int queueId,
                                               bool isHighPriority, 
-                                              void* opaque, 
+                                              void* opaque,
                                               const ExceptionCallback& exceptionCallback,
                                               SequenceKey&& sequenceKey,
                                               ContextMap& contexts,
@@ -220,7 +220,7 @@ private:
     static int multiSequenceKeyTaskScheduler(CoroContextPtr<int> ctx,
                                              int queueId,
                                              bool isHighPriority, 
-                                             void* opaque, 
+                                             void* opaque,
                                              const ExceptionCallback& exceptionCallback,
                                              std::vector<SequenceKey>&& sequenceKeys,
                                              ContextMap& contexts,
@@ -231,7 +231,7 @@ private:
     static int universalTaskScheduler(CoroContextPtr<int> ctx,
                                       int queueId,
                                       bool isHighPriority,
-                                      void* opaque, 
+                                      void* opaque,
                                       const ExceptionCallback& exceptionCallback,
                                       ContextMap& contexts,
                                       SequenceKeyData& universalContext,
@@ -240,7 +240,7 @@ private:
     template <class FINAL_ACTION, class FUNC, class ... ARGS>
     static void callPosted(CoroContextPtr<int> ctx, 
                            const FINAL_ACTION& finalAction,
-                           void* opaque, 
+                           void* opaque,
                            const ExceptionCallback& exceptionCallback,
                            FUNC&& func, 
                            ARGS&&... args);
@@ -250,7 +250,7 @@ private:
 
     Dispatcher&              _dispatcher;
     int                      _controllerQueueId;
-    SequenceKeyData         _universalContext;
+    SequenceKeyData          _universalContext;
     ContextMap               _contexts;
     ExceptionCallback        _exceptionCallback;
 };
