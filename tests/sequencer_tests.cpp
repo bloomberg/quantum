@@ -84,7 +84,7 @@ public: // types
     
     void sleep(int periodCount = 1)
     {
-        std::this_thread::sleep_for(std::chrono::milliseconds(periodCount*20));
+        std::this_thread::sleep_for(std::chrono::milliseconds(periodCount*1));
     }
     
 private: // methods
