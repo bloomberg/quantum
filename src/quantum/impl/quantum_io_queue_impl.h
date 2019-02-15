@@ -342,7 +342,10 @@ void IoQueue::terminate()
 {
     if (!_terminated.test_and_set() && _sharedIoQueues)
     {
-        _isInterrupted = true;
+        {
+            std::unique_lock<std::mutex> lock(_notEmptyMutex);
+            _isInterrupted = true;
+        }
         if (!_loadBalanceSharedIoQueues) {
             _notEmptyCond.notify_all();
         }

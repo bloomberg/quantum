@@ -92,6 +92,7 @@ private:
     std::shared_ptr<std::thread>        _thread;
     TaskList                            _queue;
     TaskListIter                        _queueIt;
+    TaskListIter                        _blockedIt;
     mutable SpinLock                    _spinlock;
     std::mutex                          _notEmptyMutex; //for accessing the condition variable
     std::condition_variable             _notEmptyCond;

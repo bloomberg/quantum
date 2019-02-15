@@ -63,7 +63,8 @@ public:
     //===================================
     void setTask(ITask::Ptr task) final;
     ITask::Ptr getTask() const final;
-    bool isBlocked() final;
+    bool isBlocked() const final;
+    bool isSleeping(bool updateTimer = false) final;
 
     //===================================
     //         ICONTEXTBASE
@@ -109,7 +110,8 @@ public:
     Traits::Yield& getYieldHandle() final;
     void yield() final;
     std::atomic_int& signal() final;
-    void sleep(std::chrono::milliseconds timeMs) final;
+    void sleep(const std::chrono::milliseconds& timeMs) final;
+    void sleep(const std::chrono::microseconds& timeUs) final;
     
     //===================================
     //   NON-VIRTUAL IMPLEMENTATIONS
@@ -305,6 +307,8 @@ private:
     std::atomic_flag                    _terminated;
     std::atomic_int                     _signal;
     Traits::Yield*                      _yield;
+    std::chrono::microseconds           _sleepDuration;
+    std::chrono::high_resolution_clock::time_point  _sleepTimestamp;
 };
 
 template <class RET>

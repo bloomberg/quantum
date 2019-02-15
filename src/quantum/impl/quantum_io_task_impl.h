@@ -110,6 +110,12 @@ bool IoTask::isBlocked() const
 }
 
 inline
+bool IoTask::isSleeping(bool)
+{
+    return false;
+}
+
+inline
 bool IoTask::isHighPriority() const
 {
     return _isHighPriority;

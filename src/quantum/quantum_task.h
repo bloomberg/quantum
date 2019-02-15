@@ -74,6 +74,7 @@ public:
     int getQueueId() final;
     Type getType() const final;
     bool isBlocked() const final;
+    bool isSleeping(bool updateTimer = false) final;
     bool isHighPriority() const final;
     
     //ITaskContinuation

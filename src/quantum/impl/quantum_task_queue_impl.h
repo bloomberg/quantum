@@ -32,6 +32,7 @@ inline
 TaskQueue::TaskQueue(const Configuration&) :
     _queue(Allocator<QueueListAllocator>::instance(AllocatorTraits::queueListAllocSize())),
     _queueIt(_queue.end()),
+    _blockedIt(_queue.end()),
     _isEmpty(true),
     _isInterrupted(false),
     _isIdle(true),
@@ -97,10 +98,21 @@ void TaskQueue::run()
                 continue;
             }
             
+            //Check if we need to pause this thread
+            if (_blockedIt == _queueIt) {
+                //All coroutines are blocked so we yield
+                YieldingThread()();
+            }
+            
             //Process current task
             ITaskContinuation::Ptr task = *_queueIt;
-            if (task->isBlocked())
+            
+            //Check if blocked or sleeping
+            if (task->isBlocked() || task->isSleeping(true))
             {
+                if (_blockedIt == _queue.end()) {
+                    _blockedIt = _queueIt;
+                }
                 continue;
             }
             
@@ -148,6 +160,10 @@ void TaskQueue::run()
                 //queue next task and de-queue current one
                 enqueue(nextTask);
                 dequeue(_isIdle);
+            }
+            else if (!task->isBlocked() && !task->isSleeping()) {
+                //This task will run again so we reset the blocked position iterator
+                _blockedIt = _queue.end();
             }
         }
         catch (std::exception& ex)
@@ -280,7 +296,10 @@ void TaskQueue::terminate()
 {
     if (!_terminated.test_and_set())
     {
-        _isInterrupted = true;
+        {
+            std::unique_lock<std::mutex> lock(_notEmptyMutex);
+            _isInterrupted = true;
+        }
         _notEmptyCond.notify_all();
         _thread->join();
         

@@ -59,6 +59,8 @@ struct ITask : public ITerminate
     
     virtual bool isBlocked() const = 0;
     
+    virtual bool isSleeping(bool updateTimer = false) = 0;
+    
     virtual bool isHighPriority() const = 0;
 };
 
