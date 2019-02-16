@@ -389,7 +389,8 @@ Context<RET>::Context(DispatcherCore& dispatcher) :
     _dispatcher(&dispatcher),
     _terminated(ATOMIC_FLAG_INIT),
     _signal(-1),
-    _yield(nullptr)
+    _yield(nullptr),
+    _sleepDuration(0)
 {}
 
 template <class RET>
@@ -399,7 +400,8 @@ Context<RET>::Context(Context<OTHER_RET>& other) :
     _dispatcher(other._dispatcher),
     _terminated(ATOMIC_FLAG_INIT),
     _signal(-1),
-    _yield(nullptr)
+    _yield(nullptr),
+    _sleepDuration(0)
 {
     _promises.emplace_back(PromisePtr<RET>(new Promise<RET>(), Promise<RET>::deleter)); //append a new promise
 }
@@ -441,9 +443,33 @@ int Context<RET>::setException(std::exception_ptr ex)
 }
 
 template <class RET>
-bool Context<RET>::isBlocked()
+bool Context<RET>::isBlocked() const
 {
     return _signal == 0;
+}
+
+template <class RET>
+bool Context<RET>::isSleeping(bool updateTimer)
+{
+    if (_sleepDuration.count() > 0) {
+        if (!updateTimer) {
+            return true;
+        }
+        auto now = std::chrono::high_resolution_clock::now();
+        auto elapsed = std::chrono::duration_cast<std::chrono::microseconds>(now-_sleepTimestamp);
+        if (elapsed >= _sleepDuration) {
+            //expired so we reset all values
+            _sleepDuration = std::chrono::microseconds(0);
+            _sleepTimestamp = std::chrono::high_resolution_clock::time_point{};
+        }
+        else {
+            //reduce duration and save new timestamp
+            _sleepDuration -= elapsed;
+            _sleepTimestamp = now;
+            return true;
+        }
+    }
+    return false;
 }
 
 template <class RET>
@@ -549,20 +575,18 @@ std::atomic_int& Context<RET>::signal()
 }
 
 template <class RET>
-void Context<RET>::sleep(std::chrono::milliseconds timeMs)
+void Context<RET>::sleep(const std::chrono::milliseconds& timeMs)
 {
-    if (timeMs > std::chrono::milliseconds(0)) {
-        auto start = std::chrono::high_resolution_clock::now();
-        //wait until signalled or times out
-        while (1)
-        {
-            yield();
-            auto elapsed = std::chrono::high_resolution_clock::now() - start;
-            if (std::chrono::duration_cast<std::chrono::milliseconds>(elapsed) >= timeMs)
-            {
-                break; //timeout expired
-            }
-        }
+    sleep(std::chrono::duration_cast<std::chrono::microseconds>(timeMs));
+}
+
+template <class RET>
+void Context<RET>::sleep(const std::chrono::microseconds& timeUs)
+{
+    _sleepDuration = timeUs;
+    _sleepTimestamp = std::chrono::high_resolution_clock::now();
+    if (isSleeping()) {
+        yield();
     }
 }
 

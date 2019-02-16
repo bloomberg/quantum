@@ -54,10 +54,13 @@ struct ICoroSync
     /// @return An atomic integer used to synchronize with other primitive types.
     virtual std::atomic_int& signal() = 0;
     
-    /// @brief Sleeps the coroutine associated with this context for 'timeMs' milliseconds.
-    /// @param[in] timeMs Time to sleep.
-    /// @note This method repeatedly yields the coroutine until the timer has expired.
-    virtual void sleep(std::chrono::milliseconds timeMs) = 0;
+    /// @brief Sleeps the coroutine associated with this context for *at least* 'timeMs' milliseconds or
+    ///        'timeUs' microseconds depending on the overload chosen.
+    /// @param[in] timeMs/timeUs Time to sleep.
+    /// @note This method yields the coroutine until the timer has expired. Depending on the
+    ///       coroutine load on the particular running thread, this method may sleep longer.
+    virtual void sleep(const std::chrono::milliseconds& timeMs) = 0;
+    virtual void sleep(const std::chrono::microseconds& timeUs) = 0;
 };
 
 using ICoroSyncPtr = ICoroSync::Ptr;

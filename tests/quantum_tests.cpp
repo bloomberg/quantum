@@ -24,6 +24,7 @@
 
 using namespace quantum;
 using ms = std::chrono::milliseconds;
+using us = std::chrono::microseconds;
 constexpr int DispatcherSingleton::numCoro;
 constexpr int DispatcherSingleton::numThreads;
 Dispatcher* DispatcherSingleton::_dispatcher = nullptr;
@@ -44,8 +45,9 @@ int DummyIoTask(ThreadPromise<int>::Ptr promise)
     return 0;
 }
 
-int fibInput = 20;
-std::map<int, int> fibValues{{10, 55}, {20, 6765}, {25, 75025}, {30, 832040}};
+int fibInput = 23;
+std::map<int, int> fibValues{{10, 55}, {20, 6765}, {21, 10946}, {22, 17711},
+                             {23, 28657}, {24, 46368}, {25, 75025}, {30, 832040}};
 
 int sequential_fib(CoroContext<size_t>::Ptr ctx, size_t fib)
 {
@@ -61,6 +63,7 @@ int sequential_fib(CoroContext<size_t>::Ptr ctx, size_t fib)
 
 int recursive_fib(CoroContext<size_t>::Ptr ctx, size_t fib)
 {
+    ctx->sleep(us(100));
     if (fib <= 2)
     {
         return ctx->set(1);

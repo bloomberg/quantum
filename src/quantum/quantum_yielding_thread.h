@@ -35,7 +35,7 @@ struct YieldingThreadDuration
     /// @brief Yields the current thread either via a busy wait loop or by sleeping it.
     ///        Behavior is determined at compile time.
     /// @param[in] time Time used for the sleep duration.
-    void operator()(DURATION time = std::chrono::duration_cast<DURATION>(ThreadTraits::yieldSleepIntervalMs()))
+    void operator()(DURATION time = defaultDuration())
     {
         if (time == DURATION(0)) {
             //Busy wait
@@ -46,9 +46,15 @@ struct YieldingThreadDuration
             std::this_thread::sleep_for(time);
         }
     }
+    
+    static DURATION defaultDuration()
+    {
+        return std::chrono::duration_cast<DURATION>(ThreadTraits::yieldSleepIntervalMs()) +
+               std::chrono::duration_cast<DURATION>(ThreadTraits::yieldSleepIntervalUs());
+    }
 };
 
-using YieldingThread = YieldingThreadDuration<std::chrono::milliseconds>;
+using YieldingThread = YieldingThreadDuration<std::chrono::microseconds>;
 
 }}
 

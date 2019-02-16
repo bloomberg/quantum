@@ -151,7 +151,13 @@ ITaskContinuation::Ptr Task::getErrorHandlerOrFinalTask()
 inline
 bool Task::isBlocked() const
 {
-    return _ctx ? _ctx->isBlocked() : false; //context is waiting on some signal
+    return _ctx ? _ctx->isBlocked() : false; //coroutine is waiting on some signal
+}
+
+inline
+bool Task::isSleeping(bool updateTimer)
+{
+    return _ctx ? _ctx->isSleeping(updateTimer) : false; //coroutine is sleeping
 }
 
 inline

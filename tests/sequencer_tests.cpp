@@ -92,8 +92,8 @@ private: // methods
     int taskFunc(CoroContext<int>::Ptr ctx, TaskId id, std::atomic<bool> * blockFlag, std::string error)
     {
         std::chrono::system_clock::time_point startTime = std::chrono::system_clock::now();
-        do{
-            sleep();
+        do {
+            ctx->sleep(std::chrono::milliseconds(1));
             if (not error.empty())
                 throw std::runtime_error(error);
         }
@@ -101,7 +101,7 @@ private: // methods
         std::chrono::system_clock::time_point endTime = std::chrono::system_clock::now();
 
         // update the task map with the time stats
-        std::unique_lock<std::mutex> lock(_resultMutex);
+        quantum::Mutex::Guard lock(ctx, _resultMutex);
         
         _results[id].startTime = startTime;
         _results[id].endTime = endTime;
@@ -113,7 +113,7 @@ private: // members
     /// task results
     TaskResultMap _results;
     // mutex for _results accessing
-    std::mutex _resultMutex;
+    quantum::Mutex _resultMutex;
 };
 
 TEST(Sequencer, BasicTaskOrder)
@@ -190,9 +190,10 @@ TEST(Sequencer, ExceptionHandler)
     
     const std::string errorText = "Error";
     // the callback will check that exceptions are generated as expected
-    unsigned int exceptionCallbackCallCount = 0;
+    std::atomic<unsigned int> exceptionCallbackCallCount(0);
     auto exceptionCallback = [&exceptionCallbackCallCount, &errorText](std::exception_ptr exception, void* opaque)
     {
+        ++exceptionCallbackCallCount;
         ASSERT_NE(exception, nullptr);
         try
         {
@@ -205,8 +206,6 @@ TEST(Sequencer, ExceptionHandler)
         }
         catch(const std::exception& e)
         {
-            ++exceptionCallbackCallCount;
-
             EXPECT_EQ(e.what(), errorText);
             ASSERT_NE(opaque, nullptr);
             SequencerTestData::TaskId taskId = *static_cast<SequencerTestData::TaskId*>(opaque);
@@ -221,7 +220,7 @@ TEST(Sequencer, ExceptionHandler)
     SequencerConfiguration<SequencerTestData::SequenceKey> config;
     config.setExceptionCallback(exceptionCallback);
     SequencerTestData::TaskSequencer sequencer(DispatcherSingleton::instance(), config);
-
+    
     unsigned int generatedExceptionCount = 0;
     for(SequencerTestData::TaskId id = 0; id < taskCount; ++id)
     {
@@ -256,7 +255,7 @@ TEST(Sequencer, SequenceKeyStats)
     SequencerTestData::TaskSequencer sequencer(DispatcherSingleton::instance());
 
     // enqueue the first half
-    for(SequencerTestData::TaskId id = 0; id < taskCount / 2; ++id) 
+    for(SequencerTestData::TaskId id = 0; id < taskCount / 2; ++id)
     {
         if ( id % universalTaskFrequency == 0 ) 
         {
@@ -269,7 +268,10 @@ TEST(Sequencer, SequenceKeyStats)
         }
     }
 
-    // sleep for a while to make sure alll the tasks are scheduled
+    while (sequencer.getStatistics().getPostedTaskCount() != sequenceKeyCount) {
+        size_t count = sequencer.getStatistics().getPostedTaskCount(); (void)count;
+        testData.sleep();
+    }
     testData.sleep(sequenceKeyCount);
 
     // make sure all the enqueued tasks are pending
@@ -289,13 +291,13 @@ TEST(Sequencer, SequenceKeyStats)
     EXPECT_EQ(postedCount, (unsigned int)taskCount / 2);
     EXPECT_EQ(pendingCount, (unsigned int)taskCount / 2);
     
-    // release the tasks 
+    // release the tasks
     blockFlag = false;
 
     // enqueue the second half
-    for(SequencerTestData::TaskId id = taskCount / 2; id < taskCount; ++id) 
+    for(SequencerTestData::TaskId id = taskCount / 2; id < taskCount; ++id)
     {
-        if ( id % universalTaskFrequency == 0 ) 
+        if ( id % universalTaskFrequency == 0 )
         {
             sequencer.postAll(testData.makeTaskWithBlock(id, &blockFlag));
         }

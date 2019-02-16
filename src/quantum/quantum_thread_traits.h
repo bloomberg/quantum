@@ -39,6 +39,11 @@ struct ThreadTraits
         static std::chrono::milliseconds value(0);
         return value;
     }
+    static std::chrono::microseconds& yieldSleepIntervalUs()
+    {
+        static std::chrono::microseconds value(10);
+        return value;
+    }
 };
 
 }
