@@ -157,7 +157,10 @@ void TaskQueue::run()
                     //Check if we have a final task to run
                     nextTask = task->getErrorHandlerOrFinalTask();
                 }
-                
+                //clear the blocked position iterator if it's the same as the finished task
+                if (_blockedIt == _queueIt) {
+                    _blockedIt = _queue.end();
+                }
                 //queue next task and de-queue current one
                 enqueue(nextTask);
                 dequeue(_isIdle);
