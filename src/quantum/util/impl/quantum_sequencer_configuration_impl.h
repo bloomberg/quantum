@@ -24,10 +24,14 @@
 namespace Bloomberg {
 namespace quantum {
 
+using StatsPtr = std::shared_ptr<SequenceKeyStatisticsWriter>;
 struct SequenceKeyData
 {
-    ICoroContextBasePtr context;
-    SequenceKeyStatisticsWriter stats;
+    SequenceKeyData() :
+        _stats(std::make_shared<SequenceKeyStatisticsWriter>())
+    {}
+    ICoroContextBasePtr _context;
+    StatsPtr            _stats;
 };
 
 template <class SequenceKey, class Hash, class KeyEqual, class Allocator>
@@ -103,7 +107,7 @@ SequencerConfiguration<SequenceKey, Hash, KeyEqual, Allocator>::getAllocator() c
 template <class SequenceKey, class Hash, class KeyEqual, class Allocator>
 void 
 SequencerConfiguration<SequenceKey, Hash, KeyEqual, Allocator>::setExceptionCallback(
-    const typename SequencerConfiguration<SequenceKey, Hash, KeyEqual, Allocator>::ExceptionCallback& 
+    const ExceptionCallback&
     exceptionCallback)
 
 {

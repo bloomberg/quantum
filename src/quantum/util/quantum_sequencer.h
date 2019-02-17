@@ -52,10 +52,10 @@ public:
     Sequencer(Dispatcher& dispatcher, const Configuration& configuration = Configuration());
 
     /// @brief Post a coroutine to run asynchronously.
-    /// @details This method will post the coroutine on any thread available
+    /// @details This method will post the coroutine on any thread available and will run when the previous coroutine
+    ///          associated with the same 'sequenceKey' completes. If there are none, it will run immediately.
     ///          (@see Dispatcher::post for more details).
     /// @tparam FUNC Callable object type which will be wrapped in a coroutine
-    ///              (@see Dispatcher::post for more details).
     /// @tparam ARGS Argument types passed to FUNC (@see Dispatcher::post for more details).
     /// @param[in] sequenceKey SequenceKey object that the posted task is associated with
     /// @param[in] func Callable object.
@@ -66,8 +66,10 @@ public:
     post(const SequenceKey& sequenceKey, FUNC&& func, ARGS&&... args);
 
     /// @brief Post a coroutine to run asynchronously on a specific queue (thread).
+    /// @details This method will post the coroutine on any thread available and will run when the previous coroutine
+    ///          associated with the same 'sequenceKey' completes. If there are none, it will run immediately.
+    ///          (@see Dispatcher::post for more details).
     /// @tparam FUNC Callable object type which will be wrapped in a coroutine
-    ////             (@see Dispatcher::post for more details).
     /// @tparam ARGS Argument types passed to FUNC (@see Dispatcher::post for more details).
     /// @param[in] queueId Id of the queue where this coroutine should run. Note that the user can
     ///                    specify IQueue::QueueId::Any as a value, which is equivalent to running
@@ -86,10 +88,10 @@ public:
     post(void* opaque, int queueId, bool isHighPriority, const SequenceKey& sequenceKey, FUNC&& func, ARGS&&... args);
 
     /// @brief Post a coroutine to run asynchronously.
-    /// @details This method will post the coroutine on any thread available
+    /// @details This method will post the coroutine on any thread available and will run when the previous coroutine(s)
+    ///          associated with all the 'sequenceKeys' complete. If there are none, then it will run immediately.
     ///          (@see Dispatcher::post for more details).
     /// @tparam FUNC Callable object type which will be wrapped in a coroutine
-    ///              (@see Dispatcher::post for more details).
     /// @tparam ARGS Argument types passed to FUNC (@see Dispatcher::post for more details).
     /// @param[in] sequenceKeys A collection of sequenceKey objects that the posted task is associated with
     /// @param[in] func Callable object.
@@ -100,8 +102,10 @@ public:
     post(const std::vector<SequenceKey>& sequenceKeys, FUNC&& func, ARGS&&... args);
 
     /// @brief Post a coroutine to run asynchronously on a specific queue (thread).
-    /// @tparam FUNC Callable object type which will be wrapped in a coroutine
-    ///              (@see Dispatcher::post for more details).
+    /// @details This method will post the coroutine on any thread available and will run when the previous coroutine(s)
+    ///          associated with all the 'sequenceKeys' complete. If there are none, then it will run immediately.
+    ///          (@see Dispatcher::post for more details).
+    /// @tparam FUNC Callable object type which will be wrapped in a coroutine.
     /// @tparam ARGS Argument types passed to FUNC (@see Dispatcher::post for more details).
     /// @param[in] queueId Id of the queue where this coroutine should run. Note that the user 
     ///                    can specify IQueue::QueueId::Any as a value, which is equivalent to running 
@@ -125,26 +129,24 @@ public:
          ARGS&&... args);
 
     /// @brief Post a coroutine to run asynchronously.
-    /// @details This method will post the coroutine on any thread available 
-    ///          (@see Dispatcher::post for more details). The posted task is assumed to be associated 
-    ///           with the entire universe of sequenceKeys of the SequenceKey type.
-    /// @tparam FUNC Callable object type which will be wrapped in a coroutine 
-    ///              (@see Dispatcher::post for more details).
+    /// @details This method will post the coroutine on any thread available. The posted task is assumed to be associated
+    ///          with the entire universe of sequenceKeys already running or pending, which means that it will wait
+    ///          until all tasks complete. This task can be considered as having a 'universal' key.
+    /// @tparam FUNC Callable object type which will be wrapped in a coroutine
     /// @tparam ARGS Argument types passed to FUNC (@see Dispatcher::post for more details).
     /// @param[in] func Callable object.
     /// @param[in] args Variable list of arguments passed to the callable object.
-    /// @remark This function also trims the sequence keys not used by the sequencer anymore
+    /// @remark This function also trims the sequence keys not used by the sequencer anymore.
     /// @note This function is non-blocking and returns immediately.
     template <class FUNC, class ... ARGS>
     void
     postAll(FUNC&& func, ARGS&&... args);
 
     /// @brief Post a coroutine to run asynchronously on a specific queue (thread).
-    /// @details This method will post the coroutine on any thread available 
-    ///          (@see Dispatcher::post for more details). The posted task is assumed to be associated with 
-    ///           the entire universe of sequenceKeys of the SequenceKey type.
-    /// @tparam FUNC Callable object type which will be wrapped in a coroutine 
-    ///              (@see Dispatcher::post for more details).
+    /// @details This method will post the coroutine on any thread available. The posted task is assumed to be associated
+    ///          with the entire universe of sequenceKeys already running or pending, which means that it will wait
+    ///          until all tasks complete. This task can be considered as having a 'universal' key.
+    /// @tparam FUNC Callable object type which will be wrapped in a coroutine.
     /// @tparam ARGS Argument types passed to FUNC (@see Dispatcher::post for more details).
     /// @param[in] queueId Id of the queue where this coroutine should run. Note that the user 
     ///                    can specify IQueue::QueueId::Any as a value, which is equivalent to running 
@@ -156,14 +158,14 @@ public:
     ///            if an unhandled exception is thrown in func
     /// @param[in] func Callable object.
     /// @param[in] args Variable list of arguments passed to the callable object.
-    /// @remark This function also trims the sequence keys not used by the sequencer anymore
+    /// @remark This function also trims the sequence keys not used by the sequencer anymore.
     /// @note This function is non-blocking and returns immediately.
     template <class FUNC, class ... ARGS>
     void
     postAll(void* opaque, int queueId, bool isHighPriority, FUNC&& func, ARGS&&... args);
 
     /// @brief Trims the sequence keys not used by the sequencer anymore.
-    /// @details It's recommented to call this function periodically to clean up state sequence keys. 
+    /// @details It's recommended to call this function periodically to clean up state sequence keys.
     /// @remark This call clears all the statistics for trimmed keys. 
     /// @return The number of sequenceKeys after the trimming.
     /// @note This function blocks until the trimming job posted to the dispatcher is finished
@@ -174,16 +176,22 @@ public:
     /// @note This function blocks until the statistics computation job posted to the dispatcher is finished.
     size_t getSequenceKeyCount();
 
-    /// @brief Gets the sequencer statistics for a sequence key
+    /// @brief Gets the sequencer statistics for a specific sequence key
     /// @param sequenceKey the key 
     /// @return the statistics objects for the specified key
     /// @note This function blocks until the statistics computation job posted to the dispatcher is finished.
     SequenceKeyStatistics getStatistics(const SequenceKey& sequenceKey);
 
-    /// @brief Gets the sequencer statistics for jobs posted via postAll calls
+    /// @brief Gets the sequencer statistics for the 'universal key', a.k.a. posted via postAll() method.
     /// @return the statistics objects
     /// @note This function blocks until the statistics computation job posted to the dispatcher is finished.
     SequenceKeyStatistics getStatistics();
+    
+    /// @brief Gets the sequencer statistics for all jobs.
+    /// @return the statistics objects
+    /// @note The difference with the previous two statistics methods is that it aggregates stats on a per-task basis,
+    ///       not on per-key basis.
+    SequenceKeyStatistics getTaskStatistics();
 
 private:
     using ContextMap = std::unordered_map<SequenceKey, SequenceKeyData, Hash, KeyEqual, Allocator>;
@@ -191,68 +199,75 @@ private:
 
     template <class FUNC, class ... ARGS>
     static int waitForTwoDependents(CoroContextPtr<int> ctx,
-                                    ICoroContextBasePtr dependent,
-                                    ICoroContextBasePtr universalContext,
-                                    SequenceKeyStatisticsWriter& stats,
                                     void* opaque,
-                                    const ExceptionCallback& exceptionCallback,
+                                    Sequencer& sequencer,
+                                    SequenceKeyData&& dependent,
+                                    SequenceKeyData&& universalDependent,
                                     FUNC&& func,
                                     ARGS&&... args);
     template <class FUNC, class ... ARGS>
     static int waitForDependents(CoroContextPtr<int> ctx,
-                                 std::vector<std::pair<ICoroContextBasePtr, SequenceKeyStatisticsWriter*>>&& dependents,
                                  void* opaque,
-                                 const ExceptionCallback& exceptionCallback,
+                                 Sequencer& sequencer,
+                                 std::vector<SequenceKeyData>&& dependents,
+                                 SequenceKeyData&& universalDependent,
                                  FUNC&& func,
                                  ARGS&&... args);
     template <class FUNC, class ... ARGS>
-    static int singleSequenceKeyTaskScheduler(CoroContextPtr<int> ctx,
-                                              int queueId,
-                                              bool isHighPriority, 
-                                              void* opaque,
-                                              const ExceptionCallback& exceptionCallback,
-                                              SequenceKey&& sequenceKey,
-                                              ContextMap& contexts,
-                                              SequenceKeyData& universalContext,
-                                              FUNC&& func,
-                                              ARGS&&... args);
+    static int waitForUniversalDependent(CoroContextPtr<int> ctx,
+                                         void* opaque,
+                                         Sequencer& sequencer,
+                                         std::vector<SequenceKeyData>&& dependents,
+                                         SequenceKeyData&& universalDependent,
+                                         FUNC&& func,
+                                         ARGS&&... args);
     template <class FUNC, class ... ARGS>
-    static int multiSequenceKeyTaskScheduler(CoroContextPtr<int> ctx,
-                                             int queueId,
-                                             bool isHighPriority, 
-                                             void* opaque,
-                                             const ExceptionCallback& exceptionCallback,
-                                             std::vector<SequenceKey>&& sequenceKeys,
-                                             ContextMap& contexts,
-                                             SequenceKeyData& universalContext,
-                                             FUNC&& func,
-                                             ARGS&&... args);
+    static int singleSequenceKeyTaskScheduler(
+                                    CoroContextPtr<int> ctx,
+                                    void* opaque,
+                                    int queueId,
+                                    bool isHighPriority,
+                                    Sequencer& sequencer,
+                                    SequenceKey&& sequenceKey,
+                                    FUNC&& func,
+                                    ARGS&&... args);
     template <class FUNC, class ... ARGS>
-    static int universalTaskScheduler(CoroContextPtr<int> ctx,
-                                      int queueId,
-                                      bool isHighPriority,
-                                      void* opaque,
-                                      const ExceptionCallback& exceptionCallback,
-                                      ContextMap& contexts,
-                                      SequenceKeyData& universalContext,
-                                      FUNC&& func,
-                                      ARGS&&... args);
-    template <class FINAL_ACTION, class FUNC, class ... ARGS>
-    static void callPosted(CoroContextPtr<int> ctx, 
-                           const FINAL_ACTION& finalAction,
+    static int multiSequenceKeyTaskScheduler(
+                                    CoroContextPtr<int> ctx,
+                                    void* opaque,
+                                    int queueId,
+                                    bool isHighPriority,
+                                    Sequencer& sequencer,
+                                    std::vector<SequenceKey>&& sequenceKeys,
+                                    FUNC&& func,
+                                    ARGS&&... args);
+    template <class FUNC, class ... ARGS>
+    static int universalTaskScheduler(
+                                    CoroContextPtr<int> ctx,
+                                    void* opaque,
+                                    int queueId,
+                                    bool isHighPriority,
+                                    Sequencer& sequencer,
+                                    FUNC&& func,
+                                    ARGS&&... args);
+    template <class FUNC, class ... ARGS>
+    static void callPosted(CoroContextPtr<int> ctx,
                            void* opaque,
-                           const ExceptionCallback& exceptionCallback,
-                           FUNC&& func, 
+                           const Sequencer& sequencer,
+                           FUNC&& func,
                            ARGS&&... args);
 
     static bool canTrimContext(const ICoroContextBasePtr& ctx,
                                const ICoroContextBasePtr& ctxToValidate);
+    static bool isPendingContext(const ICoroContextBasePtr& ctx,
+                                 const ICoroContextBasePtr& ctxToValidate);
 
     Dispatcher&              _dispatcher;
     int                      _controllerQueueId;
     SequenceKeyData          _universalContext;
     ContextMap               _contexts;
     ExceptionCallback        _exceptionCallback;
+    std::shared_ptr<SequenceKeyStatisticsWriter> _taskStats;
 };
 
 }}
