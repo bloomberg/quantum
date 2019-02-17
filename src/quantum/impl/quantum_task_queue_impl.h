@@ -81,6 +81,7 @@ void TaskQueue::run()
         {
             if (_isEmpty)
             {
+                _blockedIt = _queue.end();
                 std::unique_lock<std::mutex> lock(_notEmptyMutex);
                 //========================= BLOCK WHEN EMPTY =========================
                 //Wait for the queue to have at least one element
