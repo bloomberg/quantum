@@ -81,6 +81,7 @@ void TaskQueue::run()
         {
             if (_isEmpty)
             {
+                _blockedIt = _queue.end(); //clear iterator
                 std::unique_lock<std::mutex> lock(_notEmptyMutex);
                 //========================= BLOCK WHEN EMPTY =========================
                 //Wait for the queue to have at least one element
@@ -162,7 +163,7 @@ void TaskQueue::run()
                 dequeue(_isIdle);
             }
             else if (!task->isBlocked() && !task->isSleeping()) {
-                //This task will run again so we reset the blocked position iterator
+                //This coroutine will run again so we reset the blocked position iterator
                 _blockedIt = _queue.end();
             }
         }
