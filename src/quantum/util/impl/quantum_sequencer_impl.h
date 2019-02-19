@@ -34,7 +34,8 @@ Sequencer<SequenceKey, Hash, KeyEqual, Allocator>::Sequencer(Dispatcher& dispatc
               configuration.getHash(),
               configuration.getKeyEqual(),
               configuration.getAllocator()),
-    _exceptionCallback(configuration.getExceptionCallback())
+    _exceptionCallback(configuration.getExceptionCallback()),
+    _taskStats(std::make_shared<SequenceKeyStatisticsWriter>())
 {
     if (_controllerQueueId <= (int)IQueue::QueueId::Any || _controllerQueueId >= _dispatcher.getNumCoroutineThreads())
     {
@@ -53,13 +54,11 @@ Sequencer<SequenceKey, Hash, KeyEqual, Allocator>::post(
     _dispatcher.post<int>(_controllerQueueId,
                           false,
                           singleSequenceKeyTaskScheduler<FUNC, ARGS...>,
+                          nullptr,
                           (int)IQueue::QueueId::Any,
                           false,
-                          nullptr,
-                          _exceptionCallback,
+                          *this,
                           SequenceKey(sequenceKey),
-                          _contexts,
-                          _universalContext,
                           std::forward<FUNC>(func),
                           std::forward<ARGS>(args)...);
 }
@@ -83,13 +82,11 @@ Sequencer<SequenceKey, Hash, KeyEqual, Allocator>::post(
     _dispatcher.post<int>(_controllerQueueId,
                           false,
                           singleSequenceKeyTaskScheduler<FUNC, ARGS...>,
+                          std::move(opaque),
                           queueId,
                           isHighPriority,
-                          std::move(opaque),
-                          _exceptionCallback,
+                          *this,
                           SequenceKey(sequenceKey),
-                          _contexts,
-                          _universalContext,
                           std::forward<FUNC>(func),
                           std::forward<ARGS>(args)...);
 }
@@ -105,13 +102,11 @@ Sequencer<SequenceKey, Hash, KeyEqual, Allocator>::post(
     _dispatcher.post<int>(_controllerQueueId,
                           false,
                           multiSequenceKeyTaskScheduler<FUNC, ARGS...>,
+                          nullptr,
                           (int)IQueue::QueueId::Any,
                           false,
-                          nullptr,
-                          _exceptionCallback,
+                          *this,
                           std::vector<SequenceKey>(sequenceKeys),
-                          _contexts,
-                          _universalContext,
                           std::forward<FUNC>(func),
                           std::forward<ARGS>(args)...);
 }
@@ -134,13 +129,11 @@ Sequencer<SequenceKey, Hash, KeyEqual, Allocator>::post(
     _dispatcher.post<int>(_controllerQueueId,
                           false,
                           multiSequenceKeyTaskScheduler<FUNC, ARGS...>,
+                          std::move(opaque),
                           queueId,
                           isHighPriority,
-                          std::move(opaque),
-                          _exceptionCallback,
+                          *this,
                           std::vector<SequenceKey>(sequenceKeys),
-                          _contexts,
-                          _universalContext,
                           std::forward<FUNC>(func),
                           std::forward<ARGS>(args)...);
 }
@@ -153,12 +146,10 @@ Sequencer<SequenceKey, Hash, KeyEqual, Allocator>::postAll(FUNC&& func, ARGS&&..
     _dispatcher.post<int>(_controllerQueueId,
                           false,
                           universalTaskScheduler<FUNC, ARGS...>,
+                          nullptr,
                           (int)IQueue::QueueId::Any,
                           false,
-                          nullptr,
-                          _exceptionCallback,
-                          _contexts,
-                          _universalContext,
+                          *this,
                           std::forward<FUNC>(func),
                           std::forward<ARGS>(args)...);
 }
@@ -180,12 +171,10 @@ Sequencer<SequenceKey, Hash, KeyEqual, Allocator>::postAll(
     _dispatcher.post<int>(_controllerQueueId,
                           false,
                           universalTaskScheduler<FUNC, ARGS...>,
+                          std::move(opaque),
                           queueId,
                           isHighPriority,
-                          std::move(opaque),
-                          _exceptionCallback,
-                          _contexts,
-                          _universalContext,
+                          *this,
                           std::forward<FUNC>(func),
                           std::forward<ARGS>(args)...);
 }
@@ -196,12 +185,12 @@ Sequencer<SequenceKey, Hash, KeyEqual, Allocator>::trimSequenceKeys()
 {
     auto trimFunc = [this](CoroContextPtr<size_t> ctx)->int
     {
-        for (typename ContextMap::iterator it = _contexts.begin(); it != _contexts.end();)
+        for (auto it = _contexts.begin(); it != _contexts.end();)
         {
-            typename ContextMap::iterator thisIt = it++;
-            if (canTrimContext(ctx, thisIt->second.context))
+            auto trimIt = it++;
+            if (canTrimContext(ctx, trimIt->second._context))
             {
-                _contexts.erase(thisIt);
+                _contexts.erase(trimIt);
             }
         }
         return ctx->set(_contexts.size());
@@ -215,13 +204,12 @@ Sequencer<SequenceKey, Hash, KeyEqual, Allocator>::getStatistics(const SequenceK
 {
     auto statsFunc = [this, sequenceKey](CoroContextPtr<SequenceKeyStatistics> ctx)->int
     {
-        SequenceKeyStatisticsWriter stats;
         typename ContextMap::iterator ctxIt = _contexts.find(sequenceKey);
         if (ctxIt == _contexts.end())
         {
             return ctx->set(SequenceKeyStatistics());
         }
-        return ctx->set(SequenceKeyStatistics(ctxIt->second.stats));
+        return ctx->set(SequenceKeyStatistics(*ctxIt->second._stats));
     };
     return _dispatcher.post<SequenceKeyStatistics>(_controllerQueueId, true, statsFunc)->get();
 }
@@ -230,11 +218,14 @@ template <class SequenceKey, class Hash, class KeyEqual, class Allocator>
 SequenceKeyStatistics
 Sequencer<SequenceKey, Hash, KeyEqual, Allocator>::getStatistics()
 {
-    auto statsFunc = [this](CoroContextPtr<SequenceKeyStatistics> ctx)->int
-    {
-        return ctx->set(SequenceKeyStatistics(_universalContext.stats));
-    };
-    return _dispatcher.post<SequenceKeyStatistics>(_controllerQueueId, true, statsFunc)->get();
+    return *_universalContext._stats;
+}
+
+template <class SequenceKey, class Hash, class KeyEqual, class Allocator>
+SequenceKeyStatistics
+Sequencer<SequenceKey, Hash, KeyEqual, Allocator>::getTaskStatistics()
+{
+    return *_taskStats;
 }
 
 template <class SequenceKey, class Hash, class KeyEqual, class Allocator>
@@ -252,37 +243,27 @@ template <class SequenceKey, class Hash, class KeyEqual, class Allocator>
 template <class FUNC, class ... ARGS>
 int
 Sequencer<SequenceKey, Hash, KeyEqual, Allocator>::waitForTwoDependents(
-    CoroContextPtr<int> ctx,
-    ICoroContextBasePtr dependent,
-    ICoroContextBasePtr universalContext,
-    SequenceKeyStatisticsWriter& stats,
-    void* opaque,
-    const typename Sequencer<SequenceKey, Hash, KeyEqual, Allocator>::ExceptionCallback& exceptionCallback,
-    FUNC&& func,
-    ARGS&&... args)
+        CoroContextPtr<int> ctx,
+        void* opaque,
+        Sequencer& sequencer,
+        SequenceKeyData&& dependent,
+        SequenceKeyData&& universalDependent,
+        FUNC&& func,
+        ARGS&&... args)
 {
     // wait until all the dependents are done
-    if (dependent)
+    if (dependent._context)
     {
-        dependent->wait(ctx);
+        dependent._context->wait(ctx);
     }
-    if (universalContext)
+    if (universalDependent._context)
     {
-        universalContext->wait(ctx);
+        universalDependent._context->wait(ctx);
     }
-
-    // statistics update action to be called after the func, even if func throws
-    auto updateStatsAction = [&stats]()
-    {
-        // update the dependent's stats only, because the task is associated with the non-universal key
-        stats.decrementPendingTaskCount();
-    };
-    callPosted(ctx, 
-               updateStatsAction, 
-               opaque,
-               exceptionCallback, 
-               std::forward<FUNC>(func), 
-               std::forward<ARGS>(args)...);
+    // update task stats
+    dependent._stats->decrementPendingTaskCount();
+    sequencer._taskStats->decrementPendingTaskCount();
+    callPosted(ctx, opaque, sequencer, std::forward<FUNC>(func), std::forward<ARGS>(args)...);
     return 0;
 }
 
@@ -290,40 +271,67 @@ template <class SequenceKey, class Hash, class KeyEqual, class Allocator>
 template <class FUNC, class ... ARGS>
 int
 Sequencer<SequenceKey, Hash, KeyEqual, Allocator>::waitForDependents(
-    CoroContextPtr<int> ctx,
-    std::vector<std::pair<ICoroContextBasePtr, SequenceKeyStatisticsWriter*>>&& dependents,
-    void* opaque,
-    const typename Sequencer<SequenceKey, Hash, KeyEqual, Allocator>::ExceptionCallback& exceptionCallback,
-    FUNC&& func,
-    ARGS&&... args)
+        CoroContextPtr<int> ctx,
+        void* opaque,
+        Sequencer& sequencer,
+        std::vector<SequenceKeyData>&& dependents,
+        SequenceKeyData&& universalDependent,
+        FUNC&& func,
+        ARGS&&... args)
 {
     // wait until all the dependents are done
     for (const auto& dependent : dependents)
     {
-        if (dependent.first)
+        if (dependent._context)
         {
-            dependent.first->wait(ctx);
+            dependent._context->wait(ctx);
         }
     }
-
-    // statistics update action to be called after the func, even if func throws
-    auto updateStatsAction = [&dependents]()
+    //wait until the universal dependent is done
+    if (universalDependent._context)
     {
-        // update the pending statistics for the passed tasks
-        for (auto& dependent : dependents)
+        universalDependent._context->wait(ctx);
+    }
+    //update stats
+    for (const auto& dependent : dependents)
+    {
+        dependent._stats->decrementPendingTaskCount();
+    }
+    // update task stats
+    sequencer._taskStats->decrementPendingTaskCount();
+    callPosted(ctx, opaque, sequencer, std::forward<FUNC>(func), std::forward<ARGS>(args)...);
+    return 0;
+}
+
+template <class SequenceKey, class Hash, class KeyEqual, class Allocator>
+template <class FUNC, class ... ARGS>
+int
+Sequencer<SequenceKey, Hash, KeyEqual, Allocator>::waitForUniversalDependent(
+        CoroContextPtr<int> ctx,
+        void* opaque,
+        Sequencer& sequencer,
+        std::vector<SequenceKeyData>&& dependents,
+        SequenceKeyData&& universalDependent,
+        FUNC&& func,
+        ARGS&&... args)
+{
+    // wait until all the dependents are done
+    for (const auto& dependent : dependents)
+    {
+        if (dependent._context)
         {
-            if (dependent.second)
-            {
-                dependent.second->decrementPendingTaskCount();
-            }
+            dependent._context->wait(ctx);
         }
-    };
-    callPosted(ctx, 
-               updateStatsAction, 
-               opaque,
-               exceptionCallback, 
-               std::forward<FUNC>(func), 
-               std::forward<ARGS>(args)...);
+    }
+    //wait until the universal dependent is done
+    if (universalDependent._context)
+    {
+        universalDependent._context->wait(ctx);
+    }
+    universalDependent._stats->decrementPendingTaskCount();
+    // update task stats
+    sequencer._taskStats->decrementPendingTaskCount();
+    callPosted(ctx, opaque, sequencer, std::forward<FUNC>(func), std::forward<ARGS>(args)...);
     return 0;
 }
 
@@ -331,37 +339,39 @@ template <class SequenceKey, class Hash, class KeyEqual, class Allocator>
 template <class FUNC, class ... ARGS>
 int
 Sequencer<SequenceKey, Hash, KeyEqual, Allocator>::singleSequenceKeyTaskScheduler(
-    CoroContextPtr<int> ctx,
-    int queueId,
-    bool isHighPriority,
-    void* opaque,
-    const typename Sequencer<SequenceKey, Hash, KeyEqual, Allocator>::ExceptionCallback& exceptionCallback,
-    SequenceKey&& sequenceKey,
-    ContextMap& contexts,
-    SequenceKeyData& universalContext,
-    FUNC&& func,
-    ARGS&&... args)
+        CoroContextPtr<int> ctx,
+        void* opaque,
+        int queueId,
+        bool isHighPriority,
+        Sequencer& sequencer,
+        SequenceKey&& sequenceKey,
+        FUNC&& func,
+        ARGS&&... args)
 {
     // find the dependent
-    typename ContextMap::iterator contextIt = contexts.find(sequenceKey);
-    if (contextIt == contexts.end())
+    typename ContextMap::iterator contextIt = sequencer._contexts.find(sequenceKey);
+    if (contextIt == sequencer._contexts.end())
     {
-        contextIt = contexts.emplace(sequenceKey, SequenceKeyData()).first;
+        contextIt = sequencer._contexts.emplace(sequenceKey, SequenceKeyData()).first;
     }
-    contextIt->second.stats.incrementPostedTaskCount();
-    contextIt->second.stats.incrementPendingTaskCount();
-
+    // update stats
+    contextIt->second._stats->incrementPostedTaskCount();
+    contextIt->second._stats->incrementPendingTaskCount();
+    // update task stats
+    sequencer._taskStats->incrementPostedTaskCount();
+    sequencer._taskStats->incrementPendingTaskCount();
+    
     // save the context as the last for this sequenceKey
-    contextIt->second.context = ctx->post<int>(queueId,
-                                               isHighPriority,
-                                               waitForTwoDependents<FUNC, ARGS...>,
-                                               ICoroContextBasePtr(contextIt->second.context),
-                                               ICoroContextBasePtr(universalContext.context),
-                                               contextIt->second.stats,
-                                               std::move(opaque),
-                                               exceptionCallback,
-                                               std::forward<FUNC>(func),
-                                               std::forward<ARGS>(args)...);
+    contextIt->second._context = ctx->post<int>(
+            queueId,
+            isHighPriority,
+            waitForTwoDependents<FUNC, ARGS...>,
+            std::move(opaque),
+            sequencer,
+            SequenceKeyData(contextIt->second),
+            SequenceKeyData(sequencer._universalContext),
+            std::forward<FUNC>(func),
+            std::forward<ARGS>(args)...);
     return 0;
 }
 
@@ -370,44 +380,48 @@ template <class FUNC, class ... ARGS>
 int
 Sequencer<SequenceKey, Hash, KeyEqual, Allocator>::multiSequenceKeyTaskScheduler(
     CoroContextPtr<int> ctx,
+    void* opaque,
     int queueId,
     bool isHighPriority,
-    void* opaque,
-    const typename Sequencer<SequenceKey, Hash, KeyEqual, Allocator>::ExceptionCallback& exceptionCallback,
+    Sequencer& sequencer,
     std::vector<SequenceKey>&& sequenceKeys,
-    ContextMap& contexts,
-    SequenceKeyData& universalContext,
     FUNC&& func,
     ARGS&&... args)
 {
     // construct the dependent collection
-    std::vector<std::pair<ICoroContextBasePtr, SequenceKeyStatisticsWriter*>> dependents;
-    dependents.reserve(sequenceKeys.size() + 1);
-    dependents.push_back(std::make_pair(universalContext.context, nullptr));
+    std::vector<SequenceKeyData> dependents;
+    dependents.reserve(sequenceKeys.size());
+    dependents.push_back(sequencer._universalContext);
     for (const SequenceKey& sequenceKey : sequenceKeys)
     {
-        auto taskIt = contexts.find(sequenceKey);
-        if (taskIt != contexts.end())
+        auto taskIt = sequencer._contexts.find(sequenceKey);
+        if (taskIt != sequencer._contexts.end())
         {
-            // update the dependent stats only
-            taskIt->second.stats.incrementPostedTaskCount();
-            taskIt->second.stats.incrementPendingTaskCount();
-            // pass the pointer to the stats to the wait function so that it updates them too
-            dependents.push_back(std::make_pair(taskIt->second.context, &taskIt->second.stats));
+            // add the dependent and increment stats
+            taskIt->second._stats->incrementPostedTaskCount();
+            taskIt->second._stats->incrementPendingTaskCount();
+            dependents.emplace_back(taskIt->second);
         }
     }
-    ICoroContextBasePtr newCtx = ctx->post<int>(queueId,
-                                                isHighPriority,
-                                                waitForDependents<FUNC, ARGS...>,
-                                                std::move(dependents),
-                                                std::move(opaque),
-                                                exceptionCallback,
-                                                std::forward<FUNC>(func),
-                                                std::forward<ARGS>(args)...);
+    // update task stats
+    sequencer._taskStats->incrementPostedTaskCount();
+    sequencer._taskStats->incrementPendingTaskCount();
+    
+    ICoroContextBasePtr newCtx = ctx->post<int>(
+            queueId,
+            isHighPriority,
+            waitForDependents<FUNC, ARGS...>,
+            std::move(opaque),
+            sequencer,
+            std::move(dependents),
+            SequenceKeyData(sequencer._universalContext),
+            std::forward<FUNC>(func),
+            std::forward<ARGS>(args)...);
+    
     // save the context as the last for each sequenceKey
     for (const SequenceKey& sequenceKey : sequenceKeys)
     {
-        contexts[sequenceKey].context = newCtx;
+        sequencer._contexts[sequenceKey]._context = newCtx;
     }
     return 0;
 }
@@ -417,82 +431,74 @@ template <class FUNC, class ... ARGS>
 int
 Sequencer<SequenceKey, Hash, KeyEqual, Allocator>::universalTaskScheduler(
     CoroContextPtr<int> ctx,
+    void* opaque,
     int queueId,
     bool isHighPriority,
-    void* opaque,
-    const typename Sequencer<SequenceKey, Hash, KeyEqual, Allocator>::ExceptionCallback& exceptionCallback,
-    ContextMap& contexts,
-    SequenceKeyData& universalContext,
+    Sequencer& sequencer,
     FUNC&& func,
     ARGS&&... args)
 {
     // construct the dependent collection
-    std::vector<std::pair<ICoroContextBasePtr, SequenceKeyStatisticsWriter*>> dependents;
-    dependents.reserve(contexts.size() + 1);
-    dependents.push_back(std::make_pair(universalContext.context, &universalContext.stats));
-    for(typename ContextMap::iterator ctxIt = contexts.begin(); ctxIt != contexts.end(); )
+    std::vector<SequenceKeyData> dependents;
+    dependents.reserve(sequencer._contexts.size());
+    for (auto ctxIt = sequencer._contexts.begin(); ctxIt != sequencer._contexts.end(); ++ctxIt)
     {
-        typename ContextMap::iterator thisIt = ctxIt++;
-        // since we're accessing all the contexts here, check if can trim some of them
-        if (canTrimContext(ctx, thisIt->second.context))
+        // check if the context still has a pending task
+        if (isPendingContext(ctx, ctxIt->second._context))
         {
-            contexts.erase(thisIt);
-        }
-        else
-        {
-            dependents.push_back(std::make_pair(thisIt->second.context, nullptr));
+            // we will need to wait on this context to finish its current running task
+            dependents.emplace_back(ctxIt->second);
         }
     }
     // update the universal stats only
-    universalContext.stats.incrementPostedTaskCount();
-    universalContext.stats.incrementPendingTaskCount();
+    sequencer._universalContext._stats->incrementPostedTaskCount();
+    sequencer._universalContext._stats->incrementPendingTaskCount();
+    // update task stats
+    sequencer._taskStats->incrementPostedTaskCount();
+    sequencer._taskStats->incrementPendingTaskCount();
 
-    // post the task and save the context as the last for the unviersal sequenceKey
-    universalContext.context = ctx->post<int>(queueId,
-                                              isHighPriority,
-                                              &waitForDependents<FUNC, ARGS...>,
-                                              std::move(dependents),
-                                              std::move(opaque),
-                                              exceptionCallback,
-                                              std::forward<FUNC>(func),
-                                              std::forward<ARGS>(args)...);
+    // post the task and save the context as the last for the universal sequenceKey
+    sequencer._universalContext._context = ctx->post<int>(
+            queueId,
+            isHighPriority,
+            waitForUniversalDependent<FUNC, ARGS...>,
+            std::move(opaque),
+            sequencer,
+            std::move(dependents),
+            SequenceKeyData(sequencer._universalContext),
+            std::forward<FUNC>(func),
+            std::forward<ARGS>(args)...);
     return 0;
 }
 
 template <class SequenceKey, class Hash, class KeyEqual, class Allocator>
-template <class FINAL_ACTION, class FUNC, class ... ARGS>
+template <class FUNC, class ... ARGS>
 void
 Sequencer<SequenceKey, Hash, KeyEqual, Allocator>::callPosted(
-    CoroContextPtr<int> ctx,
-    const FINAL_ACTION& finalAction,
-    void* opaque,
-    const typename Sequencer<SequenceKey, Hash, KeyEqual, Allocator>::ExceptionCallback& exceptionCallback,
-    FUNC&& func,
-    ARGS&&... args)
+        CoroContextPtr<int> ctx,
+        void* opaque,
+        const Sequencer& sequencer,
+        FUNC&& func,
+        ARGS&&... args)
 {
-    auto finalActionWrapper = [&finalAction](int*)
-    {
-        // this should not throw anything outside
-        try
-        {
-            finalAction();
-        }
-        catch(...) {}
-    };
-    // make sure the final action is eventually called 
-    int dummy = 0;
-    std::unique_ptr<int, decltype(finalActionWrapper)&> finalActionCaller(&dummy, finalActionWrapper);
+    // make sure the final action is eventually called
     try
     {
-        func(ctx, std::forward<ARGS>(args)...);
+        std::forward<FUNC>(func)(ctx, std::forward<ARGS>(args)...);
     }
     catch(std::exception& ex)
     {
-        if (exceptionCallback)
+        if (sequencer._exceptionCallback)
         {
-            exceptionCallback(std::current_exception(), opaque);
+            sequencer._exceptionCallback(std::current_exception(), opaque);
         }
-        throw;
+    }
+    catch(...)
+    {
+        if (sequencer._exceptionCallback)
+        {
+            sequencer._exceptionCallback(std::current_exception(), opaque);
+        }
     }
 }
 
@@ -502,7 +508,16 @@ Sequencer<SequenceKey, Hash, KeyEqual, Allocator>::canTrimContext(const ICoroCon
                                                                   const ICoroContextBasePtr& ctxToValidate)
 {
     return !ctxToValidate || !ctxToValidate->valid() ||
-        ctxToValidate->waitFor(ctx, std::chrono::milliseconds(0)) == std::future_status::ready;
+           ctxToValidate->waitFor(ctx, std::chrono::milliseconds(0)) == std::future_status::ready;
+}
+
+template <class SequenceKey, class Hash, class KeyEqual, class Allocator>
+bool
+Sequencer<SequenceKey, Hash, KeyEqual, Allocator>::isPendingContext(const ICoroContextBasePtr& ctx,
+                                                                    const ICoroContextBasePtr& ctxToValidate)
+{
+    return ctxToValidate && ctxToValidate->valid() &&
+           ctxToValidate->waitFor(ctx, std::chrono::milliseconds(0)) == std::future_status::timeout;
 }
 
 

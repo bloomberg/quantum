@@ -19,6 +19,7 @@
 #include <vector>
 #include <tuple>
 #include <atomic>
+#include <memory>
 
 namespace Bloomberg {
 namespace quantum {
