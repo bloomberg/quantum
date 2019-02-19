@@ -123,6 +123,10 @@ void TaskQueue::run()
             
             if (rc != (int)ITask::RetCode::Running) //Coroutine ended
             {
+                //clear the blocked position iterator if it's the same as the finished task
+                if (_blockedIt == _queueIt) {
+                    _blockedIt = _queue.end();
+                }
                 ITaskContinuation::Ptr nextTask;
                 if (rc == (int)ITask::RetCode::Success)
                 {
@@ -156,10 +160,6 @@ void TaskQueue::run()
 #endif
                     //Check if we have a final task to run
                     nextTask = task->getErrorHandlerOrFinalTask();
-                }
-                //clear the blocked position iterator if it's the same as the finished task
-                if (_blockedIt == _queueIt) {
-                    _blockedIt = _queue.end();
                 }
                 //queue next task and de-queue current one
                 enqueue(nextTask);
