@@ -136,7 +136,6 @@ public:
     /// @tparam ARGS Argument types passed to FUNC (@see Dispatcher::post for more details).
     /// @param[in] func Callable object.
     /// @param[in] args Variable list of arguments passed to the callable object.
-    /// @remark This function also trims the sequence keys not used by the sequencer anymore.
     /// @note This function is non-blocking and returns immediately.
     template <class FUNC, class ... ARGS>
     void
@@ -158,7 +157,6 @@ public:
     ///            if an unhandled exception is thrown in func
     /// @param[in] func Callable object.
     /// @param[in] args Variable list of arguments passed to the callable object.
-    /// @remark This function also trims the sequence keys not used by the sequencer anymore.
     /// @note This function is non-blocking and returns immediately.
     template <class FUNC, class ... ARGS>
     void

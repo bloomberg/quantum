@@ -187,12 +187,11 @@ Sequencer<SequenceKey, Hash, KeyEqual, Allocator>::trimSequenceKeys()
     {
         for (auto it = _contexts.begin(); it != _contexts.end();)
         {
-            if (canTrimContext(ctx, it->second._context))
+            auto trimIt = it++;
+            if (canTrimContext(ctx, trimIt->second._context))
             {
-                it = _contexts.erase(it);
-                continue;
+                _contexts.erase(trimIt);
             }
-            ++it;
         }
         return ctx->set(_contexts.size());
     };
@@ -438,17 +437,13 @@ Sequencer<SequenceKey, Hash, KeyEqual, Allocator>::universalTaskScheduler(
     // construct the dependent collection
     std::vector<SequenceKeyData> dependents;
     dependents.reserve(sequencer._contexts.size());
-    for (auto ctxIt = sequencer._contexts.begin(); ctxIt != sequencer._contexts.end();)
+    for (auto ctxIt = sequencer._contexts.begin(); ctxIt != sequencer._contexts.end(); ++ctxIt)
     {
-        // since we're accessing all the contexts here, check if can trim some of them
+        // check if the context still has a pending task
         if (isPendingContext(ctx, ctxIt->second._context))
         {
             // we will need to wait on this context to finish its current running task
             dependents.emplace_back(ctxIt->second);
-            ++ctxIt;
-        }
-        else if (canTrimContext(ctx, ctxIt->second._context)) {
-            ctxIt = sequencer._contexts.erase(ctxIt);
         }
     }
     // update the universal stats only
@@ -485,7 +480,7 @@ Sequencer<SequenceKey, Hash, KeyEqual, Allocator>::callPosted(
     // make sure the final action is eventually called
     try
     {
-        func(ctx, std::forward<ARGS>(args)...);
+        std::forward<FUNC>(func)(ctx, std::forward<ARGS>(args)...);
     }
     catch(std::exception& ex)
     {
@@ -493,7 +488,13 @@ Sequencer<SequenceKey, Hash, KeyEqual, Allocator>::callPosted(
         {
             sequencer._exceptionCallback(std::current_exception(), opaque);
         }
-        throw ex; //rethrow so that quantum can update its own stats
+    }
+    catch(...)
+    {
+        if (sequencer._exceptionCallback)
+        {
+            sequencer._exceptionCallback(std::current_exception(), opaque);
+        }
     }
 }
 

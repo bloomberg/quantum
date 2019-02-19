@@ -38,7 +38,6 @@ public: // types
 
     /**
      * @Brief checks if a task was started before another task finished
-     * @param befre
      */
     void ensureOrder(TaskId beforeTaskId, TaskId afterTaskId)
     {        
@@ -127,11 +126,11 @@ TEST(Sequencer, BasicTaskOrder)
     
     SequencerTestData::TaskSequencer sequencer(DispatcherSingleton::instance());
 
-    // enqueue the tasks with
+    // enqueue the tasks
     for(SequencerTestData::TaskId id = 0; id < taskCount; ++id) 
     {
         SequencerTestData::SequenceKey sequenceKey = id % sequenceKeyCount;
-        // save the taskid for this sequenceKey
+        // save the task id for this sequenceKey
         sequenceKeys[sequenceKey].push_back(id);
         sequencer.post(sequenceKey, testData.makeTask(id));
     }
@@ -159,7 +158,7 @@ TEST(Sequencer, TrimKeys)
     
     SequencerTestData::TaskSequencer sequencer(DispatcherSingleton::instance());
 
-    // enqueue the tasks with    
+    // enqueue the tasks
     for(SequencerTestData::TaskId id = 0; id < taskCount; ++id)
     {
         SequencerTestData::SequenceKey sequenceKey = id % sequenceKeyCount;
@@ -289,7 +288,7 @@ TEST(Sequencer, SequenceKeyStats)
     EXPECT_EQ(sequencer.getSequenceKeyCount(), sequenceKeyCount);
     EXPECT_EQ((unsigned int)taskCount / 2, postedCount);
     // we expect one less because the first universal task starts running until it hits the block,
-    // therefor all tasks are pending except one
+    // therefore all tasks are pending except one
     EXPECT_EQ(((unsigned int)(taskCount / 2) - 1), pendingCount);
     
     // release the tasks
@@ -348,14 +347,14 @@ TEST(Sequencer, TaskOrderWithUniversal)
     {
         if ( id % universalTaskFrequency == 0 ) 
         {
-            // save the taskid as universal
+            // save the task id as universal
             universal.push_back(id);
             sequencer.postAll(testData.makeTask(id));
         }
         else 
         {
             SequencerTestData::SequenceKey sequenceKey = id % sequenceKeyCount;
-            // save the taskid for this sequenceKey
+            // save the task id for this sequenceKey
             sequenceKeys[sequenceKey].push_back(id);
             sequencer.post(sequenceKey, testData.makeTask(id));
         }
@@ -419,7 +418,7 @@ TEST(Sequencer, MultiSequenceKeyTasks)
     for(SequencerTestData::TaskId id = 1; id <= taskCount; ++id) 
     {
         std::vector<SequencerTestData::SequenceKey> sequenceKeys = getBitVector(id);
-        // save the taskid for this sequenceKey
+        // save the task id for this sequenceKey
         sequencer.post(sequenceKeys, testData.makeTask(id));
     }
     DispatcherSingleton::instance().drain();
@@ -490,7 +489,7 @@ TEST(Sequencer, CustomHashFunction)
     for(SequencerTestData::TaskId id = 0; id < taskCount; ++id) 
     {
         SequencerTestData::SequenceKey sequenceKey = id % fullSequenceKeyCount;
-        // save the taskid for this sequenceKey
+        // save the task id for this sequenceKey
         sequenceKeys[sequenceKey].push_back(id);
         // post the task with the real sequenceKey id
         sequencer.post(std::move(sequenceKey), testData.makeTask(id));
