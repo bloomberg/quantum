@@ -286,12 +286,16 @@ Sequencer<SequenceKey, Hash, KeyEqual, Allocator>::waitForDependents(
         {
             dependent._context->wait(ctx);
         }
-        dependent._stats->decrementPendingTaskCount();
     }
     //wait until the universal dependent is done
     if (universalDependent._context)
     {
         universalDependent._context->wait(ctx);
+    }
+    //update stats
+    for (const auto& dependent : dependents)
+    {
+        dependent._stats->decrementPendingTaskCount();
     }
     // update task stats
     sequencer._taskStats->decrementPendingTaskCount();
