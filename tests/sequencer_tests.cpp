@@ -26,6 +26,7 @@ public: // types
     using SequenceKey = int;
     using TaskId = int;
     using TaskSequencer = Sequencer<SequenceKey>;
+    using TaskSequencerConfiguration = SequencerConfiguration<SequenceKey>;
     struct TaskResult
     {
         /// Task start time
@@ -216,7 +217,7 @@ TEST(Sequencer, ExceptionHandler)
         }
     };
     
-    SequencerConfiguration<SequencerTestData::SequenceKey> config;
+    SequencerTestData::TaskSequencerConfiguration config;
     config.setExceptionCallback(exceptionCallback);
     SequencerTestData::TaskSequencer sequencer(DispatcherSingleton::instance(), config);
     
@@ -250,8 +251,11 @@ TEST(Sequencer, SequenceKeyStats)
     const int universalTaskFrequency = 11; // every 11th task is universal
     SequencerTestData testData;
     std::atomic<bool> blockFlag(true);
+    const int controlQueueId = 0;
     
-    SequencerTestData::TaskSequencer sequencer(DispatcherSingleton::instance());
+    SequencerTestData::TaskSequencerConfiguration config;
+    config.setControlQueueId(controlQueueId);
+    SequencerTestData::TaskSequencer sequencer(DispatcherSingleton::instance(), config);
 
     // enqueue the first half
     for(SequencerTestData::TaskId id = 0; id < taskCount / 2; ++id)
@@ -267,10 +271,13 @@ TEST(Sequencer, SequenceKeyStats)
         }
     }
 
-    while (sequencer.getTaskStatistics().getPostedTaskCount() != taskCount / 2) {
-        size_t count = sequencer.getStatistics().getPostedTaskCount(); (void)count;
-        testData.sleep();
-    }
+    auto halfWayDoneJob = [](CoroContext<int>::Ptr ctx)->int
+    {
+        return ctx->set(0);
+    };
+    // this task will be done when all the tasks posted above
+    // are scheduled because it's posted to the same controlQueueId
+    DispatcherSingleton::instance().post<int>(controlQueueId, false, std::move(halfWayDoneJob))->wait();
 
     // make sure all the enqueued tasks are pending
     size_t postedCount = 0;
