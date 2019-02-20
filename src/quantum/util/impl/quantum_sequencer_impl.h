@@ -83,8 +83,8 @@ Sequencer<SequenceKey, Hash, KeyEqual, Allocator>::post(
                           false,
                           singleSequenceKeyTaskScheduler<FUNC, ARGS...>,
                           std::move(opaque),
-                          queueId,
-                          isHighPriority,
+                          std::move(queueId),
+                          std::move(isHighPriority),
                           *this,
                           SequenceKey(sequenceKey),
                           std::forward<FUNC>(func),
@@ -130,8 +130,8 @@ Sequencer<SequenceKey, Hash, KeyEqual, Allocator>::post(
                           false,
                           multiSequenceKeyTaskScheduler<FUNC, ARGS...>,
                           std::move(opaque),
-                          queueId,
-                          isHighPriority,
+                          std::move(queueId),
+                          std::move(isHighPriority),
                           *this,
                           std::vector<SequenceKey>(sequenceKeys),
                           std::forward<FUNC>(func),
@@ -172,8 +172,8 @@ Sequencer<SequenceKey, Hash, KeyEqual, Allocator>::postAll(
                           false,
                           universalTaskScheduler<FUNC, ARGS...>,
                           std::move(opaque),
-                          queueId,
-                          isHighPriority,
+                          std::move(queueId),
+                          std::move(isHighPriority),
                           *this,
                           std::forward<FUNC>(func),
                           std::forward<ARGS>(args)...);
@@ -195,7 +195,7 @@ Sequencer<SequenceKey, Hash, KeyEqual, Allocator>::trimSequenceKeys()
         }
         return ctx->set(_contexts.size());
     };
-    return _dispatcher.post<size_t>(_controllerQueueId, true, trimFunc)->get();
+    return _dispatcher.post<size_t>(_controllerQueueId, true, std::move(trimFunc))->get();
 }
 
 template <class SequenceKey, class Hash, class KeyEqual, class Allocator>
@@ -211,7 +211,7 @@ Sequencer<SequenceKey, Hash, KeyEqual, Allocator>::getStatistics(const SequenceK
         }
         return ctx->set(SequenceKeyStatistics(*ctxIt->second._stats));
     };
-    return _dispatcher.post<SequenceKeyStatistics>(_controllerQueueId, true, statsFunc)->get();
+    return _dispatcher.post<SequenceKeyStatistics>(_controllerQueueId, true, std::move(statsFunc))->get();
 }
 
 template <class SequenceKey, class Hash, class KeyEqual, class Allocator>
@@ -236,7 +236,7 @@ Sequencer<SequenceKey, Hash, KeyEqual, Allocator>::getSequenceKeyCount()
     {
         return ctx->set(_contexts.size());
     };
-    return _dispatcher.post<size_t>(_controllerQueueId, true, statsFunc)->get();
+    return _dispatcher.post<size_t>(_controllerQueueId, true, std::move(statsFunc))->get();
 }
 
 template <class SequenceKey, class Hash, class KeyEqual, class Allocator>
@@ -363,8 +363,8 @@ Sequencer<SequenceKey, Hash, KeyEqual, Allocator>::singleSequenceKeyTaskSchedule
     
     // save the context as the last for this sequenceKey
     contextIt->second._context = ctx->post<int>(
-            queueId,
-            isHighPriority,
+            std::move(queueId),
+            std::move(isHighPriority),
             waitForTwoDependents<FUNC, ARGS...>,
             std::move(opaque),
             sequencer,
@@ -408,8 +408,8 @@ Sequencer<SequenceKey, Hash, KeyEqual, Allocator>::multiSequenceKeyTaskScheduler
     sequencer._taskStats->incrementPendingTaskCount();
     
     ICoroContextBasePtr newCtx = ctx->post<int>(
-            queueId,
-            isHighPriority,
+            std::move(queueId),
+            std::move(isHighPriority),
             waitForDependents<FUNC, ARGS...>,
             std::move(opaque),
             sequencer,
@@ -459,8 +459,8 @@ Sequencer<SequenceKey, Hash, KeyEqual, Allocator>::universalTaskScheduler(
 
     // post the task and save the context as the last for the universal sequenceKey
     sequencer._universalContext._context = ctx->post<int>(
-            queueId,
-            isHighPriority,
+            std::move(queueId),
+            std::move(isHighPriority),
             waitForUniversalDependent<FUNC, ARGS...>,
             std::move(opaque),
             sequencer,
