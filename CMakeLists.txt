@@ -28,7 +28,13 @@ add_definitions(
         -D_POSIX_PTHREAD_SEMANTICS
         -D__FUNCTION__=__FILE__
 )
-add_compile_options(-Wall -Wextra -Werror -Wabi -O0 -m${MODE} -std=gnu++${CMAKE_CXX_STANDARD} -ftemplate-backtrace-limit=0)
+
+#Set compile flags if they haven't been set via CXXFLAGS environment variable
+if (CMAKE_CXX_FLAGS)
+    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++${CMAKE_CXX_STANDARD}")
+else()
+    set(CMAKE_CXX_FLAGS "-Wall -Wextra -Werror -Wabi -O0 -m${MODE} -std=c++${CMAKE_CXX_STANDARD} -ftemplate-backtrace-limit=0")
+endif()
 
 if (QUANTUM_BUILD_DOC)
     message(STATUS "Generating Doxygen configuration files")
