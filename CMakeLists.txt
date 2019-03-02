@@ -30,9 +30,7 @@ add_definitions(
 )
 
 #Set compile flags if they haven't been set via CXXFLAGS environment variable
-if (CMAKE_CXX_FLAGS)
-    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++${CMAKE_CXX_STANDARD}")
-else()
+if (NOT CMAKE_CXX_FLAGS)
     set(CMAKE_CXX_FLAGS "-Wall -Wextra -Werror -Wabi -O0 -m${MODE} -std=c++${CMAKE_CXX_STANDARD} -ftemplate-backtrace-limit=0")
 endif()
 
