@@ -27,48 +27,48 @@ namespace quantum {
 //                                class IThreadPromise
 //==============================================================================================
 template <template<class> class PROMISE, class T>
-template <class V>
+template <class V, class>
 int IThreadPromise<PROMISE, T>::set(V&& value)
 {
-    return static_cast<Impl*>(this)->template set<V>(std::forward<V>(value));
+    return static_cast<Impl*>(this)->template set(std::forward<V>(value));
 }
 
 template <template<class> class PROMISE, class T>
-template <class BUF, class V>
-void IThreadPromise<PROMISE, T>::push(V &&value)
+template <class V, class>
+void IThreadPromise<PROMISE, T>::push(V&& value)
 {
-    static_cast<Impl*>(this)->template push<BUF>(std::forward<V>(value));
+    static_cast<Impl*>(this)->template push(std::forward<V>(value));
 }
 
 template <template<class> class PROMISE, class T>
-template <class BUF, class>
+template <class V, class>
 int IThreadPromise<PROMISE, T>::closeBuffer()
 {
-    return static_cast<Impl*>(this)->template closeBuffer<BUF>();
+    return static_cast<Impl*>(this)->template closeBuffer();
 }
 
 //==============================================================================================
 //                                class ICoroPromise
 //==============================================================================================
 template <template<class> class PROMISE, class T>
-template <class V>
+template <class V, class>
 int ICoroPromise<PROMISE, T>::set(ICoroSync::Ptr sync, V&& value)
 {
-    return static_cast<Impl*>(this)->template set<V>(sync, std::forward<V>(value));
+    return static_cast<Impl*>(this)->template set(sync, std::forward<V>(value));
 }
 
 template <template<class> class PROMISE, class T>
-template <class BUF, class V>
-void ICoroPromise<PROMISE, T>::push(ICoroSync::Ptr sync, V &&value)
+template <class V, class>
+void ICoroPromise<PROMISE, T>::push(ICoroSync::Ptr sync, V&& value)
 {
-    static_cast<Impl*>(this)->template push<BUF>(sync, std::forward<V>(value));
+    static_cast<Impl*>(this)->template push(sync, std::forward<V>(value));
 }
 
 template <template<class> class PROMISE, class T>
-template <class BUF, class>
+template <class V, class>
 int ICoroPromise<PROMISE, T>::closeBuffer()
 {
-    return static_cast<Impl*>(this)->template closeBuffer<BUF>();
+    return static_cast<Impl*>(this)->template closeBuffer();
 }
 
 //==============================================================================================
@@ -138,7 +138,7 @@ ICoroFutureBase::Ptr Promise<T>::getICoroFutureBase() const
 }
 
 template <class T>
-template <class V>
+template <class V, class>
 int Promise<T>::set(V&& value)
 {
     if (!_sharedState) ThrowFutureException(FutureState::NoState);
@@ -153,7 +153,7 @@ ThreadFuturePtr<T> Promise<T>::getIThreadFuture() const
 }
 
 template <class T>
-template <class V>
+template <class V, class>
 int Promise<T>::set(ICoroSync::Ptr sync, V&& value)
 {
     if (!_sharedState) ThrowFutureException(FutureState::NoState);
@@ -168,27 +168,27 @@ CoroFuturePtr<T> Promise<T>::getICoroFuture() const
 }
 
 template <class T>
-template <class BUF, class V>
-void Promise<T>::push(V &&value)
+template <class V, class>
+void Promise<T>::push(V&& value)
 {
     if (!_sharedState) ThrowFutureException(FutureState::NoState);
-    _sharedState->template push<BUF>(std::forward<V>(value));
+    _sharedState->template push(std::forward<V>(value));
 }
 
 template <class T>
-template <class BUF, class V>
-void Promise<T>::push(ICoroSync::Ptr sync, V &&value)
+template <class V, class>
+void Promise<T>::push(ICoroSync::Ptr sync, V&& value)
 {
     if (!_sharedState) ThrowFutureException(FutureState::NoState);
-    _sharedState->template push<BUF>(sync, std::forward<V>(value));
+    _sharedState->template push(sync, std::forward<V>(value));
 }
 
 template <class T>
-template <class BUF, class>
+template <class V, class>
 int Promise<T>::closeBuffer()
 {
     if (!_sharedState) ThrowFutureException(FutureState::NoState);
-    return _sharedState->template closeBuffer<BUF>();
+    return _sharedState->template closeBuffer();
 }
 
 template <class T>

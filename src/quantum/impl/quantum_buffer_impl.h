@@ -59,13 +59,19 @@ void Buffer<T,ALLOCATOR>::close()
 }
 
 template <class T, class ALLOCATOR>
-size_t Buffer<T,ALLOCATOR>::size()
+bool Buffer<T,ALLOCATOR>::isClosed() const
+{
+    return _isClosed;
+}
+
+template <class T, class ALLOCATOR>
+size_t Buffer<T,ALLOCATOR>::size() const
 {
     return _buffer.size();
 }
 
 template <class T, class ALLOCATOR>
-bool Buffer<T,ALLOCATOR>::empty()
+bool Buffer<T,ALLOCATOR>::empty() const
 {
     return _buffer.empty();
 }

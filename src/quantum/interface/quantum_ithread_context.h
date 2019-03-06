@@ -75,13 +75,15 @@ struct IThreadContext : public IThreadContextBase
     /// @brief Get the future value associated with this context.
     /// @note Blocks until the future is ready or until an exception is thrown. Once this function returns, the future
     ///       becomes invalidated (i.e. cannot be read again).
-    virtual RET get() = 0;
+    template <class V = RET>
+    NonBufferRetType<V> get();
     
     /// @brief Get a reference the future value associated with this context.
     /// @return A reference to the future value.
     /// @note Blocks until the future is ready or until an exception is thrown. Contrary to get(), this function does
     ///       not invalidate the future and as such may be read again.
-    virtual const RET& getRef() const = 0;
+    template <class V = RET>
+    const NonBufferRetType<V>& getRef() const;
     
     /// @brief Get the future value from the 'num-th' continuation context.
     /// @details Allowed range for num is [-1, total_continuations). -1 is equivalent of calling get() or
@@ -93,7 +95,7 @@ struct IThreadContext : public IThreadContextBase
     /// @note Blocks until the future is ready or until an exception is thrown. Once this function returns, the future
     ///       is invalidated (i.e. cannot be read again).
     template <class OTHER_RET>
-    OTHER_RET getAt(int num);
+    NonBufferRetType<OTHER_RET> getAt(int num);
     
     /// @brief Get a reference to the future value from the 'num-th' continuation context.
     /// @details Allowed range for num is [-1, total_continuations). -1 is equivalent of calling get() or
@@ -105,14 +107,14 @@ struct IThreadContext : public IThreadContextBase
     /// @note Blocks until the future is ready or until an exception is thrown. Contrary to getAt() this function will
     ///       not invalidate the future and as such it can be read again.
     template <class OTHER_RET>
-    const OTHER_RET& getRefAt(int num) const;
+    const NonBufferRetType<OTHER_RET>& getRefAt(int num) const;
     
     /// @brief Set the promised value associated with this context.
     /// @tparam V Type of the promised value. This should be implicitly deduced by the compiler and should always == RET.
     /// @param[in] value A reference to the value (l-value or r-value).
     /// @note Never blocks.
     /// @return 0 on success
-    template <class V = RET>
+    template <class V, class = NonBufferType<RET,V>>
     int set(V&& value);
     
     /// @brief Push a single value into the promise buffer.
@@ -121,8 +123,8 @@ struct IThreadContext : public IThreadContextBase
     /// @param[in] value Value to push at the end of the buffer.
     /// @note Method available for buffered futures only. Never blocks. Once the buffer is closed, no more Push
     ///       operations are allowed.
-    template <class BUF = RET, class V = BufferValue<BUF>>
-    void push(V &&value);
+    template <class V, class = BufferType<RET,V>>
+    void push(V&& value);
     
     /// @brief Pull a single value from the future buffer.
     /// @tparam BUF Represents a class of type Buffer.
@@ -130,15 +132,15 @@ struct IThreadContext : public IThreadContextBase
     /// @param[out] isBufferClosed Indicates if this buffer is closed and no more Pull operations are allowed on it.
     /// @return The next value pulled out from the front of the buffer.
     /// @note Method available for buffered futures only. Blocks until one value is retrieved from the buffer.
-    template <class BUF = RET, class V = BufferValue<BUF>>
-    V pull(bool& isBufferClosed);
+    template <class V = RET>
+    BufferRetType<V> pull(bool& isBufferClosed);
     
     /// @brief Close a promise buffer.
     /// @tparam BUF Represents a class of type Buffer.
     /// @note Once closed no more Pushes can be made into the buffer. The corresponding future can still Pull values until
     ///       the buffer is empty.
     /// @return 0 on success.
-    template <class BUF = RET, class V = BufferValue<BUF>>
+    template <class V = RET, class = BufferRetType<V>>
     int closeBuffer();
     
     /// @brief Returns the number of underlying coroutine threads as specified in the dispatcher constructor.
@@ -155,7 +157,7 @@ struct IThreadContext : public IThreadContextBase
     int getNumIoThreads() const;
     
     //=========================================================================================
-    //                          TASK CONTINUATIONS (NON-VIRTUAL)
+    //                                      TASK CONTINUATIONS
     //=========================================================================================
     /// @attention
     /// Continuation methods are typically chained in the following manner and must follow the relative placement

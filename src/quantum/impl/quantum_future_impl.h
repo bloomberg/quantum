@@ -40,20 +40,48 @@ namespace quantum {
 //                                class IThreadFuture
 //==============================================================================================
 template <class T>
-template <class BUF, class V>
-V IThreadFuture<T>::pull(bool& isBufferClosed)
+template <class V>
+NonBufferRetType<V> IThreadFuture<T>::get()
 {
-    return static_cast<Impl*>(this)->template pull<BUF>(isBufferClosed);
+    return static_cast<Impl*>(this)->template get();
+}
+
+template <class T>
+template <class V>
+const NonBufferRetType<V>& IThreadFuture<T>::getRef() const
+{
+    return static_cast<const Impl*>(this)->template getRef();
+}
+
+template <class T>
+template <class V>
+BufferRetType<V> IThreadFuture<T>::pull(bool& isBufferClosed)
+{
+    return static_cast<Impl*>(this)->template pull(isBufferClosed);
 }
 
 //==============================================================================================
 //                                class ICoroFuture
 //==============================================================================================
 template <class T>
-template <class BUF, class V>
-V ICoroFuture<T>::pull(ICoroSync::Ptr sync, bool& isBufferClosed)
+template <class V>
+NonBufferRetType<V> ICoroFuture<T>::get(ICoroSync::Ptr sync)
 {
-    return static_cast<Impl*>(this)->template pull<BUF>(sync, isBufferClosed);
+    return static_cast<Impl*>(this)->template get(sync);
+}
+
+template <class T>
+template <class V>
+const NonBufferRetType<V>& ICoroFuture<T>::getRef(ICoroSync::Ptr sync) const
+{
+    return static_cast<const Impl*>(this)->template getRef(sync);
+}
+
+template <class T>
+template <class V>
+BufferRetType<V> ICoroFuture<T>::pull(ICoroSync::Ptr sync, bool& isBufferClosed)
+{
+    return static_cast<Impl*>(this)->template pull(sync, isBufferClosed);
 }
 
 //==============================================================================================
@@ -71,14 +99,16 @@ bool Future<T>::valid() const
 }
 
 template <class T>
-T Future<T>::get()
+template <class V>
+NonBufferRetType<V> Future<T>::get()
 {
     if (!_sharedState) ThrowFutureException(FutureState::NoState);
     return _sharedState->get();
 }
 
 template <class T>
-const T& Future<T>::getRef() const
+template <class V>
+const NonBufferRetType<V>& Future<T>::getRef() const
 {
     if (!_sharedState) ThrowFutureException(FutureState::NoState);
     return _sharedState->getRef();
@@ -99,14 +129,16 @@ std::future_status Future<T>::waitFor(std::chrono::milliseconds timeMs) const
 }
 
 template <class T>
-T Future<T>::get(ICoroSync::Ptr sync)
+template <class V>
+NonBufferRetType<V> Future<T>::get(ICoroSync::Ptr sync)
 {
     if (!_sharedState) ThrowFutureException(FutureState::NoState);
     return _sharedState->get(sync);
 }
 
 template <class T>
-const T& Future<T>::getRef(ICoroSync::Ptr sync) const
+template <class V>
+const NonBufferRetType<V>& Future<T>::getRef(ICoroSync::Ptr sync) const
 {
     if (!_sharedState) ThrowFutureException(FutureState::NoState);
     return _sharedState->getRef(sync);
@@ -128,19 +160,19 @@ std::future_status Future<T>::waitFor(ICoroSync::Ptr sync,
 }
 
 template <class T>
-template <class BUF, class V>
-V Future<T>::pull(bool& isBufferClosed)
+template <class V>
+BufferRetType<V> Future<T>::pull(bool& isBufferClosed)
 {
     if (!_sharedState) ThrowFutureException(FutureState::NoState);
-    return _sharedState->template pull<BUF>(isBufferClosed);
+    return _sharedState->template pull(isBufferClosed);
 }
 
 template <class T>
-template <class BUF, class V>
-V Future<T>::pull(ICoroSync::Ptr sync, bool& isBufferClosed)
+template <class V>
+BufferRetType<V> Future<T>::pull(ICoroSync::Ptr sync, bool& isBufferClosed)
 {
     if (!_sharedState) ThrowFutureException(FutureState::NoState);
-    return _sharedState->template pull<BUF>(sync, isBufferClosed);
+    return _sharedState->template pull(sync, isBufferClosed);
 }
 
 template <class T>

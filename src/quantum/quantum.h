@@ -69,9 +69,9 @@
 #include <quantum/quantum_traits.h>
 #include <quantum/quantum_yielding_thread.h>
 #include <quantum/util/quantum_future_joiner.h>
+#include <quantum/util/quantum_sequence_key_statistics.h>
 #include <quantum/util/quantum_sequencer.h>
 #include <quantum/util/quantum_sequencer_configuration.h>
-#include <quantum/util/quantum_sequence_key_statistics.h>
 #include <quantum/util/quantum_util.h>
 
 #endif //QUANTUM_H

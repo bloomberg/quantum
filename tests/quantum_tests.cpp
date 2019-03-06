@@ -520,10 +520,9 @@ TEST(PromiseTest, BufferedFuture)
 {
     Dispatcher& dispatcher = DispatcherSingleton::instance();
     ThreadContext<Buffer<int>>::Ptr ctx = dispatcher.post<Buffer<int>>([](CoroContext<Buffer<int>>::Ptr ctx)->int{
-        for (int d = 0; d < 5; d++)
+        for (int d = 0; d < 100; d++)
         {
             ctx->push(d);
-            ctx->yield(); //simulate some arbitrary delay
         }
         return ctx->closeBuffer();
     });
@@ -538,8 +537,49 @@ TEST(PromiseTest, BufferedFuture)
     }
     
     //Validate
-    std::vector<int> validate{0,1,2,3,4};
-    EXPECT_EQ(validate, v);
+    size_t num = 0;
+    for (auto&& val : v) {
+        EXPECT_EQ(num++, val);
+    }
+}
+
+TEST(PromiseTest, BufferedFutureException)
+{
+    Dispatcher& dispatcher = DispatcherSingleton::instance();
+    ThreadContext<Buffer<int>>::Ptr ctx = dispatcher.post<Buffer<int>>([](CoroContext<Buffer<int>>::Ptr ctx)->int{
+        for (int d = 0; d < 100; d++)
+        {
+            ctx->push(d);
+        }
+        // Don't close the buffer but throw instead
+        try {
+            throw 5;
+        }
+        catch (...)
+        {
+            return ctx->setException(std::current_exception());
+        }
+    });
+    
+    std::vector<int> v;
+    bool wasCaught = false;
+    while (1)
+    {
+        try {
+            bool isBufferClosed = false;
+            int value = ctx->pull(isBufferClosed);
+            if (isBufferClosed) break;
+            v.push_back(value);
+        }
+        catch (...) {
+            wasCaught = true;
+            break;
+        }
+    }
+    
+    //Validate
+    EXPECT_TRUE(wasCaught);
+    EXPECT_GE(100, v.size());
 }
 
 TEST(PromiseTest, GetFutureReference)

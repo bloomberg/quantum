@@ -70,13 +70,16 @@ public:
     ///        are permitted until the buffer empties.
     void close();
     
+    /// @brief Indicates if the buffer is closed.
+    bool isClosed() const;
+    
     /// @brief Indicates the number of values stored in the buffer.
     /// @return Number of values in the buffer.
-    size_t size();
+    size_t size() const;
     
     /// @brief Helper function equivalent to size() == 0;
     /// @return True if empty, false otherwise.
-    bool empty();
+    bool empty() const;
     
 private:
     std::deque<T,ALLOCATOR>     _buffer;

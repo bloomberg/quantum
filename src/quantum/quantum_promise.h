@@ -57,20 +57,20 @@ public:
     int setException(std::exception_ptr ex) final;
     
     //IThreadPromise
-    template <class V = T>
+    template <class V, class = NonBufferType<T,V>>
     int set(V&& value);
     
-    template <class BUF = T, class V = BufferValue<BUF>>
-    void push(V &&value);
+    template <class V, class = BufferType<T,V>>
+    void push(V&& value);
     
     //ICoroPromise
-    template <class V = T>
+    template <class V, class = NonBufferType<T,V>>
     int set(ICoroSync::Ptr sync, V&& value);
     
-    template <class BUF = T, class V = BufferValue<BUF>>
-    void push(ICoroSync::Ptr sync, V &&value);
+    template <class V, class = BufferType<T,V>>
+    void push(ICoroSync::Ptr sync, V&& value);
     
-    template <class BUF = T, class V = BufferValue<BUF>>
+    template <class V = T, class = BufferRetType<V>>
     int closeBuffer();
     
     //===================================

@@ -28,44 +28,58 @@ namespace quantum {
 //==============================================================================================
 template <class RET>
 template <class V>
-int IThreadContext<RET>::set(V&& value)
+NonBufferRetType<V> IThreadContext<RET>::get()
 {
-    return static_cast<Impl*>(this)->template set(std::forward<V>(value));
+    return static_cast<Impl*>(this)->template get();
+}
+
+template <class RET>
+template <class V>
+const NonBufferRetType<V>& IThreadContext<RET>::getRef() const
+{
+    return static_cast<const Impl*>(this)->template getRef();
 }
 
 template <class RET>
 template <class OTHER_RET>
-OTHER_RET IThreadContext<RET>::getAt(int num)
+NonBufferRetType<OTHER_RET> IThreadContext<RET>::getAt(int num)
 {
     return static_cast<Impl*>(this)->template getAt<OTHER_RET>(num);
 }
 
 template <class RET>
 template <class OTHER_RET>
-const OTHER_RET& IThreadContext<RET>::getRefAt(int num) const
+const NonBufferRetType<OTHER_RET>& IThreadContext<RET>::getRefAt(int num) const
 {
     return static_cast<const Impl*>(this)->template getRefAt<OTHER_RET>(num);
 }
 
 template <class RET>
-template <class BUF, class V>
-void IThreadContext<RET>::push(V &&value)
+template <class V, class>
+int IThreadContext<RET>::set(V&& value)
 {
-    static_cast<Impl*>(this)->template push<BUF>(std::forward<V>(value));
+    return static_cast<Impl*>(this)->template set(std::forward<V>(value));
 }
 
 template <class RET>
-template <class BUF, class V>
-V IThreadContext<RET>::pull(bool& isBufferClosed)
+template <class V, class>
+void IThreadContext<RET>::push(V&& value)
 {
-    return static_cast<Impl*>(this)->template pull<BUF>(isBufferClosed);
+    static_cast<Impl*>(this)->template push(std::forward<V>(value));
 }
 
 template <class RET>
-template <class BUF, class>
+template <class V>
+BufferRetType<V> IThreadContext<RET>::pull(bool& isBufferClosed)
+{
+    return static_cast<Impl*>(this)->template pull(isBufferClosed);
+}
+
+template <class RET>
+template <class V, class>
 int IThreadContext<RET>::closeBuffer()
 {
-    return static_cast<Impl*>(this)->template closeBuffer<BUF>();
+    return static_cast<Impl*>(this)->template closeBuffer();
 }
 
 template <class RET>
@@ -116,15 +130,21 @@ IThreadContext<RET>::end()
 //==============================================================================================
 template <class RET>
 template <class V>
-int ICoroContext<RET>::set(V&& value)
+NonBufferRetType<V> ICoroContext<RET>::get(ICoroSync::Ptr sync)
 {
-    std::shared_ptr<Impl> ctx = static_cast<Impl*>(this)->shared_from_this();
-    return ctx->template set(ctx, std::forward<V>(value));
+    return static_cast<Impl*>(this)->template get(sync);
+}
+
+template <class RET>
+template <class V>
+const NonBufferRetType<V>& ICoroContext<RET>::getRef(ICoroSync::Ptr sync) const
+{
+    return static_cast<const Impl*>(this)->template getRef(sync);
 }
 
 template <class RET>
 template <class OTHER_RET>
-OTHER_RET ICoroContext<RET>::getPrev()
+NonBufferRetType<OTHER_RET> ICoroContext<RET>::getPrev()
 {
     std::shared_ptr<Impl> ctx = static_cast<Impl*>(this)->shared_from_this();
     return ctx->template getPrev<OTHER_RET>(ctx);
@@ -132,7 +152,7 @@ OTHER_RET ICoroContext<RET>::getPrev()
 
 template <class RET>
 template <class OTHER_RET>
-const OTHER_RET& ICoroContext<RET>::getPrevRef()
+const NonBufferRetType<OTHER_RET>& ICoroContext<RET>::getPrevRef()
 {
     std::shared_ptr<Impl> ctx = static_cast<Impl*>(this)->shared_from_this();
     return ctx->template getPrevRef<OTHER_RET>(ctx);
@@ -140,38 +160,46 @@ const OTHER_RET& ICoroContext<RET>::getPrevRef()
 
 template <class RET>
 template <class OTHER_RET>
-OTHER_RET ICoroContext<RET>::getAt(int num, ICoroSync::Ptr sync)
+NonBufferRetType<OTHER_RET> ICoroContext<RET>::getAt(int num, ICoroSync::Ptr sync)
 {
     return static_cast<Impl*>(this)->template getAt<OTHER_RET>(num, sync);
 }
 
 template <class RET>
 template <class OTHER_RET>
-const OTHER_RET& ICoroContext<RET>::getRefAt(int num, ICoroSync::Ptr sync) const
+const NonBufferRetType<OTHER_RET>& ICoroContext<RET>::getRefAt(int num, ICoroSync::Ptr sync) const
 {
     return static_cast<const Impl*>(this)->template getRefAt<OTHER_RET>(num, sync);
 }
 
 template <class RET>
-template <class BUF, class V>
-void ICoroContext<RET>::push(V &&value)
+template <class V, class>
+int ICoroContext<RET>::set(V&& value)
 {
     std::shared_ptr<Impl> ctx = static_cast<Impl*>(this)->shared_from_this();
-    ctx->template push<BUF>(ctx, std::forward<V>(value));
+    return ctx->template set(ctx, std::forward<V>(value));
 }
 
 template <class RET>
-template <class BUF, class V>
-V ICoroContext<RET>::pull(ICoroSync::Ptr sync, bool& isBufferClosed)
+template <class V, class>
+void ICoroContext<RET>::push(V&& value)
 {
-    return static_cast<Impl*>(this)->template pull<BUF>(sync, isBufferClosed);
+    std::shared_ptr<Impl> ctx = static_cast<Impl*>(this)->shared_from_this();
+    ctx->template push(ctx, std::forward<V>(value));
 }
 
 template <class RET>
-template <class BUF, class>
+template <class V>
+BufferRetType<V> ICoroContext<RET>::pull(ICoroSync::Ptr sync, bool& isBufferClosed)
+{
+    return static_cast<Impl*>(this)->template pull(sync, isBufferClosed);
+}
+
+template <class RET>
+template <class V, class>
 int ICoroContext<RET>::closeBuffer()
 {
-    return static_cast<Impl*>(this)->template closeBuffer<BUF>();
+    return static_cast<Impl*>(this)->template closeBuffer();
 }
 
 template <class RET>
@@ -803,69 +831,71 @@ Context<RET>::mapReduceBatch(INPUT_IT first,
 }
 
 template <class RET>
-template <class V>
+template <class V, class>
 int Context<RET>::set(V&& value)
 {
     return std::static_pointer_cast<Promise<RET>>(_promises.back())->set(std::forward<V>(value));
 }
 
 template <class RET>
-template <class BUF, class V>
-void Context<RET>::push(V &&value)
+template <class V, class>
+void Context<RET>::push(V&& value)
 {
-    std::static_pointer_cast<Promise<RET>>(_promises.back())->template push<BUF>(std::forward<V>(value));
+    std::static_pointer_cast<Promise<RET>>(_promises.back())->template push(std::forward<V>(value));
 }
 
 template <class RET>
-template <class BUF, class V>
-void Context<RET>::push(ICoroSync::Ptr sync, V &&value)
+template <class V, class>
+void Context<RET>::push(ICoroSync::Ptr sync, V&& value)
 {
-    std::static_pointer_cast<Promise<RET>>(_promises.back())->template push<BUF>(sync, std::forward<V>(value));
+    std::static_pointer_cast<Promise<RET>>(_promises.back())->template push(sync, std::forward<V>(value));
 }
 
 template <class RET>
-template <class BUF, class V>
-V Context<RET>::pull(bool& isBufferClosed)
+template <class V>
+BufferRetType<V> Context<RET>::pull(bool& isBufferClosed)
 {
-    return std::static_pointer_cast<Promise<RET>>(_promises.back())->getIThreadFuture()->template pull<BUF>(isBufferClosed);
+    return std::static_pointer_cast<Promise<RET>>(_promises.back())->getIThreadFuture()->template pull(isBufferClosed);
 }
 
 template <class RET>
-template <class BUF, class V>
-V Context<RET>::pull(ICoroSync::Ptr sync, bool& isBufferClosed)
+template <class V>
+BufferRetType<V> Context<RET>::pull(ICoroSync::Ptr sync, bool& isBufferClosed)
 {
-    return std::static_pointer_cast<Promise<RET>>(_promises.back())->getICoroFuture()->template pull<BUF>(sync, isBufferClosed);
+    return std::static_pointer_cast<Promise<RET>>(_promises.back())->getICoroFuture()->template pull(sync, isBufferClosed);
 }
 
 template <class RET>
-template <class BUF, class>
+template <class V, class>
 int Context<RET>::closeBuffer()
 {
-    return std::static_pointer_cast<Promise<RET>>(_promises.back())->template closeBuffer<BUF>();
+    return std::static_pointer_cast<Promise<RET>>(_promises.back())->template closeBuffer();
 }
 
 template <class RET>
 template <class OTHER_RET>
-OTHER_RET Context<RET>::getAt(int num)
+NonBufferRetType<OTHER_RET> Context<RET>::getAt(int num)
 {
     return std::static_pointer_cast<Promise<OTHER_RET>>(_promises[index(num)])->getIThreadFuture()->get();
 }
 
 template <class RET>
 template <class OTHER_RET>
-const OTHER_RET& Context<RET>::getRefAt(int num) const
+const NonBufferRetType<OTHER_RET>& Context<RET>::getRefAt(int num) const
 {
     return std::static_pointer_cast<Promise<OTHER_RET>>(_promises[index(num)])->getIThreadFuture()->getRef();
 }
 
 template <class RET>
-RET Context<RET>::get()
+template <class V>
+NonBufferRetType<V> Context<RET>::get()
 {
     return getAt<RET>(-1);
 }
 
 template <class RET>
-const RET& Context<RET>::getRef() const
+template <class V>
+const NonBufferRetType<V>& Context<RET>::getRef() const
 {
     return getRefAt<RET>(-1);
 }
@@ -909,7 +939,7 @@ void Context<RET>::waitAll() const
 }
 
 template <class RET>
-template <class V>
+template <class V, class>
 int Context<RET>::set(ICoroSync::Ptr sync, V&& value)
 {
     return std::static_pointer_cast<Promise<RET>>(_promises.back())->set(sync, std::forward<V>(value));
@@ -917,8 +947,8 @@ int Context<RET>::set(ICoroSync::Ptr sync, V&& value)
 
 template <class RET>
 template <class OTHER_RET>
-OTHER_RET Context<RET>::getAt(int num,
-                              ICoroSync::Ptr sync)
+NonBufferRetType<OTHER_RET> Context<RET>::getAt(int num,
+                                        ICoroSync::Ptr sync)
 {
     validateContext(sync);
     return std::static_pointer_cast<Promise<OTHER_RET>>(_promises[index(num)])->getICoroFuture()->get(sync);
@@ -926,28 +956,30 @@ OTHER_RET Context<RET>::getAt(int num,
 
 template <class RET>
 template <class OTHER_RET>
-const OTHER_RET& Context<RET>::getRefAt(int num,
-                                        ICoroSync::Ptr sync) const
+const NonBufferRetType<OTHER_RET>& Context<RET>::getRefAt(int num,
+                                                  ICoroSync::Ptr sync) const
 {
     validateContext(sync);
     return std::static_pointer_cast<Promise<OTHER_RET>>(_promises[index(num)])->getICoroFuture()->getRef(sync);
 }
 
 template <class RET>
-RET Context<RET>::get(ICoroSync::Ptr sync)
+template <class V>
+NonBufferRetType<V> Context<RET>::get(ICoroSync::Ptr sync)
 {
     return getAt<RET>(-1, sync);
 }
 
 template <class RET>
-const RET& Context<RET>::getRef(ICoroSync::Ptr sync) const
+template <class V>
+const NonBufferRetType<V>& Context<RET>::getRef(ICoroSync::Ptr sync) const
 {
     return getRefAt<RET>(-1, sync);
 }
 
 template <class RET>
 template <class OTHER_RET>
-OTHER_RET Context<RET>::getPrev(ICoroSync::Ptr sync)
+NonBufferRetType<OTHER_RET> Context<RET>::getPrev(ICoroSync::Ptr sync)
 {
     if (_promises.size() < 2)
     {
@@ -958,7 +990,7 @@ OTHER_RET Context<RET>::getPrev(ICoroSync::Ptr sync)
 
 template <class RET>
 template <class OTHER_RET>
-const OTHER_RET& Context<RET>::getPrevRef(ICoroSync::Ptr sync)
+const NonBufferRetType<OTHER_RET>& Context<RET>::getPrevRef(ICoroSync::Ptr sync)
 {
     if (_promises.size() < 2)
     {
