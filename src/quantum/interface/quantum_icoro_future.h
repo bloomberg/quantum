@@ -43,14 +43,16 @@ struct ICoroFuture : public ICoroFutureBase
     /// @return The future value.
     /// @note Blocks until the future is ready or until an exception is thrown. Once this function returns, the future
     ///       becomes invalidated (i.e. cannot be read again)
-    virtual T get(ICoroSync::Ptr sync) = 0;
+    template <class V = T>
+    NonBufferRetType<V> get(ICoroSync::Ptr sync);
     
     /// @brief Get a reference the future value.
     /// @param[in] sync Pointer to the coroutine synchronization object.
     /// @return A reference to the future value.
     /// @note Blocks until the future is ready or until an exception is thrown. Contrary to get(), this function does
     ///       not invalidate the future and as such may be read again.
-    virtual const T& getRef(ICoroSync::Ptr sync) const = 0;
+    template <class V = T>
+    const NonBufferRetType<V>& getRef(ICoroSync::Ptr sync) const;
     
     /// @brief Pull a single value from the future buffer.
     /// @tparam BUF Represents a class of type Buffer.
@@ -59,8 +61,8 @@ struct ICoroFuture : public ICoroFutureBase
     /// @param[out] isBufferClosed Indicates if this buffer is closed and no more Pull operations are allowed on it.
     /// @return The next value pulled out from the front of the buffer.
     /// @note Method available for buffered futures only. Blocks until one value is retrieved from the buffer.
-    template <class BUF = T, class V = BufferValue<BUF>>
-    V pull(ICoroSync::Ptr sync, bool& isBufferClosed);
+    template <class V = T>
+    BufferRetType<V> pull(ICoroSync::Ptr sync, bool& isBufferClosed);
 };
 
 template <class T>

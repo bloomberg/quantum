@@ -26,6 +26,12 @@ namespace std {
     template< bool B, class T = void >
     using enable_if_t = typename std::enable_if<B,T>::type;
     
+    template<class T>
+    using decay_t = typename std::decay<T>::type;
+    
+    template<class T>
+    using is_same_v = typename std::decay<T>::type;
+    
     template<typename T>
     using remove_reference_t = typename std::remove_reference<T>::type;
     

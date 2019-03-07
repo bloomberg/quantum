@@ -72,25 +72,6 @@ public:
     
     int setException(ICoroSync::Ptr sync,
                      std::exception_ptr ex);
-    
-    //=========================================================================
-    //                         Buffered future access
-    //=========================================================================
-    template <class BUF = T, class V = BufferValue<BUF>>
-    void push(V&& value);
-    
-    template <class BUF = T, class V = BufferValue<BUF>>
-    void push(ICoroSync::Ptr sync, V&& value);
-    
-    template <class BUF = T, class V = BufferValue<BUF>>
-    V pull(bool& isBufferClosed);
-    
-    template <class BUF = T, class V = BufferValue<BUF>>
-    V pull(ICoroSync::Ptr sync, bool& isBufferClosed);
-    
-    template <class BUF = T, class V = BufferValue<BUF>>
-    int closeBuffer();
-    
 private:
     SharedState();
     
@@ -102,15 +83,66 @@ private:
     
     bool stateHasChanged() const;
     
-    template <class BUF = T, class V = BufferValue<BUF>>
-    bool bufferStateHasChanged(BufferStatus status) const;
-    
     // ============================= MEMBERS ==============================
     mutable ConditionVariable       _cond;
     mutable Mutex                   _mutex;
     FutureState                     _state;
     std::exception_ptr              _exception;
     T                               _value;
+};
+
+//==============================================================================================
+//                       class SharedState<Buffer> (partial specialization)
+//==============================================================================================
+template <class T>
+class SharedState<Buffer<T>>
+{
+    friend class Promise<Buffer<T>>;
+    
+public:
+    template <class V = T>
+    void push(V&& value);
+    
+    template <class V = T>
+    void push(ICoroSync::Ptr sync, V&& value);
+    
+    T pull(bool& isBufferClosed);
+    
+    T pull(ICoroSync::Ptr sync, bool& isBufferClosed);
+    
+    void breakPromise();
+    
+    void wait() const;
+    
+    void wait(ICoroSync::Ptr sync) const;
+    
+    template<class REP, class PERIOD>
+    std::future_status waitFor(const std::chrono::duration<REP, PERIOD> &time) const;
+    
+    template<class REP, class PERIOD>
+    std::future_status waitFor(ICoroSync::Ptr sync,
+                               const std::chrono::duration<REP, PERIOD> &time) const;
+    
+    int setException(std::exception_ptr ex);
+    
+    int setException(ICoroSync::Ptr sync,
+                     std::exception_ptr ex);
+    
+    int closeBuffer();
+private:
+    SharedState();
+    
+    void checkPromiseState() const;
+    
+    bool stateHasChanged(BufferStatus status) const;
+    
+    // ============================= MEMBERS ==============================
+    mutable ConditionVariable       _cond;
+    mutable Mutex                   _mutex;
+    FutureState                     _state;
+    std::exception_ptr              _exception;
+    Buffer<T>                       _reader;
+    Buffer<T>                       _writer;
 };
 
 }}

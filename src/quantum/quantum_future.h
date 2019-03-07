@@ -50,22 +50,28 @@ public:
     std::future_status waitFor(std::chrono::milliseconds timeMs) const final;
     
     //IThreadFuture
-    T get() final;
-    const T& getRef() const final;
+    template <class V = T>
+    NonBufferRetType<V> get();
     
-    template <class BUF = T, class V = BufferValue<BUF>>
-    V pull(bool& isBufferClosed);
+    template <class V = T>
+    const NonBufferRetType<V>& getRef() const;
+    
+    template <class V = T>
+    BufferRetType<V> pull(bool& isBufferClosed);
     
     //ICoroFutureBase
     void wait(ICoroSync::Ptr sync) const final;
     std::future_status waitFor(ICoroSync::Ptr sync, std::chrono::milliseconds timeMs) const final;
     
     //ICoroFuture
-    T get(ICoroSync::Ptr sync) final;
-    const T& getRef(ICoroSync::Ptr sync) const final;
+    template <class V = T>
+    NonBufferRetType<V> get(ICoroSync::Ptr sync);
     
-    template <class BUF = T, class V = BufferValue<BUF>>
-    V pull(ICoroSync::Ptr sync, bool& isBufferClosed);
+    template <class V = T>
+    const NonBufferRetType<V>& getRef(ICoroSync::Ptr sync) const;
+    
+    template <class V = T>
+    BufferRetType<V> pull(ICoroSync::Ptr sync, bool& isBufferClosed);
     
     //===================================
     //           NEW / DELETE

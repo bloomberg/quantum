@@ -85,8 +85,20 @@ public:
     //===================================
     //         ITHREADCONTEXT
     //===================================
-    RET get() final;
-    const RET& getRef() const final;
+    template <class V = RET>
+    NonBufferRetType<V> get();
+    template <class V = RET>
+    const NonBufferRetType<V>& getRef() const;
+    template <class V, class = NonBufferType<RET,V>>
+    int set(V&& value);
+    template <class V, class = BufferType<RET,V>>
+    void push(V&& value);
+    template <class V = RET>
+    BufferRetType<V> pull(bool& isBufferClosed);
+    template <class OTHER_RET>
+    NonBufferRetType<OTHER_RET> getAt(int num);
+    template <class OTHER_RET>
+    const NonBufferRetType<OTHER_RET>& getRefAt(int num) const;
     
     //===================================
     //        ICOROCONTEXTBASE
@@ -100,8 +112,24 @@ public:
     //===================================
     //         ICOROCONTEXT
     //===================================
-    RET get(ICoroSync::Ptr sync);
-    const RET& getRef(ICoroSync::Ptr sync) const final;
+    template <class V = RET>
+    NonBufferRetType<V> get(ICoroSync::Ptr sync);
+    template <class V = RET>
+    const NonBufferRetType<V>& getRef(ICoroSync::Ptr sync) const;
+    template <class V, class = NonBufferType<RET,V>>
+    int set(ICoroSync::Ptr sync, V&& value);
+    template <class V, class = BufferType<RET,V>>
+    void push(ICoroSync::Ptr sync, V&& value);
+    template <class V = RET>
+    BufferRetType<V> pull(ICoroSync::Ptr sync, bool& isBufferClosed);
+    template <class OTHER_RET>
+    NonBufferRetType<OTHER_RET> getAt(int num, ICoroSync::Ptr sync);
+    template <class OTHER_RET>
+    const NonBufferRetType<OTHER_RET>& getRefAt(int num, ICoroSync::Ptr sync) const;
+    template <class OTHER_RET>
+    NonBufferRetType<OTHER_RET> getPrev(ICoroSync::Ptr sync);
+    template <class OTHER_RET>
+    const NonBufferRetType<OTHER_RET>& getPrevRef(ICoroSync::Ptr sync);
     
     //===================================
     //           ICOROSYNC
@@ -114,49 +142,11 @@ public:
     void sleep(const std::chrono::microseconds& timeUs) final;
     
     //===================================
-    //   NON-VIRTUAL IMPLEMENTATIONS
+    //      MISC IMPLEMENTATIONS
     //===================================
-    template <class V = RET>
-    int set(V&& value);
-    
-    template <class V = RET>
-    int set(ICoroSync::Ptr sync, V&& value);
-    
-    template <class BUF = RET, class V = BufferValue<BUF>>
-    void push(V &&value);
-    
-    template <class BUF = RET, class V = BufferValue<BUF>>
-    void push(ICoroSync::Ptr sync, V &&value);
-    
-    template <class BUF = RET, class V = BufferValue<BUF>>
-    V pull(bool& isBufferClosed);
-    
-    template <class BUF = RET, class V = BufferValue<BUF>>
-    V pull(ICoroSync::Ptr sync, bool& isBufferClosed);
-    
-    template <class BUF = RET, class V = BufferValue<BUF>>
+    template <class V = RET, class = BufferRetType<V>>
     int closeBuffer();
-    
-    template <class OTHER_RET>
-    OTHER_RET getAt(int num);
-    
-    template <class OTHER_RET>
-    const OTHER_RET& getRefAt(int num) const;
-    
-    template <class OTHER_RET>
-    OTHER_RET getAt(int num, ICoroSync::Ptr sync);
-
-    template <class OTHER_RET>
-    const OTHER_RET& getRefAt(int num, ICoroSync::Ptr sync) const;
-    
-    template <class OTHER_RET>
-    OTHER_RET getPrev(ICoroSync::Ptr sync);
-    
-    template <class OTHER_RET>
-    const OTHER_RET& getPrevRef(ICoroSync::Ptr sync);
-    
     int getNumCoroutineThreads() const;
-    
     int getNumIoThreads() const;
     
     //===================================

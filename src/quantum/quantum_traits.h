@@ -64,11 +64,15 @@ struct Traits
     //FUTURE BUFFER TRAIT
     template <class T>
     struct IsBuffer : std::false_type
-    {};
+    {
+        using Type = T;
+    };
     
     template <class T>
     struct IsBuffer<Buffer<T>> : std::true_type
-    {};
+    {
+        using Type = typename Buffer<T>::ValueType;
+    };
     
     template <class D, class THIS, class B>
     struct DerivedFrom
@@ -79,8 +83,16 @@ struct Traits
     };
 };
 
-template <class BUF>
-using BufferValue = typename std::enable_if_t<Traits::IsBuffer<BUF>::value, BUF>::ValueType;
+template <class T, class V>
+using BufferType = std::enable_if_t<Traits::IsBuffer<T>::value &&
+                                    !std::is_same<std::decay_t<V>,T>::value &&
+                                    std::is_convertible<std::decay_t<V>, typename Traits::IsBuffer<T>::Type>::value>;
+template <class T, class V>
+using NonBufferType = std::enable_if_t<!Traits::IsBuffer<T>::value && std::is_convertible<std::decay_t<V>,T>::value>;
+template <class T>
+using BufferRetType = std::enable_if_t<Traits::IsBuffer<T>::value, typename Traits::IsBuffer<T>::Type>;
+template <class T>
+using NonBufferRetType = std::enable_if_t<!Traits::IsBuffer<T>::value, typename Traits::IsBuffer<T>::Type>;
 
 }}
 

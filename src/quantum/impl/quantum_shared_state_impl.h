@@ -22,6 +22,9 @@
 namespace Bloomberg {
 namespace quantum {
 
+//==============================================================================================
+//                                     class SharedState
+//==============================================================================================
 template <class T>
 SharedState<T>::SharedState() :
     _state(FutureState::PromiseNotSatisfied),
@@ -33,10 +36,6 @@ template <class T>
 template <class V>
 int SharedState<T>::set(V&& value)
 {
-    if (Traits::IsBuffer<T>::value)
-    {
-        ThrowFutureException(FutureState::BufferingData);
-    }
     {
         //========= LOCKED SCOPE =========
         Mutex::Guard lock(_mutex);
@@ -55,10 +54,6 @@ template <class T>
 template <class V>
 int SharedState<T>::set(ICoroSync::Ptr sync, V&& value)
 {
-    if (Traits::IsBuffer<T>::value)
-    {
-        ThrowFutureException(FutureState::BufferingData);
-    }
     {
         //========= LOCKED SCOPE =========
         Mutex::Guard lock(sync, _mutex);
@@ -76,10 +71,6 @@ int SharedState<T>::set(ICoroSync::Ptr sync, V&& value)
 template <class T>
 T SharedState<T>::get()
 {
-    if (Traits::IsBuffer<T>::value)
-    {
-        ThrowFutureException(FutureState::BufferingData);
-    }
     //========= LOCKED SCOPE =========
     Mutex::Guard lock(_mutex);
     conditionWait();
@@ -90,10 +81,6 @@ T SharedState<T>::get()
 template <class T>
 const T& SharedState<T>::getRef() const
 {
-    if (Traits::IsBuffer<T>::value)
-    {
-        ThrowFutureException(FutureState::BufferingData);
-    }
     //========= LOCKED SCOPE =========
     Mutex::Guard lock(_mutex);
     conditionWait();
@@ -103,10 +90,6 @@ const T& SharedState<T>::getRef() const
 template <class T>
 T SharedState<T>::get(ICoroSync::Ptr sync)
 {
-    if (Traits::IsBuffer<T>::value)
-    {
-        ThrowFutureException(FutureState::BufferingData);
-    }
     //========= LOCKED SCOPE =========
     Mutex::Guard lock(sync, _mutex);
     conditionWait(sync);
@@ -117,10 +100,6 @@ T SharedState<T>::get(ICoroSync::Ptr sync)
 template <class T>
 const T& SharedState<T>::getRef(ICoroSync::Ptr sync) const
 {
-    if (Traits::IsBuffer<T>::value)
-    {
-        ThrowFutureException(FutureState::BufferingData);
-    }
     //========= LOCKED SCOPE =========
     Mutex::Guard lock(sync, _mutex);
     conditionWait(sync);
@@ -143,10 +122,6 @@ void SharedState<T>::breakPromise()
 template <class T>
 void SharedState<T>::wait() const
 {
-    if (Traits::IsBuffer<T>::value)
-    {
-        ThrowFutureException(FutureState::BufferingData);
-    }
     //========= LOCKED SCOPE =========
     Mutex::Guard lock(_mutex);
     _cond.wait(_mutex, [this]()->bool
@@ -158,10 +133,6 @@ void SharedState<T>::wait() const
 template <class T>
 void SharedState<T>::wait(ICoroSync::Ptr sync) const
 {
-    if (Traits::IsBuffer<T>::value)
-    {
-        ThrowFutureException(FutureState::BufferingData);
-    }
     //========= LOCKED SCOPE =========
     Mutex::Guard lock(sync, _mutex);
     _cond.wait(sync, _mutex, [this]()->bool
@@ -174,10 +145,6 @@ template <class T>
 template<class REP, class PERIOD>
 std::future_status SharedState<T>::waitFor(const std::chrono::duration<REP, PERIOD> &time) const
 {
-    if (Traits::IsBuffer<T>::value)
-    {
-        ThrowFutureException(FutureState::BufferingData);
-    }
     //========= LOCKED SCOPE =========
     Mutex::Guard lock(_mutex);
     _cond.waitFor(_mutex, time, [this]()->bool
@@ -192,10 +159,6 @@ template<class REP, class PERIOD>
 std::future_status SharedState<T>::waitFor(ICoroSync::Ptr sync,
                                            const std::chrono::duration<REP, PERIOD> &time) const
 {
-    if (Traits::IsBuffer<T>::value)
-    {
-        ThrowFutureException(FutureState::BufferingData);
-    }
     //========= LOCKED SCOPE =========
     Mutex::Guard lock(sync, _mutex);
     _cond.waitFor(sync, _mutex, time, [this]()->bool
@@ -226,109 +189,6 @@ int SharedState<T>::setException(ICoroSync::Ptr sync,
     }
     _cond.notifyAll();
     return -1;
-}
-
-template <class T>
-template <class BUF, class V>
-void SharedState<T>::push(V&& value)
-{
-    {//========= LOCKED SCOPE =========
-        Mutex::Guard lock(_mutex);
-        if ((_state != FutureState::PromiseNotSatisfied) && (_state != FutureState::BufferingData))
-        {
-            ThrowFutureException(_state);
-        }
-        BufferStatus status = _value.push(std::forward<V>(value));
-        if (status == BufferStatus::Closed)
-        {
-            ThrowFutureException(FutureState::BufferClosed);
-        }
-        _state = FutureState::BufferingData;
-    }
-    _cond.notifyAll();
-}
-
-template <class T>
-template <class BUF, class V>
-void SharedState<T>::push(ICoroSync::Ptr sync, V&& value)
-{
-    {//========= LOCKED SCOPE =========
-        Mutex::Guard lock(sync, _mutex);
-        if ((_state != FutureState::PromiseNotSatisfied) && (_state != FutureState::BufferingData))
-        {
-            ThrowFutureException(_state);
-        }
-        BufferStatus status = _value.push(std::forward<V>(value));
-        if (status == BufferStatus::Closed)
-        {
-            ThrowFutureException(FutureState::BufferClosed);
-        }
-        _state = FutureState::BufferingData;
-    }
-    _cond.notifyAll();
-}
-
-template <class T>
-template <class BUF, class V>
-V SharedState<T>::pull(bool& isBufferClosed)
-{
-    //========= LOCKED SCOPE =========
-    Mutex::Guard lock(_mutex);
-    BufferStatus status;
-    V out;
-    isBufferClosed = true;
-    _cond.wait(_mutex, [&status, &out, this]()->bool
-    {
-        status = _value.pull(out);
-        return bufferStateHasChanged(status);
-    });
-    checkPromiseState();
-    isBufferClosed = (status == BufferStatus::Closed); //set output
-    if (isBufferClosed)
-    {
-        //Mark the future as fully retrieved
-        _state = FutureState::FutureAlreadyRetrieved;
-    }
-    return out;
-}
-
-template <class T>
-template <class BUF, class V>
-V SharedState<T>::pull(ICoroSync::Ptr sync, bool& isBufferClosed)
-{
-    //========= LOCKED SCOPE =========
-    Mutex::Guard lock(sync, _mutex);
-    BufferStatus status;
-    V out;
-    isBufferClosed = true;
-    _cond.wait(sync, _mutex, [&status, &out, this]()->bool
-    {
-        status = _value.pull(out);
-        return bufferStateHasChanged(status);
-    });
-    checkPromiseState();
-    isBufferClosed = (status == BufferStatus::Closed);
-    if (isBufferClosed)
-    {
-        //Mark the future as fully retrieved
-        _state = FutureState::FutureAlreadyRetrieved;
-    }
-    return out;
-}
-
-template <class T>
-template <class BUF, class V>
-int SharedState<T>::closeBuffer()
-{
-    //========= LOCKED SCOPE =========
-    Mutex::Guard lock(_mutex);
-    if ((_state == FutureState::PromiseNotSatisfied) || (_state == FutureState::BufferingData))
-    {
-        _state = FutureState::BufferClosed;
-    }
-    _value.close();
-    _cond.notifyAll();
-    return 0;
 }
 
 template <class T>
@@ -370,11 +230,267 @@ bool SharedState<T>::stateHasChanged() const
     return (_state != FutureState::PromiseNotSatisfied) || (_exception != nullptr);
 }
 
+//==============================================================================================
+//                       class SharedState<Buffer> (partial specialization)
+//==============================================================================================
 template <class T>
-template <class BUF, typename>
-bool SharedState<T>::bufferStateHasChanged(BufferStatus status) const
+SharedState<Buffer<T>>::SharedState() :
+    _state(FutureState::PromiseNotSatisfied)
 {
-    return ((status == BufferStatus::DataReceived) || (status == BufferStatus::Closed)) ||
+}
+
+template <class T>
+void SharedState<Buffer<T>>::breakPromise()
+{
+    {//========= LOCKED SCOPE =========
+        Mutex::Guard lock(_mutex);
+        if ((_state == FutureState::PromiseNotSatisfied) ||
+            (_state == FutureState::BufferingData))
+        {
+            _state = FutureState::BrokenPromise;
+        }
+    }
+    _cond.notifyAll();
+}
+
+template <class T>
+void SharedState<Buffer<T>>::wait() const
+{
+    if (!_reader.empty())
+    {
+        return; //there is still data available
+    }
+    //========= LOCKED SCOPE =========
+    Mutex::Guard lock(_mutex);
+    _cond.wait(_mutex, [this]()->bool
+    {
+        BufferStatus status = _writer.empty() ?
+            (_writer.isClosed() ? BufferStatus::Closed : BufferStatus::DataPending) : BufferStatus::DataPosted;
+        return stateHasChanged(status);
+    });
+}
+
+template <class T>
+void SharedState<Buffer<T>>::wait(ICoroSync::Ptr sync) const
+{
+    if (!_reader.empty())
+    {
+        return; //there is still data available
+    }
+    //========= LOCKED SCOPE =========
+    Mutex::Guard lock(sync, _mutex);
+    _cond.wait(sync, _mutex, [this]()->bool
+    {
+        BufferStatus status = _writer.empty() ?
+            (_writer.isClosed() ? BufferStatus::Closed : BufferStatus::DataPending) : BufferStatus::DataPosted;
+        return stateHasChanged(status);
+    });
+}
+
+template <class T>
+template<class REP, class PERIOD>
+std::future_status SharedState<Buffer<T>>::waitFor(const std::chrono::duration<REP, PERIOD> &time) const
+{
+    if (!_reader.empty())
+    {
+        return std::future_status::ready; //there is still data available
+    }
+    //========= LOCKED SCOPE =========
+    Mutex::Guard lock(_mutex);
+    _cond.waitFor(_mutex, time, [this]()->bool
+    {
+        BufferStatus status = _writer.empty() ?
+            (_writer.isClosed() ? BufferStatus::Closed : BufferStatus::DataPending) : BufferStatus::DataPosted;
+        return stateHasChanged(status);
+    });
+    return (_writer.empty() && !_writer.isClosed()) ? std::future_status::timeout : std::future_status::ready;
+}
+
+template <class T>
+template<class REP, class PERIOD>
+std::future_status SharedState<Buffer<T>>::waitFor(ICoroSync::Ptr sync,
+                                                   const std::chrono::duration<REP, PERIOD> &time) const
+{
+    if (!_reader.empty())
+    {
+        return std::future_status::ready; //there is still data available
+    }
+    //========= LOCKED SCOPE =========
+    Mutex::Guard lock(sync, _mutex);
+    _cond.waitFor(sync, _mutex, time, [this]()->bool
+    {
+        BufferStatus status = _writer.empty() ?
+            (_writer.isClosed() ? BufferStatus::Closed : BufferStatus::DataPending) : BufferStatus::DataPosted;
+        return stateHasChanged(status);
+    });
+    return (_writer.empty() && !_writer.isClosed()) ? std::future_status::timeout : std::future_status::ready;
+}
+
+template <class T>
+int SharedState<Buffer<T>>::setException(std::exception_ptr ex)
+{
+    {//========= LOCKED SCOPE =========
+        Mutex::Guard lock(_mutex);
+        _exception = ex;
+    }
+    _cond.notifyAll();
+    return -1;
+}
+
+template <class T>
+int SharedState<Buffer<T>>::setException(ICoroSync::Ptr sync,
+                                         std::exception_ptr ex)
+{
+    {//========= LOCKED SCOPE =========
+        Mutex::Guard lock(sync, _mutex);
+        _exception = ex;
+    }
+    _cond.notifyAll();
+    return -1;
+}
+
+template <class T>
+template <class V>
+void SharedState<Buffer<T>>::push(V&& value)
+{
+    {//========= LOCKED SCOPE =========
+        Mutex::Guard lock(_mutex);
+        if ((_state != FutureState::PromiseNotSatisfied) && (_state != FutureState::BufferingData))
+        {
+            ThrowFutureException(_state);
+        }
+        BufferStatus status = _writer.push(std::forward<V>(value));
+        if (status == BufferStatus::Closed)
+        {
+            ThrowFutureException(FutureState::BufferClosed);
+        }
+        _state = FutureState::BufferingData;
+    }
+    _cond.notifyAll();
+}
+
+template <class T>
+template <class V>
+void SharedState<Buffer<T>>::push(ICoroSync::Ptr sync, V&& value)
+{
+    {//========= LOCKED SCOPE =========
+        Mutex::Guard lock(sync, _mutex);
+        if ((_state != FutureState::PromiseNotSatisfied) && (_state != FutureState::BufferingData))
+        {
+            ThrowFutureException(_state);
+        }
+        BufferStatus status = _writer.push(std::forward<V>(value));
+        if (status == BufferStatus::Closed)
+        {
+            ThrowFutureException(FutureState::BufferClosed);
+        }
+        _state = FutureState::BufferingData;
+    }
+    _cond.notifyAll();
+}
+
+template <class T>
+T SharedState<Buffer<T>>::pull(bool& isBufferClosed)
+{
+    T out;
+    if (!_reader.empty())
+    {
+        T out;
+        _reader.pull(out);
+        return out;
+    }
+    {//========= LOCKED SCOPE =========
+        Mutex::Guard lock(_mutex);
+        _cond.wait(_mutex, [this]()->bool
+        {
+            BufferStatus status = _writer.empty() ?
+                (_writer.isClosed() ? BufferStatus::Closed : BufferStatus::DataPending) : BufferStatus::DataPosted;
+            bool changed = stateHasChanged(status);
+            if (changed) {
+                // Move the writer to the reader for consumption
+                _reader = std::move(_writer);
+            }
+            return changed;
+        });
+    }
+    isBufferClosed = _reader.empty() && _reader.isClosed();
+    if (isBufferClosed) {
+        //Mark the future as fully retrieved
+        _state = FutureState::FutureAlreadyRetrieved;
+        return out;
+    }
+    _reader.pull(out);
+    checkPromiseState();
+    return out;
+}
+
+template <class T>
+T SharedState<Buffer<T>>::pull(ICoroSync::Ptr sync, bool& isBufferClosed)
+{
+    T out;
+    if (!_reader.empty())
+    {
+        T out;
+        _reader.pull(out);
+        return out;
+    }
+    {//========= LOCKED SCOPE =========
+        Mutex::Guard lock(_mutex);
+        _cond.wait(sync, _mutex, [this]()->bool
+        {
+            BufferStatus status = _writer.empty() ?
+                (_writer.isClosed() ? BufferStatus::Closed : BufferStatus::DataPending) : BufferStatus::DataPosted;
+            bool changed = stateHasChanged(status);
+            if (changed) {
+                // Move the writer to the reader for consumption
+                _reader = std::move(_writer);
+            }
+            return changed;
+        });
+    }
+    isBufferClosed = _reader.empty() && _reader.isClosed();
+    if (isBufferClosed) {
+        //Mark the future as fully retrieved
+        _state = FutureState::FutureAlreadyRetrieved;
+        return out;
+    }
+    _reader.pull(out);
+    checkPromiseState();
+    return out;
+}
+
+template <class T>
+int SharedState<Buffer<T>>::closeBuffer()
+{
+    {//========= LOCKED SCOPE =========
+        Mutex::Guard lock(_mutex);
+        if ((_state == FutureState::PromiseNotSatisfied) || (_state == FutureState::BufferingData))
+        {
+            _state = FutureState::BufferClosed;
+        }
+        _writer.close();
+    }
+    _cond.notifyAll();
+    return 0;
+}
+
+template <class T>
+void SharedState<Buffer<T>>::checkPromiseState() const
+{
+    if (_exception)
+    {
+        std::rethrow_exception(_exception);
+    }
+    if ((_state == FutureState::BrokenPromise) || (_state == FutureState::FutureAlreadyRetrieved))
+    {
+        ThrowFutureException(_state);
+    }
+}
+
+template <class T>
+bool SharedState<Buffer<T>>::stateHasChanged(BufferStatus status) const
+{
+    return ((status == BufferStatus::DataPosted) || (status == BufferStatus::DataReceived) || (status == BufferStatus::Closed)) ||
            ((_state == FutureState::BrokenPromise) || (_state == FutureState::FutureAlreadyRetrieved)) ||
            (_exception != nullptr);
 }
