@@ -30,21 +30,21 @@ template <template<class> class PROMISE, class T>
 template <class V, class>
 int IThreadPromise<PROMISE, T>::set(V&& value)
 {
-    return static_cast<Impl*>(this)->template set(std::forward<V>(value));
+    return static_cast<Impl*>(this)->set(std::forward<V>(value));
 }
 
 template <template<class> class PROMISE, class T>
 template <class V, class>
 void IThreadPromise<PROMISE, T>::push(V&& value)
 {
-    static_cast<Impl*>(this)->template push(std::forward<V>(value));
+    static_cast<Impl*>(this)->push(std::forward<V>(value));
 }
 
 template <template<class> class PROMISE, class T>
 template <class V, class>
 int IThreadPromise<PROMISE, T>::closeBuffer()
 {
-    return static_cast<Impl*>(this)->template closeBuffer();
+    return static_cast<Impl*>(this)->closeBuffer();
 }
 
 //==============================================================================================
@@ -54,21 +54,21 @@ template <template<class> class PROMISE, class T>
 template <class V, class>
 int ICoroPromise<PROMISE, T>::set(ICoroSync::Ptr sync, V&& value)
 {
-    return static_cast<Impl*>(this)->template set(sync, std::forward<V>(value));
+    return static_cast<Impl*>(this)->set(sync, std::forward<V>(value));
 }
 
 template <template<class> class PROMISE, class T>
 template <class V, class>
 void ICoroPromise<PROMISE, T>::push(ICoroSync::Ptr sync, V&& value)
 {
-    static_cast<Impl*>(this)->template push(sync, std::forward<V>(value));
+    static_cast<Impl*>(this)->push(sync, std::forward<V>(value));
 }
 
 template <template<class> class PROMISE, class T>
 template <class V, class>
 int ICoroPromise<PROMISE, T>::closeBuffer()
 {
-    return static_cast<Impl*>(this)->template closeBuffer();
+    return static_cast<Impl*>(this)->closeBuffer();
 }
 
 //==============================================================================================
@@ -92,7 +92,7 @@ Promise<T>::Promise() :
     IThreadPromise<Promise, T>(this),
     ICoroPromise<Promise, T>(this),
     _sharedState(new SharedState<T>()),
-    _terminated(ATOMIC_FLAG_INIT)
+    _terminated ATOMIC_FLAG_INIT
 {}
 
 template <class T>
@@ -172,7 +172,7 @@ template <class V, class>
 void Promise<T>::push(V&& value)
 {
     if (!_sharedState) ThrowFutureException(FutureState::NoState);
-    _sharedState->template push(std::forward<V>(value));
+    _sharedState->push(std::forward<V>(value));
 }
 
 template <class T>
@@ -180,7 +180,7 @@ template <class V, class>
 void Promise<T>::push(ICoroSync::Ptr sync, V&& value)
 {
     if (!_sharedState) ThrowFutureException(FutureState::NoState);
-    _sharedState->template push(sync, std::forward<V>(value));
+    _sharedState->push(sync, std::forward<V>(value));
 }
 
 template <class T>
@@ -188,7 +188,7 @@ template <class V, class>
 int Promise<T>::closeBuffer()
 {
     if (!_sharedState) ThrowFutureException(FutureState::NoState);
-    return _sharedState->template closeBuffer();
+    return _sharedState->closeBuffer();
 }
 
 template <class T>

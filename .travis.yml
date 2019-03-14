@@ -1,0 +1,33 @@
+language: cpp
+
+compiler:
+  - g++
+  - clang
+
+os: linux
+
+dist: xenial
+
+addons:
+  apt:
+    update: true
+    sources:
+      # Remove when 'bionic' or 'cosmic' dists are available
+      - sourceline: 'ppa:mhier/libboost-latest'
+    packages:
+      # Change to libboost-coroutine-dev when 'bionic' or 'cosmic' dists are available
+      - libboost1.68-dev
+      - valgrind
+env:
+  - CXX_STANDARD=11
+  - CXX_STANDARD=14
+
+before_script:
+  - git clone https://github.com/google/googletest.git
+  - cd googletest && cmake -DCMAKE_INSTALL_PREFIX=install .
+  - make install
+  - cd ..
+
+script:
+  - cmake -DQUANTUM_ENABLE_TESTS=ON -DQUANTUM_BOOST_USE_VALGRIND=ON -DGTEST_ROOT=googletest/install .
+  - make quantum_tests && ./tests/quantum_tests.Linux64

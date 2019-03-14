@@ -539,7 +539,7 @@ TEST(PromiseTest, BufferedFuture)
     //Validate
     size_t num = 0;
     for (auto&& val : v) {
-        EXPECT_EQ(num++, val);
+        EXPECT_EQ(num++, (size_t)val);
     }
 }
 
@@ -579,7 +579,7 @@ TEST(PromiseTest, BufferedFutureException)
     
     //Validate
     EXPECT_TRUE(wasCaught);
-    EXPECT_GE(100, v.size());
+    EXPECT_GE(100, (int)v.size());
 }
 
 TEST(PromiseTest, GetFutureReference)
@@ -885,8 +885,8 @@ TEST(StressTest, AsyncIo)
         });
     }
     DispatcherSingleton::instance().drain();
-    EXPECT_EQ(10000, v.size());
-    EXPECT_EQ(10000, s.size()); //all elements unique
+    EXPECT_EQ(10000, (int)v.size());
+    EXPECT_EQ(10000, (int)s.size()); //all elements unique
 }
 
 TEST(StressTest, AsyncIoAnyQueue)
@@ -907,8 +907,8 @@ TEST(StressTest, AsyncIoAnyQueue)
         });
     }
     DispatcherSingleton::instance().drain();
-    EXPECT_EQ(10000, v.size());
-    EXPECT_EQ(10000, s.size()); //all elements unique
+    EXPECT_EQ(10000, (int)v.size());
+    EXPECT_EQ(10000, (int)s.size()); //all elements unique
 }
 
 TEST(StressTest, AsyncIoAnyQueueLoadBalance)
@@ -931,8 +931,8 @@ TEST(StressTest, AsyncIoAnyQueueLoadBalance)
         });
     }
     DispatcherSingleton::instance().drain();
-    EXPECT_EQ(10000, v.size());
-    EXPECT_EQ(10000, s.size()); //all elements unique
+    EXPECT_EQ(10000, (int)v.size());
+    EXPECT_EQ(10000, (int)s.size()); //all elements unique
 }
 
 TEST(ForEachTest, Simple)
@@ -978,7 +978,7 @@ TEST(ForEachTest, LargeBatch)
         return val*2; //double the value
     })->get();
     
-    ASSERT_EQ(results.size(), DispatcherSingleton::instance().getNumCoroutineThreads());
+    ASSERT_EQ((int)results.size(), DispatcherSingleton::instance().getNumCoroutineThreads());
     
     //Merge batches
     std::vector<int> merged;
@@ -986,7 +986,7 @@ TEST(ForEachTest, LargeBatch)
         merged.insert(merged.end(), v.begin(), v.end());
     }
     
-    ASSERT_EQ(num, merged.size());
+    ASSERT_EQ(num, (int)merged.size());
     for (size_t i = 0; i < merged.size(); ++i) {
         EXPECT_EQ(merged[i], start[i]*2);
     }
@@ -1003,7 +1003,7 @@ TEST(ForEachTest, LargeBatchFromCoroutine)
             return val*2; //double the value
         })->get(ctx);
         
-        EXPECT_EQ(DispatcherSingleton::instance().getNumCoroutineThreads(), results.size());
+        EXPECT_EQ(DispatcherSingleton::instance().getNumCoroutineThreads(), (int)results.size());
         
         //Merge batches
         std::vector<int> merged;
@@ -1050,18 +1050,18 @@ TEST(MapReduce, OccuranceCount)
             return {std::move(input.first), sum};
         })->get();
     
-    ASSERT_EQ(result.size(), 11);
-    EXPECT_EQ(result["a"], 3);
-    EXPECT_EQ(result["aa"], 1);
-    EXPECT_EQ(result["aaa"], 2);
-    EXPECT_EQ(result["b"], 1);
-    EXPECT_EQ(result["bb"], 3);
-    EXPECT_EQ(result["bbb"], 1);
-    EXPECT_EQ(result["bbbb"], 1);
-    EXPECT_EQ(result["cccc"], 2);
-    EXPECT_EQ(result["d"], 2);
-    EXPECT_EQ(result["ddddd"], 1);
-    EXPECT_EQ(result["eee"], 2);
+    ASSERT_EQ(result.size(), 11UL);
+    EXPECT_EQ(result["a"], 3UL);
+    EXPECT_EQ(result["aa"], 1UL);
+    EXPECT_EQ(result["aaa"], 2UL);
+    EXPECT_EQ(result["b"], 1UL);
+    EXPECT_EQ(result["bb"], 3UL);
+    EXPECT_EQ(result["bbb"], 1UL);
+    EXPECT_EQ(result["bbbb"], 1UL);
+    EXPECT_EQ(result["cccc"], 2UL);
+    EXPECT_EQ(result["d"], 2UL);
+    EXPECT_EQ(result["ddddd"], 1UL);
+    EXPECT_EQ(result["eee"], 2UL);
 }
 
 TEST(MapReduce, WordLength)
@@ -1090,12 +1090,12 @@ TEST(MapReduce, WordLength)
             return {input.first, input.second.size()};
         })->get();
     
-    ASSERT_EQ(result.size(), 5); //longest word 'ddddd'
-    EXPECT_EQ(result[1], 6);
-    EXPECT_EQ(result[2], 4);
-    EXPECT_EQ(result[3], 5);
-    EXPECT_EQ(result[4], 3);
-    EXPECT_EQ(result[5], 1);
+    ASSERT_EQ(result.size(), 5UL); //longest word 'ddddd'
+    EXPECT_EQ(result[1], 6UL);
+    EXPECT_EQ(result[2], 4UL);
+    EXPECT_EQ(result[3], 5UL);
+    EXPECT_EQ(result[4], 3UL);
+    EXPECT_EQ(result[5], 1UL);
 }
 
 TEST(MapReduce, WordLengthFromCoroutine)
@@ -1126,12 +1126,12 @@ TEST(MapReduce, WordLengthFromCoroutine)
             return {input.first, input.second.size()};
         })->get(ctx);
         
-        EXPECT_EQ(result.size(), 5); //longest word 'ddddd'
-        EXPECT_EQ(result[1], 6);
-        EXPECT_EQ(result[2], 4);
-        EXPECT_EQ(result[3], 5);
-        EXPECT_EQ(result[4], 3);
-        EXPECT_EQ(result[5], 1);
+        EXPECT_EQ(result.size(), 5UL); //longest word 'ddddd'
+        EXPECT_EQ(result[1], 6UL);
+        EXPECT_EQ(result[2], 4UL);
+        EXPECT_EQ(result[3], 5UL);
+        EXPECT_EQ(result[4], 3UL);
+        EXPECT_EQ(result[5], 1UL);
         
         return ctx->set(0);
     
@@ -1180,28 +1180,28 @@ TEST(SerializeExecution, Basic)
                                                    {2,"2_4"}, {1,"1_6"}, {3,"3_3"}, {1,"1_7"} };
     std::vector<std::string> output1,output2,output3;
     
-    auto runner = [&](CoroContextPtr<int> ctx, int id, std::string&& str)->int {
+    auto runner = [&](CoroContextPtr<int> ctx, int id, const std::string* str)->int {
         CoroContextPtr<int>& prev_ctx = entryMap[id]; //get ref to previous context
-        prev_ctx = ctx->post(1, false, [&, str2 = std::move(str), prev_ctx, id](CoroContextPtr<int> ctx2)->int{
+        prev_ctx = ctx->post(1, false, [&, str, prev_ctx, id](CoroContextPtr<int> ctx2)->int {
             if (prev_ctx) {
                 prev_ctx->get(ctx2); //yield to another coroutine until previous job completes
             }
             if (id == 1) {
-                output1.push_back(str2);
+                output1.push_back(*str);
             }
             else if (id == 2) {
-                output2.push_back(str2);
+                output2.push_back(*str);
             }
             else {
-                output3.push_back(str2);
+                output3.push_back(*str);
             }
             return ctx2->set(0);
         });
         return 0;
     };
     
-    for (auto&& p : input) {
-        DispatcherSingleton::instance().post(0, false, runner, p.first, std::move(p.second));
+    for (const auto& p : input) {
+        DispatcherSingleton::instance().post(0, false, runner, p.first, &p.second);
     }
     DispatcherSingleton::instance().drain();
     

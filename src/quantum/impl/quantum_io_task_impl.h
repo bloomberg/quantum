@@ -43,7 +43,7 @@ IoTask::IoTask(std::shared_ptr<Promise<RET>> promise,
     _func(Util::bindIoCaller(promise,
                              std::forward<FUNC>(func),
                              std::forward<ARGS>(args)...)),
-    _terminated(ATOMIC_FLAG_INIT),
+    _terminated ATOMIC_FLAG_INIT,
     _queueId((int)IQueue::QueueId::Any),
     _isHighPriority(false)
 {
@@ -58,7 +58,7 @@ IoTask::IoTask(std::shared_ptr<Promise<RET>> promise,
     _func(Util::bindIoCaller(promise,
                              std::forward<FUNC>(func),
                              std::forward<ARGS>(args)...)),
-    _terminated(ATOMIC_FLAG_INIT),
+    _terminated ATOMIC_FLAG_INIT,
     _queueId(queueId),
     _isHighPriority(isHighPriority)
 {

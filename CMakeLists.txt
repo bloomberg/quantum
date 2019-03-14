@@ -16,23 +16,34 @@ endif()
 
 #Global options
 set(MODE 64)
-set(GCC_VER 8.1)
-set(CMAKE_CXX_COMPILER g++)
-set(CMAKE_CXX_STANDARD 14)
 set(LINKER_LANGUAGE CXX)
 set(CMAKE_INCLUDE_DIRECTORIES_BEFORE ON)
 set(CMAKE_BUILD_TYPE Debug)
+
+#Set the compiler if the CXX environment variable is not set
+if (NOT DEFINED ENV{CXX})
+    set(CMAKE_CXX_COMPILER g++)
+endif()
+#Set the compiler if the CXX_STANDARD environment variable is not set
+if (NOT DEFINED ENV{CXX_STANDARD})
+    set(CMAKE_CXX_STANDARD 14)
+else()
+    set(CMAKE_CXX_STANDARD $ENV{CXX_STANDARD})
+endif()
+#Set compile flags if CXXFLAGS environment variable is not set
+if (NOT DEFINED ENV{CMAKE_CXX_FLAGS})
+    set(CMAKE_CXX_FLAGS "-Wall -Wextra -Werror -Wabi -O0 -m${MODE} -std=c++${CMAKE_CXX_STANDARD} -ftemplate-backtrace-limit=0")
+endif()
+if (QUANTUM_VERBOSE_MAKEFILE)
+    message(STATUS "CMAKE_CXX_FLAGS = ${CMAKE_CXX_FLAGS}")
+endif()
+
 add_definitions(
         -D_REENTRANT
         -D_THREAD_SAFE
         -D_POSIX_PTHREAD_SEMANTICS
         -D__FUNCTION__=__FILE__
 )
-
-#Set compile flags if they haven't been set via CXXFLAGS environment variable
-if (NOT CMAKE_CXX_FLAGS)
-    set(CMAKE_CXX_FLAGS "-Wall -Wextra -Werror -Wabi -O0 -m${MODE} -std=c++${CMAKE_CXX_STANDARD} -ftemplate-backtrace-limit=0")
-endif()
 
 if (QUANTUM_BUILD_DOC)
     message(STATUS "Generating Doxygen configuration files")
@@ -65,7 +76,7 @@ else()
 endif()
 
 # Look for Boost
-find_package(Boost 1.65 REQUIRED COMPONENTS context)
+find_package(Boost 1.61 REQUIRED COMPONENTS context)
 if (Boost_FOUND)
     if (QUANTUM_BOOST_USE_VALGRIND)
         add_definitions(-DBOOST_USE_VALGRIND)
@@ -86,11 +97,13 @@ else()
 endif()
 
 if (QUANTUM_ENABLE_TESTS)
-    message(STATUS "Adding target 'tests' to build output")
     find_package(GTest REQUIRED)
     if (GTEST_FOUND)
+        message(STATUS "Adding target 'quantum_tests' to build output")
         enable_testing()
         add_subdirectory(tests)
+    else()
+        message(STATUS "Package GTEST not found. Skipping testing.")
     endif()
 else()
     set(BUILD_TESTING OFF)
@@ -104,5 +117,6 @@ if (QUANTUM_VERBOSE_MAKEFILE)
     message(STATUS "PROJECT_SOURCE_DIR = ${PROJECT_SOURCE_DIR}/")
     message(STATUS "CMAKE_INSTALL_PREFIX = ${CMAKE_INSTALL_PREFIX}")
     message(STATUS "BOOST_ROOT = ${BOOST_ROOT}")
+    message(STATUS "REQUIRED BOOST_VERSION = 1.61")
     message(STATUS "GTEST_ROOT = ${GTEST_ROOT}")
 endif()

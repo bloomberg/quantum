@@ -43,21 +43,21 @@ template <class T>
 template <class V>
 NonBufferRetType<V> IThreadFuture<T>::get()
 {
-    return static_cast<Impl*>(this)->template get();
+    return static_cast<Impl*>(this)->get();
 }
 
 template <class T>
 template <class V>
 const NonBufferRetType<V>& IThreadFuture<T>::getRef() const
 {
-    return static_cast<const Impl*>(this)->template getRef();
+    return static_cast<const Impl*>(this)->getRef();
 }
 
 template <class T>
 template <class V>
 BufferRetType<V> IThreadFuture<T>::pull(bool& isBufferClosed)
 {
-    return static_cast<Impl*>(this)->template pull(isBufferClosed);
+    return static_cast<Impl*>(this)->pull(isBufferClosed);
 }
 
 //==============================================================================================
@@ -67,21 +67,21 @@ template <class T>
 template <class V>
 NonBufferRetType<V> ICoroFuture<T>::get(ICoroSync::Ptr sync)
 {
-    return static_cast<Impl*>(this)->template get(sync);
+    return static_cast<Impl*>(this)->get(sync);
 }
 
 template <class T>
 template <class V>
 const NonBufferRetType<V>& ICoroFuture<T>::getRef(ICoroSync::Ptr sync) const
 {
-    return static_cast<const Impl*>(this)->template getRef(sync);
+    return static_cast<const Impl*>(this)->getRef(sync);
 }
 
 template <class T>
 template <class V>
 BufferRetType<V> ICoroFuture<T>::pull(ICoroSync::Ptr sync, bool& isBufferClosed)
 {
-    return static_cast<Impl*>(this)->template pull(sync, isBufferClosed);
+    return static_cast<Impl*>(this)->pull(sync, isBufferClosed);
 }
 
 //==============================================================================================
@@ -164,7 +164,7 @@ template <class V>
 BufferRetType<V> Future<T>::pull(bool& isBufferClosed)
 {
     if (!_sharedState) ThrowFutureException(FutureState::NoState);
-    return _sharedState->template pull(isBufferClosed);
+    return _sharedState->pull(isBufferClosed);
 }
 
 template <class T>
@@ -172,7 +172,7 @@ template <class V>
 BufferRetType<V> Future<T>::pull(ICoroSync::Ptr sync, bool& isBufferClosed)
 {
     if (!_sharedState) ThrowFutureException(FutureState::NoState);
-    return _sharedState->template pull(sync, isBufferClosed);
+    return _sharedState->pull(sync, isBufferClosed);
 }
 
 template <class T>

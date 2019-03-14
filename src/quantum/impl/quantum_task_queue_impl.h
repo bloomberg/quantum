@@ -36,7 +36,7 @@ TaskQueue::TaskQueue(const Configuration&) :
     _isEmpty(true),
     _isInterrupted(false),
     _isIdle(true),
-    _terminated(ATOMIC_FLAG_INIT),
+    _terminated ATOMIC_FLAG_INIT,
     _isAdvanced(false)
 {
     _thread = std::make_shared<std::thread>(std::bind(&TaskQueue::run, this));
