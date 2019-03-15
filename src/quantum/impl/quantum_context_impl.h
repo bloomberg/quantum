@@ -30,14 +30,14 @@ template <class RET>
 template <class V>
 NonBufferRetType<V> IThreadContext<RET>::get()
 {
-    return static_cast<Impl*>(this)->template get();
+    return static_cast<Impl*>(this)->get();
 }
 
 template <class RET>
 template <class V>
 const NonBufferRetType<V>& IThreadContext<RET>::getRef() const
 {
-    return static_cast<const Impl*>(this)->template getRef();
+    return static_cast<const Impl*>(this)->getRef();
 }
 
 template <class RET>
@@ -58,28 +58,28 @@ template <class RET>
 template <class V, class>
 int IThreadContext<RET>::set(V&& value)
 {
-    return static_cast<Impl*>(this)->template set(std::forward<V>(value));
+    return static_cast<Impl*>(this)->set(std::forward<V>(value));
 }
 
 template <class RET>
 template <class V, class>
 void IThreadContext<RET>::push(V&& value)
 {
-    static_cast<Impl*>(this)->template push(std::forward<V>(value));
+    static_cast<Impl*>(this)->push(std::forward<V>(value));
 }
 
 template <class RET>
 template <class V>
 BufferRetType<V> IThreadContext<RET>::pull(bool& isBufferClosed)
 {
-    return static_cast<Impl*>(this)->template pull(isBufferClosed);
+    return static_cast<Impl*>(this)->pull(isBufferClosed);
 }
 
 template <class RET>
 template <class V, class>
 int IThreadContext<RET>::closeBuffer()
 {
-    return static_cast<Impl*>(this)->template closeBuffer();
+    return static_cast<Impl*>(this)->closeBuffer();
 }
 
 template <class RET>
@@ -132,14 +132,14 @@ template <class RET>
 template <class V>
 NonBufferRetType<V> ICoroContext<RET>::get(ICoroSync::Ptr sync)
 {
-    return static_cast<Impl*>(this)->template get(sync);
+    return static_cast<Impl*>(this)->get(sync);
 }
 
 template <class RET>
 template <class V>
 const NonBufferRetType<V>& ICoroContext<RET>::getRef(ICoroSync::Ptr sync) const
 {
-    return static_cast<const Impl*>(this)->template getRef(sync);
+    return static_cast<const Impl*>(this)->getRef(sync);
 }
 
 template <class RET>
@@ -177,7 +177,7 @@ template <class V, class>
 int ICoroContext<RET>::set(V&& value)
 {
     std::shared_ptr<Impl> ctx = static_cast<Impl*>(this)->shared_from_this();
-    return ctx->template set(ctx, std::forward<V>(value));
+    return ctx->set(ctx, std::forward<V>(value));
 }
 
 template <class RET>
@@ -185,21 +185,21 @@ template <class V, class>
 void ICoroContext<RET>::push(V&& value)
 {
     std::shared_ptr<Impl> ctx = static_cast<Impl*>(this)->shared_from_this();
-    ctx->template push(ctx, std::forward<V>(value));
+    ctx->push(ctx, std::forward<V>(value));
 }
 
 template <class RET>
 template <class V>
 BufferRetType<V> ICoroContext<RET>::pull(ICoroSync::Ptr sync, bool& isBufferClosed)
 {
-    return static_cast<Impl*>(this)->template pull(sync, isBufferClosed);
+    return static_cast<Impl*>(this)->pull(sync, isBufferClosed);
 }
 
 template <class RET>
 template <class V, class>
 int ICoroContext<RET>::closeBuffer()
 {
-    return static_cast<Impl*>(this)->template closeBuffer();
+    return static_cast<Impl*>(this)->closeBuffer();
 }
 
 template <class RET>
@@ -415,7 +415,7 @@ template <class RET>
 Context<RET>::Context(DispatcherCore& dispatcher) :
     _promises(1, PromisePtr<RET>(new Promise<RET>(), Promise<RET>::deleter)),
     _dispatcher(&dispatcher),
-    _terminated(ATOMIC_FLAG_INIT),
+    _terminated ATOMIC_FLAG_INIT,
     _signal(-1),
     _yield(nullptr),
     _sleepDuration(0)
@@ -426,7 +426,7 @@ template <class OTHER_RET>
 Context<RET>::Context(Context<OTHER_RET>& other) :
     _promises(other._promises),
     _dispatcher(other._dispatcher),
-    _terminated(ATOMIC_FLAG_INIT),
+    _terminated ATOMIC_FLAG_INIT,
     _signal(-1),
     _yield(nullptr),
     _sleepDuration(0)
@@ -841,35 +841,35 @@ template <class RET>
 template <class V, class>
 void Context<RET>::push(V&& value)
 {
-    std::static_pointer_cast<Promise<RET>>(_promises.back())->template push(std::forward<V>(value));
+    std::static_pointer_cast<Promise<RET>>(_promises.back())->push(std::forward<V>(value));
 }
 
 template <class RET>
 template <class V, class>
 void Context<RET>::push(ICoroSync::Ptr sync, V&& value)
 {
-    std::static_pointer_cast<Promise<RET>>(_promises.back())->template push(sync, std::forward<V>(value));
+    std::static_pointer_cast<Promise<RET>>(_promises.back())->push(sync, std::forward<V>(value));
 }
 
 template <class RET>
 template <class V>
 BufferRetType<V> Context<RET>::pull(bool& isBufferClosed)
 {
-    return std::static_pointer_cast<Promise<RET>>(_promises.back())->getIThreadFuture()->template pull(isBufferClosed);
+    return std::static_pointer_cast<Promise<RET>>(_promises.back())->getIThreadFuture()->pull(isBufferClosed);
 }
 
 template <class RET>
 template <class V>
 BufferRetType<V> Context<RET>::pull(ICoroSync::Ptr sync, bool& isBufferClosed)
 {
-    return std::static_pointer_cast<Promise<RET>>(_promises.back())->getICoroFuture()->template pull(sync, isBufferClosed);
+    return std::static_pointer_cast<Promise<RET>>(_promises.back())->getICoroFuture()->pull(sync, isBufferClosed);
 }
 
 template <class RET>
 template <class V, class>
 int Context<RET>::closeBuffer()
 {
-    return std::static_pointer_cast<Promise<RET>>(_promises.back())->template closeBuffer();
+    return std::static_pointer_cast<Promise<RET>>(_promises.back())->closeBuffer();
 }
 
 template <class RET>

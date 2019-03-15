@@ -73,7 +73,7 @@ struct HeapAllocator : public ContiguousPoolManager<T>
     {
         *this = std::move(other);
     }
-    HeapAllocator& operator=(const this_type& other)
+    HeapAllocator& operator=(const this_type&)
     {}
     HeapAllocator& operator=(this_type&& other)
     {
@@ -95,10 +95,10 @@ struct HeapAllocator : public ContiguousPoolManager<T>
     template <typename U>
     HeapAllocator& operator=(const HeapAllocator<U>&)
     {}
-    bool operator==(const this_type& other) const {
+    bool operator==(const this_type&) const {
         return true;
     }
-    bool operator!=(const this_type& other) const {
+    bool operator!=(const this_type&) const {
         return false;
     }
     index_type size() const { return _size; }

@@ -49,7 +49,7 @@ Task::Task(std::shared_ptr<Context<RET>> ctx,
     _isHighPriority(false),
     _rc((int)ITask::RetCode::Running),
     _type(type),
-    _terminated(ATOMIC_FLAG_INIT)
+    _terminated ATOMIC_FLAG_INIT
 {}
 
 template <class RET, class FUNC, class ... ARGS>
@@ -66,7 +66,7 @@ Task::Task(std::shared_ptr<Context<RET>> ctx,
     _isHighPriority(isHighPriority),
     _rc((int)ITask::RetCode::Running),
     _type(type),
-    _terminated(ATOMIC_FLAG_INIT)
+    _terminated ATOMIC_FLAG_INIT
 {}
 
 inline

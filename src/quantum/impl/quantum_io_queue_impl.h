@@ -42,7 +42,7 @@ IoQueue::IoQueue(const Configuration& config,
     _isEmpty(true),
     _isInterrupted(false),
     _isIdle(true),
-    _terminated(ATOMIC_FLAG_INIT)
+    _terminated ATOMIC_FLAG_INIT
 {
     if (_sharedIoQueues) {
         //The shared queue doesn't have its own thread
@@ -62,7 +62,7 @@ IoQueue::IoQueue(const IoQueue& other) :
     _isEmpty(true),
     _isInterrupted(false),
     _isIdle(true),
-    _terminated(ATOMIC_FLAG_INIT)
+    _terminated ATOMIC_FLAG_INIT
 {
     if (_sharedIoQueues) {
         //The shared queue doesn't have its own thread

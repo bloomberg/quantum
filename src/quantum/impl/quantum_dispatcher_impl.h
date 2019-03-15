@@ -30,14 +30,14 @@ Dispatcher::Dispatcher(int numCoroutineThreads,
                        bool pinCoroutineThreadsToCores) :
     _dispatcher(numCoroutineThreads, numIoThreads, pinCoroutineThreadsToCores),
     _drain(false),
-    _terminated(ATOMIC_FLAG_INIT)
+    _terminated ATOMIC_FLAG_INIT
 {}
 
 inline
 Dispatcher::Dispatcher(const Configuration& config) :
     _dispatcher(config),
     _drain(false),
-    _terminated(ATOMIC_FLAG_INIT)
+    _terminated ATOMIC_FLAG_INIT
 {}
 
 inline

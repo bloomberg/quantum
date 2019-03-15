@@ -63,7 +63,7 @@ struct StackAllocator : public ContiguousPoolManager<T>
     {}
     StackAllocator& operator=(const this_type&)
     {}
-    static StackAllocator select_on_container_copy_construction(const StackAllocator& other) {
+    static StackAllocator select_on_container_copy_construction(const StackAllocator&) {
         return StackAllocator();
     }
     template <typename U>
@@ -72,10 +72,10 @@ struct StackAllocator : public ContiguousPoolManager<T>
     template <typename U>
     StackAllocator& operator=(const StackAllocator<U,SIZE>&)
     {}
-    bool operator==(const this_type& other) const {
+    bool operator==(const this_type&) const {
         return false;
     }
-    bool operator!=(const this_type& other) const {
+    bool operator!=(const this_type&) const {
         return true;
     }
     

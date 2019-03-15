@@ -392,10 +392,10 @@ void SharedState<Buffer<T>>::push(ICoroSync::Ptr sync, V&& value)
 template <class T>
 T SharedState<Buffer<T>>::pull(bool& isBufferClosed)
 {
-    T out;
+    T out{};
     if (!_reader.empty())
     {
-        T out;
+        T out{};
         _reader.pull(out);
         return out;
     }
@@ -427,10 +427,10 @@ T SharedState<Buffer<T>>::pull(bool& isBufferClosed)
 template <class T>
 T SharedState<Buffer<T>>::pull(ICoroSync::Ptr sync, bool& isBufferClosed)
 {
-    T out;
+    T out{};
     if (!_reader.empty())
     {
-        T out;
+        T out{};
         _reader.pull(out);
         return out;
     }

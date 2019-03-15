@@ -96,9 +96,8 @@ Note: options must be preceded with `-D` when passed as arguments to CMake.
 Run the following from the top directory:
 ```shell
 > cmake -Bbuild -DQUANTUM_ENABLE_TESTS=ON <options> .
-> make quantum_test
 > cd build
-> ctest
+> make quantum_test && ctest
 ```
 
 ### Using

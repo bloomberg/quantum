@@ -31,7 +31,7 @@ DispatcherCore::DispatcherCore(int numCoroutineThreads,
     _sharedIoQueues((numIoThreads <= 0) ? 1 : numIoThreads),
     _ioQueues((numIoThreads <= 0) ? 1 : numIoThreads, IoQueue(Configuration(), &_sharedIoQueues)),
     _loadBalanceSharedIoQueues(false),
-    _terminated(ATOMIC_FLAG_INIT)
+    _terminated ATOMIC_FLAG_INIT
 {
     if (pinCoroutineThreadsToCores)
     {
@@ -50,7 +50,7 @@ DispatcherCore::DispatcherCore(const Configuration& config) :
     _sharedIoQueues((config.getNumIoThreads() <= 0) ? 1 : config.getNumIoThreads(), IoQueue(config, nullptr)),
     _ioQueues((config.getNumIoThreads() <= 0) ? 1 : config.getNumIoThreads(), IoQueue(config, &_sharedIoQueues)),
     _loadBalanceSharedIoQueues(false),
-    _terminated(ATOMIC_FLAG_INIT)
+    _terminated ATOMIC_FLAG_INIT
 {
     if (config.getPinCoroutineThreadsToCores())
     {

@@ -24,7 +24,7 @@ namespace quantum {
 
 inline
 SpinLock::SpinLock() :
-    _flag(ATOMIC_FLAG_INIT)
+    _flag ATOMIC_FLAG_INIT
 {}
 
 inline

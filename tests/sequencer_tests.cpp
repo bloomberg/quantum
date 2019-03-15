@@ -292,7 +292,7 @@ TEST(Sequencer, SequenceKeyStats)
     postedCount += universalStats.getPostedTaskCount();
     pendingCount += universalStats.getPendingTaskCount();
 
-    EXPECT_EQ(sequencer.getSequenceKeyCount(), sequenceKeyCount);
+    EXPECT_EQ(sequenceKeyCount, (int)sequencer.getSequenceKeyCount());
     EXPECT_EQ((unsigned int)taskCount / 2, postedCount);
     // we expect one less because the first universal task starts running until it hits the block,
     // therefore all tasks are pending except one
@@ -330,11 +330,11 @@ TEST(Sequencer, SequenceKeyStats)
     postedCount += universalStatsAfter.getPostedTaskCount();
     pendingCount += universalStatsAfter.getPendingTaskCount();
 
-    EXPECT_EQ(sequenceKeyCount, sequencer.getSequenceKeyCount());
+    EXPECT_EQ(sequenceKeyCount, (int)sequencer.getSequenceKeyCount());
     EXPECT_EQ((unsigned int)taskCount, postedCount);
     EXPECT_EQ(0u, pendingCount);
-    EXPECT_EQ(taskCount, sequencer.getTaskStatistics().getPostedTaskCount());
-    EXPECT_EQ(0, sequencer.getTaskStatistics().getPendingTaskCount());
+    EXPECT_EQ(taskCount, (int)sequencer.getTaskStatistics().getPostedTaskCount());
+    EXPECT_EQ(0u, sequencer.getTaskStatistics().getPendingTaskCount());
 }
 
 TEST(Sequencer, TaskOrderWithUniversal)
@@ -368,8 +368,8 @@ TEST(Sequencer, TaskOrderWithUniversal)
     }
     DispatcherSingleton::instance().drain();
 
-    EXPECT_EQ(testData.results().size(), (size_t)taskCount);
-    EXPECT_EQ(sequencer.getSequenceKeyCount(), sequenceKeyCount);
+    EXPECT_EQ((int)testData.results().size(), taskCount);
+    EXPECT_EQ((int)sequencer.getSequenceKeyCount(), sequenceKeyCount);
 
     // the tasks must be ordered within the same sequenceKey
     for(auto sequenceKeyData : sequenceKeys) 
@@ -430,8 +430,8 @@ TEST(Sequencer, MultiSequenceKeyTasks)
     }
     DispatcherSingleton::instance().drain();
 
-    EXPECT_EQ(testData.results().size(), (size_t)taskCount);
-    EXPECT_EQ(sequencer.getSequenceKeyCount(), sequenceKeyCount);
+    EXPECT_EQ((int)testData.results().size(), taskCount);
+    EXPECT_EQ((int)sequencer.getSequenceKeyCount(), sequenceKeyCount);
 
     // the tasks must be ordered within the sequenceKey set intersection
     for(SequencerTestData::TaskId id = 1; id <= taskCount; ++id) 
@@ -465,7 +465,7 @@ TEST(Sequencer, CustomHashFunction)
 
     // our custom hash value will be restricted to [0, restrictedSequenceKeyCount-1]
     using Hasher = std::function<size_t(SequencerTestData::SequenceKey sequenceKeyId)>;
-    Hasher customHasher = [restrictedSequenceKeyCount](SequencerTestData::SequenceKey sequenceKeyId)->size_t 
+    Hasher customHasher = [](SequencerTestData::SequenceKey sequenceKeyId)->size_t
     {
         return std::hash<SequencerTestData::SequenceKey>()(sequenceKeyId % restrictedSequenceKeyCount);
     };
@@ -503,8 +503,8 @@ TEST(Sequencer, CustomHashFunction)
     }
     DispatcherSingleton::instance().drain();
 
-    EXPECT_EQ(testData.results().size(), (size_t)taskCount);
-    EXPECT_EQ(sequencer.getSequenceKeyCount(), restrictedSequenceKeyCount);
+    EXPECT_EQ((int)testData.results().size(), taskCount);
+    EXPECT_EQ((int)sequencer.getSequenceKeyCount(), restrictedSequenceKeyCount);
 
     // the tasks must be ordered within the same sequenceKey
     for(auto sequenceKeyData : sequenceKeys) 

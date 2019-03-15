@@ -38,7 +38,7 @@ class Context : public IThreadContext<RET>,
                 public ITaskAccessor,
                 public std::enable_shared_from_this<Context<RET>>
 {
-    friend class Util;
+    friend struct Util;
     friend class Task;
     friend class Dispatcher;
     template <class OTHER_RET> friend class Context;
