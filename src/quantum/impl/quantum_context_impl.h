@@ -95,7 +95,7 @@ int IThreadContext<RET>::getNumIoThreads() const
 }
 
 template <class RET>
-const std::pair<size_t, size_t>& IThreadContext<RET>::getCoroQueueIdRangeForAny() const
+const std::pair<int, int>& IThreadContext<RET>::getCoroQueueIdRangeForAny() const
 {
     return static_cast<const Impl*>(this)->getCoroQueueIdRangeForAny();
 }
@@ -221,7 +221,7 @@ int ICoroContext<RET>::getNumIoThreads() const
 }
 
 template <class RET>
-const std::pair<size_t, size_t>& ICoroContext<RET>::getCoroQueueIdRangeForAny() const
+const std::pair<int, int>& ICoroContext<RET>::getCoroQueueIdRangeForAny() const
 {
     return static_cast<const Impl*>(this)->getCoroQueueIdRangeForAny();
 }
@@ -1024,7 +1024,7 @@ int Context<RET>::getNumIoThreads() const
 }
 
 template <class RET>
-const std::pair<size_t, size_t>& Context<RET>::getCoroQueueIdRangeForAny() const
+const std::pair<int, int>& Context<RET>::getCoroQueueIdRangeForAny() const
 {
     return _dispatcher->getCoroQueueIdRangeForAny();
 }

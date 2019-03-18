@@ -81,11 +81,11 @@ public:
     void setLoadBalancePollIntervalNumBackoffs(size_t numBackoffs);
 
     /// @brief Sets the range of coroutine queueIds covered by IQueue::QueueId::Any when using Dispatcher::post
-    /// @param[in] coroQueueIdRangeForAny The range [minQueueId, maxQueueId) of queueIds that IQueue::QueueId::Any
+    /// @param[in] coroQueueIdRangeForAny The range [minQueueId, maxQueueId] of queueIds that IQueue::QueueId::Any
     /// will cover.
     /// @remark if the provided range is empty or invalid, then the default range of
-    /// std::pair<size_t, size_t>(0, getNumCoroutineThreads()) will be used
-    void setCoroQueueIdRangeForAny(const std::pair<size_t, size_t>& coroQueueIdRangeForAny);
+    /// std::pair<int, int>(0, getNumCoroutineThreads()-1) will be used
+    void setCoroQueueIdRangeForAny(const std::pair<int, int>& coroQueueIdRangeForAny);
     
     /// @brief Get the number of coroutine threads.
     /// @return The number of threads.
@@ -115,10 +115,10 @@ public:
     /// @return The number of backoffs.
     size_t getLoadBalancePollIntervalNumBackoffs() const;
 
-    /// @brief Gets the range [minQueueId, maxQueueId) of coroutine queueIds covered by IQueue::QueueId::Any
+    /// @brief Gets the range [minQueueId, maxQueueId] of coroutine queueIds covered by IQueue::QueueId::Any
     /// by the Dispatcher.
     /// @return queueIdRange The range of queueIds that IQueue::QueueId::Any covers
-    const std::pair<size_t, size_t>& getCoroQueueIdRangeForAny() const;
+    const std::pair<int, int>& getCoroQueueIdRangeForAny() const;
     
 private:
     int                         _numCoroutineThreads{-1};
@@ -128,7 +128,7 @@ private:
     std::chrono::milliseconds   _loadBalancePollIntervalMs{100};
     BackoffPolicy               _loadBalancePollIntervalBackoffPolicy{BackoffPolicy::Linear};
     size_t                      _loadBalancePollIntervalNumBackoffs{0};
-    std::pair<size_t, size_t>    _coroQueueIdRangeForAny{0, 0};
+    std::pair<int, int>         _coroQueueIdRangeForAny{0, -1};
 };
 
 }}
