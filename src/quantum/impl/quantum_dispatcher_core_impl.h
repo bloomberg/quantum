@@ -66,7 +66,7 @@ DispatcherCore::DispatcherCore(const Configuration& config) :
     // set the range to the default if the configured one is invalid or empty
     if (coroQueueIdRangeForAny.first <= coroQueueIdRangeForAny.second &&
         coroQueueIdRangeForAny.first >= 0 &&
-        coroQueueIdRangeForAny.second < _coroQueues.size())
+        coroQueueIdRangeForAny.second < (int)_coroQueues.size())
     {
         _coroQueueIdRangeForAny = coroQueueIdRangeForAny;
     }
