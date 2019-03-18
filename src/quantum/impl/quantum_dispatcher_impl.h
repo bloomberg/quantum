@@ -276,7 +276,7 @@ int Dispatcher::getNumIoThreads() const
 }
 
 inline
-const std::pair<size_t, size_t>& Dispatcher::getCoroQueueIdRangeForAny() const
+const std::pair<int, int>& Dispatcher::getCoroQueueIdRangeForAny() const
 {
     return _dispatcher.getCoroQueueIdRangeForAny();
 }

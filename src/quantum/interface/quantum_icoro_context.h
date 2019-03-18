@@ -148,10 +148,10 @@ struct ICoroContext : public ICoroContextBase
     ///       to a specific queue.
     int getNumIoThreads() const;
 
-    /// @brief Gets the range [minQueueId, maxQueueId) of coroutine queueIds covered by IQueue::QueueId::Any
+    /// @brief Gets the range [minQueueId, maxQueueId] of coroutine queueIds covered by IQueue::QueueId::Any
     /// by the Dispatcher.
     /// @return queueIdRange The range of queueIds that IQueue::QueueId::Any covers
-    const std::pair<size_t, size_t>& getCoroQueueIdRangeForAny() const;
+    const std::pair<int, int>& getCoroQueueIdRangeForAny() const;
     
     //-----------------------------------------------------------------------------------------
     //                                      TASK CONTINUATIONS
