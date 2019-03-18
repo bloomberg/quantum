@@ -308,6 +308,11 @@ public:
     /// @note Each thread services its own queueId, therefore this number can be used when assigning IO tasks
     ///       to a specific queue.
     int getNumIoThreads() const;
+
+    /// @brief Gets the range [minQueueId, maxQueueId) of coroutine queueIds covered by IQueue::QueueId::Any
+    /// when using Dispatcher::post
+    /// @return queueIdRange The range of queueIds that IQueue::QueueId::Any covers
+    const std::pair<size_t, size_t>& getCoroQueueIdRangeForAny() const;
     
     /// @brief Returns a statistics object for the specified type and queue id.
     /// @param[in] type The type of queue.

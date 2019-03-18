@@ -18,6 +18,7 @@
 
 #include <quantum/quantum_thread_traits.h>
 #include <chrono>
+#include <utility>
 
 namespace Bloomberg {
 namespace quantum {
@@ -42,22 +43,22 @@ public:
     static const std::string& getJsonSchemaUri();
     
     /// @brief Set the number of threads running coroutines.
-    /// @oaram[in] num The number of threads. Set to -1 to have one coroutine thread per core.
+    /// @param[in] num The number of threads. Set to -1 to have one coroutine thread per core.
     ///            Default is -1.
     void setNumCoroutineThreads(int num);
     
     /// @brief Set the number of threads running IO tasks.
-    /// @oaram[in] num The number of threads. Default is 5.
+    /// @param[in] num The number of threads. Default is 5.
     void setNumIoThreads(int num);
     
     /// @brief Indicate if coroutine threads should be pinned to a core.
-    /// @oaram[in] value True or False. Default is False.
+    /// @param[in] value True or False. Default is False.
     /// @note For best performance, the number of coroutine threads should
     ///       be <= the number of cores in the system.
     void setPinCoroutineThreadsToCores(bool value);
     
     /// @brief Load balancee the shared IO queues.
-    /// @oaram[in] value If set to true, posting to the 'any' IO queue will result in
+    /// @param[in] value If set to true, posting to the 'any' IO queue will result in
     ///              the load being spread among N queues. This mode can provide higher
     ///              throughput if dealing with high task loads. Default is false.
     /// @note To achieve higher performance, the threads run in polling mode which
@@ -65,19 +66,26 @@ public:
     void setLoadBalanceSharedIoQueues(bool value);
     
     /// @brief Set the interval between IO thread polls.
-    /// @oaram[in] interval Interval in milliseconds. Default is 100ms.
+    /// @param[in] interval Interval in milliseconds. Default is 100ms.
     /// @note Setting this to a higher value means it may take longer to react to the first
     ///       IO task posted, and vice-versa if the interval is lower.
     void setLoadBalancePollIntervalMs(std::chrono::milliseconds interval);
     
     /// @brief Set a backoff policy for the shared queue polling interval.
-    /// @oaram[in] policy The backoff policy to use. Default is 'Linear'.
+    /// @param[in] policy The backoff policy to use. Default is 'Linear'.
     void setLoadBalancePollIntervalBackoffPolicy(BackoffPolicy policy);
     
     /// @brief Set the number of backoffs.
-    /// @oaram[in] numBackoffs The number of backoff increments. Default is 0.
+    /// @param[in] numBackoffs The number of backoff increments. Default is 0.
     ///                    When the number of backoffs is reached, the poll interval remains unchanged thereafter.
     void setLoadBalancePollIntervalNumBackoffs(size_t numBackoffs);
+
+    /// @brief Sets the range of coroutine queueIds covered by IQueue::QueueId::Any when using Dispatcher::post
+    /// @param[in] coroQueueIdRangeForAny The range [minQueueId, maxQueueId) of queueIds that IQueue::QueueId::Any
+    /// will cover.
+    /// @remark if the provided range is empty or invalid, then the default range of
+    /// std::pair<size_t, size_t>(0, getNumCoroutineThreads()) will be used
+    void setCoroQueueIdRangeForAny(const std::pair<size_t, size_t>& coroQueueIdRangeForAny);
     
     /// @brief Get the number of coroutine threads.
     /// @return The number of threads.
@@ -106,6 +114,11 @@ public:
     /// @brief Get the number of backoffs used.
     /// @return The number of backoffs.
     size_t getLoadBalancePollIntervalNumBackoffs() const;
+
+    /// @brief Gets the range [minQueueId, maxQueueId) of coroutine queueIds covered by IQueue::QueueId::Any
+    /// by the Dispatcher.
+    /// @return queueIdRange The range of queueIds that IQueue::QueueId::Any covers
+    const std::pair<size_t, size_t>& getCoroQueueIdRangeForAny() const;
     
 private:
     int                         _numCoroutineThreads{-1};
@@ -115,6 +128,7 @@ private:
     std::chrono::milliseconds   _loadBalancePollIntervalMs{100};
     BackoffPolicy               _loadBalancePollIntervalBackoffPolicy{BackoffPolicy::Linear};
     size_t                      _loadBalancePollIntervalNumBackoffs{0};
+    std::pair<size_t, size_t>    _coroQueueIdRangeForAny{0, 0};
 };
 
 }}

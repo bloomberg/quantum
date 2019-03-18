@@ -148,6 +148,8 @@ public:
     int closeBuffer();
     int getNumCoroutineThreads() const;
     int getNumIoThreads() const;
+    const std::pair<size_t, size_t>& getCoroQueueIdRangeForAny() const;
+
     
     //===================================
     //        TASK CONTINUATIONS

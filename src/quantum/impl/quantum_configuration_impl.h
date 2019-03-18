@@ -123,6 +123,12 @@ void Configuration::setLoadBalancePollIntervalNumBackoffs(size_t numBackoffs)
 }
 
 inline
+void Configuration::setCoroQueueIdRangeForAny(const std::pair<size_t, size_t>& coroQueueIdRangeForAny)
+{
+     _coroQueueIdRangeForAny = coroQueueIdRangeForAny;
+}
+
+inline
 int Configuration::getNumCoroutineThreads() const
 {
     return _numCoroutineThreads;
@@ -162,6 +168,12 @@ inline
 size_t Configuration::getLoadBalancePollIntervalNumBackoffs() const
 {
     return _loadBalancePollIntervalNumBackoffs;
+}
+
+inline
+const std::pair<size_t, size_t>& Configuration::getCoroQueueIdRangeForAny() const
+{
+    return  _coroQueueIdRangeForAny;
 }
 
 }
