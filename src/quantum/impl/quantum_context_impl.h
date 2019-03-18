@@ -95,6 +95,12 @@ int IThreadContext<RET>::getNumIoThreads() const
 }
 
 template <class RET>
+const std::pair<size_t, size_t>& IThreadContext<RET>::getCoroQueueIdRangeForAny() const
+{
+    return static_cast<const Impl*>(this)->getCoroQueueIdRangeForAny();
+}
+ 
+template <class RET>
 template <class OTHER_RET, class FUNC, class ... ARGS>
 ThreadContextPtr<OTHER_RET>
 IThreadContext<RET>::then(FUNC&& func, ARGS&&... args)
@@ -212,6 +218,12 @@ template <class RET>
 int ICoroContext<RET>::getNumIoThreads() const
 {
     return static_cast<const Impl*>(this)->getNumIoThreads();
+}
+
+template <class RET>
+const std::pair<size_t, size_t>& ICoroContext<RET>::getCoroQueueIdRangeForAny() const
+{
+    return static_cast<const Impl*>(this)->getCoroQueueIdRangeForAny();
 }
 
 template <class RET>
@@ -1009,6 +1021,12 @@ template <class RET>
 int Context<RET>::getNumIoThreads() const
 {
     return _dispatcher->getNumIoThreads();
+}
+
+template <class RET>
+const std::pair<size_t, size_t>& Context<RET>::getCoroQueueIdRangeForAny() const
+{
+    return _dispatcher->getCoroQueueIdRangeForAny();
 }
 
 template <class RET>

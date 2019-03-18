@@ -67,6 +67,8 @@ public:
     
     int getNumIoThreads() const;
 
+    const std::pair<size_t, size_t>& getCoroQueueIdRangeForAny() const;
+    
 private:
     // TODO : Remove - deprecated
     DispatcherCore(int numCoroutineThreads,
@@ -88,11 +90,12 @@ private:
     QueueStatistics ioStats(int queueId);
     
     //Members
-    std::vector<TaskQueue>  _coroQueues;     //coroutine queues
-    std::vector<IoQueue>    _sharedIoQueues; //shared IO task queues (hold tasks posted to 'Any' IO queue)
-    std::vector<IoQueue>    _ioQueues;       //dedicated IO task queues
-    bool                    _loadBalanceSharedIoQueues; //tasks posted to 'Any' IO queue are load balanced
-    std::atomic_flag        _terminated;
+    std::vector<TaskQueue>    _coroQueues;     //coroutine queues
+    std::vector<IoQueue>      _sharedIoQueues; //shared IO task queues (hold tasks posted to 'Any' IO queue)
+    std::vector<IoQueue>      _ioQueues;       //dedicated IO task queues
+    bool                      _loadBalanceSharedIoQueues; //tasks posted to 'Any' IO queue are load balanced
+    std::atomic_flag          _terminated;
+    std::pair<size_t, size_t>  _coroQueueIdRangeForAny; // range of coroutine queueIds covered by 'Any' 
 };
 
 }}

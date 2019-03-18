@@ -50,6 +50,8 @@ public:
 public:
     /// @brief Sets the id of the control queue
     /// @param controlQueueId the queue id
+    /// @remark Sequencer typically processes tasks with the lower latency when the control queue is
+    /// dedicated for the sequencer contol tasks only, and no other tasks are enqueued into it.
     void setControlQueueId(int controlQueueId);
 
     /// @brief Gets the id of the control queue

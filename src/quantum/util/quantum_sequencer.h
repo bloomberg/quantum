@@ -61,6 +61,9 @@ public:
     /// @param[in] func Callable object.
     /// @param[in] args Variable list of arguments passed to the callable object.
     /// @note This function is non-blocking and returns immediately.
+    /// @remark For lowering the latencies of processing tasks posted here, it is suggested that the configured
+    /// Any-coroutine-queue-range (@see Configuration::setCoroQueueIdRangeForAny) does not contain
+    /// the control queue id (@see SequencerConfiguration::setControlQueueId).
     template <class FUNC, class ... ARGS>
     void
     post(const SequenceKey& sequenceKey, FUNC&& func, ARGS&&... args);
@@ -83,6 +86,11 @@ public:
     /// @param[in] func Callable object.
     /// @param[in] args Variable list of arguments passed to the callable object.
     /// @note This function is non-blocking and returns immediately.
+    /// @remark For lowering the latencies of processing tasks posted here, queueId is suggested to be
+    /// different from the control queue id (@see SequencerConfiguration::setControlQueueId). Hence, if
+    /// IQueue::QueueId::Any is intended to be used as queueId here, then it is suggested that the configured
+    /// Any-coroutine-queue-range (@see Configuration::setCoroQueueIdRangeForAny) does not contain
+    /// the control queue id.
     template <class FUNC, class ... ARGS>
     void
     post(void* opaque, int queueId, bool isHighPriority, const SequenceKey& sequenceKey, FUNC&& func, ARGS&&... args);
@@ -97,6 +105,9 @@ public:
     /// @param[in] func Callable object.
     /// @param[in] args Variable list of arguments passed to the callable object.
     /// @note This function is non-blocking and returns immediately.
+    /// @remark For lowering the latencies of processing tasks posted here, it is suggested that the configured
+    /// Any-coroutine-queue-range (@see Configuration::setCoroQueueIdRangeForAny) does not contain
+    /// the control queue id (@see SequencerConfiguration::setControlQueueId).
     template <class FUNC, class ... ARGS>
     void
     post(const std::vector<SequenceKey>& sequenceKeys, FUNC&& func, ARGS&&... args);
@@ -119,6 +130,11 @@ public:
     /// @param[in] func Callable object.
     /// @param[in] args Variable list of arguments passed to the callable object.
     /// @note This function is non-blocking and returns immediately.
+    /// @remark For lowering the latencies of processing tasks posted here, queueId is suggested to be
+    /// different from the control queue id (@see SequencerConfiguration::setControlQueueId). Hence, if
+    /// IQueue::QueueId::Any is intended to be used as queueId here, then it is suggested that the configured
+    /// Any-coroutine-queue-range (@see Configuration::setCoroQueueIdRangeForAny) does not contain
+    /// the control queue id.
     template <class FUNC, class ... ARGS>
     void
     post(void* opaque,
@@ -137,6 +153,9 @@ public:
     /// @param[in] func Callable object.
     /// @param[in] args Variable list of arguments passed to the callable object.
     /// @note This function is non-blocking and returns immediately.
+    /// @remark For lowering the latencies of processing tasks posted here, it is suggested that the configured
+    /// Any-coroutine-queue-range (@see Configuration::setCoroQueueIdRangeForAny) does not contain
+    /// the control queue id (@see SequencerConfiguration::setControlQueueId).
     template <class FUNC, class ... ARGS>
     void
     postAll(FUNC&& func, ARGS&&... args);
@@ -158,6 +177,11 @@ public:
     /// @param[in] func Callable object.
     /// @param[in] args Variable list of arguments passed to the callable object.
     /// @note This function is non-blocking and returns immediately.
+    /// @remark For lowering the latencies of processing tasks posted here, queueId is suggested to be
+    /// different from the control queue id (@see SequencerConfiguration::setControlQueueId). Hence, if
+    /// IQueue::QueueId::Any is intended to be used as queueId here, then it is suggested that the configured
+    /// Any-coroutine-queue-range (@see Configuration::setCoroQueueIdRangeForAny) does not contain
+    /// the control queue id.
     template <class FUNC, class ... ARGS>
     void
     postAll(void* opaque, int queueId, bool isHighPriority, FUNC&& func, ARGS&&... args);

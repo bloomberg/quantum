@@ -147,6 +147,11 @@ struct ICoroContext : public ICoroContextBase
     /// @note Each thread services its own queueId, therefore this number can be used when assigning IO tasks
     ///       to a specific queue.
     int getNumIoThreads() const;
+
+    /// @brief Gets the range [minQueueId, maxQueueId) of coroutine queueIds covered by IQueue::QueueId::Any
+    /// by the Dispatcher.
+    /// @return queueIdRange The range of queueIds that IQueue::QueueId::Any covers
+    const std::pair<size_t, size_t>& getCoroQueueIdRangeForAny() const;
     
     //-----------------------------------------------------------------------------------------
     //                                      TASK CONTINUATIONS
