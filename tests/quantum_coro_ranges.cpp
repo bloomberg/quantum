@@ -31,14 +31,6 @@ TEST(DispatcherCoroRangeTest, DefaultAnyCoroQueueIdRange1)
     EXPECT_EQ(10, dispatcher.getCoroQueueIdRangeForAny().second);
 }
 
-TEST(DispatcherCoroRangeTest, DefaultAnyCoroQueueIdRange2)
-{
-    quantum::Dispatcher dispatcher(5);
-    
-    EXPECT_EQ(0, dispatcher.getCoroQueueIdRangeForAny().first);
-    EXPECT_EQ(5, dispatcher.getCoroQueueIdRangeForAny().second);
-}
-
 TEST(DispatcherCoroRangeTest, ValidAnyCoroQueueIdRange1)
 {
     quantum::Configuration configuration;
