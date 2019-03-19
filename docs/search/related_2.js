@@ -1,4 +1,4 @@
 var searchData=
 [
-  ['operator_2b',['operator+',['../d1/d7b/classBloomberg_1_1quantum_1_1QueueStatistics.html#a25842818351ca1f533f22e2f2a9d6ecb',1,'Bloomberg::quantum::QueueStatistics']]]
+  ['ioqueue',['IOQueue',['../d1/d7b/classBloomberg_1_1quantum_1_1QueueStatistics.html#abab543ba302c2b62a8d6feb01a6a8d62',1,'Bloomberg::quantum::QueueStatistics']]]
 ];

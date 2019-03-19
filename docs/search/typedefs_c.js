@@ -1,5 +1,5 @@
 var searchData=
 [
-  ['value_5ftype',['value_type',['../d7/dd7/structBloomberg_1_1quantum_1_1ContiguousPoolManager.html#adada271ce39fa67c3952f0a843aa15e4',1,'Bloomberg::quantum::ContiguousPoolManager::value_type()'],['../d2/da6/structBloomberg_1_1quantum_1_1HeapAllocator.html#a2ade8826523d81fc0104ac8148a2c903',1,'Bloomberg::quantum::HeapAllocator::value_type()'],['../d0/d75/structBloomberg_1_1quantum_1_1StackAllocator.html#a48c237f5a8fff7f18e97febc743b42ca',1,'Bloomberg::quantum::StackAllocator::value_type()']]],
-  ['valuetype',['ValueType',['../d1/d87/classBloomberg_1_1quantum_1_1Buffer.html#acbc6c702c5afd327a72ecdfda84f92e1',1,'Bloomberg::quantum::Buffer']]]
+  ['reducefunc',['ReduceFunc',['../d0/d25/structBloomberg_1_1quantum_1_1Functions.html#a4f8eb1de73c9ec3661fee4242f1a2a87',1,'Bloomberg::quantum::Functions']]],
+  ['reference',['reference',['../d7/dd7/structBloomberg_1_1quantum_1_1ContiguousPoolManager.html#a70231087bf90f3a401e83cf2ae62ea6e',1,'Bloomberg::quantum::ContiguousPoolManager::reference()'],['../d2/da6/structBloomberg_1_1quantum_1_1HeapAllocator.html#a11a67dd5e0900ec93101e923a260bf08',1,'Bloomberg::quantum::HeapAllocator::reference()'],['../d0/d75/structBloomberg_1_1quantum_1_1StackAllocator.html#a22ed084ed290666b67f54842e9049911',1,'Bloomberg::quantum::StackAllocator::reference()']]]
 ];

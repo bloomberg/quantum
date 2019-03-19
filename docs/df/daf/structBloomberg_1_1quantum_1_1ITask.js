@@ -22,6 +22,7 @@ var structBloomberg_1_1quantum_1_1ITask =
     [ "getType", "df/daf/structBloomberg_1_1quantum_1_1ITask.html#a83f6b10ce06794400a21503b067e1a24", null ],
     [ "isBlocked", "df/daf/structBloomberg_1_1quantum_1_1ITask.html#a253eedcec3acde6b433d7450fb199aac", null ],
     [ "isHighPriority", "df/daf/structBloomberg_1_1quantum_1_1ITask.html#a3ceb7ba29318e456566c2ecee16332c6", null ],
+    [ "isSleeping", "df/daf/structBloomberg_1_1quantum_1_1ITask.html#a9695a227000791bcce83f63dcd843d4f", null ],
     [ "run", "df/daf/structBloomberg_1_1quantum_1_1ITask.html#a8996616a07e7cb2e875d58735e0bed77", null ],
     [ "setQueueId", "df/daf/structBloomberg_1_1quantum_1_1ITask.html#a22afcbfc617f93299eec91b1c25dfb7b", null ]
 ];

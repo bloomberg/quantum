@@ -15,6 +15,7 @@ var classBloomberg_1_1quantum_1_1Task =
     [ "getType", "d0/d90/classBloomberg_1_1quantum_1_1Task.html#ae6197734c5beeca050b6f38cc7298614", null ],
     [ "isBlocked", "d0/d90/classBloomberg_1_1quantum_1_1Task.html#a48945fba38839b87084cfa36eb8878e6", null ],
     [ "isHighPriority", "d0/d90/classBloomberg_1_1quantum_1_1Task.html#abca81f92c38cf76f10340481dc0afbf1", null ],
+    [ "isSleeping", "d0/d90/classBloomberg_1_1quantum_1_1Task.html#abcc4419a03414d808cfa85b3e5678483", null ],
     [ "operator=", "d0/d90/classBloomberg_1_1quantum_1_1Task.html#a490f9bb3751de037eac4c76c93bd74f8", null ],
     [ "operator=", "d0/d90/classBloomberg_1_1quantum_1_1Task.html#aca43a477a3c277348975a248b3bcf28f", null ],
     [ "run", "d0/d90/classBloomberg_1_1quantum_1_1Task.html#ad14af29733e56b05ab6649a98565a048", null ],

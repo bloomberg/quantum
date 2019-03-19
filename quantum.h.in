@@ -13,9 +13,9 @@
 ** See the License for the specific language governing permissions and
 ** limitations under the License.
 */
-#ifndef QUANTUM_H
-#define QUANTUM_H
+#ifndef BLOOMBERG_QUANTUM_H
+#define BLOOMBERG_QUANTUM_H
 
 #define __NATIVESTD__
 @QUANTUM_HEADERS@
-#endif //QUANTUM_H
+#endif //BLOOMBERG_QUANTUM_H

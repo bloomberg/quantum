@@ -11,6 +11,7 @@ var classBloomberg_1_1quantum_1_1IoTask =
     [ "getType", "d4/d8b/classBloomberg_1_1quantum_1_1IoTask.html#ab29dab2f4f6191f317fba92d547920c4", null ],
     [ "isBlocked", "d4/d8b/classBloomberg_1_1quantum_1_1IoTask.html#a0987bdb07ac7845892c002d6998005b1", null ],
     [ "isHighPriority", "d4/d8b/classBloomberg_1_1quantum_1_1IoTask.html#a4aeaa145195732c5c7de5ee2283d9ae3", null ],
+    [ "isSleeping", "d4/d8b/classBloomberg_1_1quantum_1_1IoTask.html#aaa5d13531b04deb4be10b6b926fe3235", null ],
     [ "operator=", "d4/d8b/classBloomberg_1_1quantum_1_1IoTask.html#a352c0d5c639fa1035af33cabc1fc116b", null ],
     [ "operator=", "d4/d8b/classBloomberg_1_1quantum_1_1IoTask.html#a534f57f4eb72eef77f9ebdb3a6975694", null ],
     [ "run", "d4/d8b/classBloomberg_1_1quantum_1_1IoTask.html#a70d28e36211b11dcc1b6b8f09686c169", null ],

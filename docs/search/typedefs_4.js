@@ -1,4 +1,4 @@
 var searchData=
 [
-  ['futureallocator',['FutureAllocator',['../dc/d48/namespaceBloomberg_1_1quantum.html#a17ad7c3baf65051199af60f377a00fa0',1,'Bloomberg::quantum']]]
+  ['exceptioncallback',['ExceptionCallback',['../dd/df2/classBloomberg_1_1quantum_1_1SequencerConfiguration.html#aabd3db440cc463746587bebe7e013742',1,'Bloomberg::quantum::SequencerConfiguration']]]
 ];

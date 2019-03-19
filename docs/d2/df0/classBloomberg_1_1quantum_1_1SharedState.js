@@ -1,15 +1,10 @@
 var classBloomberg_1_1quantum_1_1SharedState =
 [
     [ "breakPromise", "d2/df0/classBloomberg_1_1quantum_1_1SharedState.html#a8f41b9ba8a27ddf54abab7ce18e2b29f", null ],
-    [ "closeBuffer", "d2/df0/classBloomberg_1_1quantum_1_1SharedState.html#ab03daaa9264e43478945f43d651d6b20", null ],
     [ "get", "d2/df0/classBloomberg_1_1quantum_1_1SharedState.html#a35539c2a67f2a81b995b40814fef3976", null ],
     [ "get", "d2/df0/classBloomberg_1_1quantum_1_1SharedState.html#a348e7f855dab4bd3d3dd94949eab1164", null ],
     [ "getRef", "d2/df0/classBloomberg_1_1quantum_1_1SharedState.html#abda9cfa98f63d7c5e5b833ce74d09b1e", null ],
     [ "getRef", "d2/df0/classBloomberg_1_1quantum_1_1SharedState.html#a1dce900d14847192d1e2551773f8ebf3", null ],
-    [ "pull", "d2/df0/classBloomberg_1_1quantum_1_1SharedState.html#a5d1d81b2f0bb488ab98817e38ca1480b", null ],
-    [ "pull", "d2/df0/classBloomberg_1_1quantum_1_1SharedState.html#a59809095bf5c8a14a1032cc3256eb746", null ],
-    [ "push", "d2/df0/classBloomberg_1_1quantum_1_1SharedState.html#a67ccf815c933c8ede250b555e51b6684", null ],
-    [ "push", "d2/df0/classBloomberg_1_1quantum_1_1SharedState.html#ac75d694b170eedde8683a71bae5b4ab1", null ],
     [ "set", "d2/df0/classBloomberg_1_1quantum_1_1SharedState.html#a7ef90daf7a49aa57981779ea2ce5508f", null ],
     [ "set", "d2/df0/classBloomberg_1_1quantum_1_1SharedState.html#ade8445a28f62a8ce855a8a0f6784f470", null ],
     [ "setException", "d2/df0/classBloomberg_1_1quantum_1_1SharedState.html#ab37ff98cb8e66dc99ae155b00c1c0c1e", null ],

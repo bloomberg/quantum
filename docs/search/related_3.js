@@ -1,5 +1,4 @@
 var searchData=
 [
-  ['promise',['Promise',['../dc/d14/classBloomberg_1_1quantum_1_1Future.html#a38b7a1d0cb5a6365a03c19b76293e519',1,'Bloomberg::quantum::Future']]],
-  ['promise_3c_20t_20_3e',['Promise&lt; T &gt;',['../d2/df0/classBloomberg_1_1quantum_1_1SharedState.html#a697fa51a09bfecabc58fd6d07ce8f501',1,'Bloomberg::quantum::SharedState']]]
+  ['operator_2b',['operator+',['../d1/d7b/classBloomberg_1_1quantum_1_1QueueStatistics.html#a25842818351ca1f533f22e2f2a9d6ecb',1,'Bloomberg::quantum::QueueStatistics']]]
 ];
