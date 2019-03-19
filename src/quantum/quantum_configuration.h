@@ -128,7 +128,7 @@ private:
     std::chrono::milliseconds   _loadBalancePollIntervalMs{100};
     BackoffPolicy               _loadBalancePollIntervalBackoffPolicy{BackoffPolicy::Linear};
     size_t                      _loadBalancePollIntervalNumBackoffs{0};
-    std::pair<int, int>         _coroQueueIdRangeForAny{0, -1};
+    std::pair<int, int>         _coroQueueIdRangeForAny{-1, -1};
 };
 
 }}
