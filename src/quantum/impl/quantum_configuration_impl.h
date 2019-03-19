@@ -64,6 +64,14 @@ const std::string& Configuration::getJsonSchema()
             "loadBalancePollIntervalNumBackoffs": {
                 "type": "number",
                 "default": 0
+            },
+            "coroQueueIdRangeForAnyLow": {
+                "type": "number",
+                "default": -1
+            },
+            "coroQueueIdRangeForAnyHigh": {
+                "type": "number",
+                "default": -1
             }
         },
         "additionalProperties": false,
