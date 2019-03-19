@@ -2,9 +2,14 @@ var searchData=
 [
   ['_7econditionvariable',['~ConditionVariable',['../da/d9d/classBloomberg_1_1quantum_1_1ConditionVariable.html#a08203af67a4ce39ca5e1e6769708a38b',1,'Bloomberg::quantum::ConditionVariable']]],
   ['_7econtext',['~Context',['../d8/df7/classBloomberg_1_1quantum_1_1Context.html#a27f69b3023acdc46fc3145db80ea1b68',1,'Bloomberg::quantum::Context']]],
+  ['_7econtiguouspoolmanager',['~ContiguousPoolManager',['../d7/dd7/structBloomberg_1_1quantum_1_1ContiguousPoolManager.html#a9d2e84213284a0b4af17db13328fcf06',1,'Bloomberg::quantum::ContiguousPoolManager']]],
+  ['_7ecoroutinepoolallocator',['~CoroutinePoolAllocator',['../db/d67/structBloomberg_1_1quantum_1_1CoroutinePoolAllocator.html#a9da759340b01b6f4979c201b7594020b',1,'Bloomberg::quantum::CoroutinePoolAllocator']]],
   ['_7ederivedfrom',['~DerivedFrom',['../db/db8/structBloomberg_1_1quantum_1_1Traits_1_1DerivedFrom.html#a58de90b9397ea0c48c3cbe37866ddb3d',1,'Bloomberg::quantum::Traits::DerivedFrom']]],
+  ['_7edispatcher',['~Dispatcher',['../d0/da5/classBloomberg_1_1quantum_1_1Dispatcher.html#a2ce33c9ae341c9592a0d1c74b5ef30b3',1,'Bloomberg::quantum::Dispatcher']]],
   ['_7edispatchercore',['~DispatcherCore',['../da/daa/classBloomberg_1_1quantum_1_1DispatcherCore.html#ae747f986c1d7522fd4ed0c4b3de96732',1,'Bloomberg::quantum::DispatcherCore']]],
+  ['_7efunction',['~Function',['../d6/dea/classBloomberg_1_1quantum_1_1Function_3_01RET_07ARGS_8_8_8_08_4.html#a8bc342c2bf6cbab61b7948ce0a49da4a',1,'Bloomberg::quantum::Function&lt; RET(ARGS...)&gt;']]],
   ['_7eguard',['~Guard',['../d5/dae/classBloomberg_1_1quantum_1_1ITerminate_1_1Guard.html#a935713cd21906b3fd3b5c8b6346d902c',1,'Bloomberg::quantum::ITerminate::Guard::~Guard()'],['../d8/dbb/classBloomberg_1_1quantum_1_1Mutex_1_1Guard.html#a328f4a28d4e3f0a53bbf249ff81b4c3e',1,'Bloomberg::quantum::Mutex::Guard::~Guard()'],['../db/de4/classBloomberg_1_1quantum_1_1SpinLock_1_1Guard.html#ad5a1d7a7122a97faf3bb5bcb011739db',1,'Bloomberg::quantum::SpinLock::Guard::~Guard()']]],
+  ['_7eheapallocator',['~HeapAllocator',['../d2/da6/structBloomberg_1_1quantum_1_1HeapAllocator.html#a4c22a8c50d26f799f560dac507cab6fb',1,'Bloomberg::quantum::HeapAllocator']]],
   ['_7eicontextbase',['~IContextBase',['../d8/db0/structBloomberg_1_1quantum_1_1IContextBase.html#a39a012af6799019e99e1ab5364bb2c86',1,'Bloomberg::quantum::IContextBase']]],
   ['_7eicorofuturebase',['~ICoroFutureBase',['../dc/d82/structBloomberg_1_1quantum_1_1ICoroFutureBase.html#ac320a032b464b1578a67492dc78bd299',1,'Bloomberg::quantum::ICoroFutureBase']]],
   ['_7eicorosync',['~ICoroSync',['../d3/d63/structBloomberg_1_1quantum_1_1ICoroSync.html#a870e1b03e0c0b5a2310709310b78379b',1,'Bloomberg::quantum::ICoroSync']]],
@@ -17,6 +22,5 @@ var searchData=
   ['_7epromise',['~Promise',['../d1/d15/classBloomberg_1_1quantum_1_1Promise.html#a6377ce4da88d823a01c57d2847eb39df',1,'Bloomberg::quantum::Promise']]],
   ['_7ereverseguard',['~ReverseGuard',['../d4/d39/classBloomberg_1_1quantum_1_1Mutex_1_1ReverseGuard.html#a59abd95a2ce5f2c551fbacbc291b7753',1,'Bloomberg::quantum::Mutex::ReverseGuard::~ReverseGuard()'],['../dd/d36/classBloomberg_1_1quantum_1_1SpinLock_1_1ReverseGuard.html#aee249cfe88d1f1ff5b94e522b545dd03',1,'Bloomberg::quantum::SpinLock::ReverseGuard::~ReverseGuard()']]],
   ['_7etask',['~Task',['../d0/d90/classBloomberg_1_1quantum_1_1Task.html#a9239036c9c8c4103c6ed4ba87da7ef26',1,'Bloomberg::quantum::Task']]],
-  ['_7etaskdispatcher',['~TaskDispatcher',['../d7/da1/classBloomberg_1_1quantum_1_1TaskDispatcher.html#a522d2d40e09c2f0c873dabe8238ab995',1,'Bloomberg::quantum::TaskDispatcher']]],
   ['_7etaskqueue',['~TaskQueue',['../d8/d06/classBloomberg_1_1quantum_1_1TaskQueue.html#ab139dd2134e5bacecc8e282ac63010fb',1,'Bloomberg::quantum::TaskQueue']]]
 ];

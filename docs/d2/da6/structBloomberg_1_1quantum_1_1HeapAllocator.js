@@ -22,10 +22,10 @@ var structBloomberg_1_1quantum_1_1HeapAllocator =
     [ "HeapAllocator", "d2/da6/structBloomberg_1_1quantum_1_1HeapAllocator.html#a3395f9c1f6a3bbe0f12740911ed6a36c", null ],
     [ "~HeapAllocator", "d2/da6/structBloomberg_1_1quantum_1_1HeapAllocator.html#a4c22a8c50d26f799f560dac507cab6fb", null ],
     [ "HeapAllocator", "d2/da6/structBloomberg_1_1quantum_1_1HeapAllocator.html#ae2d4a589c1e82b4b3014f188a4be090b", null ],
-    [ "operator!=", "d2/da6/structBloomberg_1_1quantum_1_1HeapAllocator.html#ac93f5e26bebb72a6ce3aa3b8b9cecadf", null ],
-    [ "operator=", "d2/da6/structBloomberg_1_1quantum_1_1HeapAllocator.html#a90915b0e84ca41a15b2fe7b0f9d445a8", null ],
+    [ "operator!=", "d2/da6/structBloomberg_1_1quantum_1_1HeapAllocator.html#ab9c993f6cebc5139c98fdb5c5e4bf756", null ],
+    [ "operator=", "d2/da6/structBloomberg_1_1quantum_1_1HeapAllocator.html#a92bd7d9cc9f604f670a0f29d6f1aba8d", null ],
     [ "operator=", "d2/da6/structBloomberg_1_1quantum_1_1HeapAllocator.html#a4f7975bdb2301b6f94f4a9bc7e436e8d", null ],
     [ "operator=", "d2/da6/structBloomberg_1_1quantum_1_1HeapAllocator.html#add32045e2bbd90650131d61c19e66ce5", null ],
-    [ "operator==", "d2/da6/structBloomberg_1_1quantum_1_1HeapAllocator.html#a4afd24bc5134dfbad41124111508210f", null ],
+    [ "operator==", "d2/da6/structBloomberg_1_1quantum_1_1HeapAllocator.html#a89965506c4d7f69879fb643b773e05ee", null ],
     [ "size", "d2/da6/structBloomberg_1_1quantum_1_1HeapAllocator.html#a7867900b1764dc00d6e6cfc0f3511bb1", null ]
 ];

@@ -13,8 +13,8 @@
 ** See the License for the specific language governing permissions and
 ** limitations under the License.
 */
-#ifndef QUANTUM_FIXTURE_H
-#define QUANTUM_FIXTURE_H
+#ifndef BLOOMBERG_QUANTUM_FIXTURE_H
+#define BLOOMBERG_QUANTUM_FIXTURE_H
 
 #include <gtest/gtest.h>
 #include <quantum/quantum.h>
@@ -84,4 +84,4 @@ protected:
 };
 
 
-#endif //QUANTUM_FIXTURE_H
+#endif //BLOOMBERG_QUANTUM_FIXTURE_H

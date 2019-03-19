@@ -1,10 +1,11 @@
 var classBloomberg_1_1quantum_1_1Buffer =
 [
-    [ "ValueType", "d1/d87/classBloomberg_1_1quantum_1_1Buffer.html#acbc6c702c5afd327a72ecdfda84f92e1", null ],
-    [ "Buffer", "d1/d87/classBloomberg_1_1quantum_1_1Buffer.html#a01d8a7561098e82fce67e970b2b86556", null ],
-    [ "close", "d1/d87/classBloomberg_1_1quantum_1_1Buffer.html#af150b661db4d24472a0b2948e1afeeaa", null ],
-    [ "empty", "d1/d87/classBloomberg_1_1quantum_1_1Buffer.html#a20cf41504906b9723b3f1d76c7473df2", null ],
-    [ "pull", "d1/d87/classBloomberg_1_1quantum_1_1Buffer.html#a07f8133ca97101d903eba717359834d4", null ],
-    [ "push", "d1/d87/classBloomberg_1_1quantum_1_1Buffer.html#ab1c98e3441d409ff1dcdb5e776e4535f", null ],
-    [ "size", "d1/d87/classBloomberg_1_1quantum_1_1Buffer.html#a6498a431e76d9faab1bfda8aec91e580", null ]
+    [ "ValueType", "d1/d87/classBloomberg_1_1quantum_1_1Buffer.html#a7ad3ecd3e9add3eee5a9227f017e7fe4", null ],
+    [ "Buffer", "d1/d87/classBloomberg_1_1quantum_1_1Buffer.html#a3a03390bf5f8259c46250369efeb647b", null ],
+    [ "close", "d1/d87/classBloomberg_1_1quantum_1_1Buffer.html#a1449c6d0ca59c621fb04f0e6cef00e44", null ],
+    [ "empty", "d1/d87/classBloomberg_1_1quantum_1_1Buffer.html#ad84dbc76f0914e603c7b91d6d56a6aa9", null ],
+    [ "isClosed", "d1/d87/classBloomberg_1_1quantum_1_1Buffer.html#a0d7a77984b777fcd555583d4eb4d3b6f", null ],
+    [ "pull", "d1/d87/classBloomberg_1_1quantum_1_1Buffer.html#afa86fb6ab65316f884e2392050bf2aed", null ],
+    [ "push", "d1/d87/classBloomberg_1_1quantum_1_1Buffer.html#a0f7ff17c89f6dcfc4651f31b6e466b16", null ],
+    [ "size", "d1/d87/classBloomberg_1_1quantum_1_1Buffer.html#af3ea4c4ca2b82d56bd9cbb69c3221596", null ]
 ];

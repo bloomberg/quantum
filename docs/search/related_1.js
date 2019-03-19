@@ -1,4 +1,4 @@
 var searchData=
 [
-  ['ioqueue',['IOQueue',['../d1/d7b/classBloomberg_1_1quantum_1_1QueueStatistics.html#abab543ba302c2b62a8d6feb01a6a8d62',1,'Bloomberg::quantum::QueueStatistics']]]
+  ['dispatcher',['Dispatcher',['../d8/df7/classBloomberg_1_1quantum_1_1Context.html#ad90424f003fc2afb836709cbffa47e2c',1,'Bloomberg::quantum::Context::Dispatcher()'],['../da/daa/classBloomberg_1_1quantum_1_1DispatcherCore.html#ad90424f003fc2afb836709cbffa47e2c',1,'Bloomberg::quantum::DispatcherCore::Dispatcher()']]]
 ];

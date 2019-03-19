@@ -19,8 +19,8 @@ var structBloomberg_1_1quantum_1_1StackAllocator =
     [ "StackAllocator", "d0/d75/structBloomberg_1_1quantum_1_1StackAllocator.html#ae515ea0a2f5f03d75af7cf31f7af02da", null ],
     [ "StackAllocator", "d0/d75/structBloomberg_1_1quantum_1_1StackAllocator.html#ab9d91509b9dff14d363560fd639a1b17", null ],
     [ "StackAllocator", "d0/d75/structBloomberg_1_1quantum_1_1StackAllocator.html#aea1eda9f23a75b993b58668077f138d1", null ],
-    [ "operator!=", "d0/d75/structBloomberg_1_1quantum_1_1StackAllocator.html#abf209573080ba0b74487c81bcf74f188", null ],
+    [ "operator!=", "d0/d75/structBloomberg_1_1quantum_1_1StackAllocator.html#ac0f76d818ac4840408db0275e6d1fe76", null ],
     [ "operator=", "d0/d75/structBloomberg_1_1quantum_1_1StackAllocator.html#ab445f717b9eaa17f6b1b18e74577e7c7", null ],
     [ "operator=", "d0/d75/structBloomberg_1_1quantum_1_1StackAllocator.html#ad7ec8fec7ec051fccad351f69875124a", null ],
-    [ "operator==", "d0/d75/structBloomberg_1_1quantum_1_1StackAllocator.html#a7b635d9ec1def35001fb4bb2e8eeb9f9", null ]
+    [ "operator==", "d0/d75/structBloomberg_1_1quantum_1_1StackAllocator.html#ad334f32071fb07d38c51641c9cba4af9", null ]
 ];

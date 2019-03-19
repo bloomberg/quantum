@@ -77,6 +77,7 @@ std::list<int> listValue = ctx->get(); //get list value
 **Quantum** is a header-only library and as such no targets need to be built. To install simply run:
 ```shell
 > cmake -Bbuild <options> .
+> cd build
 > make install
 ```
 

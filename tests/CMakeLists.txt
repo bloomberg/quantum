@@ -2,7 +2,7 @@ include(GoogleTest)
 set(TEST_TARGET quantum_tests)
 file(GLOB SOURCE_FILES *.cpp)
 include_directories(AFTER
-    ${PROJECT_SOURCE_DIR}/src
+    ${CMAKE_INSTALL_PREFIX}/include
     ${PROJECT_SOURCE_DIR}/tests
     ${BOOST_ROOT}
     ${GTEST_ROOT}
@@ -11,7 +11,7 @@ link_directories(
     ${BOOST_ROOT}
     ${GTEST_ROOT}
 )
-add_executable(${TEST_TARGET} ${SOURCE_FILES})
+add_executable(${TEST_TARGET} EXCLUDE_FROM_ALL ${SOURCE_FILES})
 gtest_discover_tests(${TEST_TARGET}
                      WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR})
 target_link_libraries(${TEST_TARGET}
@@ -24,6 +24,11 @@ set_target_properties(${TEST_TARGET}
     PROPERTIES
     RUNTIME_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/tests"
     RUNTIME_OUTPUT_NAME "${TEST_TARGET}.${CMAKE_SYSTEM_NAME}${MODE}"
+)
+install(TARGETS ${TEST_TARGET}
+    RUNTIME DESTINATION ${PROJECT_SOURCE_DIR}/tests
+    COMPONENT tests
+    OPTIONAL EXCLUDE_FROM_ALL
 )
 if (QUANTUM_VERBOSE_MAKEFILE)
     message(STATUS "SOURCE_FILES = ${SOURCE_FILES}")

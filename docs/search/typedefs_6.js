@@ -1,4 +1,23 @@
 var searchData=
 [
-  ['other',['other',['../d1/d00/structBloomberg_1_1quantum_1_1HeapAllocator_1_1rebind.html#a146dbb216a2990cad50ee8bb5a5c3636',1,'Bloomberg::quantum::HeapAllocator::rebind::other()'],['../de/db5/structBloomberg_1_1quantum_1_1StackAllocator_1_1rebind.html#ad769bb51d96e7d669f3da8e6d4b6d0fc',1,'Bloomberg::quantum::StackAllocator::rebind::other()']]]
+  ['icontextbaseptr',['IContextBasePtr',['../dc/d48/namespaceBloomberg_1_1quantum.html#aec4640deaf69f6f17764e6d9cada2b27',1,'Bloomberg::quantum']]],
+  ['icorocontextbaseptr',['ICoroContextBasePtr',['../dc/d48/namespaceBloomberg_1_1quantum.html#ab01325c808be994b5ce507dab2de2161',1,'Bloomberg::quantum']]],
+  ['icorofuturebaseptr',['ICoroFutureBasePtr',['../dc/d48/namespaceBloomberg_1_1quantum.html#a915d037edeb7f5e84f69f5a518945576',1,'Bloomberg::quantum']]],
+  ['icorosyncptr',['ICoroSyncPtr',['../dc/d48/namespaceBloomberg_1_1quantum.html#aece2b88752b9d3cc005357e06dbd4851',1,'Bloomberg::quantum']]],
+  ['impl',['Impl',['../d5/dd1/structBloomberg_1_1quantum_1_1ICoroContext.html#afc1bf405803ddb27caea4277c0726890',1,'Bloomberg::quantum::ICoroContext::Impl()'],['../d6/daf/structBloomberg_1_1quantum_1_1ICoroFuture.html#a7e695ecf3265555848015e41ceb6726b',1,'Bloomberg::quantum::ICoroFuture::Impl()'],['../d7/dc1/structBloomberg_1_1quantum_1_1ICoroPromise.html#a8258db46a62ca4439bacd5a0c5ddf1a9',1,'Bloomberg::quantum::ICoroPromise::Impl()'],['../da/de3/structBloomberg_1_1quantum_1_1IThreadContext.html#ab3c1dd50a3abd82d5d881eeda65e32e5',1,'Bloomberg::quantum::IThreadContext::Impl()'],['../dc/d82/structBloomberg_1_1quantum_1_1IThreadFuture.html#a5c10ac67437e42c08fd4be6cc7d9c1fe',1,'Bloomberg::quantum::IThreadFuture::Impl()'],['../da/deb/structBloomberg_1_1quantum_1_1IThreadPromise.html#ab90097118fc584e6cf48ebe6a4dc790a',1,'Bloomberg::quantum::IThreadPromise::Impl()']]],
+  ['index_5ftype',['index_type',['../d7/dd7/structBloomberg_1_1quantum_1_1ContiguousPoolManager.html#a7e8f7392f749b6c449b29ec9c41ffe93',1,'Bloomberg::quantum::ContiguousPoolManager::index_type()'],['../db/d67/structBloomberg_1_1quantum_1_1CoroutinePoolAllocator.html#a4d0537afc0879d9fcb02160f1911e3da',1,'Bloomberg::quantum::CoroutinePoolAllocator::index_type()'],['../d2/da6/structBloomberg_1_1quantum_1_1HeapAllocator.html#a941924f1f5eb29065271cd66da0647fe',1,'Bloomberg::quantum::HeapAllocator::index_type()']]],
+  ['iotaskallocator',['IoTaskAllocator',['../dc/d48/namespaceBloomberg_1_1quantum.html#a739e7eaec89907476af7a3be87950b9b',1,'Bloomberg::quantum']]],
+  ['iotaskptr',['IoTaskPtr',['../dc/d48/namespaceBloomberg_1_1quantum.html#a4f9e9e3aaf6332795085344b060d33e9',1,'Bloomberg::quantum']]],
+  ['iotaskweakptr',['IoTaskWeakPtr',['../dc/d48/namespaceBloomberg_1_1quantum.html#ab61126f017510de790ef8c58d68b107c',1,'Bloomberg::quantum']]],
+  ['ipromisebaseptr',['IPromiseBasePtr',['../dc/d48/namespaceBloomberg_1_1quantum.html#ad3876c58a4fac983a29e2d3aa1712692',1,'Bloomberg::quantum']]],
+  ['iqueueptr',['IQueuePtr',['../dc/d48/namespaceBloomberg_1_1quantum.html#a7d4b3ca717b7edbb5e52879829cb42ad',1,'Bloomberg::quantum']]],
+  ['is_5falways_5fequal',['is_always_equal',['../d2/da6/structBloomberg_1_1quantum_1_1HeapAllocator.html#aac31bc826ed83ae428501594652d309b',1,'Bloomberg::quantum::HeapAllocator::is_always_equal()'],['../d0/d75/structBloomberg_1_1quantum_1_1StackAllocator.html#ab546275349acd0d256e93eddc70ec886',1,'Bloomberg::quantum::StackAllocator::is_always_equal()']]],
+  ['isinputiterator',['IsInputIterator',['../d6/d86/structBloomberg_1_1quantum_1_1Traits.html#a426371df215f96d490ba45c21f651468',1,'Bloomberg::quantum::Traits']]],
+  ['itaskaccessorptr',['ITaskAccessorPtr',['../dc/d48/namespaceBloomberg_1_1quantum.html#a5045db00eb0e4187faf5ecfbcaefd461',1,'Bloomberg::quantum']]],
+  ['itaskcontinuationptr',['ITaskContinuationPtr',['../dc/d48/namespaceBloomberg_1_1quantum.html#a0c45225a2550ccfe74897989f0d60231',1,'Bloomberg::quantum']]],
+  ['itaskcontinuationweakptr',['ITaskContinuationWeakPtr',['../dc/d48/namespaceBloomberg_1_1quantum.html#a640696efd612e5588690507d814af1a9',1,'Bloomberg::quantum']]],
+  ['itaskptr',['ITaskPtr',['../dc/d48/namespaceBloomberg_1_1quantum.html#a639a8b51def27ff64ee7622a39775d67',1,'Bloomberg::quantum']]],
+  ['itaskweakptr',['ITaskWeakPtr',['../dc/d48/namespaceBloomberg_1_1quantum.html#a07a1e416f4f3ce3b8999b8690d89a6e7',1,'Bloomberg::quantum']]],
+  ['ithreadcontextbaseptr',['IThreadContextBasePtr',['../dc/d48/namespaceBloomberg_1_1quantum.html#a43309e2c15f17b8d7accac5ba695f1e3',1,'Bloomberg::quantum']]],
+  ['ithreadfuturebaseptr',['IThreadFutureBasePtr',['../dc/d48/namespaceBloomberg_1_1quantum.html#aa1df32c3cb7ac67a6ebeb27e77fd1a71',1,'Bloomberg::quantum']]]
 ];
