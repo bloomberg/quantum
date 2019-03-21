@@ -28,8 +28,8 @@ You must use your real name (sorry, no pseudonyms, and no anonymous contribution
 
 ## Help / Documentation
 
-Please see the [wiki](https://bbgithub.dev.bloomberg.com/adamian/quantum-public/wiki) page for a detailed overview of this library, use-case scenarios and examples.
+Please see the [wiki](https://github.com/bloomberg/quantum/wiki) page for a detailed overview of this library, use-case scenarios and examples.
 
-For class description visit the [API](https://bbgithub.dev.bloomberg.com/pages/adamian/quantum-public/) page.
+For class description visit the [API](https://bloomberg.github.io/quantum) page.
 
 If you need more or different information, please create an [Issue](../../issues).
