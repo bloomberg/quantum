@@ -30,5 +30,4 @@ before_script:
 
 script:
   - cmake -DQUANTUM_ENABLE_TESTS=ON -DQUANTUM_BOOST_USE_VALGRIND=ON -DCMAKE_INSTALL_PREFIX=tests -DGTEST_ROOT=googletest/install .
-  - make install
   - make quantum_tests && ./tests/quantum_tests.Linux64
