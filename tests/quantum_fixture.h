@@ -34,6 +34,7 @@ public:
             config.setNumIoThreads(numThreads);
             config.setLoadBalanceSharedIoQueues(loadBalance);
             config.setLoadBalancePollIntervalMs(std::chrono::milliseconds(10));
+            config.setCoroQueueIdRangeForAny(std::make_pair(1,numCoro-1));
             _dispatcher = new quantum::Dispatcher(config);
         }
         return *_dispatcher;

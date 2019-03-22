@@ -516,6 +516,20 @@ TEST(PromiseTest, GetFutureFromIoTask)
     EXPECT_EQ(33, ctx->get()); //block until value is available
 }
 
+TEST(PromiseTest, GetFutureFromExternalSource)
+{
+    Dispatcher& dispatcher = DispatcherSingleton::instance();
+    Promise<int> promise;
+    ThreadContext<int>::Ptr ctx = dispatcher.post([&promise](CoroContext<int>::Ptr ctx)->int{
+        //post an IO task and get future from there
+        CoroFuture<int>::Ptr future = promise.getICoroFuture();
+        return ctx->set(future->get(ctx)); //forward the promise
+    });
+    std::this_thread::sleep_for(std::chrono::milliseconds(10));
+    promise.set(33); //set the external promise
+    EXPECT_EQ(33, ctx->get()); //block until value is available
+}
+
 TEST(PromiseTest, BufferedFuture)
 {
     Dispatcher& dispatcher = DispatcherSingleton::instance();
@@ -643,8 +657,7 @@ TEST(PromiseTest, BrokenPromiseInAsyncIo)
     Dispatcher& dispatcher = DispatcherSingleton::instance();
     ThreadContext<int>::Ptr ctx = dispatcher.post([](CoroContext<int>::Ptr ctx)->int{
         //post an IO task and get future from there
-        CoroFuture<double>::Ptr fut = ctx->postAsyncIo<double>([](ThreadPromise<double>::Ptr promise)->int{
-            ITerminate::Guard guard(*promise);
+        CoroFuture<double>::Ptr fut = ctx->postAsyncIo<double>([](ThreadPromise<double>::Ptr)->int{
             //Do not set the promise so that we break it
             return 0;
         });
