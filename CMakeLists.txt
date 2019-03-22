@@ -12,6 +12,9 @@ option(QUANTUM_BOOST_USE_VALGRIND "Use valgrind headers for Boost." OFF)
 
 if (QUANTUM_INSTALL_ROOT)
     set(CMAKE_INSTALL_PREFIX ${QUANTUM_INSTALL_ROOT})
+else()
+    # Use local build folder
+    set(CMAKE_INSTALL_PREFIX ${CMAKE_BINARY_DIR}/install)
 endif()
 
 #Global options
@@ -93,8 +96,10 @@ if (Boost_FOUND)
         message(STATUS "Boost libraries: ${Boost_LIBRARIES}")
     endif()
 else()
-    message(FATAL_ERROR "Boost not found")
+    message(FATAL_ERROR "Boost not found, please define BOOST_ROOT.")
 endif()
+
+add_subdirectory(src)
 
 if (QUANTUM_ENABLE_TESTS)
     find_package(GTest REQUIRED)
@@ -109,8 +114,6 @@ else()
     set(BUILD_TESTING OFF)
     message(STATUS "Skipping target 'tests'")
 endif()
-
-add_subdirectory(src)
 
 # Debug info
 if (QUANTUM_VERBOSE_MAKEFILE)
