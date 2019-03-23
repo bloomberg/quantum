@@ -12,9 +12,6 @@ option(QUANTUM_BOOST_USE_VALGRIND "Use valgrind headers for Boost." OFF)
 
 if (QUANTUM_INSTALL_ROOT)
     set(CMAKE_INSTALL_PREFIX ${QUANTUM_INSTALL_ROOT})
-else()
-    # Use local build folder
-    set(CMAKE_INSTALL_PREFIX ${CMAKE_BINARY_DIR}/install)
 endif()
 
 #Global options
