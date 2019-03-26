@@ -51,7 +51,3 @@ install(
     DESTINATION include/quantum/util/impl
     COMPONENT headers
 )
-add_custom_target(headers-install
-    COMMAND "${CMAKE_COMMAND}" -DCMAKE_INSTALL_COMPONENT=headers -P "${CMAKE_BINARY_DIR}/cmake_install.cmake"
-    EXCLUDE_FROM_ALL
-)

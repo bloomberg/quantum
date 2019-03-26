@@ -2,8 +2,8 @@ include(GoogleTest)
 set(TEST_TARGET quantum_tests)
 file(GLOB SOURCE_FILES *.cpp)
 include_directories(AFTER
-    ${CMAKE_INSTALL_PREFIX}/include
-    ${PROJECT_SOURCE_DIR}/tests
+    ${PROJECT_SOURCE_DIR}
+    ${CMAKE_CURRENT_SOURCE_DIR}
     ${BOOST_ROOT}
     ${GTEST_ROOT}
 )
@@ -12,7 +12,6 @@ link_directories(
     ${GTEST_ROOT}
 )
 add_executable(${TEST_TARGET} ${SOURCE_FILES})
-add_dependencies(${TEST_TARGET} headers-install)
 gtest_discover_tests(${TEST_TARGET}
                      WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR})
 target_link_libraries(${TEST_TARGET}
