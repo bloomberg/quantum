@@ -53,7 +53,7 @@ if (QUANTUM_BUILD_DOC)
         # Configure Doxygen parameters
         set(DOXYGEN_PROJECT_NAME "Quantum Library")
         set(DOXYGEN_OUTPUT_DIRECTORY ${PROJECT_SOURCE_DIR})
-        set(DOXYGEN_INPUT ${PROJECT_SOURCE_DIR}/src)
+        set(DOXYGEN_INPUT ${PROJECT_SOURCE_DIR}/${PROJECT_NAME})
         set(DOXYGEN_HTML_OUTPUT ${PROJECT_SOURCE_DIR}/docs)
         set(DOXYGEN_CREATE_SUBDIRS YES)
         if (DOXYGEN_DOT_FOUND AND QUANTUM_ENABLE_DOT)
@@ -96,7 +96,7 @@ else()
     message(FATAL_ERROR "Boost not found, please define BOOST_ROOT.")
 endif()
 
-add_subdirectory(src)
+add_subdirectory(${PROJECT_NAME})
 
 if (QUANTUM_ENABLE_TESTS)
     find_package(GTest REQUIRED)
