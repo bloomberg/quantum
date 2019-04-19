@@ -22,6 +22,18 @@
 namespace Bloomberg {
 namespace quantum {
 
+inline
+void yield(ICoroSync::Ptr sync)
+{
+    if (sync)
+    {
+        sync->getYieldHandle()();
+    }
+    else {
+        YieldingThread()();
+    }
+}
+
 //==============================================================================================
 //                                class Mutex
 //==============================================================================================
@@ -32,21 +44,21 @@ Mutex::Mutex()
 inline
 void Mutex::lock()
 {
-    lockImpl(YieldingThread());
+    lockImpl(nullptr);
 }
 
 inline
 void Mutex::lock(ICoroSync::Ptr sync)
 {
-    lockImpl(sync->getYieldHandle());
+    lockImpl(sync);
 }
 
-template <class YIELDING>
-void Mutex::lockImpl(YIELDING&& yield)
+inline
+void Mutex::lockImpl(ICoroSync::Ptr sync)
 {
     while (!tryLock())
     {
-        yield();
+        yield(sync);
     }
 }
 
@@ -132,14 +144,7 @@ Mutex::ReverseGuard::ReverseGuard(ICoroSync::Ptr sync,
 inline
 Mutex::ReverseGuard::~ReverseGuard()
 {
-    if (_sync)
-    {
-        _mutex.lock(_sync);
-    }
-    else
-    {
-        _mutex.lock();
-    }
+    _mutex.lock(_sync);
 }
 
 }}
