@@ -39,8 +39,20 @@ ConditionVariable::~ConditionVariable()
 inline
 void ConditionVariable::notifyOne()
 {
+    notifyOneImpl(nullptr);
+}
+
+inline
+void ConditionVariable::notifyOne(ICoroSync::Ptr sync)
+{
+    notifyOneImpl(sync);
+}
+
+inline
+void ConditionVariable::notifyOneImpl(ICoroSync::Ptr sync)
+{
     //LOCKED OR UNLOCKED SCOPE
-    Mutex::Guard lock(_thisLock);
+    Mutex::Guard lock(sync, _thisLock);
     if (_waiters.empty())
     {
         return;
@@ -52,8 +64,20 @@ void ConditionVariable::notifyOne()
 inline
 void ConditionVariable::notifyAll()
 {
+    notifyAllImpl(nullptr);
+}
+
+inline
+void ConditionVariable::notifyAll(ICoroSync::Ptr sync)
+{
+    notifyAllImpl(sync);
+}
+
+inline
+void ConditionVariable::notifyAllImpl(ICoroSync::Ptr sync)
+{
     //LOCKED OR UNLOCKED SCOPE
-    Mutex::Guard lock(_thisLock);
+    Mutex::Guard lock(sync, _thisLock);
     for (auto&& waiter : _waiters)
     {
         (*waiter) = 1;
@@ -64,20 +88,21 @@ void ConditionVariable::notifyAll()
 inline
 void ConditionVariable::wait(Mutex& mutex)
 {
-    waitImpl(YieldingThread(), mutex, s_threadSignal);
+    waitImpl(nullptr, mutex);
 }
 
 inline
-void ConditionVariable::wait(ICoroSync::Ptr sync, Mutex& mutex)
+void ConditionVariable::wait(ICoroSync::Ptr sync,
+                             Mutex& mutex)
 {
-    waitImpl(sync->getYieldHandle(), mutex, sync->signal());
+    waitImpl(sync, mutex);
 }
 
 template <class PREDICATE>
 void ConditionVariable::wait(Mutex& mutex,
                              PREDICATE predicate)
 {
-    waitImpl(YieldingThread(), mutex, predicate, s_threadSignal);
+    waitImpl(nullptr, mutex, predicate);
 }
 
 template <class PREDICATE>
@@ -85,14 +110,14 @@ void ConditionVariable::wait(ICoroSync::Ptr sync,
                              Mutex& mutex,
                              PREDICATE predicate)
 {
-    waitImpl(sync->getYieldHandle(), mutex, predicate, sync->signal());
+    waitImpl(sync, mutex, predicate);
 }
 
 template <class REP, class PERIOD>
 bool ConditionVariable::waitFor(Mutex& mutex,
                                 const std::chrono::duration<REP, PERIOD>& time)
 {
-    return waitForImpl(YieldingThread(), mutex, time, s_threadSignal);
+    return waitForImpl(nullptr, mutex, time);
 }
 
 template <class REP, class PERIOD>
@@ -100,7 +125,7 @@ bool ConditionVariable::waitFor(ICoroSync::Ptr sync,
                                 Mutex& mutex,
                                 const std::chrono::duration<REP, PERIOD>& time)
 {
-    return waitForImpl(sync->getYieldHandle(), mutex, time, sync->signal());
+    return waitForImpl(sync, mutex, time);
 }
 
 template <class REP, class PERIOD, class PREDICATE>
@@ -108,7 +133,7 @@ bool ConditionVariable::waitFor(Mutex& mutex,
                                 const std::chrono::duration<REP, PERIOD>& time,
                                 PREDICATE predicate)
 {
-    return waitForImpl(YieldingThread(), mutex, time, predicate, s_threadSignal);
+    return waitForImpl(nullptr, mutex, time, predicate);
 }
 
 template <class REP, class PERIOD, class PREDICATE>
@@ -117,16 +142,16 @@ bool ConditionVariable::waitFor(ICoroSync::Ptr sync,
                                 const std::chrono::duration<REP, PERIOD>& time,
                                 PREDICATE predicate)
 {
-    return waitForImpl(sync->getYieldHandle(), mutex, time, predicate, sync->signal());
+    return waitForImpl(sync, mutex, time, predicate);
 }
 
-template <class YIELDING>
-void ConditionVariable::waitImpl(YIELDING&& yield,
-                                 Mutex& mutex,
-                                 std::atomic_int& signal)
+inline
+void ConditionVariable::waitImpl(ICoroSync::Ptr sync,
+                                 Mutex& mutex)
 {
+    std::atomic_int& signal = sync ? sync->signal() : s_threadSignal;
     {//========= LOCKED SCOPE =========
-        Mutex::Guard lock(_thisLock);
+        Mutex::Guard lock(sync, _thisLock);
         if (_destroyed)
         {
             return; //don't release the mutex
@@ -135,34 +160,33 @@ void ConditionVariable::waitImpl(YIELDING&& yield,
         _waiters.push_back(&signal);
     }
     //========= UNLOCKED SCOPE =========
-    Mutex::ReverseGuard unlock(mutex);
+    Mutex::ReverseGuard unlock(sync, mutex);
     while ((signal == 0) && !_destroyed)
     {
-        yield();
+        yield(sync);
     }
     signal = -1; //reset
 }
 
-template <class YIELDING, class PREDICATE>
-void ConditionVariable::waitImpl(YIELDING&& yield,
+template <class PREDICATE>
+void ConditionVariable::waitImpl(ICoroSync::Ptr sync,
                                  Mutex& mutex,
-                                 PREDICATE predicate,
-                                 std::atomic_int& signal)
+                                 PREDICATE predicate)
 {
     while (!predicate() && !_destroyed)
     {
-        waitImpl(std::forward<YIELDING>(yield), mutex, signal);
+        waitImpl(sync, mutex);
     }
 }
 
-template <class YIELDING, class REP, class PERIOD>
-bool ConditionVariable::waitForImpl(YIELDING&& yield,
+template <class REP, class PERIOD>
+bool ConditionVariable::waitForImpl(ICoroSync::Ptr sync,
                                     Mutex& mutex,
-                                    std::chrono::duration<REP, PERIOD>& time,
-                                    std::atomic_int& signal)
+                                    std::chrono::duration<REP, PERIOD>& time)
 {
+    std::atomic_int& signal = sync ? sync->signal() : s_threadSignal;
     {//========= LOCKED SCOPE =========
-        Mutex::Guard lock(_thisLock);
+        Mutex::Guard lock(sync, _thisLock);
         if (_destroyed)
         {
             return true; //don't release the mutex
@@ -175,7 +199,7 @@ bool ConditionVariable::waitForImpl(YIELDING&& yield,
         _waiters.push_back(&signal);
     }
     //========= UNLOCKED SCOPE =========
-    Mutex::ReverseGuard unlock(mutex);
+    Mutex::ReverseGuard unlock(sync, mutex);
     auto start = std::chrono::high_resolution_clock::now();
     auto elapsed = std::chrono::duration<REP, PERIOD>::zero();
     bool timeout = false;
@@ -183,8 +207,9 @@ bool ConditionVariable::waitForImpl(YIELDING&& yield,
     //wait until signalled or times out
     while ((signal == 0) && !_destroyed)
     {
-        yield();
-        elapsed = std::chrono::duration_cast<std::chrono::duration<REP, PERIOD>>(std::chrono::high_resolution_clock::now() - start);
+        yield(sync);
+        elapsed = std::chrono::duration_cast<std::chrono::duration<REP, PERIOD>>
+                  (std::chrono::high_resolution_clock::now() - start);
         if (elapsed >= time)
         {
             timeout = true;
@@ -199,18 +224,17 @@ bool ConditionVariable::waitForImpl(YIELDING&& yield,
     return !timeout;
 }
 
-template <class YIELDING, class REP, class PERIOD, class PREDICATE>
-bool ConditionVariable::waitForImpl(YIELDING&& yield,
+template <class REP, class PERIOD, class PREDICATE>
+bool ConditionVariable::waitForImpl(ICoroSync::Ptr sync,
                                     Mutex& mutex,
                                     const std::chrono::duration<REP, PERIOD>& time,
-                                    PREDICATE predicate,
-                                    std::atomic_int& signal)
+                                    PREDICATE predicate)
 {
     if (time > std::chrono::duration<REP, PERIOD>(0)) {
         auto duration = time;
         while (!predicate() && !_destroyed)
         {
-            if (!waitForImpl(std::forward<YIELDING>(yield), mutex, duration, signal))
+            if (!waitForImpl(sync, mutex, duration))
             {
                 //timeout
                 return predicate();

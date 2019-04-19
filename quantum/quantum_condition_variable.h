@@ -60,8 +60,16 @@ public:
     /// @brief Notify one waiting thread or coroutine.
     void notifyOne();
     
+    /// @brief Notify one waiting thread or coroutine.
+    /// @param[in] sync Pointer to a coroutine synchronization object.
+    void notifyOne(ICoroSync::Ptr sync);
+    
     /// @brief Notify all waiting threads and coroutines.
     void notifyAll();
+    
+    /// @brief Notify all waiting threads and coroutines.
+    /// @param[in] sync Pointer to a coroutine synchronization object.
+    void notifyAll(ICoroSync::Ptr sync);
     
     /// @brief Block the current thread until the condition is signalled via notifyOne() or notifyAll().
     /// @details When this function returns, the mutex is guaranteed to be locked.
@@ -195,29 +203,28 @@ public:
                  PREDICATE predicate);
     
 private:
-    template <class YIELDING>
-    void waitImpl(YIELDING&& yield,
-                  Mutex& mutex,
-                  std::atomic_int& signal);
+    void notifyOneImpl(ICoroSync::Ptr sync);
     
-    template <class YIELDING, class PREDICATE = bool()>
-    void waitImpl(YIELDING&& yield,
-                  Mutex& mutex,
-                  PREDICATE predicate,
-                  std::atomic_int& signal);
+    void notifyAllImpl(ICoroSync::Ptr sync);
     
-    template <class YIELDING, class REP, class PERIOD>
-    bool waitForImpl(YIELDING&& yield,
+    void waitImpl(ICoroSync::Ptr sync,
+                  Mutex& mutex);
+    
+    template <class PREDICATE = bool()>
+    void waitImpl(ICoroSync::Ptr sync,
+                  Mutex& mutex,
+                  PREDICATE predicate);
+    
+    template <class REP, class PERIOD>
+    bool waitForImpl(ICoroSync::Ptr sync,
                      Mutex& mutex,
-                     std::chrono::duration<REP, PERIOD>& time,
-                     std::atomic_int& signal);
+                     std::chrono::duration<REP, PERIOD>& time);
     
-    template <class YIELDING, class REP, class PERIOD, class PREDICATE = bool()>
-    bool waitForImpl(YIELDING&& yield,
+    template <class REP, class PERIOD, class PREDICATE = bool()>
+    bool waitForImpl(ICoroSync::Ptr sync,
                      Mutex& mutex,
                      const std::chrono::duration<REP, PERIOD>& time,
-                     PREDICATE predicate,
-                     std::atomic_int& signal);
+                     PREDICATE predicate);
     
     //MEMBERS
     Mutex                           _thisLock; //sync access to this object

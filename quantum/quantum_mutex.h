@@ -139,8 +139,7 @@ public:
     };
     
 private:
-    template <class YIELDING>
-    void lockImpl(YIELDING&& yield);
+    void lockImpl(ICoroSync::Ptr sync);
     
     //Members
     mutable SpinLock  _spinlock;
