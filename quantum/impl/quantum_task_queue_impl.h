@@ -222,17 +222,18 @@ inline
 void TaskQueue::doEnqueue(ITask::Ptr task)
 {
     //NOTE: _queueIt remains unchanged following this operation
-    if (_queue.empty() || !task->isHighPriority())
+    bool isEmpty = _queue.empty();
+    if (isEmpty || !task->isHighPriority())
     {
         //insert before the current position. If _queueIt == begin(), then the new
         //task will be at the head of the queue.
-        _queue.insert(_queueIt, std::static_pointer_cast<Task>(task));
+        _queue.emplace(_queueIt, std::static_pointer_cast<Task>(task));
     }
     else
     {
         //insert after the current position. If next(_queueIt) == end()
         //then the new task will be the last element in the queue
-        _queue.insert(std::next(_queueIt), std::static_pointer_cast<Task>(task));
+        _queue.emplace(std::next(_queueIt), std::static_pointer_cast<Task>(task));
     }
     if (task->isHighPriority())
     {
@@ -240,7 +241,11 @@ void TaskQueue::doEnqueue(ITask::Ptr task)
     }
     _stats.incPostedCount();
     _stats.incNumElements();
-    signalEmptyCondition(false);
+    if (isEmpty)
+    {
+        //signal on transition from 0 to 1 element only
+        signalEmptyCondition(false);
+    }
 }
 
 inline

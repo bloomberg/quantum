@@ -215,6 +215,7 @@ bool IoQueue::tryEnqueue(ITask::Ptr task)
 inline
 void IoQueue::doEnqueue(ITask::Ptr task)
 {
+    bool isEmpty = _queue.empty();
     if (task->isHighPriority())
     {
         _stats.incHighPriorityCount();
@@ -226,8 +227,9 @@ void IoQueue::doEnqueue(ITask::Ptr task)
     }
     _stats.incPostedCount();
     _stats.incNumElements();
-    if (!_loadBalanceSharedIoQueues)
+    if (!_loadBalanceSharedIoQueues && isEmpty)
     {
+        //signal on transition from 0 to 1 element only
         signalEmptyCondition(false);
     }
 }
