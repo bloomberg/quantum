@@ -16,18 +16,33 @@
 #ifndef BLOOMBERG_QUANTUM_ALLOCATOR_H
 #define BLOOMBERG_QUANTUM_ALLOCATOR_H
 
+#ifdef __QUANTUM_USE_SEGMENTED_STACKS
+#define BOOST_USE_SEGMENTED_STACKS
+#define BOOST_USE_UCONTEXT
+#endif
+
 #include <quantum/impl/quantum_stl_impl.h>
+#include <quantum/quantum_stack_traits.h>
 #include <quantum/quantum_allocator_traits.h>
 #include <quantum/quantum_stack_allocator.h>
 #include <quantum/quantum_heap_allocator.h>
 #include <quantum/quantum_coroutine_pool_allocator.h>
-#include <boost/context/stack_traits.hpp>
-#include <boost/coroutine2/pooled_fixedsize_stack.hpp>
-#include <boost/coroutine2/fixedsize_stack.hpp>
+#include <boost/coroutine2/all.hpp>
 #include <memory>
 
 namespace Bloomberg {
 namespace quantum {
+
+//==============================================================================================
+//                                struct StackTraitsProxy
+//==============================================================================================
+struct StackTraitsProxy {
+    static bool is_unbounded() { return StackTraits::isUnbounded(); }
+    static std::size_t page_size() { return StackTraits::pageSize(); }
+    static std::size_t default_size() { return StackTraits::defaultSize(); }
+    static std::size_t minimum_size() { return StackTraits::minimumSize(); }
+    static std::size_t maximum_size() { return StackTraits::maximumSize(); }
+};
 
 //==============================================================================================
 //                                 struct StlAllocator
@@ -42,10 +57,21 @@ struct StlAllocator : public std::allocator<T>
 //                                 struct BoostAllocator
 //==============================================================================================
 template <typename Traits>
-struct BoostAllocator : public boost::context::basic_fixedsize_stack<Traits>
+struct BoostAllocator :
+#ifdef BOOST_USE_SEGMENTED_STACKS
+    public boost::context::basic_segmented_stack<Traits>
+#else
+    public boost::context::basic_fixedsize_stack<Traits>
+#endif
 {
     typedef std::true_type default_constructor;
 };
+
+#ifdef __QUANTUM_USE_DEFAULT_CORO_ALLOCATOR
+    using CoroStackAllocator = BoostAllocator<StackTraitsProxy>;
+#else
+    using CoroStackAllocator = CoroutinePoolAllocatorProxy<StackTraitsProxy>;
+#endif
 
 //==============================================================================================
 //                               struct Allocator (singleton)

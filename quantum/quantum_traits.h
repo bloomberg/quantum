@@ -16,9 +16,7 @@
 #ifndef BLOOMBERG_QUANTUM_TRAITS_H
 #define BLOOMBERG_QUANTUM_TRAITS_H
 
-#include <quantum/quantum_stack_traits.h>
 #include <quantum/quantum_allocator.h>
-#include <boost/coroutine2/all.hpp>
 #include <iterator>
 #include <type_traits>
 
@@ -29,23 +27,6 @@ namespace quantum {
 
 template <class T, class ALLOCATOR = std::allocator<T>>
 class Buffer; //fwd declaration
-
-//==============================================================================================
-//                                struct StackTraitsProxy
-//==============================================================================================
-struct StackTraitsProxy {
-    static bool is_unbounded() { return StackTraits::isUnbounded(); }
-    static std::size_t page_size() { return StackTraits::pageSize(); }
-    static std::size_t default_size() { return StackTraits::defaultSize(); }
-    static std::size_t minimum_size() { return StackTraits::minimumSize(); }
-    static std::size_t maximum_size() { return StackTraits::maximumSize(); }
-};
-
-#ifndef __QUANTUM_USE_DEFAULT_CORO_ALLOCATOR
-    using CoroStackAllocator = CoroutinePoolAllocatorProxy<StackTraitsProxy>;
-#else
-    using CoroStackAllocator = BoostAllocator<StackTraitsProxy>;
-#endif
 
 //==============================================================================================
 //                                    struct Traits

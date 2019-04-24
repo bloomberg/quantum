@@ -89,7 +89,9 @@ Various **CMake** options can be used to configure the output:
 * `QUANTUM_ENABLE_TESTS`     : Builds the `tests` target. Default `OFF`.
 * `QUANTUM_BOOST_STATIC_LIBS`: Link with Boost static libraries. Default `ON`.
 * `QUANTUM_BOOST_USE_MULTITHREADED` : Use Boost multi-threaded libraries. Default `ON`.
-* `QUANTUM_INSTALL_ROOT`     : Specify custom install path. Default is `/usr/local/include` for Linux or `c:/Program Files` for Windows.
+* `QUANTUM_USE_SEGMENTED_STACKS` : Use Boost segmented stacks for coroutines. Default `OFF`.
+* `QUANTUM_INSTALL_ROOT`     : Specify custom install path.
+                               Default is `/usr/local/include` for Linux or `c:/Program Files` for Windows.
 * `BOOST_ROOT`               : Specify a different Boost install directory.
 * `GTEST_ROOT`               : Specify a different GTest install directory.
 
@@ -113,11 +115,16 @@ To use the library simply include `<quantum/quantum.h>` in your application. Als
 ### Compiler options
 The following compiler options can be set when building your application:
 * `__QUANTUM_PRINT_DEBUG`         : Prints debug and error information to `stdout` and `stderr` respectively.
-* `__QUANTUM_USE_DEFAULT_ALLOCATOR` : Disable pool allocation for internal objects (other than coroutines stacks) and use default system allocators instead.
-* `__QUANTUM_USE_DEFAULT_CORO_ALLOCATOR` : Disable pool allocation for coroutine stacks and use default system allocator instead.
+* `__QUANTUM_USE_DEFAULT_ALLOCATOR` : Disable pool allocation for internal objects (other than coroutines stacks) and
+                                       use default system allocators instead.
+* `__QUANTUM_USE_DEFAULT_CORO_ALLOCATOR` : Disable pool allocation for coroutine stacks and use boost allocator instead.
 * `__QUANTUM_ALLOCATE_POOL_FROM_HEAP` : Pre-allocates object pool from heap instead of the application stack (default). 
-                                        This affects internal object allocations other than coroutines. Coroutine pools are always 
-                                        heap-allocated due to their size.
+                                        This affects internal object allocations other than coroutines. Coroutine pools
+                                        are always heap-allocated due to their size.
+* `__QUANTUM_USE_SEGMENTED_STACKS` : Uses boost segmented stack for on-demand coroutine stack growth.
+                                     This option is only available if `__QUANTUM_USE_DEFAULT_CORO_ALLOCATOR` is defined.
+                                     Note that **Boost.Context** library must be built with property `toolset=gcc segmented-stacks=on`
+                                     and applying `BOOST_USE_UCONTEXT` and `BOOST_USE_SEGMENTED_STACKS` at b2/bjam command line.
                                         
 ### Application-wide settings
 Various application-wide settings can be configured via `ThreadTraits`, `AllocatorTraits` and `StackTraits`.
