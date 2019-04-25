@@ -347,32 +347,29 @@ struct ICoroContext : public ICoroContextBase
     /// @brief Applies the given unary function to all the elements in the range [first,last).
     ///        This function runs in parallel.
     /// @tparam OTHER_RET The return value of the unary function.
-    /// @tparam UNARY_FUNC A unary function of type 'RET(*INPUT_IT)'.
-    /// @tparam InputIt The type of iterator.
+    /// @tparam INPUT_IT The type of iterator.
+    /// @tparam FUNC A unary function of type 'RET(*INPUT_IT)'.
     /// @param[in] first The first element in the range.
     /// @param[in] last The last element in the range (exclusive).
     /// @param[in] func The unary function.
     /// @return A vector of future values corresponding to the output of 'func' on every element in the range.
     /// @note Use this function if InputIt meets the requirement of a RandomAccessIterator
     /// @note Each func invocation will run inside its own coroutine instance.
-    template <class OTHER_RET = int, class INPUT_IT, class = Traits::IsInputIterator<INPUT_IT>>
+    ///       Prefer this function over forEachBatch() if performing IO inside FUNC.
+    template <class OTHER_RET = int,
+              class INPUT_IT,
+              class FUNC,
+              class = Traits::IsInputIterator<INPUT_IT>>
     typename ICoroContext<std::vector<OTHER_RET>>::Ptr
-    forEach(INPUT_IT first, INPUT_IT last, Functions::ForEachFunc<OTHER_RET, INPUT_IT> func);
+    forEach(INPUT_IT first, INPUT_IT last, FUNC&& func);
     
-    /// @brief Applies the given unary function to all the elements in the range [first,first+num).
-    ///        This function runs in parallel.
-    /// @tparam OTHER_RET The return value of the unary function.
-    /// @tparam UNARY_FUNC A unary function of type 'RET(*INPUT_IT)'.
-    /// @tparam InputIt The type of iterator.
-    /// @oaram[in] first The first element in the range.
-    /// @oaram[in] num The number of elements to iterate over.
-    /// @oaram[in] func The unary function.
-    /// @return A vector of future values corresponding to the output of 'func' on every element in the range.
-    /// @note Use this function if InputIt *does not* meet the requirement of a RandomAccessIterator.
-    /// @note Each func invocation will run inside its own coroutine instance.
-    template <class OTHER_RET = int, class INPUT_IT>
+    /// @brief Same as forEach() but takes a length as second argument in case INPUT_IT
+    ///        is not a random access iterator.
+    template <class OTHER_RET = int,
+              class INPUT_IT,
+              class FUNC>
     typename ICoroContext<std::vector<OTHER_RET>>::Ptr
-    forEach(INPUT_IT first, size_t num, Functions::ForEachFunc<OTHER_RET, INPUT_IT> func);
+    forEach(INPUT_IT first, size_t num, FUNC&& func);
     
     /// @brief Applies the given unary function to all the elements in the range [first,last).
     ///        This function runs serially with respect to other functions in the same batch.
@@ -385,26 +382,21 @@ struct ICoroContext : public ICoroContextBase
     /// @return A vector of value vectors (i.e. one per batch).
     /// @note Use this function if InputIt meets the requirement of a RandomAccessIterator.
     /// @note The input range is split equally among coroutines and executed in batches. This function
-    ///       achieves higher throughput rates than the non-batched mode, if func() is CPU-bound.
-    template <class OTHER_RET = int, class INPUT_IT, class = Traits::IsInputIterator<INPUT_IT>>
+    ///       achieves higher throughput rates than the non-batched mode, if FUNC is CPU-bound.
+    template <class OTHER_RET = int,
+              class INPUT_IT,
+              class FUNC,
+              class = Traits::IsInputIterator<INPUT_IT>>
     typename ICoroContext<std::vector<std::vector<OTHER_RET>>>::Ptr
-    forEachBatch(INPUT_IT first, INPUT_IT last, Functions::ForEachFunc<OTHER_RET, INPUT_IT> func);
+    forEachBatch(INPUT_IT first, INPUT_IT last, FUNC&& func);
     
-    /// @brief Applies the given unary function to all the elements in the range [first,last).
-    ///        This function runs serially with respect to other functions in the same batch.
-    /// @tparam OTHER_RET The return value of the unary function.
-    /// @tparam UNARY_FUNC A unary function of type 'RET(*INPUT_IT)'.
-    /// @tparam InputIt The type of iterator.
-    /// @oaram[in] first The first element in the range.
-    /// @oaram[in] last The last element in the range (exclusive).
-    /// @oaram[in] func The unary function.
-    /// @return A vector of value vectors (i.e. one per batch).
-    /// @note Use this function if InputIt *does not* meet the requirement of a RandomAccessIterator.
-    /// @note The input range is split equally among coroutines and executed in batches. This function
-    ///       achieves higher throughput rates than the non-batched mode, if func() is CPU-bound.
-    template <class OTHER_RET = int, class INPUT_IT>
+    /// @brief Same as forEachBatch() but takes a length as second argument in case INPUT_IT
+    ///        is not a random access iterator.
+    template <class OTHER_RET = int,
+              class INPUT_IT,
+              class FUNC>
     typename ICoroContext<std::vector<std::vector<OTHER_RET>>>::Ptr
-    forEachBatch(INPUT_IT first, size_t num, Functions::ForEachFunc<OTHER_RET, INPUT_IT> func);
+    forEachBatch(INPUT_IT first, size_t num, FUNC&& func);
     
     /// @brief Implementation of map-reduce functionality.
     /// @tparam KEY The KEY type used for mapping and reducing.

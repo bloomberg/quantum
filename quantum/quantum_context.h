@@ -149,7 +149,6 @@ public:
     int getNumCoroutineThreads() const;
     int getNumIoThreads() const;
     const std::pair<int, int>& getCoroQueueIdRangeForAny() const;
-
     
     //===================================
     //        TASK CONTINUATIONS
@@ -198,21 +197,21 @@ public:
     //===================================
     //           FOR EACH
     //===================================
-    template <class OTHER_RET, class INPUT_IT, class = Traits::IsInputIterator<INPUT_IT>>
+    template <class OTHER_RET, class INPUT_IT, class FUNC, class = Traits::IsInputIterator<INPUT_IT>>
     typename Context<std::vector<OTHER_RET>>::Ptr
-    forEach(INPUT_IT first, INPUT_IT last, Functions::ForEachFunc<OTHER_RET, INPUT_IT> func);
+    forEach(INPUT_IT first, INPUT_IT last, FUNC&& func);
     
-    template <class OTHER_RET, class INPUT_IT>
+    template <class OTHER_RET, class INPUT_IT, class FUNC>
     typename Context<std::vector<OTHER_RET>>::Ptr
-    forEach(INPUT_IT first, size_t num, Functions::ForEachFunc<OTHER_RET, INPUT_IT> func);
+    forEach(INPUT_IT first, size_t num, FUNC&& func);
     
-    template <class OTHER_RET, class INPUT_IT, class = Traits::IsInputIterator<INPUT_IT>>
+    template <class OTHER_RET, class INPUT_IT, class FUNC, class = Traits::IsInputIterator<INPUT_IT>>
     typename Context<std::vector<std::vector<OTHER_RET>>>::Ptr
-    forEachBatch(INPUT_IT first, INPUT_IT last, Functions::ForEachFunc<OTHER_RET, INPUT_IT> func);
+    forEachBatch(INPUT_IT first, INPUT_IT last, FUNC&& func);
 
-    template <class OTHER_RET, class INPUT_IT>
+    template <class OTHER_RET, class INPUT_IT, class FUNC>
     typename Context<std::vector<std::vector<OTHER_RET>>>::Ptr
-    forEachBatch(INPUT_IT first, size_t num, Functions::ForEachFunc<OTHER_RET, INPUT_IT> func);
+    forEachBatch(INPUT_IT first, size_t num, FUNC&& func);
     
     //===================================
     //           MAP REDUCE

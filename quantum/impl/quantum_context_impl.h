@@ -306,43 +306,43 @@ ICoroContext<RET>::postAsyncIo(int queueId, bool isHighPriority, FUNC&& func, AR
 }
 
 template <class RET>
-template <class OTHER_RET, class INPUT_IT, class>
+template <class OTHER_RET, class INPUT_IT, class FUNC, class>
 CoroContextPtr<std::vector<OTHER_RET>>
 ICoroContext<RET>::forEach(INPUT_IT first,
                            INPUT_IT last,
-                           Functions::ForEachFunc<OTHER_RET, INPUT_IT> func)
+                           FUNC&& func)
 {
-    return static_cast<Impl*>(this)->template forEach<OTHER_RET>(first, last, std::move(func));
+    return static_cast<Impl*>(this)->template forEach<OTHER_RET>(first, last, std::forward<FUNC>(func));
 }
 
 template <class RET>
-template <class OTHER_RET, class INPUT_IT>
+template <class OTHER_RET, class INPUT_IT, class FUNC>
 CoroContextPtr<std::vector<OTHER_RET>>
 ICoroContext<RET>::forEach(INPUT_IT first,
                            size_t num,
-                           Functions::ForEachFunc<OTHER_RET, INPUT_IT> func)
+                           FUNC&& func)
 {
-    return static_cast<Impl*>(this)->template forEach<OTHER_RET>(first, num, std::move(func));
+    return static_cast<Impl*>(this)->template forEach<OTHER_RET>(first, num, std::forward<FUNC>(func));
 }
 
 template <class RET>
-template <class OTHER_RET, class INPUT_IT, class>
+template <class OTHER_RET, class INPUT_IT, class FUNC, class>
 CoroContextPtr<std::vector<std::vector<OTHER_RET>>>
 ICoroContext<RET>::forEachBatch(INPUT_IT first,
                                 INPUT_IT last,
-                                Functions::ForEachFunc<OTHER_RET, INPUT_IT> func)
+                                FUNC&& func)
 {
-    return static_cast<Impl*>(this)->template forEachBatch<OTHER_RET>(first, last, std::move(func));
+    return static_cast<Impl*>(this)->template forEachBatch<OTHER_RET>(first, last, std::forward<FUNC>(func));
 }
 
 template <class RET>
-template <class OTHER_RET, class INPUT_IT>
+template <class OTHER_RET, class INPUT_IT, class FUNC>
 CoroContextPtr<std::vector<std::vector<OTHER_RET>>>
 ICoroContext<RET>::forEachBatch(INPUT_IT first,
                                 size_t num,
-                                Functions::ForEachFunc<OTHER_RET, INPUT_IT> func)
+                                FUNC&& func)
 {
-    return static_cast<Impl*>(this)->template forEachBatch<OTHER_RET>(first, num, std::move(func));
+    return static_cast<Impl*>(this)->template forEachBatch<OTHER_RET>(first, num, std::forward<FUNC>(func));
 }
 
 template <class RET>
@@ -728,49 +728,49 @@ Context<RET>::postAsyncIoImpl(int queueId, bool isHighPriority, FUNC&& func, ARG
 }
 
 template <class RET>
-template <class OTHER_RET, class INPUT_IT, class>
+template <class OTHER_RET, class INPUT_IT, class FUNC, class>
 ContextPtr<std::vector<OTHER_RET>>
 Context<RET>::forEach(INPUT_IT first,
                       INPUT_IT last,
-                      Functions::ForEachFunc<OTHER_RET, INPUT_IT> func)
+                      FUNC&& func)
 {
-    return forEach<OTHER_RET>(first, std::distance(first, last), std::move(func));
+    return forEach<OTHER_RET>(first, std::distance(first, last), std::forward<FUNC>(func));
 }
 
 template <class RET>
-template <class OTHER_RET, class INPUT_IT>
+template <class OTHER_RET, class INPUT_IT, class FUNC>
 ContextPtr<std::vector<OTHER_RET>>
 Context<RET>::forEach(INPUT_IT first,
                       size_t num,
-                      Functions::ForEachFunc<OTHER_RET, INPUT_IT> func)
+                      FUNC&& func)
 {
-    return post<std::vector<OTHER_RET>>(Util::forEachCoro<OTHER_RET, INPUT_IT>,
+    return post<std::vector<OTHER_RET>>(Util::forEachCoro<OTHER_RET, INPUT_IT, FUNC&&>,
                                         INPUT_IT{first},
                                         size_t{num},
-                                        Functions::ForEachFunc<OTHER_RET, INPUT_IT>{std::move(func)});
+                                        std::forward<FUNC>(func));
 }
 
 template <class RET>
-template <class OTHER_RET, class INPUT_IT, class>
+template <class OTHER_RET, class INPUT_IT, class FUNC, class>
 ContextPtr<std::vector<std::vector<OTHER_RET>>>
 Context<RET>::forEachBatch(INPUT_IT first,
                            INPUT_IT last,
-                           Functions::ForEachFunc<OTHER_RET, INPUT_IT> func)
+                           FUNC&& func)
 {
-    return forEachBatch<OTHER_RET>(first, std::distance(first, last), std::move(func));
+    return forEachBatch<OTHER_RET>(first, std::distance(first, last), std::forward<FUNC>(func));
 }
 
 template <class RET>
-template <class OTHER_RET, class INPUT_IT>
+template <class OTHER_RET, class INPUT_IT, class FUNC>
 ContextPtr<std::vector<std::vector<OTHER_RET>>>
 Context<RET>::forEachBatch(INPUT_IT first,
                            size_t num,
-                           Functions::ForEachFunc<OTHER_RET, INPUT_IT> func)
+                           FUNC&& func)
 {
-    return post<std::vector<std::vector<OTHER_RET>>>(Util::forEachBatchCoro<OTHER_RET, INPUT_IT>,
+    return post<std::vector<std::vector<OTHER_RET>>>(Util::forEachBatchCoro<OTHER_RET, INPUT_IT, FUNC&&>,
                                                      INPUT_IT{first},
                                                      size_t{num},
-                                                     Functions::ForEachFunc<OTHER_RET, INPUT_IT>{std::move(func)},
+                                                     std::forward<FUNC>(func),
                                                      getNumCoroutineThreads());
 }
 

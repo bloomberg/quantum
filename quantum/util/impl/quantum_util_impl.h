@@ -99,30 +99,30 @@ Util::bindIoCaller(std::shared_ptr<Promise<RET>> promise, FUNC&& func, ARGS&& ..
     return makeCapture(bindIo<RET, decltype(capture)>, std::shared_ptr<Promise<RET>>(promise), std::move(capture));
 }
 
-template <class RET, class INPUT_IT>
+template <class RET, class INPUT_IT, class FUNC>
 int Util::forEachCoro(CoroContextPtr<std::vector<RET>> ctx,
                       INPUT_IT inputIt,
                       size_t num,
-                      const Functions::ForEachFunc<RET, INPUT_IT>& func)
+                      FUNC&& func)
 {
     std::vector<CoroContextPtr<RET>> asyncResults;
     asyncResults.reserve(num);
     for (size_t i = 0; i < num; ++i, ++inputIt)
     {
         //Run the function
-        asyncResults.emplace_back(ctx->template post<RET>([inputIt, &func](CoroContextPtr<RET> ctx)->int
+        asyncResults.emplace_back(ctx->template post<RET>([inputIt, &func](CoroContextPtr<RET> ctx) mutable ->int
         {
-            return ctx->set(func(*inputIt));
+            return ctx->set(std::forward<FUNC>(func)(*inputIt));
         }));
     }
     return ctx->set(FutureJoiner<RET>()(*ctx, std::move(asyncResults))->get(ctx));
 }
 
-template <class RET, class INPUT_IT>
+template <class RET, class INPUT_IT, class FUNC>
 int Util::forEachBatchCoro(CoroContextPtr<std::vector<std::vector<RET>>> ctx,
                            INPUT_IT inputIt,
                            size_t num,
-                           const Functions::ForEachFunc<RET, INPUT_IT>& func,
+                           FUNC&& func,
                            size_t numCoroutineThreads)
 {
     size_t numPerBatch = num/numCoroutineThreads;
@@ -139,14 +139,13 @@ int Util::forEachBatchCoro(CoroContextPtr<std::vector<std::vector<RET>>> ctx,
         {
             break; //nothing to do
         }
-        asyncResults.emplace_back(ctx->template post<std::vector<RET>>([inputIt, batchSize, &func](CoroContextPtr<std::vector<RET>> ctx)->int
+        asyncResults.emplace_back(ctx->template post<std::vector<RET>>([inputIt, batchSize, &func](CoroContextPtr<std::vector<RET>> ctx) mutable->int
         {
             std::vector<RET> result;
             result.reserve(batchSize);
-            auto it = inputIt;
-            for (size_t j = 0; j < batchSize; ++j, ++it)
+            for (size_t j = 0; j < batchSize; ++j, ++inputIt)
             {
-                result.emplace_back(func(*it));
+                result.emplace_back(std::forward<FUNC>(func)(*inputIt));
             }
             return ctx->set(std::move(result));
         }));

@@ -101,46 +101,46 @@ Dispatcher::postAsyncIo(int queueId,
     return postAsyncIoImpl<RET>(queueId, isHighPriority, std::forward<FUNC>(func), std::forward<ARGS>(args)...);
 }
 
-template <class RET, class INPUT_IT, class>
+template <class RET, class INPUT_IT, class FUNC, class>
 ThreadContextPtr<std::vector<RET>>
 Dispatcher::forEach(INPUT_IT first,
                     INPUT_IT last,
-                    Functions::ForEachFunc<RET, INPUT_IT> func)
+                    FUNC&& func)
 {
-    return forEach<RET>(first, std::distance(first, last), std::move(func));
+    return forEach<RET>(first, std::distance(first, last), std::forward<FUNC>(func));
 }
 
-template <class RET, class INPUT_IT>
+template <class RET, class INPUT_IT, class FUNC>
 ThreadContextPtr<std::vector<RET>>
 Dispatcher::forEach(INPUT_IT first,
                     size_t num,
-                    Functions::ForEachFunc<RET, INPUT_IT> func)
+                    FUNC&& func)
 {
-    return post<std::vector<RET>>(Util::forEachCoro<RET, INPUT_IT>,
+    return post<std::vector<RET>>(Util::forEachCoro<RET, INPUT_IT, FUNC&&>,
                                   INPUT_IT{first},
                                   size_t{num},
-                                  Functions::ForEachFunc<RET, INPUT_IT>{std::move(func)});
+                                  std::forward<FUNC>(func));
 }
 
-template <class RET, class INPUT_IT, class>
+template <class RET, class INPUT_IT, class FUNC, class>
 ThreadContextPtr<std::vector<std::vector<RET>>>
 Dispatcher::forEachBatch(INPUT_IT first,
                          INPUT_IT last,
-                         Functions::ForEachFunc<RET, INPUT_IT> func)
+                         FUNC&& func)
 {
-    return forEachBatch<RET>(first, std::distance(first, last), std::move(func));
+    return forEachBatch<RET>(first, std::distance(first, last), std::forward<FUNC>(func));
 }
 
-template <class RET, class INPUT_IT>
+template <class RET, class INPUT_IT, class FUNC>
 ThreadContextPtr<std::vector<std::vector<RET>>>
 Dispatcher::forEachBatch(INPUT_IT first,
                          size_t num,
-                         Functions::ForEachFunc<RET, INPUT_IT> func)
+                         FUNC&& func)
 {
-    return post<std::vector<std::vector<RET>>>(Util::forEachBatchCoro<RET, INPUT_IT>,
+    return post<std::vector<std::vector<RET>>>(Util::forEachBatchCoro<RET, INPUT_IT, FUNC&&>,
                                                INPUT_IT{first},
                                                size_t{num},
-                                               Functions::ForEachFunc<RET, INPUT_IT>{std::move(func)},
+                                               std::forward<FUNC>(func),
                                                getNumCoroutineThreads());
 }
 
