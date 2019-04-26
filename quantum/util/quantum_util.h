@@ -55,17 +55,17 @@ struct Util
     //------------------------------------------------------------------------------------------
     //                                      ForEach
     //------------------------------------------------------------------------------------------
-    template <class RET, class INPUT_IT>
+    template <class RET, class INPUT_IT, class FUNC>
     static int forEachCoro(CoroContextPtr<std::vector<RET>> ctx,
                            INPUT_IT inputIt,
                            size_t num,
-                           const Functions::ForEachFunc<RET, INPUT_IT>& func);
+                           FUNC&& func);
     
-    template <class RET, class INPUT_IT>
+    template <class RET, class INPUT_IT, class FUNC>
     static int forEachBatchCoro(CoroContextPtr<std::vector<std::vector<RET>>> ctx,
                                 INPUT_IT inputIt,
                                 size_t num,
-                                const Functions::ForEachFunc<RET, INPUT_IT>& func,
+                                FUNC&& func,
                                 size_t numCoroutineThreads);
     
     //------------------------------------------------------------------------------------------

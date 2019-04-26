@@ -952,11 +952,24 @@ TEST(ForEachTest, Simple)
 {
     std::vector<int> start{0,1,2,3,4,5,6,7,8,9};
     std::vector<char> end{'a','b','c','d','e','f','g','h','i','j'};
-    std::vector<char> results = DispatcherSingleton::instance().forEach<char>(start.begin(), start.size(),
-        [](int val)->char {
+    std::vector<char> results = DispatcherSingleton::instance().forEach<char>(start.cbegin(), start.size(),
+        [](const int& val)->char {
         return 'a'+val;
     })->get();
     EXPECT_EQ(end, results);
+}
+
+TEST(ForEachTest, SimpleNonConst)
+{
+    std::vector<int> start{0,1,2,3,4,5,6,7,8,9};
+    std::vector<char> end{'b','c','d','e','f','g','h','i','j','k'};
+    std::vector<char> results = DispatcherSingleton::instance().forEach<char>(start.begin(), start.size(),
+        [](int& val)->char {
+        return 'a'+(++val);
+    })->get();
+    EXPECT_EQ(end, results);
+    EXPECT_EQ(1, start[0]);
+    EXPECT_EQ(10, start[9]);
 }
 
 TEST(ForEachTest, SmallBatch)
@@ -964,8 +977,8 @@ TEST(ForEachTest, SmallBatch)
     std::vector<int> start{0,1,2};
     std::vector<char> end{'a','b','c'};
     
-    std::vector<std::vector<char>> results = DispatcherSingleton::instance().forEachBatch<char>(start.begin(), start.size(),
-        [](int val)->char
+    std::vector<std::vector<char>> results = DispatcherSingleton::instance().forEachBatch<char>(start.cbegin(), start.size(),
+        [](const int& val)->char
     {
         return 'a'+val;
     })->get();
