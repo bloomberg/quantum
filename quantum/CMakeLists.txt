@@ -19,6 +19,10 @@ endfunction()
 # Run file generation function
 make_quantum_header()
 
+# Generate package configuration file
+set(PKG_CONFIG ${PROJECT_SOURCE_DIR}/package/quantum.pc)
+configure_file(${PROJECT_SOURCE_DIR}/quantum.pc.in ${PKG_CONFIG} @ONLY)
+
 # Install headers including the auto-generated quantum.h
 file(GLOB INCLUDE_FILES "*.h")
 file(GLOB IMPL_INCLUDE_FILES "impl/*.h")
@@ -50,4 +54,9 @@ install(
     FILES ${UTIL_IMPL_INCLUDE_FILES}
     DESTINATION include/quantum/util/impl
     COMPONENT headers
+)
+install(
+    FILES PKG_CONFIG
+    DESTINATION share/pkgconfig
+    COMPONENT pkgconfig
 )
