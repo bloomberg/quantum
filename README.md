@@ -89,7 +89,10 @@ Various **CMake** options can be used to configure the output:
 * `QUANTUM_ENABLE_TESTS`     : Builds the `tests` target. Default `OFF`.
 * `QUANTUM_BOOST_STATIC_LIBS`: Link with Boost static libraries. Default `ON`.
 * `QUANTUM_BOOST_USE_MULTITHREADED` : Use Boost multi-threaded libraries. Default `ON`.
+* `QUANTUM_USE_DEFAULT_ALLOCATOR` : Use default system supplied allocator instead of Quantum's. Default `OFF`.
+* `QUANTUM_USE_BOOST_CORO_ALLOCATOR` : Use Boost default stacks for coroutines instead of Quantum's. Default `OFF`.
 * `QUANTUM_USE_SEGMENTED_STACKS` : Use Boost segmented stacks for coroutines. Default `OFF`.
+* `QUANTUM_USE_PROTECTED_STACKS` : Use Boost protected stacks for coroutines (slow!). Default `OFF`.
 * `QUANTUM_INSTALL_ROOT`     : Specify custom install path.
                                Default is `/usr/local/include` for Linux or `c:/Program Files` for Windows.
 * `BOOST_ROOT`               : Specify a different Boost install directory.
@@ -116,15 +119,18 @@ To use the library simply include `<quantum/quantum.h>` in your application. Als
 The following compiler options can be set when building your application:
 * `__QUANTUM_PRINT_DEBUG`         : Prints debug and error information to `stdout` and `stderr` respectively.
 * `__QUANTUM_USE_DEFAULT_ALLOCATOR` : Disable pool allocation for internal objects (other than coroutines stacks) and
-                                       use default system allocators instead.
-* `__QUANTUM_USE_DEFAULT_CORO_ALLOCATOR` : Disable pool allocation for coroutine stacks and use boost allocator instead.
+                                      use default system allocators instead.
+* `__QUANTUM_USE_BOOST_CORO_ALLOCATOR` : Disable Quantum coroutine pool allocation and use boost allocator instead.
 * `__QUANTUM_ALLOCATE_POOL_FROM_HEAP` : Pre-allocates object pool from heap instead of the application stack (default). 
                                         This affects internal object allocations other than coroutines. Coroutine pools
                                         are always heap-allocated due to their size.
 * `__QUANTUM_USE_SEGMENTED_STACKS` : Uses boost segmented stack for on-demand coroutine stack growth.
-                                     This option is only available if `__QUANTUM_USE_DEFAULT_CORO_ALLOCATOR` is defined.
-                                     Note that **Boost.Context** library must be built with property `toolset=gcc segmented-stacks=on`
+                                     This option is only available if `__QUANTUM_USE_BOOST_CORO_ALLOCATOR` is defined.
+                                     Note that **Boost.Context** library must be built with property `segmented-stacks=on`
                                      and applying `BOOST_USE_UCONTEXT` and `BOOST_USE_SEGMENTED_STACKS` at b2/bjam command line.
+* `__QUANTUM_USE_PROTECTED_STACKS` : Uses boost protected stack for runtime bound-checking. When using this option,
+                                     coroutine creation (but not runtime efficiency) becomes more expensive.
+                                     This option is only available if `__QUANTUM_USE_BOOST_CORO_ALLOCATOR` is defined.
                                         
 ### Application-wide settings
 Various application-wide settings can be configured via `ThreadTraits`, `AllocatorTraits` and `StackTraits`.
