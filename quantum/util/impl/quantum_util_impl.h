@@ -34,6 +34,9 @@ int bindCoro(Traits::Yield& yield,
         yield.get() = std::forward<CAPTURE>(capture)();
         return 0;
     }
+    catch(const boost::coroutines2::detail::forced_unwind&) {
+        throw;
+    }
     catch(std::exception& ex)
     {
         UNUSED(ex);
