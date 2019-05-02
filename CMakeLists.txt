@@ -52,6 +52,7 @@ add_definitions(
         -D_THREAD_SAFE
         -D_POSIX_PTHREAD_SEMANTICS
         -D__FUNCTION__=__FILE__
+        -D_GLIBCXX_USE_CXX11_ABI=1
 )
 if (QUANTUM_USE_DEFAULT_ALLOCATOR)
     add_definitions(-D__QUANTUM_USE_DEFAULT_ALLOCATOR)
