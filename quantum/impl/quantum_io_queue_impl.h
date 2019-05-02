@@ -316,27 +316,19 @@ std::chrono::milliseconds IoQueue::getBackoffInterval()
 inline
 size_t IoQueue::size() const
 {
-#if (__cplusplus >= 201703L)
-    if (_sharedIoQueues) {
-        return _isIdle ? _queue.size() : _queue.size() + 1;
-    }
-    return _queue.size();
+    //Add +1 to account for the currently executing task which is no longer on the queue.
+#if defined(_GLIBCXX_USE_CXX11_ABI) && (_GLIBCXX_USE_CXX11_ABI==0)
+    return _isIdle ? _stats.numElements() : _stats.numElements() + 1;
 #else
-    //Avoid linear time implementation
-    if (_sharedIoQueues) {
-        return _isIdle ? _stats.numElements() : _stats.numElements() + 1;
-    }
-    return _stats.numElements();
+    return _isIdle ? _queue.size() : _queue.size() + 1;
 #endif
 }
 
 inline
 bool IoQueue::empty() const
 {
-    if (_sharedIoQueues) {
-        return _queue.empty() && _isIdle;
-    }
-    return _queue.empty();
+    // If the queue is empty and there are no executing tasks
+    return _queue.empty() && _isIdle;
 }
 
 inline

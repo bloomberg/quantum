@@ -286,11 +286,11 @@ ITask::Ptr TaskQueue::doDequeue(std::atomic_bool& hint)
 inline
 size_t TaskQueue::size() const
 {
-#if (__cplusplus >= 201703L)
-    return _queue.size();
-#else
+#if defined(_GLIBCXX_USE_CXX11_ABI) && (_GLIBCXX_USE_CXX11_ABI==0)
     //Avoid linear time implementation
     return _stats.numElements();
+#else
+    return _queue.size();
 #endif
 }
 
