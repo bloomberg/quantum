@@ -37,19 +37,6 @@ public:
     using ContextTag = ThreadContextTag;
     
     /// @brief Constructor.
-    /// @details This will build two thread pools, one used for running parallel coroutines and another
-    ///          used for running blocking IO tasks.
-    /// @param[in] numCoroutineThreads Number of parallel threads running coroutines. -1 indicates one per core.
-    /// @param[in] numIoThreads Number of parallel threads running blocking IO calls.
-    /// @param[in] pinCoroutineThreadsToCores If set to true, it will pin all coroutine threads unto physical cores.
-    ///                                       provided numCoroutineThreads <= cores.
-    /// @warning This constructor is deprecated and will be removed in v1.0. Use the configuration-based
-    ///          constructor instead.
-    DEPRECATED Dispatcher(int numCoroutineThreads = -1,
-                          int numIoThreads = 5,
-                          bool pinCoroutineThreadsToCores = false);
-    
-    /// @brief Constructor.
     /// @oaram[in] config The configuration for the Quantum dispatcher.
     explicit Dispatcher(const Configuration& config);
     

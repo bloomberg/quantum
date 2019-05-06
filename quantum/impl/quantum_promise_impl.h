@@ -74,9 +74,6 @@ int ICoroPromise<PROMISE, T>::closeBuffer()
 //==============================================================================================
 //                                class Promise
 //==============================================================================================
-#ifndef __QUANTUM_PROMISE_ALLOC_SIZE
-    #define __QUANTUM_PROMISE_ALLOC_SIZE __QUANTUM_DEFAULT_POOL_ALLOC_SIZE
-#endif
 #ifndef __QUANTUM_USE_DEFAULT_ALLOCATOR
     #ifdef __QUANTUM_ALLOCATE_POOL_FROM_HEAP
         using PromiseAllocator = HeapAllocator<Promise<int>>;

@@ -23,9 +23,6 @@
 namespace Bloomberg {
 namespace quantum {
 
-#ifndef __QUANTUM_IO_TASK_ALLOC_SIZE
-    #define __QUANTUM_IO_TASK_ALLOC_SIZE __QUANTUM_DEFAULT_POOL_ALLOC_SIZE
-#endif
 #ifndef __QUANTUM_USE_DEFAULT_ALLOCATOR
     #ifdef __QUANTUM_ALLOCATE_POOL_FROM_HEAP
         using IoTaskAllocator = HeapAllocator<IoTask>;
