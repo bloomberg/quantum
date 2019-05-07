@@ -53,27 +53,27 @@ public: // types
         EXPECT_LE(beforeTaskIt->second.endTime, afterTaskIt->second.startTime);
     }
     
-    std::function<int(CoroContext<int>::Ptr)> makeTask(TaskId taskId)
+    std::function<void(VoidContextPtr)> makeTask(TaskId taskId)
     {
-        return [this, taskId](CoroContext<int>::Ptr ctx)
+        return [this, taskId](VoidContextPtr ctx)
         {
-            return taskFunc(ctx, taskId, nullptr, "");
+            taskFunc(ctx, taskId, nullptr, "");
         };
     }
 
-    std::function<int(CoroContext<int>::Ptr)> makeTaskWithBlock(TaskId taskId, std::atomic<bool>* blockFlag)
+    std::function<void(VoidContextPtr)> makeTaskWithBlock(TaskId taskId, std::atomic<bool>* blockFlag)
     {
-        return [this, taskId, blockFlag](CoroContext<int>::Ptr ctx)
+        return [this, taskId, blockFlag](VoidContextPtr ctx)
         {
-            return taskFunc(ctx, taskId, blockFlag, "");
+            taskFunc(ctx, taskId, blockFlag, "");
         };
     }
 
-    std::function<int(CoroContext<int>::Ptr)> makeTaskWithException(TaskId taskId, std::string error)
+    std::function<void(VoidContextPtr)> makeTaskWithException(TaskId taskId, std::string error)
     {
-        return [this, taskId, error](CoroContext<int>::Ptr ctx)
+        return [this, taskId, error](VoidContextPtr ctx)
         {
-            return taskFunc(ctx, taskId, nullptr, error);
+            taskFunc(ctx, taskId, nullptr, error);
         };
     }
 
@@ -89,7 +89,7 @@ public: // types
     
 private: // methods
 
-    int taskFunc(CoroContext<int>::Ptr ctx, TaskId id, std::atomic<bool>* blockFlag, std::string error)
+    void taskFunc(VoidContextPtr ctx, TaskId id, std::atomic<bool>* blockFlag, std::string error)
     {
         std::chrono::system_clock::time_point startTime = std::chrono::system_clock::now();
         do {
@@ -105,7 +105,6 @@ private: // methods
         
         _results[id].startTime = startTime;
         _results[id].endTime = endTime;
-        return ctx->set(0);
     }
 
 private: // members
@@ -271,13 +270,13 @@ TEST(Sequencer, SequenceKeyStats)
         }
     }
 
-    auto halfWayDoneJob = [](CoroContext<int>::Ptr ctx)->int
+    auto halfWayDoneJob = [](VoidContextPtr)->int
     {
-        return ctx->set(0);
+        return 0;
     };
     // this task will be done when all the tasks posted above
     // are scheduled because it's posted to the same controlQueueId
-    DispatcherSingleton::instance().post<int>(controlQueueId, false, std::move(halfWayDoneJob))->wait();
+    DispatcherSingleton::instance().post<Void>(controlQueueId, false, std::move(halfWayDoneJob))->wait();
 
     // make sure all the enqueued tasks are pending
     size_t postedCount = 0;

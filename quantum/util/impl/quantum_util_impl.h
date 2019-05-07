@@ -115,7 +115,7 @@ int Util::forEachCoro(CoroContextPtr<std::vector<RET>> ctx,
         //Run the function
         asyncResults.emplace_back(ctx->template post<RET>([inputIt, &func](CoroContextPtr<RET> ctx) mutable ->int
         {
-            return ctx->set(std::forward<FUNC>(func)(*inputIt));
+            return ctx->set(std::forward<FUNC>(func)(Util::makeVoidContext<RET>(ctx), *inputIt));
         }));
     }
     return ctx->set(FutureJoiner<RET>()(*ctx, std::move(asyncResults))->get(ctx));
@@ -148,7 +148,7 @@ int Util::forEachBatchCoro(CoroContextPtr<std::vector<std::vector<RET>>> ctx,
             result.reserve(batchSize);
             for (size_t j = 0; j < batchSize; ++j, ++inputIt)
             {
-                result.emplace_back(std::forward<FUNC>(func)(*inputIt));
+                result.emplace_back(std::forward<FUNC>(func)(Util::makeVoidContext<std::vector<RET>>(ctx), *inputIt));
             }
             return ctx->set(std::move(result));
         }));
@@ -249,6 +249,12 @@ int Util::mapReduceBatchCoro(CoroContextPtr<std::map<KEY, REDUCED_TYPE>> ctx,
     }
     
     return ctx->set(std::move(reducerOutput));
+}
+
+template <typename RET>
+VoidContextPtr Util::makeVoidContext(CoroContextPtr<RET> ctx)
+{
+    return std::reinterpret_pointer_cast<CoroContext<Void>, CoroContext<RET>>(ctx);
 }
 
 #ifdef __QUANTUM_PRINT_DEBUG

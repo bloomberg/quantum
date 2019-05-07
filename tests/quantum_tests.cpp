@@ -21,6 +21,7 @@
 #include <map>
 #include <unordered_map>
 #include <list>
+#include <memory>
 
 using namespace quantum;
 using ms = std::chrono::milliseconds;
@@ -188,7 +189,8 @@ TEST_F(DispatcherFixture, CheckIoQueuing)
 TEST_F(DispatcherFixture, CheckQueuingFromSameCoroutine)
 {
     _dispatcher->post(0, false, [](CoroContext<int>::Ptr ctx)->int {
-        ctx->postFirst(1, true, DummyCoro)->then(DummyCoro)->finally(DummyCoro)->end();
+        //Test with VoidContext
+        Util::makeVoidContext<int>(ctx)->postFirst(1, true, DummyCoro)->then(DummyCoro)->finally(DummyCoro)->end();
         return 0;
     });
     _dispatcher->drain();
@@ -246,7 +248,7 @@ TEST_F(DispatcherFixture, CheckCoroutineErrors)
     }, s);
     
     _dispatcher->post([](CoroContext<int>::Ptr ctx, std::string& str)->int {
-        ctx->yield();
+        Util::makeVoidContext<int>(ctx)->yield(); //test yield via the VoidContext
         throw std::exception(); //error! coroutine must stop here
         str = "changed";
         return 0;
@@ -953,7 +955,7 @@ TEST(ForEachTest, Simple)
     std::vector<int> start{0,1,2,3,4,5,6,7,8,9};
     std::vector<char> end{'a','b','c','d','e','f','g','h','i','j'};
     std::vector<char> results = DispatcherSingleton::instance().forEach<char>(start.cbegin(), start.size(),
-        [](const int& val)->char {
+        [](VoidContextPtr, const int& val)->char {
         return 'a'+val;
     })->get();
     EXPECT_EQ(end, results);
@@ -964,8 +966,11 @@ TEST(ForEachTest, SimpleNonConst)
     std::vector<int> start{0,1,2,3,4,5,6,7,8,9};
     std::vector<char> end{'b','c','d','e','f','g','h','i','j','k'};
     std::vector<char> results = DispatcherSingleton::instance().forEach<char>(start.begin(), start.size(),
-        [](int& val)->char {
-        return 'a'+(++val);
+        [](VoidContextPtr ctx, int& val)->char {
+        val = ctx->postAsyncIo<int>([&](ThreadPromisePtr<int> p){
+            return p->set(++val);
+        })->get(ctx);
+        return 'a'+ val;
     })->get();
     EXPECT_EQ(end, results);
     EXPECT_EQ(1, start[0]);
@@ -978,7 +983,7 @@ TEST(ForEachTest, SmallBatch)
     std::vector<char> end{'a','b','c'};
     
     std::vector<std::vector<char>> results = DispatcherSingleton::instance().forEachBatch<char>(start.cbegin(), start.size(),
-        [](const int& val)->char
+        [](VoidContextPtr, const int& val)->char
     {
         return 'a'+val;
     })->get();
@@ -1000,7 +1005,7 @@ TEST(ForEachTest, LargeBatch)
     }
     
     std::vector<std::vector<int>> results = DispatcherSingleton::instance().forEachBatch<int>(start.begin(), start.size(),
-        [](int val)->int {
+        [](VoidContextPtr, int val)->int {
         return val*2; //double the value
     })->get();
     
@@ -1025,7 +1030,7 @@ TEST(ForEachTest, LargeBatchFromCoroutine)
         std::vector<int> start(num);
     
         std::vector<std::vector<int>> results = ctx->forEachBatch<int>(start.begin(), start.size(),
-            [](int val)->int {
+            [](VoidContextPtr, int val)->int {
             return val*2; //double the value
         })->get(ctx);
         
@@ -1058,7 +1063,7 @@ TEST(MapReduce, OccuranceCount)
     
     std::map<std::string, size_t> result = DispatcherSingleton::instance().mapReduce<std::string, size_t, size_t>(input.begin(), input.size(),
         //mapper
-        [](const std::vector<std::string>& input)->std::vector<std::pair<std::string, size_t>>
+        [](VoidContextPtr, const std::vector<std::string>& input)->std::vector<std::pair<std::string, size_t>>
         {
             std::vector<std::pair<std::string, size_t>> out;
             for (auto&& i : input) {
@@ -1067,7 +1072,7 @@ TEST(MapReduce, OccuranceCount)
             return out;
         },
         //reducer
-        [](std::pair<std::string, std::vector<size_t>>&& input)->std::pair<std::string, size_t>
+        [](VoidContextPtr, std::pair<std::string, std::vector<size_t>>&& input)->std::pair<std::string, size_t>
         {
             size_t sum = 0;
             for (auto&& i : input.second) {
@@ -1102,7 +1107,7 @@ TEST(MapReduce, WordLength)
     
     std::map<size_t, size_t> result = DispatcherSingleton::instance().mapReduceBatch<size_t, std::string, size_t>(input.begin(), input.size(),
         //mapper
-        [](const std::vector<std::string>& input)->std::vector<std::pair<size_t, std::string>>
+        [](VoidContextPtr, const std::vector<std::string>& input)->std::vector<std::pair<size_t, std::string>>
         {
             std::vector<std::pair<size_t, std::string>> out;
             for (auto&& i : input) {
@@ -1111,7 +1116,7 @@ TEST(MapReduce, WordLength)
             return out;
         },
         //reducer
-        [](std::pair<size_t, std::vector<std::string>>&& input)->std::pair<size_t, size_t>
+        [](VoidContextPtr, std::pair<size_t, std::vector<std::string>>&& input)->std::pair<size_t, size_t>
         {
             return {input.first, input.second.size()};
         })->get();
@@ -1138,7 +1143,7 @@ TEST(MapReduce, WordLengthFromCoroutine)
     {
         std::map<size_t, size_t> result = ctx->mapReduceBatch<size_t, std::string, size_t>(input.begin(), input.size(),
         //mapper
-        [](const std::vector<std::string>& input)->std::vector<std::pair<size_t, std::string>>
+        [](VoidContextPtr, const std::vector<std::string>& input)->std::vector<std::pair<size_t, std::string>>
         {
             std::vector<std::pair<size_t, std::string>> out;
             for (auto&& i : input) {
@@ -1147,7 +1152,7 @@ TEST(MapReduce, WordLengthFromCoroutine)
             return out;
         },
         //reducer
-        [](std::pair<size_t, std::vector<std::string>>&& input)->std::pair<size_t, size_t>
+        [](VoidContextPtr, std::pair<size_t, std::vector<std::string>>&& input)->std::pair<size_t, size_t>
         {
             return {input.first, input.second.size()};
         })->get(ctx);

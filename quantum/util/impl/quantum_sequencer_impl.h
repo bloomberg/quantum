@@ -51,7 +51,7 @@ Sequencer<SequenceKey, Hash, KeyEqual, Allocator>::post(
     FUNC&& func,
     ARGS&&... args)
 {
-    _dispatcher.post<int>(_controllerQueueId,
+    _dispatcher.post<Void>(_controllerQueueId,
                           false,
                           singleSequenceKeyTaskScheduler<FUNC, ARGS...>,
                           nullptr,
@@ -79,7 +79,7 @@ Sequencer<SequenceKey, Hash, KeyEqual, Allocator>::post(
         throw std::runtime_error("Invalid IO queue id");
     }
 
-    _dispatcher.post<int>(_controllerQueueId,
+    _dispatcher.post<Void>(_controllerQueueId,
                           false,
                           singleSequenceKeyTaskScheduler<FUNC, ARGS...>,
                           std::move(opaque),
@@ -99,7 +99,7 @@ Sequencer<SequenceKey, Hash, KeyEqual, Allocator>::post(
     FUNC&& func,
     ARGS&&... args)
 {
-    _dispatcher.post<int>(_controllerQueueId,
+    _dispatcher.post<Void>(_controllerQueueId,
                           false,
                           multiSequenceKeyTaskScheduler<FUNC, ARGS...>,
                           nullptr,
@@ -126,7 +126,7 @@ Sequencer<SequenceKey, Hash, KeyEqual, Allocator>::post(
     {
         throw std::runtime_error("Invalid IO queue id");
     }
-    _dispatcher.post<int>(_controllerQueueId,
+    _dispatcher.post<Void>(_controllerQueueId,
                           false,
                           multiSequenceKeyTaskScheduler<FUNC, ARGS...>,
                           std::move(opaque),
@@ -143,7 +143,7 @@ template <class FUNC, class ... ARGS>
 void
 Sequencer<SequenceKey, Hash, KeyEqual, Allocator>::postAll(FUNC&& func, ARGS&&... args)
 {
-    _dispatcher.post<int>(_controllerQueueId,
+    _dispatcher.post<Void>(_controllerQueueId,
                           false,
                           universalTaskScheduler<FUNC, ARGS...>,
                           nullptr,
@@ -168,7 +168,7 @@ Sequencer<SequenceKey, Hash, KeyEqual, Allocator>::postAll(
     {
         throw std::runtime_error("Invalid IO queue id");
     }
-    _dispatcher.post<int>(_controllerQueueId,
+    _dispatcher.post<Void>(_controllerQueueId,
                           false,
                           universalTaskScheduler<FUNC, ARGS...>,
                           std::move(opaque),
@@ -243,7 +243,7 @@ template <class SequenceKey, class Hash, class KeyEqual, class Allocator>
 template <class FUNC, class ... ARGS>
 int
 Sequencer<SequenceKey, Hash, KeyEqual, Allocator>::waitForTwoDependents(
-        CoroContextPtr<int> ctx,
+        VoidContextPtr ctx,
         void* opaque,
         Sequencer& sequencer,
         SequenceKeyData&& dependent,
@@ -271,7 +271,7 @@ template <class SequenceKey, class Hash, class KeyEqual, class Allocator>
 template <class FUNC, class ... ARGS>
 int
 Sequencer<SequenceKey, Hash, KeyEqual, Allocator>::waitForDependents(
-        CoroContextPtr<int> ctx,
+        VoidContextPtr ctx,
         void* opaque,
         Sequencer& sequencer,
         std::vector<SequenceKeyData>&& dependents,
@@ -299,15 +299,14 @@ Sequencer<SequenceKey, Hash, KeyEqual, Allocator>::waitForDependents(
     }
     // update task stats
     sequencer._taskStats->decrementPendingTaskCount();
-    callPosted(ctx, opaque, sequencer, std::forward<FUNC>(func), std::forward<ARGS>(args)...);
-    return 0;
+    return callPosted(ctx, opaque, sequencer, std::forward<FUNC>(func), std::forward<ARGS>(args)...);
 }
 
 template <class SequenceKey, class Hash, class KeyEqual, class Allocator>
 template <class FUNC, class ... ARGS>
 int
 Sequencer<SequenceKey, Hash, KeyEqual, Allocator>::waitForUniversalDependent(
-        CoroContextPtr<int> ctx,
+        VoidContextPtr ctx,
         void* opaque,
         Sequencer& sequencer,
         std::vector<SequenceKeyData>&& dependents,
@@ -331,15 +330,14 @@ Sequencer<SequenceKey, Hash, KeyEqual, Allocator>::waitForUniversalDependent(
     universalDependent._stats->decrementPendingTaskCount();
     // update task stats
     sequencer._taskStats->decrementPendingTaskCount();
-    callPosted(ctx, opaque, sequencer, std::forward<FUNC>(func), std::forward<ARGS>(args)...);
-    return 0;
+    return callPosted(ctx, opaque, sequencer, std::forward<FUNC>(func), std::forward<ARGS>(args)...);
 }
 
 template <class SequenceKey, class Hash, class KeyEqual, class Allocator>
 template <class FUNC, class ... ARGS>
 int
 Sequencer<SequenceKey, Hash, KeyEqual, Allocator>::singleSequenceKeyTaskScheduler(
-        CoroContextPtr<int> ctx,
+        VoidContextPtr ctx,
         void* opaque,
         int queueId,
         bool isHighPriority,
@@ -362,7 +360,7 @@ Sequencer<SequenceKey, Hash, KeyEqual, Allocator>::singleSequenceKeyTaskSchedule
     sequencer._taskStats->incrementPendingTaskCount();
     
     // save the context as the last for this sequenceKey
-    contextIt->second._context = ctx->post<int>(
+    contextIt->second._context = ctx->post<Void>(
             std::move(queueId),
             std::move(isHighPriority),
             waitForTwoDependents<FUNC, ARGS...>,
@@ -379,7 +377,7 @@ template <class SequenceKey, class Hash, class KeyEqual, class Allocator>
 template <class FUNC, class ... ARGS>
 int
 Sequencer<SequenceKey, Hash, KeyEqual, Allocator>::multiSequenceKeyTaskScheduler(
-    CoroContextPtr<int> ctx,
+    VoidContextPtr ctx,
     void* opaque,
     int queueId,
     bool isHighPriority,
@@ -407,7 +405,7 @@ Sequencer<SequenceKey, Hash, KeyEqual, Allocator>::multiSequenceKeyTaskScheduler
     sequencer._taskStats->incrementPostedTaskCount();
     sequencer._taskStats->incrementPendingTaskCount();
     
-    ICoroContextBasePtr newCtx = ctx->post<int>(
+    ICoroContextBasePtr newCtx = ctx->post<Void>(
             std::move(queueId),
             std::move(isHighPriority),
             waitForDependents<FUNC, ARGS...>,
@@ -430,7 +428,7 @@ template <class SequenceKey, class Hash, class KeyEqual, class Allocator>
 template <class FUNC, class ... ARGS>
 int
 Sequencer<SequenceKey, Hash, KeyEqual, Allocator>::universalTaskScheduler(
-    CoroContextPtr<int> ctx,
+    VoidContextPtr ctx,
     void* opaque,
     int queueId,
     bool isHighPriority,
@@ -458,7 +456,7 @@ Sequencer<SequenceKey, Hash, KeyEqual, Allocator>::universalTaskScheduler(
     sequencer._taskStats->incrementPendingTaskCount();
 
     // post the task and save the context as the last for the universal sequenceKey
-    sequencer._universalContext._context = ctx->post<int>(
+    sequencer._universalContext._context = ctx->post<Void>(
             std::move(queueId),
             std::move(isHighPriority),
             waitForUniversalDependent<FUNC, ARGS...>,
@@ -473,9 +471,9 @@ Sequencer<SequenceKey, Hash, KeyEqual, Allocator>::universalTaskScheduler(
 
 template <class SequenceKey, class Hash, class KeyEqual, class Allocator>
 template <class FUNC, class ... ARGS>
-void
+int
 Sequencer<SequenceKey, Hash, KeyEqual, Allocator>::callPosted(
-        CoroContextPtr<int> ctx,
+        VoidContextPtr ctx,
         void* opaque,
         const Sequencer& sequencer,
         FUNC&& func,
@@ -485,6 +483,7 @@ Sequencer<SequenceKey, Hash, KeyEqual, Allocator>::callPosted(
     try
     {
         std::forward<FUNC>(func)(ctx, std::forward<ARGS>(args)...);
+        return ctx->set(Void{});
     }
     catch(std::exception& ex)
     {
@@ -500,6 +499,7 @@ Sequencer<SequenceKey, Hash, KeyEqual, Allocator>::callPosted(
             sequencer._exceptionCallback(std::current_exception(), opaque);
         }
     }
+    return -1; //error
 }
 
 template <class SequenceKey, class Hash, class KeyEqual, class Allocator>

@@ -55,15 +55,17 @@ public:
     /// @details This method will post the coroutine on any thread available and will run when the previous coroutine
     ///          associated with the same 'sequenceKey' completes. If there are none, it will run immediately.
     ///          (@see Dispatcher::post for more details).
-    /// @tparam FUNC Callable object type which will be wrapped in a coroutine
+    /// @tparam FUNC Callable object type which will be wrapped in a coroutine with signature 'int(VoidContextPtr, Args...)'
     /// @tparam ARGS Argument types passed to FUNC (@see Dispatcher::post for more details).
     /// @param[in] sequenceKey SequenceKey object that the posted task is associated with
     /// @param[in] func Callable object.
     /// @param[in] args Variable list of arguments passed to the callable object.
     /// @note This function is non-blocking and returns immediately.
-    /// @remark For lowering the latencies of processing tasks posted here, it is suggested that the configured
-    /// Any-coroutine-queue-range (@see Configuration::setCoroQueueIdRangeForAny) does not contain
-    /// the control queue id (@see SequencerConfiguration::setControlQueueId).
+    /// @note For lowering the latencies of processing tasks posted here, it is suggested that the configured
+    ///       Any-coroutine-queue-range (@see Configuration::setCoroQueueIdRangeForAny) does not contain
+    ///       the control queue id (@see SequencerConfiguration::setControlQueueId).
+    /// @warning The VoidContextPtr can be used to yield() or to post additional coroutines or IO tasks.
+    ///          However it should *not* be set and this will result in undefined behavior.
     template <class FUNC, class ... ARGS>
     void
     post(const SequenceKey& sequenceKey, FUNC&& func, ARGS&&... args);
@@ -72,7 +74,7 @@ public:
     /// @details This method will post the coroutine on any thread available and will run when the previous coroutine
     ///          associated with the same 'sequenceKey' completes. If there are none, it will run immediately.
     ///          (@see Dispatcher::post for more details).
-    /// @tparam FUNC Callable object type which will be wrapped in a coroutine
+    /// @tparam FUNC Callable object type which will be wrapped in a coroutine with signature 'int(VoidContextPtr, Args...)'
     /// @tparam ARGS Argument types passed to FUNC (@see Dispatcher::post for more details).
     /// @param[in] queueId Id of the queue where this coroutine should run. Note that the user can
     ///                    specify IQueue::QueueId::Any as a value, which is equivalent to running
@@ -86,11 +88,13 @@ public:
     /// @param[in] func Callable object.
     /// @param[in] args Variable list of arguments passed to the callable object.
     /// @note This function is non-blocking and returns immediately.
-    /// @remark For lowering the latencies of processing tasks posted here, queueId is suggested to be
-    /// different from the control queue id (@see SequencerConfiguration::setControlQueueId). Hence, if
-    /// IQueue::QueueId::Any is intended to be used as queueId here, then it is suggested that the configured
-    /// Any-coroutine-queue-range (@see Configuration::setCoroQueueIdRangeForAny) does not contain
-    /// the control queue id.
+    /// @note For lowering the latencies of processing tasks posted here, queueId is suggested to be
+    ///       different from the control queue id (@see SequencerConfiguration::setControlQueueId). Hence, if
+    ///       IQueue::QueueId::Any is intended to be used as queueId here, then it is suggested that the configured
+    ///       Any-coroutine-queue-range (@see Configuration::setCoroQueueIdRangeForAny) does not contain
+    ///       the control queue id.
+    /// @warning The VoidContextPtr can be used to yield() or to post additional coroutines or IO tasks.
+    ///          However it should *not* be set and this will result in undefined behavior.
     template <class FUNC, class ... ARGS>
     void
     post(void* opaque, int queueId, bool isHighPriority, const SequenceKey& sequenceKey, FUNC&& func, ARGS&&... args);
@@ -99,15 +103,17 @@ public:
     /// @details This method will post the coroutine on any thread available and will run when the previous coroutine(s)
     ///          associated with all the 'sequenceKeys' complete. If there are none, then it will run immediately.
     ///          (@see Dispatcher::post for more details).
-    /// @tparam FUNC Callable object type which will be wrapped in a coroutine
+    /// @tparam FUNC Callable object type which will be wrapped in a coroutine with signature 'int(VoidContextPtr, Args...)'
     /// @tparam ARGS Argument types passed to FUNC (@see Dispatcher::post for more details).
     /// @param[in] sequenceKeys A collection of sequenceKey objects that the posted task is associated with
     /// @param[in] func Callable object.
     /// @param[in] args Variable list of arguments passed to the callable object.
     /// @note This function is non-blocking and returns immediately.
-    /// @remark For lowering the latencies of processing tasks posted here, it is suggested that the configured
-    /// Any-coroutine-queue-range (@see Configuration::setCoroQueueIdRangeForAny) does not contain
-    /// the control queue id (@see SequencerConfiguration::setControlQueueId).
+    /// @note For lowering the latencies of processing tasks posted here, it is suggested that the configured
+    ///       Any-coroutine-queue-range (@see Configuration::setCoroQueueIdRangeForAny) does not contain
+    ///       the control queue id (@see SequencerConfiguration::setControlQueueId).
+    /// @warning The VoidContextPtr can be used to yield() or to post additional coroutines or IO tasks.
+    ///          However it should *not* be set and this will result in undefined behavior.
     template <class FUNC, class ... ARGS>
     void
     post(const std::vector<SequenceKey>& sequenceKeys, FUNC&& func, ARGS&&... args);
@@ -116,7 +122,7 @@ public:
     /// @details This method will post the coroutine on any thread available and will run when the previous coroutine(s)
     ///          associated with all the 'sequenceKeys' complete. If there are none, then it will run immediately.
     ///          (@see Dispatcher::post for more details).
-    /// @tparam FUNC Callable object type which will be wrapped in a coroutine.
+    /// @tparam FUNC Callable object type which will be wrapped in a coroutine with signature 'int(VoidContextPtr, Args...)'
     /// @tparam ARGS Argument types passed to FUNC (@see Dispatcher::post for more details).
     /// @param[in] queueId Id of the queue where this coroutine should run. Note that the user 
     ///                    can specify IQueue::QueueId::Any as a value, which is equivalent to running 
@@ -130,11 +136,13 @@ public:
     /// @param[in] func Callable object.
     /// @param[in] args Variable list of arguments passed to the callable object.
     /// @note This function is non-blocking and returns immediately.
-    /// @remark For lowering the latencies of processing tasks posted here, queueId is suggested to be
-    /// different from the control queue id (@see SequencerConfiguration::setControlQueueId). Hence, if
-    /// IQueue::QueueId::Any is intended to be used as queueId here, then it is suggested that the configured
-    /// Any-coroutine-queue-range (@see Configuration::setCoroQueueIdRangeForAny) does not contain
-    /// the control queue id.
+    /// @note For lowering the latencies of processing tasks posted here, queueId is suggested to be
+    ///       different from the control queue id (@see SequencerConfiguration::setControlQueueId). Hence, if
+    ///       IQueue::QueueId::Any is intended to be used as queueId here, then it is suggested that the configured
+    ///       Any-coroutine-queue-range (@see Configuration::setCoroQueueIdRangeForAny) does not contain
+    ///       the control queue id.
+    /// @warning The VoidContextPtr can be used to yield() or to post additional coroutines or IO tasks.
+    ///          However it should *not* be set and this will result in undefined behavior.
     template <class FUNC, class ... ARGS>
     void
     post(void* opaque,
@@ -148,14 +156,16 @@ public:
     /// @details This method will post the coroutine on any thread available. The posted task is assumed to be associated
     ///          with the entire universe of sequenceKeys already running or pending, which means that it will wait
     ///          until all tasks complete. This task can be considered as having a 'universal' key.
-    /// @tparam FUNC Callable object type which will be wrapped in a coroutine
+    /// @tparam FUNC Callable object type which will be wrapped in a coroutine with signature 'int(VoidContextPtr, Args...)'
     /// @tparam ARGS Argument types passed to FUNC (@see Dispatcher::post for more details).
     /// @param[in] func Callable object.
     /// @param[in] args Variable list of arguments passed to the callable object.
     /// @note This function is non-blocking and returns immediately.
-    /// @remark For lowering the latencies of processing tasks posted here, it is suggested that the configured
-    /// Any-coroutine-queue-range (@see Configuration::setCoroQueueIdRangeForAny) does not contain
-    /// the control queue id (@see SequencerConfiguration::setControlQueueId).
+    /// @note For lowering the latencies of processing tasks posted here, it is suggested that the configured
+    ///       Any-coroutine-queue-range (@see Configuration::setCoroQueueIdRangeForAny) does not contain
+    ///       the control queue id (@see SequencerConfiguration::setControlQueueId).
+    /// @warning The VoidContextPtr can be used to yield() or to post additional coroutines or IO tasks.
+    ///          However it should *not* be set and this will result in undefined behavior.
     template <class FUNC, class ... ARGS>
     void
     postAll(FUNC&& func, ARGS&&... args);
@@ -164,7 +174,7 @@ public:
     /// @details This method will post the coroutine on any thread available. The posted task is assumed to be associated
     ///          with the entire universe of sequenceKeys already running or pending, which means that it will wait
     ///          until all tasks complete. This task can be considered as having a 'universal' key.
-    /// @tparam FUNC Callable object type which will be wrapped in a coroutine.
+    /// @tparam FUNC Callable object type which will be wrapped in a coroutine with signature 'int(VoidContextPtr, Args...)'
     /// @tparam ARGS Argument types passed to FUNC (@see Dispatcher::post for more details).
     /// @param[in] queueId Id of the queue where this coroutine should run. Note that the user 
     ///                    can specify IQueue::QueueId::Any as a value, which is equivalent to running 
@@ -177,11 +187,13 @@ public:
     /// @param[in] func Callable object.
     /// @param[in] args Variable list of arguments passed to the callable object.
     /// @note This function is non-blocking and returns immediately.
-    /// @remark For lowering the latencies of processing tasks posted here, queueId is suggested to be
-    /// different from the control queue id (@see SequencerConfiguration::setControlQueueId). Hence, if
-    /// IQueue::QueueId::Any is intended to be used as queueId here, then it is suggested that the configured
-    /// Any-coroutine-queue-range (@see Configuration::setCoroQueueIdRangeForAny) does not contain
-    /// the control queue id.
+    /// @note For lowering the latencies of processing tasks posted here, queueId is suggested to be
+    ///       different from the control queue id (@see SequencerConfiguration::setControlQueueId). Hence, if
+    ///       IQueue::QueueId::Any is intended to be used as queueId here, then it is suggested that the configured
+    ///       Any-coroutine-queue-range (@see Configuration::setCoroQueueIdRangeForAny) does not contain
+    ///       the control queue id.
+    /// @warning The VoidContextPtr can be used to yield() or to post additional coroutines or IO tasks.
+    ///          However it should *not* be set and this will result in undefined behavior.
     template <class FUNC, class ... ARGS>
     void
     postAll(void* opaque, int queueId, bool isHighPriority, FUNC&& func, ARGS&&... args);
@@ -220,7 +232,7 @@ private:
     using ExceptionCallback = typename Configuration::ExceptionCallback;
 
     template <class FUNC, class ... ARGS>
-    static int waitForTwoDependents(CoroContextPtr<int> ctx,
+    static int waitForTwoDependents(VoidContextPtr ctx,
                                     void* opaque,
                                     Sequencer& sequencer,
                                     SequenceKeyData&& dependent,
@@ -228,7 +240,7 @@ private:
                                     FUNC&& func,
                                     ARGS&&... args);
     template <class FUNC, class ... ARGS>
-    static int waitForDependents(CoroContextPtr<int> ctx,
+    static int waitForDependents(VoidContextPtr ctx,
                                  void* opaque,
                                  Sequencer& sequencer,
                                  std::vector<SequenceKeyData>&& dependents,
@@ -236,7 +248,7 @@ private:
                                  FUNC&& func,
                                  ARGS&&... args);
     template <class FUNC, class ... ARGS>
-    static int waitForUniversalDependent(CoroContextPtr<int> ctx,
+    static int waitForUniversalDependent(VoidContextPtr ctx,
                                          void* opaque,
                                          Sequencer& sequencer,
                                          std::vector<SequenceKeyData>&& dependents,
@@ -245,7 +257,7 @@ private:
                                          ARGS&&... args);
     template <class FUNC, class ... ARGS>
     static int singleSequenceKeyTaskScheduler(
-                                    CoroContextPtr<int> ctx,
+                                    VoidContextPtr ctx,
                                     void* opaque,
                                     int queueId,
                                     bool isHighPriority,
@@ -255,7 +267,7 @@ private:
                                     ARGS&&... args);
     template <class FUNC, class ... ARGS>
     static int multiSequenceKeyTaskScheduler(
-                                    CoroContextPtr<int> ctx,
+                                    VoidContextPtr ctx,
                                     void* opaque,
                                     int queueId,
                                     bool isHighPriority,
@@ -265,7 +277,7 @@ private:
                                     ARGS&&... args);
     template <class FUNC, class ... ARGS>
     static int universalTaskScheduler(
-                                    CoroContextPtr<int> ctx,
+                                    VoidContextPtr ctx,
                                     void* opaque,
                                     int queueId,
                                     bool isHighPriority,
@@ -273,7 +285,7 @@ private:
                                     FUNC&& func,
                                     ARGS&&... args);
     template <class FUNC, class ... ARGS>
-    static void callPosted(CoroContextPtr<int> ctx,
+    static int callPosted(VoidContextPtr ctx,
                            void* opaque,
                            const Sequencer& sequencer,
                            FUNC&& func,
