@@ -166,7 +166,7 @@ public:
     ///        This function runs in parallel.
     /// @tparam RET The return value of the unary function.
     /// @tparam INPUT_IT The type of iterator.
-    /// @tparam FUNC A unary function of type 'RET(*INPUT_IT)'.
+    /// @tparam FUNC A unary function of type 'RET(VoidContextPtr, *INPUT_IT)'.
     /// @oaram[in] first The first element in the range.
     /// @oaram[in] last The last element in the range (exclusive).
     /// @oaram[in] func The unary function.
@@ -174,6 +174,8 @@ public:
     /// @note Use this function if InputIt meets the requirement of a RandomAccessIterator
     /// @note Each func invocation will run inside its own coroutine instance.
     ///       Prefer this function over forEachBatch() if performing IO inside FUNC.
+    /// @warning The VoidContextPtr can be used to yield() or to post additional coroutines or IO tasks.
+    ///          However it should *not* be set and this will result in undefined behavior.
     template <class RET = int,
               class INPUT_IT,
               class FUNC,
@@ -216,9 +218,9 @@ public:
     /// @tparam MAPPED_TYPE The output type after a map operation.
     /// @tparam REDUCED_TYPE The output type after a reduce operation.
     /// @tparam MAPPER_FUNC The mapper function having the signature
-    ///         'std::vector<std::pair<KEY,MAPPED_TYPE>>(*INPUT_IT)'
+    ///         'std::vector<std::pair<KEY,MAPPED_TYPE>>(VoidContextPtr, *INPUT_IT)'
     /// @tparam REDUCER_FUNC The reducer function having the signature
-    ///         'std::pair<KEY,REDUCED_TYPE>(std::pair<KEY, std::vector<MAPPED_TYPE>>&&)'
+    ///         'std::pair<KEY,REDUCED_TYPE>(VoidContextPtr, std::pair<KEY, std::vector<MAPPED_TYPE>>&&)'
     /// @tparam INPUT_IT The iterator type.
     /// @oaram[in] first The start iterator to a list of items to be processed in the range [first,last).
     /// @oaram[in] last The end iterator to a list of items (not inclusive).
@@ -226,6 +228,8 @@ public:
     /// @oaram[in] reducer The reducer function.
     /// @return A future to a reduced map of values.
     /// @note Use this function if InputIt meets the requirement of a RandomAccessIterator.
+    /// @warning The VoidContextPtr can be used to yield() or to post additional coroutines or IO tasks.
+    ///          However it should *not* be set and this will result in undefined behavior.
     template <class KEY,
               class MAPPED_TYPE,
               class REDUCED_TYPE,
