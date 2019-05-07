@@ -52,6 +52,9 @@ struct Util
     static Function<int()>
     bindIoCaller(std::shared_ptr<Promise<RET>> promise, FUNC&& func0, ARGS&& ...args0);
     
+    template <typename RET>
+    static VoidContextPtr makeVoidContext(CoroContextPtr<RET> ctx);
+    
     //------------------------------------------------------------------------------------------
     //                                      ForEach
     //------------------------------------------------------------------------------------------

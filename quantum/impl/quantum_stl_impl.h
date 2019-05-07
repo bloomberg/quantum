@@ -65,6 +65,14 @@ namespace std {
     template<typename... _Types>
     using index_sequence_for = make_index_sequence<sizeof...(_Types)>;
 #endif
+#if (__cplusplus <= 201703L)
+    template<class T, class U>
+    std::shared_ptr<T> reinterpret_pointer_cast(const std::shared_ptr<U>& r) noexcept
+    {
+        auto p = reinterpret_cast<typename std::shared_ptr<T>::element_type*>(r.get());
+        return std::shared_ptr<T>(r, p);
+    }
+#endif
 } //std
 
 namespace Bloomberg {

@@ -23,6 +23,11 @@
 namespace Bloomberg {
 namespace quantum {
 
+struct Void{};
+template <typename T>
+struct ICoroContext;
+using VoidContextPtr = std::shared_ptr<ICoroContext<Void>>;
+
 //==============================================================================================
 //                                    struct Functions
 //==============================================================================================
@@ -31,13 +36,16 @@ namespace quantum {
 struct Functions
 {
     template <class RET, class INPUT_IT>
-    using ForEachFunc = std::function<RET(const typename std::iterator_traits<INPUT_IT>::value_type&)>;
+    using ForEachFunc = std::function<RET(VoidContextPtr,
+                                          const typename std::iterator_traits<INPUT_IT>::value_type&)>;
     
     template <class KEY, class MAPPED_TYPE, class INPUT_IT>
-    using MapFunc = std::function<std::vector<std::pair<KEY, MAPPED_TYPE>>(const typename std::iterator_traits<INPUT_IT>::value_type&)>;
+    using MapFunc = std::function<std::vector<std::pair<KEY, MAPPED_TYPE>>(VoidContextPtr,
+                                                                           const typename std::iterator_traits<INPUT_IT>::value_type&)>;
     
     template <class KEY, class MAPPED_TYPE, class REDUCED_TYPE>
-    using ReduceFunc = std::function<std::pair<KEY, REDUCED_TYPE>(std::pair<KEY, std::vector<MAPPED_TYPE>>&&)>;
+    using ReduceFunc = std::function<std::pair<KEY, REDUCED_TYPE>(VoidContextPtr,
+                                                                  std::pair<KEY, std::vector<MAPPED_TYPE>>&&)>;
 };
 
 }}
