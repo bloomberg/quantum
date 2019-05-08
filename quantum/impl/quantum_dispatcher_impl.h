@@ -25,15 +25,6 @@ namespace Bloomberg {
 namespace quantum {
 
 inline
-Dispatcher::Dispatcher(int numCoroutineThreads,
-                       int numIoThreads,
-                       bool pinCoroutineThreadsToCores) :
-    _dispatcher(numCoroutineThreads, numIoThreads, pinCoroutineThreadsToCores),
-    _drain(false),
-    _terminated ATOMIC_FLAG_INIT
-{}
-
-inline
 Dispatcher::Dispatcher(const Configuration& config) :
     _dispatcher(config),
     _drain(false),

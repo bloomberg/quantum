@@ -16,20 +16,6 @@
 #ifndef BLOOMBERG_QUANTUM_ALLOCATOR_H
 #define BLOOMBERG_QUANTUM_ALLOCATOR_H
 
-#if defined(__QUANTUM_USE_DEFAULT_CORO_ALLOCATOR)
-    #define __QUANTUM_USE_BOOST_CORO_ALLOCATOR
-#endif
-#if defined(__QUANTUM_USE_BOOST_CORO_ALLOCATOR)
-    #if defined(__QUANTUM_USE_SEGMENTED_STACKS) && defined(__QUANTUM_USE_PROTECTED_STACKS)
-        #error "Invalid Boost stack configuration"
-    #endif
-    #ifdef __QUANTUM_USE_SEGMENTED_STACKS
-        // For segmented stack support
-        #define BOOST_USE_SEGMENTED_STACKS
-        #define BOOST_USE_UCONTEXT
-    #endif
-#endif
-
 #include <quantum/impl/quantum_stl_impl.h>
 #include <quantum/quantum_stack_traits.h>
 #include <quantum/quantum_allocator_traits.h>
@@ -65,17 +51,19 @@ struct StlAllocator : public std::allocator<T>
 //==============================================================================================
 //                                 struct BoostAllocator
 //==============================================================================================
-#ifdef __QUANTUM_USE_BOOST_CORO_ALLOCATOR
+#if defined(__QUANTUM_BOOST_USE_SEGMENTED_STACKS) || \
+    defined(__QUANTUM_BOOST_USE_PROTECTED_STACKS) || \
+    defined(__QUANTUM_BOOST_USE_FIXEDSIZE_STACKS)
     template <typename Traits>
     struct BoostAllocator :
-    #if defined(__QUANTUM_USE_SEGMENTED_STACKS)
+#if defined(__QUANTUM_BOOST_USE_SEGMENTED_STACKS)
         public boost::context::basic_segmented_stack<Traits>
-    #elif defined(__QUANTUM_USE_PROTECTED_STACKS)
+#elif defined(__QUANTUM_BOOST_USE_PROTECTED_STACKS)
         public boost::context::basic_protected_fixedsize_stack<Traits>
-    #else
+#elif defined(__QUANTUM_BOOST_USE_FIXEDSIZE_STACKS)
         // Default for Boost
         public boost::context::basic_fixedsize_stack<Traits>
-    #endif
+#endif
     {
         typedef std::true_type default_constructor;
     };
