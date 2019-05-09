@@ -29,6 +29,18 @@ QueueStatistics::QueueStatistics()
 }
 
 inline
+QueueStatistics::QueueStatistics(const QueueStatistics& other) :
+    _numElements(other.numElements()),
+    _errorCount(other._errorCount),
+    _sharedQueueErrorCount(other._sharedQueueErrorCount),
+    _completedCount(other._completedCount),
+    _sharedQueueCompletedCount(other._sharedQueueCompletedCount),
+    _postedCount(other._postedCount),
+    _highPriorityCount(other._highPriorityCount)
+{
+}
+
+inline
 void QueueStatistics::reset()
 {
     _numElements = 0;

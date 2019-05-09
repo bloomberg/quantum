@@ -45,7 +45,7 @@ namespace quantum {
 class TaskQueue : public IQueue
 {
 public:
-    using TaskList = std::list<Task::Ptr, QueueListAllocator>;
+    using TaskList = std::list<Task::Ptr, ContiguousPoolManager<ITask::Ptr>>;
     using TaskListIter = TaskList::iterator;
     
     TaskQueue();
@@ -88,9 +88,12 @@ private:
     TaskListIter advance();
     void doEnqueue(ITask::Ptr task);
     ITask::Ptr doDequeue(std::atomic_bool& hint);
+    void acquireWaiting();
     
+    QueueListAllocator                  _alloc;
     std::shared_ptr<std::thread>        _thread;
-    TaskList                            _queue;
+    TaskList                            _runQueue;
+    TaskList                            _waitQueue;
     TaskListIter                        _queueIt;
     TaskListIter                        _blockedIt;
     mutable SpinLock                    _spinlock;

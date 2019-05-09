@@ -40,7 +40,7 @@ namespace quantum {
 class IoQueue : public IQueue
 {
 public:
-    using TaskList = std::list<IoTask::Ptr, ContiguousPoolManager<IoTask::Ptr>>;
+    using TaskList = std::list<IoTask::Ptr, IoQueueListAllocator>;
     using TaskListIter = TaskList::iterator;
     
     IoQueue();

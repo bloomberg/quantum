@@ -119,6 +119,12 @@ bool IoTask::isHighPriority() const
 }
 
 inline
+bool IoTask::isSuspended() const
+{
+    return false;
+}
+
+inline
 void* IoTask::operator new(size_t)
 {
     return Allocator<IoTaskAllocator>::instance(AllocatorTraits::ioTaskAllocSize()).allocate();

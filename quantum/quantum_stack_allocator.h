@@ -60,6 +60,7 @@ struct StackAllocator : public ContiguousPoolManager<T>
     //------------------------------- Methods ----------------------------------
     StackAllocator() : ContiguousPoolManager<T>(_buffer, SIZE)
     {}
+    
     StackAllocator(const this_type&) : StackAllocator()
     {}
     StackAllocator(this_type&&) : StackAllocator()

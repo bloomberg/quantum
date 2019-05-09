@@ -62,6 +62,8 @@ struct ITask : public ITerminate
     virtual bool isSleeping(bool updateTimer = false) = 0;
     
     virtual bool isHighPriority() const = 0;
+    
+    virtual bool isSuspended() const = 0;
 };
 
 using ITaskPtr = ITask::Ptr;
