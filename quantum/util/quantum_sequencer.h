@@ -51,7 +51,7 @@ public:
     /// @param[in] configuration the configuration object
     Sequencer(Dispatcher& dispatcher, const Configuration& configuration = Configuration());
 
-    /// @brief Post a coroutine to run asynchronously.
+    /// @brief Enqueue a coroutine to run asynchronously.
     /// @details This method will post the coroutine on any thread available and will run when the previous coroutine
     ///          associated with the same 'sequenceKey' completes. If there are none, it will run immediately.
     ///          (@see Dispatcher::post for more details).
@@ -68,9 +68,9 @@ public:
     ///          However it should *not* be set and this will result in undefined behavior.
     template <class FUNC, class ... ARGS>
     void
-    post(const SequenceKey& sequenceKey, FUNC&& func, ARGS&&... args);
+    enqueue(const SequenceKey& sequenceKey, FUNC&& func, ARGS&&... args);
 
-    /// @brief Post a coroutine to run asynchronously on a specific queue (thread).
+    /// @brief Enqueue a coroutine to run asynchronously on a specific queue (thread).
     /// @details This method will post the coroutine on any thread available and will run when the previous coroutine
     ///          associated with the same 'sequenceKey' completes. If there are none, it will run immediately.
     ///          (@see Dispatcher::post for more details).
@@ -97,9 +97,9 @@ public:
     ///          However it should *not* be set and this will result in undefined behavior.
     template <class FUNC, class ... ARGS>
     void
-    post(void* opaque, int queueId, bool isHighPriority, const SequenceKey& sequenceKey, FUNC&& func, ARGS&&... args);
+    enqueue(void* opaque, int queueId, bool isHighPriority, const SequenceKey& sequenceKey, FUNC&& func, ARGS&&... args);
 
-    /// @brief Post a coroutine to run asynchronously.
+    /// @brief Enqueue a coroutine to run asynchronously.
     /// @details This method will post the coroutine on any thread available and will run when the previous coroutine(s)
     ///          associated with all the 'sequenceKeys' complete. If there are none, then it will run immediately.
     ///          (@see Dispatcher::post for more details).
@@ -116,9 +116,9 @@ public:
     ///          However it should *not* be set and this will result in undefined behavior.
     template <class FUNC, class ... ARGS>
     void
-    post(const std::vector<SequenceKey>& sequenceKeys, FUNC&& func, ARGS&&... args);
+    enqueue(const std::vector<SequenceKey>& sequenceKeys, FUNC&& func, ARGS&&... args);
 
-    /// @brief Post a coroutine to run asynchronously on a specific queue (thread).
+    /// @brief Enqueue a coroutine to run asynchronously on a specific queue (thread).
     /// @details This method will post the coroutine on any thread available and will run when the previous coroutine(s)
     ///          associated with all the 'sequenceKeys' complete. If there are none, then it will run immediately.
     ///          (@see Dispatcher::post for more details).
@@ -145,14 +145,14 @@ public:
     ///          However it should *not* be set and this will result in undefined behavior.
     template <class FUNC, class ... ARGS>
     void
-    post(void* opaque,
-         int queueId,
-         bool isHighPriority,
-         const std::vector<SequenceKey>& sequenceKeys,
-         FUNC&& func,
-         ARGS&&... args);
+    enqueue(void* opaque,
+            int queueId,
+            bool isHighPriority,
+            const std::vector<SequenceKey>& sequenceKeys,
+            FUNC&& func,
+            ARGS&&... args);
 
-    /// @brief Post a coroutine to run asynchronously.
+    /// @brief Enqueue a coroutine to run asynchronously after all keys have run.
     /// @details This method will post the coroutine on any thread available. The posted task is assumed to be associated
     ///          with the entire universe of sequenceKeys already running or pending, which means that it will wait
     ///          until all tasks complete. This task can be considered as having a 'universal' key.
@@ -168,9 +168,9 @@ public:
     ///          However it should *not* be set and this will result in undefined behavior.
     template <class FUNC, class ... ARGS>
     void
-    postAll(FUNC&& func, ARGS&&... args);
+    enqueueAll(FUNC&& func, ARGS&&... args);
 
-    /// @brief Post a coroutine to run asynchronously on a specific queue (thread).
+    /// @brief Enqueue a coroutine to run asynchronously on a specific queue (thread), after all keys have run.
     /// @details This method will post the coroutine on any thread available. The posted task is assumed to be associated
     ///          with the entire universe of sequenceKeys already running or pending, which means that it will wait
     ///          until all tasks complete. This task can be considered as having a 'universal' key.
@@ -196,7 +196,7 @@ public:
     ///          However it should *not* be set and this will result in undefined behavior.
     template <class FUNC, class ... ARGS>
     void
-    postAll(void* opaque, int queueId, bool isHighPriority, FUNC&& func, ARGS&&... args);
+    enqueueAll(void* opaque, int queueId, bool isHighPriority, FUNC&& func, ARGS&&... args);
 
     /// @brief Trims the sequence keys not used by the sequencer anymore.
     /// @details It's recommended to call this function periodically to clean up state sequence keys.

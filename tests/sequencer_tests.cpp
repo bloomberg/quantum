@@ -17,6 +17,7 @@
 #include <gtest/gtest.h>
 #include <quantum_fixture.h>
 
+#if 1
 using namespace quantum;
 
 // Utility with common functionality for the sequencer related tests
@@ -53,27 +54,30 @@ public: // types
         EXPECT_LE(beforeTaskIt->second.endTime, afterTaskIt->second.startTime);
     }
     
-    std::function<void(VoidContextPtr)> makeTask(TaskId taskId)
+    std::function<int(VoidContextPtr)> makeTask(TaskId taskId)
     {
-        return [this, taskId](VoidContextPtr ctx)
+        return [this, taskId](VoidContextPtr ctx)->int
         {
             taskFunc(ctx, taskId, nullptr, "");
+            return 0;
         };
     }
 
-    std::function<void(VoidContextPtr)> makeTaskWithBlock(TaskId taskId, std::atomic<bool>* blockFlag)
+    std::function<int(VoidContextPtr)> makeTaskWithBlock(TaskId taskId, std::atomic<bool>* blockFlag)
     {
-        return [this, taskId, blockFlag](VoidContextPtr ctx)
+        return [this, taskId, blockFlag](VoidContextPtr ctx)->int
         {
             taskFunc(ctx, taskId, blockFlag, "");
+            return 0;
         };
     }
 
-    std::function<void(VoidContextPtr)> makeTaskWithException(TaskId taskId, std::string error)
+    std::function<int(VoidContextPtr)> makeTaskWithException(TaskId taskId, std::string error)
     {
-        return [this, taskId, error](VoidContextPtr ctx)
+        return [this, taskId, error](VoidContextPtr ctx)->int
         {
             taskFunc(ctx, taskId, nullptr, error);
+            return 0;
         };
     }
 
@@ -132,7 +136,7 @@ TEST(Sequencer, BasicTaskOrder)
         SequencerTestData::SequenceKey sequenceKey = id % sequenceKeyCount;
         // save the task id for this sequenceKey
         sequenceKeys[sequenceKey].push_back(id);
-        sequencer.post(sequenceKey, testData.makeTask(id));
+        sequencer.enqueue(sequenceKey, testData.makeTask(id));
     }
     DispatcherSingleton::instance().drain();
 
@@ -162,7 +166,7 @@ TEST(Sequencer, TrimKeys)
     for(SequencerTestData::TaskId id = 0; id < taskCount; ++id)
     {
         SequencerTestData::SequenceKey sequenceKey = id % sequenceKeyCount;
-        sequencer.post(sequenceKey, testData.makeTask(id));
+        sequencer.enqueue(sequenceKey, testData.makeTask(id));
     }
     DispatcherSingleton::instance().drain();
 
@@ -226,14 +230,14 @@ TEST(Sequencer, ExceptionHandler)
         SequencerTestData::SequenceKey sequenceKey = id % sequenceKeyCount;
         if (id % exceptionFrequency == 0)
         {
-            // post with generating exception
-            sequencer.post(&sequenceKeys[id], (int)IQueue::QueueId::Any, false, sequenceKey, testData.makeTaskWithException(id, errorText));
+            // enqueue with generating exception
+            sequencer.enqueue(&sequenceKeys[id], (int)IQueue::QueueId::Any, false, sequenceKey, testData.makeTaskWithException(id, errorText));
             ++generatedExceptionCount;
         }
         else
         {
-            // post with no exception generation
-            sequencer.post(&sequenceKeys[id], (int)IQueue::QueueId::Any, false, sequenceKey, testData.makeTask(id));
+            // enqueue with no exception generation
+            sequencer.enqueue(&sequenceKeys[id], (int)IQueue::QueueId::Any, false, sequenceKey, testData.makeTask(id));
         }
     }
     DispatcherSingleton::instance().drain();
@@ -261,12 +265,12 @@ TEST(Sequencer, SequenceKeyStats)
     {
         if ( id % universalTaskFrequency == 0 ) 
         {
-            sequencer.postAll(testData.makeTaskWithBlock(id, &blockFlag));
+            sequencer.enqueueAll(testData.makeTaskWithBlock(id, &blockFlag));
         }
         else
         {
             SequencerTestData::SequenceKey sequenceKey = id % sequenceKeyCount;
-            sequencer.post(sequenceKey, testData.makeTaskWithBlock(id, &blockFlag));
+            sequencer.enqueue(sequenceKey, testData.makeTaskWithBlock(id, &blockFlag));
         }
     }
 
@@ -276,7 +280,7 @@ TEST(Sequencer, SequenceKeyStats)
     };
     // this task will be done when all the tasks posted above
     // are scheduled because it's posted to the same controlQueueId
-    DispatcherSingleton::instance().post<Void>(controlQueueId, false, std::move(halfWayDoneJob))->wait();
+    DispatcherSingleton::instance().post2(controlQueueId, false, halfWayDoneJob)->wait();
 
     // make sure all the enqueued tasks are pending
     size_t postedCount = 0;
@@ -295,8 +299,8 @@ TEST(Sequencer, SequenceKeyStats)
     EXPECT_EQ((unsigned int)taskCount / 2, postedCount);
     // we expect one less because the first universal task starts running until it hits the block,
     // therefore all tasks are pending except one
-    EXPECT_EQ(((unsigned int)(taskCount / 2) - 1), pendingCount);
-    
+    EXPECT_LE(((unsigned int)(taskCount / 2) - 1), pendingCount);
+    EXPECT_GE((unsigned int)(taskCount / 2), pendingCount);
     // release the tasks
     blockFlag = false;
 
@@ -305,12 +309,12 @@ TEST(Sequencer, SequenceKeyStats)
     {
         if ( id % universalTaskFrequency == 0 )
         {
-            sequencer.postAll(testData.makeTaskWithBlock(id, &blockFlag));
+            sequencer.enqueueAll(testData.makeTaskWithBlock(id, &blockFlag));
         }
         else
         {
             SequencerTestData::SequenceKey sequenceKey = id % sequenceKeyCount;
-            sequencer.post(sequenceKey, testData.makeTaskWithBlock(id, &blockFlag));
+            sequencer.enqueue(sequenceKey, testData.makeTaskWithBlock(id, &blockFlag));
         }
     }
 
@@ -355,14 +359,14 @@ TEST(Sequencer, TaskOrderWithUniversal)
         {
             // save the task id as universal
             universal.push_back(id);
-            sequencer.postAll(testData.makeTask(id));
+            sequencer.enqueueAll(testData.makeTask(id));
         }
         else 
         {
             SequencerTestData::SequenceKey sequenceKey = id % sequenceKeyCount;
             // save the task id for this sequenceKey
             sequenceKeys[sequenceKey].push_back(id);
-            sequencer.post(sequenceKey, testData.makeTask(id));
+            sequencer.enqueue(sequenceKey, testData.makeTask(id));
         }
     }
     DispatcherSingleton::instance().drain();
@@ -425,7 +429,7 @@ TEST(Sequencer, MultiSequenceKeyTasks)
     {
         std::vector<SequencerTestData::SequenceKey> sequenceKeys = getBitVector(id);
         // save the task id for this sequenceKey
-        sequencer.post(sequenceKeys, testData.makeTask(id));
+        sequencer.enqueue(sequenceKeys, testData.makeTask(id));
     }
     DispatcherSingleton::instance().drain();
 
@@ -497,8 +501,8 @@ TEST(Sequencer, CustomHashFunction)
         SequencerTestData::SequenceKey sequenceKey = id % fullSequenceKeyCount;
         // save the task id for this sequenceKey
         sequenceKeys[sequenceKey].push_back(id);
-        // post the task with the real sequenceKey id
-        sequencer.post(std::move(sequenceKey), testData.makeTask(id));
+        // enqueue the task with the real sequenceKey id
+        sequencer.enqueue(std::move(sequenceKey), testData.makeTask(id));
     }
     DispatcherSingleton::instance().drain();
 
@@ -520,3 +524,4 @@ TEST(Sequencer, DeleteDispatcherInstance)
 {
     DispatcherSingleton::deleteInstance();
 }
+#endif

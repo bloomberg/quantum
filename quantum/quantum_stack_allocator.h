@@ -41,6 +41,7 @@ struct StackAllocator : public ContiguousPoolManager<T>
     typedef value_type&             reference;
     typedef const value_type&       const_reference;
     typedef size_t                  size_type;
+    typedef uint16_t                index_type;
     typedef std::ptrdiff_t          difference_type;
     typedef std::false_type         propagate_on_container_move_assignment;
     typedef std::false_type         propagate_on_container_copy_assignment;
@@ -61,23 +62,33 @@ struct StackAllocator : public ContiguousPoolManager<T>
     {}
     StackAllocator(const this_type&) : StackAllocator()
     {}
-    StackAllocator& operator=(const this_type&)
+    StackAllocator(this_type&&) : StackAllocator()
     {}
-    static StackAllocator select_on_container_copy_construction(const StackAllocator&) {
-        return StackAllocator();
-    }
+    StackAllocator& operator=(const this_type&) = delete;
+    StackAllocator& operator=(this_type&&) = delete;
+    
+    // Rebound types
     template <typename U>
     StackAllocator(const StackAllocator<U,SIZE>&) : StackAllocator()
     {}
     template <typename U>
-    StackAllocator& operator=(const StackAllocator<U,SIZE>&)
+    StackAllocator(StackAllocator<U,SIZE>&&) : StackAllocator()
     {}
-    bool operator==(const this_type&) const {
-        return false;
+    template <typename U>
+    StackAllocator& operator=(const StackAllocator<U,SIZE>&) = delete;
+    template <typename U>
+    StackAllocator& operator=(StackAllocator<U,SIZE>&&) = delete;
+    
+    static StackAllocator select_on_container_copy_construction(const StackAllocator&) {
+        return StackAllocator();
     }
-    bool operator!=(const this_type&) const {
-        return true;
+    bool operator==(const this_type& other) const {
+        return this == &other;
     }
+    bool operator!=(const this_type& other) const {
+        return !operator==(other);
+    }
+    index_type size() const { return SIZE; }
     
 private:
     //------------------------------- Members ----------------------------------

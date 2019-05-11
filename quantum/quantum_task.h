@@ -46,12 +46,15 @@ public:
     
     template <class RET, class FUNC, class ... ARGS>
     Task(std::shared_ptr<Context<RET>> ctx,
+         int queueId,
+         bool isHighPriority,
          ITask::Type type,
          FUNC&& func,
          ARGS&&... args);
     
     template <class RET, class FUNC, class ... ARGS>
-    Task(std::shared_ptr<Context<RET>> ctx,
+    Task(Void,
+         std::shared_ptr<Context<RET>> ctx,
          int queueId,
          bool isHighPriority,
          ITask::Type type,
@@ -104,7 +107,7 @@ private:
     ITaskContinuation::Ptr      _next; //Task scheduled to run after current completes.
     ITaskContinuation::WeakPtr  _prev; //Previous task in the chain
     ITask::Type                 _type;
-    std::atomic_flag            _terminated;
+    std::atomic_bool            _terminated;
 };
 
 using TaskPtr = Task::Ptr;

@@ -89,7 +89,7 @@ Promise<T>::Promise() :
     IThreadPromise<Promise, T>(this),
     ICoroPromise<Promise, T>(this),
     _sharedState(new SharedState<T>()),
-    _terminated ATOMIC_FLAG_INIT
+    _terminated(false)
 {}
 
 template <class T>
@@ -101,7 +101,8 @@ Promise<T>::~Promise()
 template <class T>
 void Promise<T>::terminate()
 {
-    if (!_terminated.test_and_set())
+    bool value{false};
+    if (_terminated.compare_exchange_strong(value, true))
     {
         if (_sharedState) _sharedState->breakPromise();
     }

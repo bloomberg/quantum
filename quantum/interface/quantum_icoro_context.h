@@ -35,7 +35,7 @@ class Context;
 /// @brief Exposes methods to manipulate the coroutine context.
 /// @tparam RET The type of value returned via the promise associated with this context.
 template <class RET>
-struct ICoroContext : public ICoroContextBase
+struct ICoroContext : ICoroContextBase
 {
     using ContextTag = CoroContextTag;
     using Ptr = std::shared_ptr<ICoroContext<RET>>;
@@ -185,6 +185,11 @@ struct ICoroContext : public ICoroContextBase
     typename ICoroContext<OTHER_RET>::Ptr
     post(FUNC&& func, ARGS&&... args);
     
+    /// @brief Version 2 of the API which supports a simpler coroutine signature (see documentation).
+    template <class OTHER_RET = int, class FUNC, class ... ARGS>
+    typename ICoroContext<OTHER_RET>::Ptr
+    post2(FUNC&& func, ARGS&&... args);
+    
     /// @brief Post a coroutine to run asynchronously.
     /// @details This method will post the coroutine on the specified queue (thread) with high or low priority.
     /// @tparam OTHER_RET Type of future returned by this coroutine.
@@ -208,6 +213,11 @@ struct ICoroContext : public ICoroContextBase
     typename ICoroContext<OTHER_RET>::Ptr
     post(int queueId, bool isHighPriority, FUNC&& func, ARGS&&... args);
     
+    /// @brief Version 2 of the API which supports a simpler coroutine signature (see documentation).
+    template <class OTHER_RET = int, class FUNC, class ... ARGS>
+    typename ICoroContext<OTHER_RET>::Ptr
+    post2(int queueId, bool isHighPriority, FUNC&& func, ARGS&&... args);
+    
     /// @brief Posts a coroutine to run asynchronously.
     /// @details This function is the head of a coroutine continuation chain and must be called only once in the chain.
     /// @tparam OTHER_RET Type of future returned by this coroutine.
@@ -223,6 +233,11 @@ struct ICoroContext : public ICoroContextBase
     template <class OTHER_RET = int, class FUNC, class ... ARGS>
     typename ICoroContext<OTHER_RET>::Ptr
     postFirst(FUNC&& func, ARGS&&... args);
+    
+    /// @brief Version 2 of the API which supports a simpler coroutine signature (see documentation).
+    template <class OTHER_RET = int, class FUNC, class ... ARGS>
+    typename ICoroContext<OTHER_RET>::Ptr
+    postFirst2(FUNC&& func, ARGS&&... args);
     
     /// @brief Posts a coroutine to run asynchronously.
     /// @details This function is the head of a coroutine continuation chain and must be called only once in the chain.
@@ -247,6 +262,11 @@ struct ICoroContext : public ICoroContextBase
     typename ICoroContext<OTHER_RET>::Ptr
     postFirst(int queueId, bool isHighPriority, FUNC&& func, ARGS&&... args);
     
+    /// @brief Version 2 of the API which supports a simpler coroutine signature (see documentation).
+    template <class OTHER_RET = int, class FUNC, class ... ARGS>
+    typename ICoroContext<OTHER_RET>::Ptr
+    postFirst2(int queueId, bool isHighPriority, FUNC&& func, ARGS&&... args);
+    
     /// @brief Posts a coroutine to run asynchronously.
     /// @details This function is optional for the continuation chain and may be called 0 or more times. If called,
     ///          it must follow postFirst() or another then() method.
@@ -264,6 +284,11 @@ struct ICoroContext : public ICoroContextBase
     template <class OTHER_RET = int, class FUNC, class ... ARGS>
     typename ICoroContext<OTHER_RET>::Ptr
     then(FUNC&& func, ARGS&&... args);
+    
+    /// @brief Version 2 of the API which supports a simpler coroutine signature (see documentation).
+    template <class OTHER_RET = int, class FUNC, class ... ARGS>
+    typename ICoroContext<OTHER_RET>::Ptr
+    then2(FUNC&& func, ARGS&&... args);
     
     /// @brief Posts a coroutine to run asynchronously. This is the error handler for a continuation chain and acts as
     ///        as a 'catch' clause.
@@ -286,6 +311,11 @@ struct ICoroContext : public ICoroContextBase
     typename ICoroContext<OTHER_RET>::Ptr
     onError(FUNC&& func, ARGS&&... args);
     
+    /// @brief Version 2 of the API which supports a simpler coroutine signature (see documentation).
+    template <class OTHER_RET = int, class FUNC, class ... ARGS>
+    typename ICoroContext<OTHER_RET>::Ptr
+    onError2(FUNC&& func, ARGS&&... args);
+    
     /// @brief Posts a coroutine to run asynchronously. This coroutine is always guaranteed to run.
     /// @details This function is optional for the continuation chain and may be called at most once. If called, it must
     ///          immediately precede the end() method. This method will run regardless if any preceding coroutines have
@@ -302,6 +332,11 @@ struct ICoroContext : public ICoroContextBase
     template <class OTHER_RET = int, class FUNC, class ... ARGS>
     typename ICoroContext<OTHER_RET>::Ptr
     finally(FUNC&& func, ARGS&&... args);
+    
+    /// @brief Version 2 of the API which supports a simpler coroutine signature (see documentation).
+    template <class OTHER_RET = int, class FUNC, class ... ARGS>
+    typename ICoroContext<OTHER_RET>::Ptr
+    finally2(FUNC&& func, ARGS&&... args);
     
     /// @brief This is the last method in a continuation chain.
     /// @details This method effectively closes the continuation chain and posts the entire chain to be executed,
@@ -324,6 +359,11 @@ struct ICoroContext : public ICoroContextBase
     CoroFuturePtr<OTHER_RET>
     postAsyncIo(FUNC&& func, ARGS&&... args);
     
+    /// @brief Version 2 of the API which supports a simpler IO task signature (see documentation).
+    template <class OTHER_RET = int, class FUNC, class ... ARGS>
+    CoroFuturePtr<OTHER_RET>
+    postAsyncIo2(FUNC&& func, ARGS&&... args);
+    
     /// @brief Posts an IO function to run asynchronously on the IO thread pool.
     /// @details This method will post the function on the specified queue (thread) with high or low priority.
     /// @tparam OTHER_RET Type of future returned by this function.
@@ -343,6 +383,11 @@ struct ICoroContext : public ICoroContextBase
     template <class OTHER_RET = int, class FUNC, class ... ARGS>
     CoroFuturePtr<OTHER_RET>
     postAsyncIo(int queueId, bool isHighPriority, FUNC&& func, ARGS&&... args);
+    
+    /// @brief Version 2 of the API which supports a simpler IO task signature (see documentation).
+    template <class OTHER_RET = int, class FUNC, class ... ARGS>
+    CoroFuturePtr<OTHER_RET>
+    postAsyncIo2(int queueId, bool isHighPriority, FUNC&& func, ARGS&&... args);
     
     /// @brief Applies the given unary function to all the elements in the range [first,last).
     ///        This function runs in parallel.
@@ -468,6 +513,7 @@ using CoroContext = ICoroContext<RET>;
 
 template <class RET>
 using CoroContextPtr = typename ICoroContext<RET>::Ptr;
+using VoidContextPtr = CoroContextPtr<Void>;
 
 }}
 

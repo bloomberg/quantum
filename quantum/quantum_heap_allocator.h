@@ -45,7 +45,7 @@ struct HeapAllocator : public ContiguousPoolManager<T>
     typedef std::true_type          propagate_on_container_move_assignment;
     typedef std::false_type         propagate_on_container_copy_assignment;
     typedef std::true_type          propagate_on_container_swap;
-    typedef std::true_type          is_always_equal;
+    typedef std::false_type         is_always_equal;
     typedef std::false_type         default_constructor;
     typedef std::aligned_storage<sizeof(value_type),
                                  alignof(value_type)> storage_type;
@@ -69,32 +69,35 @@ struct HeapAllocator : public ContiguousPoolManager<T>
     HeapAllocator(const this_type& other) :
         HeapAllocator(other._size)
     {}
-    HeapAllocator(this_type&& other)
-    {
-        *this = std::move(other);
-    }
-    HeapAllocator& operator=(const this_type&)
-    {}
-    HeapAllocator& operator=(this_type&& other)
-    {
-        static_cast<ContiguousPoolManager<T>>(*this) = static_cast<ContiguousPoolManager<T>&&>(other);
-        _size = other._size;
-        _buffer = other._buffer;
-        other._size = 0;
-        other._buffer = nullptr;
-    }
+    HeapAllocator(this_type&& other) = default;
+    HeapAllocator& operator=(const this_type&) = delete;
+    HeapAllocator& operator=(this_type&& other) = delete;
+    
     ~HeapAllocator() {
         delete[] _buffer;
     }
-    static HeapAllocator select_on_container_copy_construction(const HeapAllocator& other) {
-        return HeapAllocator(other.size());
-    }
+    
+    //Rebound types
     template <typename U>
     HeapAllocator(const HeapAllocator<U>& other) : HeapAllocator(other.size())
     {}
     template <typename U>
-    HeapAllocator& operator=(const HeapAllocator<U>&)
-    {}
+    HeapAllocator(HeapAllocator<U>&& other) :
+        _size(std::min(_size, (index_type)resize<U,T>(other._size))),
+        _buffer(other._buffer)
+    {
+        this->setBuffer(_buffer, _size);
+        other._size = 0;
+        other._buffer = nullptr;
+    }
+    template <typename U>
+    HeapAllocator& operator=(const HeapAllocator<U>&) = delete;
+    template <typename U>
+    HeapAllocator& operator=(HeapAllocator<U>&&) = delete;
+    
+    static HeapAllocator select_on_container_copy_construction(const HeapAllocator& other) {
+        return HeapAllocator(other.size());
+    }
     bool operator==(const this_type&) const {
         return true;
     }

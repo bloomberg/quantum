@@ -39,6 +39,8 @@ namespace quantum {
 template <typename T>
 struct ContiguousPoolManager
 {
+    template <typename U>
+    friend class ContiguousPoolManager;
     //------------------------------ Typedefs ----------------------------------
     typedef ContiguousPoolManager<T>        this_type;
     typedef T                               value_type;
@@ -48,19 +50,46 @@ struct ContiguousPoolManager
     typedef const value_type&               const_reference;
     typedef size_t                          size_type;
     typedef uint16_t                        index_type;
+    typedef std::ptrdiff_t                  difference_type;
+    typedef std::true_type                  propagate_on_container_move_assignment;
+    typedef std::true_type                  propagate_on_container_copy_assignment;
+    typedef std::true_type                  propagate_on_container_swap;
+    typedef std::false_type                 is_always_equal;
+    typedef std::false_type                 default_constructor;
     typedef std::aligned_storage<sizeof(T), alignof(T)> storage_type;
     typedef typename storage_type::type     aligned_type;
     
     //------------------------------- Methods ----------------------------------
     ContiguousPoolManager();
     ContiguousPoolManager(aligned_type* buffer, index_type size);
-    ContiguousPoolManager(const this_type&) = delete;
-    ContiguousPoolManager(this_type&&);
-    ContiguousPoolManager& operator=(const this_type&) = delete;
-    ContiguousPoolManager& operator=(this_type&&);
-    virtual ~ContiguousPoolManager();
     
-    // Accessors
+    template <typename U>
+    struct rebind
+    {
+        typedef ContiguousPoolManager<U> other;
+    };
+    //Rebound types
+    template <typename U>
+    ContiguousPoolManager(const ContiguousPoolManager<U>& other);
+    template <typename U>
+    ContiguousPoolManager(ContiguousPoolManager<U>&& other);
+    template <typename U>
+    ContiguousPoolManager& operator=(const ContiguousPoolManager<U>&) = delete;
+    template <typename U>
+    ContiguousPoolManager& operator=(ContiguousPoolManager<U>&&) = delete;
+    
+    static ContiguousPoolManager
+    select_on_container_copy_construction(const ContiguousPoolManager& other) {
+        return ContiguousPoolManager(other.size());
+    }
+    bool operator==(const this_type& other) const {
+        return _control && other._control && (_control->_buffer == other._control->_buffer);
+    }
+    bool operator!=(const this_type& other) const {
+        return !operator==(other);
+    }
+    
+    //------------------------- Accessors ------------------------------
     void setBuffer(aligned_type* buffer, index_type size);
     pointer address(reference x) const;
     const_pointer address(const_reference x) const;
@@ -77,6 +106,8 @@ struct ContiguousPoolManager
     size_t allocatedHeapBlocks() const;
     bool isFull() const;
     bool isEmpty() const;
+    index_type size() const;
+    explicit operator bool() const;
     
 private:
     pointer bufferStart();
@@ -86,13 +117,22 @@ private:
     bool findContiguous(index_type n);
 
     //------------------------------- Members ----------------------------------
-    index_type          _size{0};
-    aligned_type*       _buffer{nullptr}; //non-owning
-    index_type*         _freeBlocks{nullptr};
-    ssize_t             _freeBlockIndex{-1};
-    size_t              _numHeapAllocatedBlocks{0};
-    mutable SpinLock    _spinlock;
+    struct Control {
+        index_type          _size{0};
+        aligned_type*       _buffer{nullptr}; //non-owning
+        index_type*         _freeBlocks{nullptr};
+        ssize_t             _freeBlockIndex{-1};
+        size_t              _numHeapAllocatedBlocks{0};
+        mutable SpinLock    _spinlock;
+    };
+    std::shared_ptr<Control>  _control;
 };
+
+template <typename T, typename U>
+size_t resize(size_t t_size)
+{
+    return (t_size*sizeof(T))/sizeof(U);
+}
 
 }} //namespaces
 

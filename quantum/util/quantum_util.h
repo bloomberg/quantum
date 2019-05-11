@@ -49,8 +49,16 @@ struct Util
     bindCaller(std::shared_ptr<Context<RET>> ctx, FUNC&& func0, ARGS&& ...args0);
     
     template<class RET, class FUNC, class ...ARGS>
+    static Function<int(Traits::Yield&)>
+    bindCaller2(std::shared_ptr<Context<RET>> ctx, FUNC&& func0, ARGS&& ...args0);
+    
+    template<class RET, class FUNC, class ...ARGS>
     static Function<int()>
     bindIoCaller(std::shared_ptr<Promise<RET>> promise, FUNC&& func0, ARGS&& ...args0);
+    
+    template<class RET, class FUNC, class ...ARGS>
+    static Function<int()>
+    bindIoCaller2(std::shared_ptr<Promise<RET>> promise, FUNC&& func0, ARGS&& ...args0);
     
     template <typename RET>
     static VoidContextPtr makeVoidContext(CoroContextPtr<RET> ctx);
@@ -59,13 +67,13 @@ struct Util
     //                                      ForEach
     //------------------------------------------------------------------------------------------
     template <class RET, class INPUT_IT, class FUNC>
-    static int forEachCoro(CoroContextPtr<std::vector<RET>> ctx,
+    static std::vector<RET> forEachCoro(VoidContextPtr ctx,
                            INPUT_IT inputIt,
                            size_t num,
                            FUNC&& func);
     
     template <class RET, class INPUT_IT, class FUNC>
-    static int forEachBatchCoro(CoroContextPtr<std::vector<std::vector<RET>>> ctx,
+    static std::vector<std::vector<RET>> forEachBatchCoro(VoidContextPtr ctx,
                                 INPUT_IT inputIt,
                                 size_t num,
                                 FUNC&& func,
@@ -78,7 +86,8 @@ struct Util
               class MAPPED_TYPE,
               class REDUCED_TYPE,
               class INPUT_IT>
-    static int mapReduceCoro(CoroContextPtr<std::map<KEY, REDUCED_TYPE>> ctx,
+    static std::map<KEY, REDUCED_TYPE>
+    mapReduceCoro(VoidContextPtr ctx,
                              INPUT_IT inputIt,
                              size_t num,
                              const Functions::MapFunc<KEY, MAPPED_TYPE, INPUT_IT>& mapper,
@@ -88,7 +97,7 @@ struct Util
               class MAPPED_TYPE,
               class REDUCED_TYPE,
               class INPUT_IT>
-    static int mapReduceBatchCoro(CoroContextPtr<std::map<KEY, REDUCED_TYPE>> ctx,
+    static std::map<KEY, REDUCED_TYPE> mapReduceBatchCoro(VoidContextPtr ctx,
                                   INPUT_IT inputIt,
                                   size_t num,
                                   const Functions::MapFunc<KEY, MAPPED_TYPE, INPUT_IT>& mapper,
