@@ -191,6 +191,11 @@ struct IThreadContext : public IThreadContextBase
     typename IThreadContext<OTHER_RET>::Ptr
     then(FUNC&& func, ARGS&&... args);
     
+    /// @brief Version 2 of the API which supports a simpler coroutine signature (see documentation).
+    template <class OTHER_RET = int, class FUNC, class ... ARGS>
+    typename IThreadContext<OTHER_RET>::Ptr
+    then2(FUNC&& func, ARGS&&... args);
+    
     /// @brief Posts a function to run asynchronously. This is the error handler for a continuation chain and acts as
     ///        as a 'catch' clause.
     /// @details This function is optional for the continuation chain and may be called at most once. If called,
@@ -211,6 +216,11 @@ struct IThreadContext : public IThreadContextBase
     typename IThreadContext<OTHER_RET>::Ptr
     onError(FUNC&& func, ARGS&&... args);
     
+    /// @brief Version 2 of the API which supports a simpler coroutine signature (see documentation).
+    template <class OTHER_RET = int, class FUNC, class ... ARGS>
+    typename IThreadContext<OTHER_RET>::Ptr
+    onError2(FUNC&& func, ARGS&&... args);
+    
     /// @brief Posts a function to run asynchronously. This function is always guaranteed to run.
     /// @details This function is optional for the continuation chain and may be called at most once. If called, it must
     ///          immediately precede the end() method. This method will run regardless if any preceding functions have
@@ -226,6 +236,11 @@ struct IThreadContext : public IThreadContextBase
     template <class OTHER_RET = int, class FUNC, class ... ARGS>
     typename IThreadContext<OTHER_RET>::Ptr
     finally(FUNC&& func, ARGS&&... args);
+    
+    /// @brief Version 2 of the API which supports a simpler coroutine signature (see documentation).
+    template <class OTHER_RET = int, class FUNC, class ... ARGS>
+    typename IThreadContext<OTHER_RET>::Ptr
+    finally2(FUNC&& func, ARGS&&... args);
     
     /// @brief This is the last method in a continuation chain.
     /// @details This method effectively closes the continuation chain and posts the entire chain to be executed,

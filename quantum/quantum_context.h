@@ -159,7 +159,15 @@ public:
     
     template <class OTHER_RET, class FUNC, class ... ARGS>
     typename Context<OTHER_RET>::Ptr
+    post2(FUNC&& func, ARGS&&... args);
+    
+    template <class OTHER_RET, class FUNC, class ... ARGS>
+    typename Context<OTHER_RET>::Ptr
     post(int queueId, bool isHighPriority, FUNC&& func, ARGS&&... args);
+    
+    template <class OTHER_RET, class FUNC, class ... ARGS>
+    typename Context<OTHER_RET>::Ptr
+    post2(int queueId, bool isHighPriority, FUNC&& func, ARGS&&... args);
     
     template <class OTHER_RET, class FUNC, class ... ARGS>
     typename Context<OTHER_RET>::Ptr
@@ -167,7 +175,15 @@ public:
     
     template <class OTHER_RET, class FUNC, class ... ARGS>
     typename Context<OTHER_RET>::Ptr
+    postFirst2(FUNC&& func, ARGS&&... args);
+    
+    template <class OTHER_RET, class FUNC, class ... ARGS>
+    typename Context<OTHER_RET>::Ptr
     postFirst(int queueId, bool isHighPriority, FUNC&& func, ARGS&&... args);
+    
+    template <class OTHER_RET, class FUNC, class ... ARGS>
+    typename Context<OTHER_RET>::Ptr
+    postFirst2(int queueId, bool isHighPriority, FUNC&& func, ARGS&&... args);
     
     template <class OTHER_RET, class FUNC, class ... ARGS>
     typename Context<OTHER_RET>::Ptr
@@ -175,11 +191,23 @@ public:
     
     template <class OTHER_RET, class FUNC, class ... ARGS>
     typename Context<OTHER_RET>::Ptr
+    then2(FUNC&& func, ARGS&&... args);
+    
+    template <class OTHER_RET, class FUNC, class ... ARGS>
+    typename Context<OTHER_RET>::Ptr
     onError(FUNC&& func, ARGS&&... args);
     
     template <class OTHER_RET, class FUNC, class ... ARGS>
     typename Context<OTHER_RET>::Ptr
+    onError2(FUNC&& func, ARGS&&... args);
+    
+    template <class OTHER_RET, class FUNC, class ... ARGS>
+    typename Context<OTHER_RET>::Ptr
     finally(FUNC&& func, ARGS&&... args);
+    
+    template <class OTHER_RET, class FUNC, class ... ARGS>
+    typename Context<OTHER_RET>::Ptr
+    finally2(FUNC&& func, ARGS&&... args);
     
     Ptr end();
     
@@ -192,7 +220,15 @@ public:
     
     template <class OTHER_RET, class FUNC, class ... ARGS>
     CoroFuturePtr<OTHER_RET>
+    postAsyncIo2(FUNC&& func, ARGS&&... args);
+    
+    template <class OTHER_RET, class FUNC, class ... ARGS>
+    CoroFuturePtr<OTHER_RET>
     postAsyncIo(int queueId, bool isHighPriority, FUNC&& func, ARGS&&... args);
+    
+    template <class OTHER_RET, class FUNC, class ... ARGS>
+    CoroFuturePtr<OTHER_RET>
+    postAsyncIo2(int queueId, bool isHighPriority, FUNC&& func, ARGS&&... args);
     
     //===================================
     //           FOR EACH
@@ -276,14 +312,26 @@ private:
     template <class OTHER_RET, class FUNC, class ... ARGS>
     typename Context<OTHER_RET>::Ptr
     thenImpl(ITask::Type type, FUNC&& func, ARGS&&... args);
+    
+    template <class OTHER_RET, class FUNC, class ... ARGS>
+    typename Context<OTHER_RET>::Ptr
+    thenImpl2(ITask::Type type, FUNC&& func, ARGS&&... args);
 
     template <class OTHER_RET, class FUNC, class ... ARGS>
     typename Context<OTHER_RET>::Ptr
     postImpl(int queueId, bool isHighPriority, ITask::Type type, FUNC&& func, ARGS&&... args);
     
     template <class OTHER_RET, class FUNC, class ... ARGS>
+    typename Context<OTHER_RET>::Ptr
+    postImpl2(int queueId, bool isHighPriority, ITask::Type type, FUNC&& func, ARGS&&... args);
+    
+    template <class OTHER_RET, class FUNC, class ... ARGS>
     CoroFuturePtr<OTHER_RET>
     postAsyncIoImpl(int queueId, bool isHighPriority, FUNC&& func, ARGS&&... args);
+    
+    template <class OTHER_RET, class FUNC, class ... ARGS>
+    CoroFuturePtr<OTHER_RET>
+    postAsyncIoImpl2(int queueId, bool isHighPriority, FUNC&& func, ARGS&&... args);
     
     int index(int num) const;
     
@@ -295,7 +343,7 @@ private:
     ITask::Ptr                          _task;
     std::vector<IPromiseBase::Ptr>      _promises;
     DispatcherCore*                     _dispatcher;
-    std::atomic_flag                    _terminated;
+    std::atomic_bool                    _terminated;
     std::atomic_int                     _signal;
     Traits::Yield*                      _yield;
     std::chrono::microseconds           _sleepDuration;

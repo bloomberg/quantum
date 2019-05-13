@@ -82,7 +82,7 @@ public:
     
 private:
     std::shared_ptr<SharedState<T>> _sharedState;
-    std::atomic_flag                _terminated;
+    std::atomic_bool                _terminated;
 };
 
 template <class T>

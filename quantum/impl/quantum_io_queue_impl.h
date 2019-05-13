@@ -42,7 +42,7 @@ IoQueue::IoQueue(const Configuration& config,
     _isEmpty(true),
     _isInterrupted(false),
     _isIdle(true),
-    _terminated ATOMIC_FLAG_INIT
+    _terminated(false)
 {
     if (_sharedIoQueues) {
         //The shared queue doesn't have its own thread
@@ -62,7 +62,7 @@ IoQueue::IoQueue(const IoQueue& other) :
     _isEmpty(true),
     _isInterrupted(false),
     _isIdle(true),
-    _terminated ATOMIC_FLAG_INIT
+    _terminated(false)
 {
     if (_sharedIoQueues) {
         //The shared queue doesn't have its own thread
@@ -334,7 +334,8 @@ bool IoQueue::empty() const
 inline
 void IoQueue::terminate()
 {
-    if (!_terminated.test_and_set() && _sharedIoQueues)
+    bool value{false};
+    if (_terminated.compare_exchange_strong(value, true) && _sharedIoQueues)
     {
         {
             std::unique_lock<std::mutex> lock(_notEmptyMutex);

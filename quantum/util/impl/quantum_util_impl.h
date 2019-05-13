@@ -23,6 +23,9 @@
 namespace Bloomberg {
 namespace quantum {
 
+//==============================================================================================
+//                                      Bind Helpers
+//==============================================================================================
 template <typename RET, typename CAPTURE>
 int bindCoro(Traits::Yield& yield,
              std::shared_ptr<CoroContext<RET>> ctx,
@@ -32,6 +35,41 @@ int bindCoro(Traits::Yield& yield,
     {
         ctx->setYieldHandle(yield); //set coroutine yield
         yield.get() = std::forward<CAPTURE>(capture)();
+        return 0;
+    }
+    catch(const boost::coroutines2::detail::forced_unwind&) {
+        throw;
+    }
+    catch(std::exception& ex)
+    {
+        UNUSED(ex);
+#ifdef __QUANTUM_PRINT_DEBUG
+        std::lock_guard<std::mutex> guard(Util::LogMutex());
+        std::cerr << "Caught exception : " << ex.what() << std::endl;
+#endif
+        ctx->setException(std::current_exception());
+    }
+    catch(...)
+    {
+#ifdef __QUANTUM_PRINT_DEBUG
+        std::lock_guard<std::mutex> guard(Util::LogMutex());
+        std::cerr << "Caught unknown exception." << std::endl;
+#endif
+        ctx->setException(std::current_exception());
+    }
+    yield.get() = (int)ITask::RetCode::Exception;
+    return (int)ITask::RetCode::Exception;
+}
+
+template <typename RET, typename CAPTURE>
+int bindCoro2(Traits::Yield& yield,
+              std::shared_ptr<CoroContext<RET>> ctx,
+              CAPTURE&& capture)
+{
+    try
+    {
+        ctx->setYieldHandle(yield); //set coroutine yield
+        yield.get() = ctx->set(std::forward<CAPTURE>(capture)());
         return 0;
     }
     catch(const boost::coroutines2::detail::forced_unwind&) {
@@ -86,47 +124,96 @@ int bindIo(std::shared_ptr<Promise<RET>> promise,
     return (int)ITask::RetCode::Exception;
 }
 
+template <typename RET, typename CAPTURE>
+int bindIo2(std::shared_ptr<Promise<RET>> promise,
+            CAPTURE&& capture)
+{
+    try
+    {
+        promise->set(std::forward<CAPTURE>(capture)());
+        return 0;
+    }
+    catch(std::exception& ex)
+    {
+        UNUSED(ex);
+#ifdef __QUANTUM_PRINT_DEBUG
+        std::lock_guard<std::mutex> guard(Util::LogMutex());
+        std::cerr << "Caught exception : " << ex.what() << std::endl;
+#endif
+        promise->setException(std::current_exception());
+    }
+    catch(...)
+    {
+#ifdef __QUANTUM_PRINT_DEBUG
+        std::lock_guard<std::mutex> guard(Util::LogMutex());
+        std::cerr << "Caught unknown exception." << std::endl;
+#endif
+        promise->setException(std::current_exception());
+    }
+    return (int)ITask::RetCode::Exception;
+}
+
+//==============================================================================================
+//                                      Bind Utils
+//==============================================================================================
 template<class RET, class FUNC, class ...ARGS>
 Function<int(Traits::Yield&)>
 Util::bindCaller(std::shared_ptr<Context<RET>> context, FUNC&& func, ARGS&& ...args)
 {
-    auto capture = makeCapture(std::forward<FUNC>(func), std::shared_ptr<Context<RET>>(context), std::forward<ARGS>(args)...);
-    return makeCapture(bindCoro<RET, decltype(capture)>, std::shared_ptr<Context<RET>>(context), std::move(capture));
+    auto capture = makeCapture<int>(std::forward<FUNC>(func), std::shared_ptr<Context<RET>>(context), std::forward<ARGS>(args)...);
+    return makeCapture<int>(bindCoro<RET, decltype(capture)>, std::shared_ptr<Context<RET>>(context), std::move(capture));
+}
+
+template<class RET, class FUNC, class ...ARGS>
+Function<int(Traits::Yield&)>
+Util::bindCaller2(std::shared_ptr<Context<RET>> context, FUNC&& func, ARGS&& ...args)
+{
+    auto capture = makeCapture<RET>(std::forward<FUNC>(func), Util::makeVoidContext<RET>(context), std::forward<ARGS>(args)...);
+    return makeCapture<int>(bindCoro2<RET, decltype(capture)>, std::shared_ptr<Context<RET>>(context), std::move(capture));
 }
 
 template<class RET, class FUNC, class ...ARGS>
 Function<int()>
 Util::bindIoCaller(std::shared_ptr<Promise<RET>> promise, FUNC&& func, ARGS&& ...args)
 {
-    auto capture = makeCapture(std::forward<FUNC>(func), std::shared_ptr<Promise<RET>>(promise), std::forward<ARGS>(args)...);
-    return makeCapture(bindIo<RET, decltype(capture)>, std::shared_ptr<Promise<RET>>(promise), std::move(capture));
+    auto capture = makeCapture<int>(std::forward<FUNC>(func), std::shared_ptr<Promise<RET>>(promise), std::forward<ARGS>(args)...);
+    return makeCapture<int>(bindIo<RET, decltype(capture)>, std::shared_ptr<Promise<RET>>(promise), std::move(capture));
+}
+
+template<class RET, class FUNC, class ...ARGS>
+Function<int()>
+Util::bindIoCaller2(std::shared_ptr<Promise<RET>> promise, FUNC&& func, ARGS&& ...args)
+{
+    auto capture = makeCapture<RET>(std::forward<FUNC>(func), std::forward<ARGS>(args)...);
+    return makeCapture<int>(bindIo2<RET, decltype(capture)>, std::shared_ptr<Promise<RET>>(promise), std::move(capture));
 }
 
 template <class RET, class INPUT_IT, class FUNC>
-int Util::forEachCoro(CoroContextPtr<std::vector<RET>> ctx,
-                      INPUT_IT inputIt,
-                      size_t num,
-                      FUNC&& func)
+std::vector<RET> Util::forEachCoro(VoidContextPtr ctx,
+                                   INPUT_IT inputIt,
+                                   size_t num,
+                                   FUNC&& func)
 {
     std::vector<CoroContextPtr<RET>> asyncResults;
     asyncResults.reserve(num);
     for (size_t i = 0; i < num; ++i, ++inputIt)
     {
         //Run the function
-        asyncResults.emplace_back(ctx->template post<RET>([inputIt, &func](CoroContextPtr<RET> ctx) mutable ->int
+        asyncResults.emplace_back(ctx->template post2<RET>([inputIt, &func](VoidContextPtr ctx) mutable ->RET
         {
-            return ctx->set(std::forward<FUNC>(func)(Util::makeVoidContext<RET>(ctx), *inputIt));
+            return std::forward<FUNC>(func)(ctx, *inputIt);
         }));
     }
-    return ctx->set(FutureJoiner<RET>()(*ctx, std::move(asyncResults))->get(ctx));
+    return FutureJoiner<RET>()(*ctx, std::move(asyncResults))->get(ctx);
 }
 
 template <class RET, class INPUT_IT, class FUNC>
-int Util::forEachBatchCoro(CoroContextPtr<std::vector<std::vector<RET>>> ctx,
-                           INPUT_IT inputIt,
-                           size_t num,
-                           FUNC&& func,
-                           size_t numCoroutineThreads)
+std::vector<std::vector<RET>>
+Util::forEachBatchCoro(VoidContextPtr ctx,
+                       INPUT_IT inputIt,
+                       size_t num,
+                       FUNC&& func,
+                       size_t numCoroutineThreads)
 {
     size_t numPerBatch = num/numCoroutineThreads;
     size_t remainder = num%numCoroutineThreads;
@@ -142,30 +229,31 @@ int Util::forEachBatchCoro(CoroContextPtr<std::vector<std::vector<RET>>> ctx,
         {
             break; //nothing to do
         }
-        asyncResults.emplace_back(ctx->template post<std::vector<RET>>([inputIt, batchSize, &func](CoroContextPtr<std::vector<RET>> ctx) mutable->int
+        asyncResults.emplace_back(ctx->template post2<std::vector<RET>>([inputIt, batchSize, &func](VoidContextPtr ctx) mutable ->std::vector<RET>
         {
             std::vector<RET> result;
             result.reserve(batchSize);
             for (size_t j = 0; j < batchSize; ++j, ++inputIt)
             {
-                result.emplace_back(std::forward<FUNC>(func)(Util::makeVoidContext<std::vector<RET>>(ctx), *inputIt));
+                result.emplace_back(std::forward<FUNC>(func)(ctx, *inputIt));
             }
-            return ctx->set(std::move(result));
+            return result;
         }));
         std::advance(inputIt, batchSize);
     }
-    return ctx->set(FutureJoiner<std::vector<RET>>()(*ctx, std::move(asyncResults))->get(ctx));
+    return FutureJoiner<std::vector<RET>>()(*ctx, std::move(asyncResults))->get(ctx);
 }
 
 template <class KEY,
           class MAPPED_TYPE,
           class REDUCED_TYPE,
           class INPUT_IT>
-int Util::mapReduceCoro(CoroContextPtr<std::map<KEY, REDUCED_TYPE>> ctx,
-                        INPUT_IT inputIt,
-                        size_t num,
-                        const Functions::MapFunc<KEY, MAPPED_TYPE, INPUT_IT>& mapper,
-                        const Functions::ReduceFunc<KEY, MAPPED_TYPE, REDUCED_TYPE>& reducer)
+std::map<KEY, REDUCED_TYPE>
+Util::mapReduceCoro(VoidContextPtr ctx,
+                    INPUT_IT inputIt,
+                    size_t num,
+                    const Functions::MapFunc<KEY, MAPPED_TYPE, INPUT_IT>& mapper,
+                    const Functions::ReduceFunc<KEY, MAPPED_TYPE, REDUCED_TYPE>& reducer)
 {
     // Typedefs
     using MappedResult = std::pair<KEY, MAPPED_TYPE>;
@@ -198,18 +286,19 @@ int Util::mapReduceCoro(CoroContextPtr<std::map<KEY, REDUCED_TYPE>> ctx,
         reducerOutput.emplace(std::move(reducedResult.first), std::move(reducedResult.second));
     }
     
-    return ctx->set(std::move(reducerOutput));
+    return reducerOutput;
 }
 
 template <class KEY,
           class MAPPED_TYPE,
           class REDUCED_TYPE,
           class INPUT_IT>
-int Util::mapReduceBatchCoro(CoroContextPtr<std::map<KEY, REDUCED_TYPE>> ctx,
-                             INPUT_IT inputIt,
-                             size_t num,
-                             const Functions::MapFunc<KEY, MAPPED_TYPE, INPUT_IT>& mapper,
-                             const Functions::ReduceFunc<KEY, MAPPED_TYPE, REDUCED_TYPE>& reducer)
+std::map<KEY, REDUCED_TYPE>
+Util::mapReduceBatchCoro(VoidContextPtr ctx,
+                         INPUT_IT inputIt,
+                         size_t num,
+                         const Functions::MapFunc<KEY, MAPPED_TYPE, INPUT_IT>& mapper,
+                         const Functions::ReduceFunc<KEY, MAPPED_TYPE, REDUCED_TYPE>& reducer)
 {
     // Typedefs
     using MappedResult = std::pair<KEY, MAPPED_TYPE>;
@@ -248,7 +337,7 @@ int Util::mapReduceBatchCoro(CoroContextPtr<std::map<KEY, REDUCED_TYPE>> ctx,
         }
     }
     
-    return ctx->set(std::move(reducerOutput));
+    return reducerOutput;
 }
 
 template <typename RET>

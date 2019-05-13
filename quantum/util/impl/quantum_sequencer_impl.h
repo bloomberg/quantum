@@ -46,27 +46,27 @@ Sequencer<SequenceKey, Hash, KeyEqual, Allocator>::Sequencer(Dispatcher& dispatc
 template <class SequenceKey, class Hash, class KeyEqual, class Allocator>
 template <class FUNC, class ... ARGS>
 void
-Sequencer<SequenceKey, Hash, KeyEqual, Allocator>::post(
+Sequencer<SequenceKey, Hash, KeyEqual, Allocator>::enqueue(
     const SequenceKey& sequenceKey,
     FUNC&& func,
     ARGS&&... args)
 {
-    _dispatcher.post<Void>(_controllerQueueId,
-                          false,
-                          singleSequenceKeyTaskScheduler<FUNC, ARGS...>,
-                          nullptr,
-                          (int)IQueue::QueueId::Any,
-                          false,
-                          *this,
-                          SequenceKey(sequenceKey),
-                          std::forward<FUNC>(func),
-                          std::forward<ARGS>(args)...);
+    _dispatcher.post2<int>(_controllerQueueId,
+                           false,
+                           singleSequenceKeyTaskScheduler<FUNC, ARGS...>,
+                           nullptr,
+                           (int)IQueue::QueueId::Any,
+                           false,
+                           *this,
+                           SequenceKey(sequenceKey),
+                           std::forward<FUNC>(func),
+                           std::forward<ARGS>(args)...);
 }
 
 template <class SequenceKey, class Hash, class KeyEqual, class Allocator>
 template <class FUNC, class ... ARGS>
 void
-Sequencer<SequenceKey, Hash, KeyEqual, Allocator>::post(
+Sequencer<SequenceKey, Hash, KeyEqual, Allocator>::enqueue(
     void* opaque,
     int queueId,
     bool isHighPriority,
@@ -79,27 +79,27 @@ Sequencer<SequenceKey, Hash, KeyEqual, Allocator>::post(
         throw std::runtime_error("Invalid IO queue id");
     }
 
-    _dispatcher.post<Void>(_controllerQueueId,
-                          false,
-                          singleSequenceKeyTaskScheduler<FUNC, ARGS...>,
-                          std::move(opaque),
-                          std::move(queueId),
-                          std::move(isHighPriority),
-                          *this,
-                          SequenceKey(sequenceKey),
-                          std::forward<FUNC>(func),
-                          std::forward<ARGS>(args)...);
+    _dispatcher.post2<int>(_controllerQueueId,
+                           false,
+                           singleSequenceKeyTaskScheduler<FUNC, ARGS...>,
+                           std::move(opaque),
+                           std::move(queueId),
+                           std::move(isHighPriority),
+                           *this,
+                           SequenceKey(sequenceKey),
+                           std::forward<FUNC>(func),
+                           std::forward<ARGS>(args)...);
 }
  
 template <class SequenceKey, class Hash, class KeyEqual, class Allocator>
 template <class FUNC, class ... ARGS>
 void
-Sequencer<SequenceKey, Hash, KeyEqual, Allocator>::post(
+Sequencer<SequenceKey, Hash, KeyEqual, Allocator>::enqueue(
     const std::vector<SequenceKey>& sequenceKeys,
     FUNC&& func,
     ARGS&&... args)
 {
-    _dispatcher.post<Void>(_controllerQueueId,
+    _dispatcher.post2<int>(_controllerQueueId,
                           false,
                           multiSequenceKeyTaskScheduler<FUNC, ARGS...>,
                           nullptr,
@@ -114,7 +114,7 @@ Sequencer<SequenceKey, Hash, KeyEqual, Allocator>::post(
 template <class SequenceKey, class Hash, class KeyEqual, class Allocator>
 template <class FUNC, class ... ARGS>
 void
-Sequencer<SequenceKey, Hash, KeyEqual, Allocator>::post(
+Sequencer<SequenceKey, Hash, KeyEqual, Allocator>::enqueue(
     void* opaque,
     int queueId,
     bool isHighPriority,
@@ -126,7 +126,7 @@ Sequencer<SequenceKey, Hash, KeyEqual, Allocator>::post(
     {
         throw std::runtime_error("Invalid IO queue id");
     }
-    _dispatcher.post<Void>(_controllerQueueId,
+    _dispatcher.post2<int>(_controllerQueueId,
                           false,
                           multiSequenceKeyTaskScheduler<FUNC, ARGS...>,
                           std::move(opaque),
@@ -141,9 +141,9 @@ Sequencer<SequenceKey, Hash, KeyEqual, Allocator>::post(
 template <class SequenceKey, class Hash, class KeyEqual, class Allocator>
 template <class FUNC, class ... ARGS>
 void
-Sequencer<SequenceKey, Hash, KeyEqual, Allocator>::postAll(FUNC&& func, ARGS&&... args)
+Sequencer<SequenceKey, Hash, KeyEqual, Allocator>::enqueueAll(FUNC&& func, ARGS&&... args)
 {
-    _dispatcher.post<Void>(_controllerQueueId,
+    _dispatcher.post2<int>(_controllerQueueId,
                           false,
                           universalTaskScheduler<FUNC, ARGS...>,
                           nullptr,
@@ -157,7 +157,7 @@ Sequencer<SequenceKey, Hash, KeyEqual, Allocator>::postAll(FUNC&& func, ARGS&&..
 template <class SequenceKey, class Hash, class KeyEqual, class Allocator>
 template <class FUNC, class ... ARGS>
 void
-Sequencer<SequenceKey, Hash, KeyEqual, Allocator>::postAll(
+Sequencer<SequenceKey, Hash, KeyEqual, Allocator>::enqueueAll(
     void* opaque,
     int queueId,
     bool isHighPriority,
@@ -168,7 +168,7 @@ Sequencer<SequenceKey, Hash, KeyEqual, Allocator>::postAll(
     {
         throw std::runtime_error("Invalid IO queue id");
     }
-    _dispatcher.post<Void>(_controllerQueueId,
+    _dispatcher.post2<int>(_controllerQueueId,
                           false,
                           universalTaskScheduler<FUNC, ARGS...>,
                           std::move(opaque),

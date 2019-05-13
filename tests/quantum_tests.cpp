@@ -39,6 +39,11 @@ int DummyCoro(CoroContext<int>::Ptr ctx)
     return 0;
 }
 
+std::string DummyCoro2(VoidContextPtr)
+{
+    return "test";
+}
+
 int DummyIoTask(ThreadPromise<int>::Ptr promise)
 {
     UNUSED(promise);
@@ -78,15 +83,53 @@ int recursive_fib(CoroContext<size_t>::Ptr ctx, size_t fib)
     }
 }
 
+void run_coro(Traits::Coroutine& coro, std::mutex& m, int& end, int start)
+{
+    int var = start;
+    while(end<20) {
+        m.lock();
+        if (coro)
+            coro(var);
+        m.unlock();
+        sleep(1);
+    }
+}
+
 //==============================================================================
 //                             TEST CASES
 //==============================================================================
+/*
+TEST_F(DispatcherFixture, ResumeFromTwoThreads)
+{
+    int end{0};
+    std::mutex m;
+    Traits::Coroutine coro([&end](Traits::Yield& yield){
+        while (1) {
+            std::cout << "Running on thread: " << std::this_thread::get_id() << " value: " << yield.get()++ << " iteration: " << end++ << std::endl;
+            yield();
+        }
+    });
+    std::thread t1(run_coro, std::ref(coro), std::ref(m), std::ref(end), 0);
+    std::thread t2(run_coro, std::ref(coro), std::ref(m), std::ref(end), 100);
+    t1.join();
+    t2.join();
+    std::cout << "Done" << std::endl;
+}
+*/
+
 TEST_F(DispatcherFixture, Constructor)
 {
     //Check if we have 0 coroutines and IO tasks running
     EXPECT_EQ(0, (int)_dispatcher->size(IQueue::QueueType::Coro));
     EXPECT_EQ(0, (int)_dispatcher->size(IQueue::QueueType::IO));
     EXPECT_EQ(0, (int)_dispatcher->size());
+}
+
+TEST_F(DispatcherFixture, CheckReturnValue)
+{
+    IThreadContext<std::string>::Ptr tctx = _dispatcher->post2<std::string>(DummyCoro2);
+    std::string s = tctx->get();
+    EXPECT_STREQ("test", s.c_str());
 }
 
 TEST_F(DispatcherFixture, CheckNumThreads)
@@ -248,10 +291,17 @@ TEST_F(DispatcherFixture, CheckCoroutineErrors)
     }, s);
     
     _dispatcher->post([](CoroContext<int>::Ptr ctx, std::string& str)->int {
-        Util::makeVoidContext<int>(ctx)->yield(); //test yield via the VoidContext
+        ctx->yield(); //test yield via the VoidContext
         throw std::exception(); //error! coroutine must stop here
         str = "changed";
         return 0;
+    }, s);
+    
+    _dispatcher->post2<std::string>([](VoidContextPtr ctx, std::string& str)->std::string {
+        ctx->yield(); //test yield via the VoidContext
+        throw std::exception(); //error! coroutine must stop here
+        str = "changed";
+        return str;
     }, s);
     
     _dispatcher->postAsyncIo([](ThreadPromise<int>::Ptr, std::string& str)->int {
@@ -268,11 +318,18 @@ TEST_F(DispatcherFixture, CheckCoroutineErrors)
         return 0;
     }, s);
     
+    _dispatcher->postAsyncIo2<std::string>([](std::string& str)->std::string {
+        std::this_thread::sleep_for(ms(10));
+        throw std::exception(); //error! coroutine must stop here
+        str = "changed";
+        return str;
+    }, s);
+    
     _dispatcher->drain();
     
     //Error count
-    EXPECT_EQ((size_t)2, _dispatcher->stats(IQueue::QueueType::Coro).errorCount());
-    EXPECT_EQ((size_t)2, _dispatcher->stats(IQueue::QueueType::IO).errorCount() +
+    EXPECT_EQ((size_t)3, _dispatcher->stats(IQueue::QueueType::Coro).errorCount());
+    EXPECT_EQ((size_t)3, _dispatcher->stats(IQueue::QueueType::IO).errorCount() +
                          _dispatcher->stats(IQueue::QueueType::IO).sharedQueueErrorCount());
     EXPECT_STREQ("original", s.c_str());
     
@@ -410,12 +467,48 @@ TEST(ExecutionTest, ChainCoroutinesFromCoroutineContext)
     
     auto func = [&](CoroContext<int>::Ptr ctx, std::vector<int>& v, int& i)->int
     {
-        ctx->postFirst(func2, v, i)->then(func2, v, i)->then(func2, v, i)->
-             then(func2, v, i)->onError(func2, v, err)->finally(func2, v, final)->end(); //OnError *should not* run
+        ctx->postFirst(func2, v, i)->
+             then(func2, v, i)->
+             then(func2, v, i)->
+             then(func2, v, i)->
+             onError(func2, v, err)->
+             finally(func2, v, final)->
+             end(); //OnError *should not* run
         return 0;
     };
     
     dispatcher.post(func, v, i);
+    dispatcher.drain();
+    
+    //Validate values
+    EXPECT_EQ(validation, v);
+}
+
+TEST(ExecutionTest, ChainCoroutinesFromCoroutineContext2)
+{
+    Dispatcher& dispatcher = DispatcherSingleton::instance();
+    int i = 1, err = 10, final = 20;
+    std::vector<int> v;
+    std::vector<int> validation{1,2,3,4,20};
+    
+    auto func2 = [](VoidContextPtr, std::vector<int>& v, int& i)->std::vector<int>
+    {
+        v.push_back(i++);
+        return v;
+    };
+    
+    auto func = [&](VoidContextPtr ctx, std::vector<int>& v, int& i)->std::vector<int>
+    {
+        return ctx->postFirst2<std::vector<int>>(func2, v, i)->
+                    then2<std::vector<int>>(func2, v, i)->
+                    then2<std::vector<int>>(func2, v, i)->
+                    then2<std::vector<int>>(func2, v, i)->
+                    onError2<std::vector<int>>(func2, v, err)->
+                    finally2<std::vector<int>>(func2, v, final)->
+                    end()->get(ctx); //OnError *should not* run
+    };
+    
+    dispatcher.post2<std::vector<int>>(func, v, i);
     dispatcher.drain();
     
     //Validate values
@@ -518,6 +611,19 @@ TEST(PromiseTest, GetFutureFromIoTask)
     EXPECT_EQ(33, ctx->get()); //block until value is available
 }
 
+TEST(PromiseTest, GetFutureFromIoTask2)
+{
+    Dispatcher& dispatcher = DispatcherSingleton::instance();
+    ThreadContext<int>::Ptr ctx = dispatcher.post2([](VoidContextPtr ctx)->int{
+        //post an IO task and get future from there
+        CoroFuture<double>::Ptr fut = ctx->postAsyncIo2<double>([]()->double{
+            return 33.22;
+        });
+        return (int)fut->get(ctx); //forward the promise
+    });
+    EXPECT_EQ(33, ctx->get()); //block until value is available
+}
+
 TEST(PromiseTest, GetFutureFromExternalSource)
 {
     Dispatcher& dispatcher = DispatcherSingleton::instance();
@@ -562,7 +668,7 @@ TEST(PromiseTest, BufferedFuture)
 TEST(PromiseTest, BufferedFutureException)
 {
     Dispatcher& dispatcher = DispatcherSingleton::instance();
-    ThreadContext<Buffer<int>>::Ptr ctx = dispatcher.post<Buffer<int>>([](CoroContext<Buffer<int>>::Ptr ctx)->int{
+    ThreadContext<Buffer<double>>::Ptr ctx = dispatcher.post<Buffer<double>>([](CoroContext<Buffer<double>>::Ptr ctx)->int{
         for (int d = 0; d < 100; d++)
         {
             ctx->push(d);
@@ -577,13 +683,13 @@ TEST(PromiseTest, BufferedFutureException)
         }
     });
     
-    std::vector<int> v;
+    std::vector<double> v;
     bool wasCaught = false;
     while (1)
     {
         try {
             bool isBufferClosed = false;
-            int value = ctx->pull(isBufferClosed);
+            double value = ctx->pull(isBufferClosed);
             if (isBufferClosed) break;
             v.push_back(value);
         }
@@ -621,6 +727,29 @@ TEST(PromiseTest, GetIntermediateFutures)
         return ctx->set("future"); //Set the promise
     })->then<std::list<int>>([](CoroContext<std::list<int>>::Ptr ctx)->int {
         return ctx->set(std::list<int>{1,2,3}); //Set the promise
+    })->end();
+    
+    std::list<int> validate{1,2,3};
+    
+    EXPECT_EQ(55, ctx->getAt<int>(0));
+    EXPECT_DOUBLE_EQ(22.33, ctx->getAt<double>(1));
+    EXPECT_THROW(ctx->getAt<double>(1), FutureAlreadyRetrievedException); //already retrieved
+    EXPECT_STREQ("future", ctx->getAt<std::string>(2).c_str());
+    EXPECT_EQ(validate, ctx->getRefAt<std::list<int>>(-1));
+    EXPECT_EQ(validate, ctx->get()); //ok - can read value again
+}
+
+TEST(PromiseTest, GetIntermediateFutures2)
+{
+    Dispatcher& dispatcher = DispatcherSingleton::instance();
+    auto ctx = dispatcher.postFirst2([](VoidContextPtr)->int {
+        return 55; //Set the promise
+    })->then<double>([](CoroContext<double>::Ptr ctx)->int { //mix with V1 API
+        return ctx->set(22.33); //Set the promise
+    })->then2<std::string>([](VoidContextPtr)->std::string {
+        return "future"; //Set the promise
+    })->then2<std::list<int>>([](VoidContextPtr)->std::list<int> {
+        return {1,2,3}; //Set the promise
     })->end();
     
     std::list<int> validate{1,2,3};
@@ -863,7 +992,6 @@ TEST(StressTest, ParallelFibonacciSerie)
     for (int i = 0; i < 1; ++i)
     {
         ThreadContext<size_t>::Ptr tctx = dispatcher.post<size_t>(sequential_fib, fibInput);
-        
         if (i == 0)
         {
             //Check once

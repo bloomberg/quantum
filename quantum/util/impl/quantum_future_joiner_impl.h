@@ -91,7 +91,7 @@ FutureJoiner<T>::join(CoroContextTag, DISPATCHER& dispatcher, std::vector<typena
 {
 #if (__cplusplus == 201103L)
     std::shared_ptr<std::vector<typename FUTURE<T>::Ptr>> containerPtr(new std::vector<typename FUTURE<T>::Ptr>(std::move(futures)));
-    return dispatcher.template post<std::vector<T>>([containerPtr](CoroContextPtr<std::vector<T>> ctx)
+    return dispatcher.template post2<std::vector<T>>([containerPtr](VoidContextPtr ctx)->std::vector<T>
     {
         std::vector<T> result;
         result.reserve(containerPtr->size());
@@ -99,10 +99,10 @@ FutureJoiner<T>::join(CoroContextTag, DISPATCHER& dispatcher, std::vector<typena
         {
             result.emplace_back(f->get(ctx));
         }
-        return ctx->set(std::move(result));
+        return result;
     });
 #else
-    return dispatcher.template post<std::vector<T>>([container{std::move(futures)}](CoroContextPtr<std::vector<T>> ctx)
+    return dispatcher.template post2<std::vector<T>>([container{std::move(futures)}](VoidContextPtr ctx)->std::vector<T>
     {
         std::vector<T> result;
         result.reserve(container.size());
@@ -110,7 +110,7 @@ FutureJoiner<T>::join(CoroContextTag, DISPATCHER& dispatcher, std::vector<typena
         {
             result.emplace_back(f->get(ctx));
         }
-        return ctx->set(std::move(result));
+        return result;
     });
 #endif
 }

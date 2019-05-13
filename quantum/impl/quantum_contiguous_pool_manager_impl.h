@@ -17,6 +17,7 @@
 #include <type_traits>
 #include <assert.h>
 #include <exception>
+#include <algorithm>
 
 //##############################################################################################
 //#################################### IMPLEMENTATIONS #########################################
@@ -25,65 +26,71 @@ namespace Bloomberg {
 namespace quantum {
 
 template <typename T>
-ContiguousPoolManager<T>::ContiguousPoolManager()
+ContiguousPoolManager<T>::ContiguousPoolManager() :
+    _control(std::make_shared<Control>())
 {
 }
 
 template <typename T>
-ContiguousPoolManager<T>::ContiguousPoolManager(aligned_type* buffer, index_type size)
+ContiguousPoolManager<T>::ContiguousPoolManager(aligned_type* buffer, index_type size) :
+    _control(std::make_shared<Control>())
 {
     setBuffer(buffer, size);
 }
 
 template <typename T>
-ContiguousPoolManager<T>::ContiguousPoolManager(ContiguousPoolManager<T>&& other)
+template <typename U>
+ContiguousPoolManager<T>::ContiguousPoolManager(const ContiguousPoolManager<U>& other) :
+    _control(std::reinterpret_pointer_cast<Control>(other._control))
 {
-    *this = std::move(other);
+    if (!_control || !_control->_buffer)
+    {
+        throw std::runtime_error("Invalid allocator.");
+    }
+    //normalize size of buffer
+    index_type newSize = std::min(_control->_size, (index_type)resize<U,T>(_control->_size));
+    _control->_size = newSize; //resize buffer
+    _control->_freeBlockIndex = newSize-1;
 }
 
 template <typename T>
-ContiguousPoolManager<T>& ContiguousPoolManager<T>::operator=(ContiguousPoolManager<T>&& other)
+template <typename U>
+ContiguousPoolManager<T>::ContiguousPoolManager(ContiguousPoolManager<U>&& other) :
+    _control(std::move(other._control))
 {
-    _size = other._size;
-    _buffer = other.buffer;
-    _freeBlocks = other._freeBlocks;
-    _freeBlockIndex = other._freeBlockIndex;
-    _numHeapAllocatedBlocks = other._numHeapAllocatedBlocks;
-    _spinlock = std::move(other._spinlock);
-    
-    // Reset other
-    other._buffer = nullptr;
-    other._freeBlocks = nullptr;
-    other._freeBlockIndex = -1;
-    other._numHeapAllocatedBlocks = 0;
-}
-
-template <typename T>
-ContiguousPoolManager<T>::~ContiguousPoolManager()
-{
-    delete[] _freeBlocks;
+    if (!_control || !_control->_buffer)
+    {
+        throw std::runtime_error("Invalid allocator.");
+    }
+    //normalize size of buffer
+    index_type newSize = std::min(_control->_size, (index_type)resize<U,T>(_control->_size));
+    _control->_size = newSize; //resize buffer
+    _control->_freeBlockIndex = newSize-1;
 }
 
 template <typename T>
 void ContiguousPoolManager<T>::setBuffer(aligned_type *buffer, index_type size)
 {
+    if (!_control) {
+        throw std::bad_alloc();
+    }
     if (!buffer) {
         throw std::runtime_error("Null buffer");
     }
     if (size == 0) {
         throw std::runtime_error("Invalid allocator pool size");
     }
-    _size = size;
-    _buffer = buffer;
-    _freeBlocks = new index_type[size];
-    if (!_freeBlocks) {
+    _control->_size = size;
+    _control->_buffer = buffer;
+    _control->_freeBlocks = new index_type[size];
+    if (!_control->_freeBlocks) {
         throw std::bad_alloc();
     }
-    _freeBlockIndex = size-1;
     //build the free stack
     for (index_type i = 0; i < size; ++i) {
-        _freeBlocks[i] = i;
+        _control->_freeBlocks[i] = i;
     }
+    _control->_freeBlockIndex = size-1;
 }
 
 template <typename T>
@@ -124,16 +131,15 @@ template <typename T>
 typename ContiguousPoolManager<T>::pointer
 ContiguousPoolManager<T>::allocate(size_type n, const_pointer)
 {
-    assert(_buffer);
     {
-        SpinLock::Guard lock(_spinlock);
+        SpinLock::Guard lock(_control->_spinlock);
         if (findContiguous(static_cast<index_type>(n)))
         {
-            _freeBlockIndex -= (n - 1);
-            return reinterpret_cast<pointer>(&_buffer[_freeBlocks[_freeBlockIndex--]]);
+            _control->_freeBlockIndex -= (n - 1);
+            return reinterpret_cast<pointer>(&_control->_buffer[_control->_freeBlocks[_control->_freeBlockIndex--]]);
         }
         // Use heap allocation
-        ++_numHeapAllocatedBlocks;
+        ++_control->_numHeapAllocatedBlocks;
     }
     return (pointer)new char[sizeof(value_type)];
 }
@@ -141,22 +147,21 @@ ContiguousPoolManager<T>::allocate(size_type n, const_pointer)
 template <typename T>
 void ContiguousPoolManager<T>::deallocate(pointer p, size_type n)
 {
-    assert(_buffer);
     if (p == nullptr) {
         return;
     }
     if (isManaged(p)) {
         //find index of the block and return the individual blocks to the free pool
-        SpinLock::Guard lock(_spinlock);
+        SpinLock::Guard lock(_control->_spinlock);
         for (size_type i = 0; i < n; ++i) {
-            _freeBlocks[++_freeBlockIndex] = blockIndex(p+i);
+            _control->_freeBlocks[++_control->_freeBlockIndex] = blockIndex(p+i);
         }
     }
     else {
         delete[] (char*)p;
-        SpinLock::Guard lock(_spinlock);
-        --_numHeapAllocatedBlocks;
-        assert(_numHeapAllocatedBlocks >= 0);
+        SpinLock::Guard lock(_control->_spinlock);
+        --_control->_numHeapAllocatedBlocks;
+        assert(_control->_numHeapAllocatedBlocks >= 0);
     }
 }
 
@@ -179,37 +184,49 @@ void ContiguousPoolManager<T>::dispose(pointer p)
 template <typename T>
 size_t ContiguousPoolManager<T>::allocatedBlocks() const
 {
-    return _size ? _size - _freeBlockIndex - 1 : 0;
+    return _control->_size ? _control->_size - _control->_freeBlockIndex - 1 : 0;
 }
 
 template <typename T>
 size_t ContiguousPoolManager<T>::allocatedHeapBlocks() const
 {
-    return _numHeapAllocatedBlocks;
+    return _control->_numHeapAllocatedBlocks;
 }
 
 template <typename T>
 bool ContiguousPoolManager<T>::isFull() const
 {
-    return _freeBlockIndex == _size-1;
+    return _control->_freeBlockIndex == _control->_size-1;
 }
 
 template <typename T>
 bool ContiguousPoolManager<T>::isEmpty() const
 {
-    return _freeBlockIndex == -1;
+    return _control->_freeBlockIndex == -1;
+}
+
+template <typename T>
+typename ContiguousPoolManager<T>::index_type ContiguousPoolManager<T>::size() const
+{
+    return _control->_size;
+}
+
+template <typename T>
+ContiguousPoolManager<T>::operator bool() const
+{
+    return _control != nullptr;
 }
 
 template <typename T>
 typename ContiguousPoolManager<T>::pointer ContiguousPoolManager<T>::bufferStart()
 {
-    return reinterpret_cast<pointer>(_buffer);
+    return reinterpret_cast<pointer>(_control->_buffer);
 }
 
 template <typename T>
 typename ContiguousPoolManager<T>::pointer ContiguousPoolManager<T>::bufferEnd()
 {
-    return reinterpret_cast<pointer>(_buffer + _size);
+    return reinterpret_cast<pointer>(_control->_buffer + _control->_size);
 }
 
 template <typename T>
@@ -221,20 +238,20 @@ bool ContiguousPoolManager<T>::isManaged(pointer p)
 template <typename T>
 typename ContiguousPoolManager<T>::index_type ContiguousPoolManager<T>::blockIndex(pointer p)
 {
-    return static_cast<index_type>(reinterpret_cast<aligned_type*>(p) - _buffer);
+    return static_cast<index_type>(reinterpret_cast<aligned_type*>(p) - _control->_buffer);
 }
 
 template <typename T>
 bool ContiguousPoolManager<T>::findContiguous(index_type n)
 {
-    if ((_freeBlockIndex + 1) < n) {
+    if ((_control->_freeBlockIndex + 1) < n) {
         return false;
     }
     bool found = true;
-    aligned_type* last = &_buffer[_freeBlocks[_freeBlockIndex]];
-    for (ssize_t i = _freeBlockIndex-1; i > _freeBlockIndex-n; --i) {
-        aligned_type* first = &_buffer[_freeBlocks[i]];
-        if ((last-first) != (_freeBlockIndex-i)) {
+    aligned_type* last = &_control->_buffer[_control->_freeBlocks[_control->_freeBlockIndex]];
+    for (ssize_t i = _control->_freeBlockIndex-1; i > _control->_freeBlockIndex-n; --i) {
+        aligned_type* first = &_control->_buffer[_control->_freeBlocks[i]];
+        if ((last-first) != (_control->_freeBlockIndex-i)) {
             return false;
         }
     }

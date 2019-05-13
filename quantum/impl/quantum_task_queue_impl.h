@@ -36,7 +36,7 @@ TaskQueue::TaskQueue(const Configuration&) :
     _isEmpty(true),
     _isInterrupted(false),
     _isIdle(true),
-    _terminated ATOMIC_FLAG_INIT,
+    _terminated(false),
     _isAdvanced(false)
 {
     _thread = std::make_shared<std::thread>(std::bind(&TaskQueue::run, this));
@@ -303,7 +303,8 @@ bool TaskQueue::empty() const
 inline
 void TaskQueue::terminate()
 {
-    if (!_terminated.test_and_set())
+    bool value{false};
+    if (_terminated.compare_exchange_strong(value, true))
     {
         {
             std::unique_lock<std::mutex> lock(_notEmptyMutex);
@@ -313,6 +314,8 @@ void TaskQueue::terminate()
         _thread->join();
         
         //clear the queue
+        //========================= LOCKED SCOPE =========================
+        SpinLock::Guard lock(_spinlock);
         while (!_queue.empty())
         {
             _queue.front()->terminate();

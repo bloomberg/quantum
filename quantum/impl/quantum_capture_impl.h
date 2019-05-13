@@ -25,23 +25,23 @@ namespace quantum {
 //==============================================================================================
 //                                   class Capture
 //==============================================================================================
-template <typename FUNC, typename ... ARGS>
-Capture<FUNC,ARGS...>::Capture(FUNC&& func, ARGS&&...args) :
+template <typename RET, typename FUNC, typename ... ARGS>
+Capture<RET,FUNC,ARGS...>::Capture(FUNC&& func, ARGS&&...args) :
     _func(std::forward<FUNC>(func)),
     _args(std::forward<ARGS>(args)...) //pack
 {}
 
-template <typename FUNC, typename ... ARGS>
+template <typename RET, typename FUNC, typename ... ARGS>
 template <typename ... T>
-int Capture<FUNC,ARGS...>::operator()(T&&...t) {
-     return apply<int>(_func, std::move(_args), std::forward<T>(t)...); //fwd
+RET Capture<RET,FUNC,ARGS...>::operator()(T&&...t) {
+     return apply<RET>(_func, std::move(_args), std::forward<T>(t)...); //fwd
 }
 
-template <typename FUNC, typename ... ARGS>
-Capture<FUNC, ARGS...>
+template <typename RET, typename FUNC, typename ... ARGS>
+Capture<RET,FUNC,ARGS...>
 makeCapture(FUNC&& func, ARGS&& ... args)
 {
-    return Capture<FUNC, ARGS...>(std::forward<FUNC>(func), std::forward<ARGS>(args)...);
+    return Capture<RET,FUNC,ARGS...>(std::forward<FUNC>(func), std::forward<ARGS>(args)...);
 }
 
 //==============================================================================================

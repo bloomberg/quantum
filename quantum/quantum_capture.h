@@ -34,22 +34,22 @@ namespace quantum {
 /// @class Capture
 /// @brief Class allowing lambda parameter captures.
 /// @note For internal use only.
-template <typename FUNC, typename ... ARGS>
+template <typename RET, typename FUNC, typename ... ARGS>
 class Capture
 {
 public:
     Capture(FUNC&& func, ARGS&&...args);
 
     template <typename ... T>
-    int operator()(T&&...t);
+    RET operator()(T&&...t);
 private:
     FUNC                _func;
     std::tuple<ARGS...> _args;
 };
 
 //Helper function
-template <typename FUNC, typename ... ARGS>
-Capture<FUNC, ARGS...>
+template <typename RET, typename FUNC, typename ... ARGS>
+Capture<RET,FUNC,ARGS...>
 makeCapture(FUNC&& func, ARGS&& ... args);
 
 //==============================================================================================

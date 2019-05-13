@@ -94,7 +94,7 @@ private:
     std::vector<IoQueue>      _sharedIoQueues; //shared IO task queues (hold tasks posted to 'Any' IO queue)
     std::vector<IoQueue>      _ioQueues;       //dedicated IO task queues
     bool                      _loadBalanceSharedIoQueues; //tasks posted to 'Any' IO queue are load balanced
-    std::atomic_flag          _terminated;
+    std::atomic_bool          _terminated;
     std::pair<int, int>       _coroQueueIdRangeForAny; // range of coroutine queueIds covered by 'Any' 
 };
 

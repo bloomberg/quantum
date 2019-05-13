@@ -39,11 +39,14 @@ public:
     
     template <class RET, class FUNC, class ... ARGS>
     IoTask(std::shared_ptr<Promise<RET>> promise,
+           int queueId,
+           bool isHighPriority,
            FUNC&& func,
            ARGS&&... args);
     
     template <class RET, class FUNC, class ... ARGS>
-    IoTask(std::shared_ptr<Promise<RET>> promise,
+    IoTask(Void,
+           std::shared_ptr<Promise<RET>> promise,
            int queueId,
            bool isHighPriority,
            FUNC&& func,
@@ -77,7 +80,7 @@ public:
     
 private:
     Function<int()>         _func;      //the current runnable io function
-    std::atomic_flag        _terminated;
+    std::atomic_bool        _terminated;
     int                     _queueId;
     bool                    _isHighPriority;
 };

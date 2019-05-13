@@ -40,7 +40,7 @@ namespace quantum {
 class IoQueue : public IQueue
 {
 public:
-    using TaskList = std::list<IoTask::Ptr, QueueListAllocator>;
+    using TaskList = std::list<IoTask::Ptr, ContiguousPoolManager<IoTask::Ptr>>;
     using TaskListIter = TaskList::iterator;
     
     IoQueue();
@@ -103,7 +103,7 @@ private:
     std::atomic_bool                _isEmpty;
     std::atomic_bool                _isInterrupted;
     std::atomic_bool                _isIdle;
-    std::atomic_flag                _terminated;
+    std::atomic_bool                _terminated;
     QueueStatistics                 _stats;
 };
 

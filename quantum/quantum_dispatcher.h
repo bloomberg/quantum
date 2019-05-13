@@ -62,6 +62,12 @@ public:
     ThreadContextPtr<RET>
     post(FUNC&& func, ARGS&&... args);
     
+    /// @brief Version 2 of the API which supports a simpler coroutine signature (see documentation).
+    template <class RET = int, class FUNC, class ... ARGS>
+    ThreadContextPtr<RET>
+    post2(FUNC&& func, ARGS&&... args);
+    
+    
     /// @brief Post a coroutine to run asynchronously on a specific queue (thread).
     /// @tparam RET Type of future returned by this coroutine.
     /// @tparam FUNC Callable object type which will be wrapped in a coroutine. Can be a standalone function, a method,
@@ -82,6 +88,11 @@ public:
     ThreadContextPtr<RET>
     post(int queueId, bool isHighPriority, FUNC&& func, ARGS&&... args);
     
+    /// @brief Version 2 of the API which supports a simpler coroutine signature (see documentation).
+    template <class RET = int, class FUNC, class ... ARGS>
+    ThreadContextPtr<RET>
+    post2(int queueId, bool isHighPriority, FUNC&& func, ARGS&&... args);
+    
     /// @brief Post the first coroutine in a continuation chain to run asynchronously.
     /// @tparam RET Type of future returned by this coroutine.
     /// @tparam FUNC Callable object type which will be wrapped in a coroutine. Can be a standalone function, a method,
@@ -96,6 +107,11 @@ public:
     template <class RET = int, class FUNC, class ... ARGS>
     ThreadContextPtr<RET>
     postFirst(FUNC&& func, ARGS&&... args);
+    
+    /// @brief Version 2 of the API which supports a simpler coroutine signature (see documentation).
+    template <class RET = int, class FUNC, class ... ARGS>
+    ThreadContextPtr<RET>
+    postFirst2(FUNC&& func, ARGS&&... args);
     
     /// @brief Post the first coroutine in a continuation chain to run asynchronously on a specific queue (thread).
     /// @tparam RET Type of future returned by this coroutine.
@@ -117,6 +133,11 @@ public:
     ThreadContextPtr<RET>
     postFirst(int queueId, bool isHighPriority, FUNC&& func, ARGS&&... args);
     
+    /// @brief Version 2 of the API which supports a simpler coroutine signature (see documentation).
+    template <class RET = int, class FUNC, class ... ARGS>
+    ThreadContextPtr<RET>
+    postFirst2(int queueId, bool isHighPriority, FUNC&& func, ARGS&&... args);
+    
     /// @brief Post a blocking IO (or long running) task to run asynchronously on the IO thread pool.
     /// @tparam RET Type of future returned by this task.
     /// @tparam FUNC Callable object type. Can be a standalone function, a method, an std::function,
@@ -130,6 +151,11 @@ public:
     template <class RET = int, class FUNC, class ... ARGS>
     ThreadFuturePtr<RET>
     postAsyncIo(FUNC&& func, ARGS&&... args);
+    
+    /// @brief Version 2 of the API which supports a simpler IO task signature (see documentation).
+    template <class RET = int, class FUNC, class ... ARGS>
+    ThreadFuturePtr<RET>
+    postAsyncIo2(FUNC&& func, ARGS&&... args);
     
     /// @brief Post a blocking IO (or long running) task to run asynchronously on a specific thread in the IO thread pool.
     /// @tparam RET Type of future returned by this task.
@@ -148,6 +174,11 @@ public:
     template <class RET = int, class FUNC, class ... ARGS>
     ThreadFuturePtr<RET>
     postAsyncIo(int queueId, bool isHighPriority, FUNC&& func, ARGS&&... args);
+    
+    /// @brief Version 2 of the API which supports a simpler IO task signature (see documentation).
+    template <class RET = int, class FUNC, class ... ARGS>
+    ThreadFuturePtr<RET>
+    postAsyncIo2(int queueId, bool isHighPriority, FUNC&& func, ARGS&&... args);
     
     /// @brief Applies the given unary function to all the elements in the range [first,last).
     ///        This function runs in parallel.
@@ -335,13 +366,28 @@ private:
     postImpl(int queueId, bool isHighPriority, ITask::Type type, FUNC&& func, ARGS&&... args);
     
     template <class RET, class FUNC, class ... ARGS>
+    ThreadContextPtr<RET>
+    postImpl2(int queueId, bool isHighPriority, ITask::Type type, FUNC&& func, ARGS&&... args);
+    
+    template <class RET, class FUNC, class ... ARGS>
     ThreadFuturePtr<RET>
     postAsyncIoImpl(int queueId, bool isHighPriority, FUNC&& func, ARGS&&... args);
     
+    template <class RET, class FUNC, class ... ARGS>
+    ThreadFuturePtr<RET>
+    postAsyncIoImpl2(int queueId, bool isHighPriority, FUNC&& func, ARGS&&... args);
+    
+    struct DrainGuard
+    {
+        DrainGuard(std::atomic_bool& drain) : _drain(drain) { _drain = true; }
+        ~DrainGuard() { _drain = false; }
+        std::atomic_bool& _drain;
+    };
+    
     //Members
     DispatcherCore              _dispatcher;
-    bool                        _drain;
-    std::atomic_flag            _terminated;
+    std::atomic_bool            _drain;
+    std::atomic_bool            _terminated;
 };
 
 using TaskDispatcher = Dispatcher; //alias

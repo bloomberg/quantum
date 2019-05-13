@@ -36,21 +36,6 @@ namespace quantum {
 
 template <class RET, class FUNC, class ... ARGS>
 Task::Task(std::shared_ptr<Context<RET>> ctx,
-           ITask::Type type,
-           FUNC&& func,
-           ARGS&&... args) :
-    _ctx(ctx),
-    _coro(Allocator<CoroStackAllocator>::instance(AllocatorTraits::defaultCoroPoolAllocSize()),
-          Util::bindCaller(ctx, std::forward<FUNC>(func), std::forward<ARGS>(args)...)),
-    _queueId((int)IQueue::QueueId::Any),
-    _isHighPriority(false),
-    _rc((int)ITask::RetCode::Running),
-    _type(type),
-    _terminated ATOMIC_FLAG_INIT
-{}
-
-template <class RET, class FUNC, class ... ARGS>
-Task::Task(std::shared_ptr<Context<RET>> ctx,
            int queueId,
            bool isHighPriority,
            ITask::Type type,
@@ -63,7 +48,25 @@ Task::Task(std::shared_ptr<Context<RET>> ctx,
     _isHighPriority(isHighPriority),
     _rc((int)ITask::RetCode::Running),
     _type(type),
-    _terminated ATOMIC_FLAG_INIT
+    _terminated(false)
+{}
+
+template <class RET, class FUNC, class ... ARGS>
+Task::Task(Void,
+           std::shared_ptr<Context<RET>> ctx,
+           int queueId,
+           bool isHighPriority,
+           ITask::Type type,
+           FUNC&& func,
+           ARGS&&... args) :
+    _ctx(ctx),
+    _coro(Allocator<CoroStackAllocator>::instance(AllocatorTraits::defaultCoroPoolAllocSize()),
+          Util::bindCaller2(ctx, std::forward<FUNC>(func), std::forward<ARGS>(args)...)),
+    _queueId(queueId),
+    _isHighPriority(isHighPriority),
+    _rc((int)ITask::RetCode::Running),
+    _type(type),
+    _terminated(false)
 {}
 
 inline
@@ -75,7 +78,8 @@ Task::~Task()
 inline
 void Task::terminate()
 {
-    if (!_terminated.test_and_set())
+    bool value{false};
+    if (_terminated.compare_exchange_strong(value, true))
     {
         if (_ctx) _ctx->terminate();
     }
