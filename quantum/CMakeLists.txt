@@ -56,7 +56,7 @@ install(
     COMPONENT headers
 )
 install(
-    FILES PKG_CONFIG
+    FILES ${PKG_CONFIG}
     DESTINATION share/pkgconfig
     COMPONENT pkgconfig
 )
