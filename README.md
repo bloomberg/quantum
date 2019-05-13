@@ -21,7 +21,8 @@
 * Fast pre-allocated memory pools for internal objects and coroutines.
 * Parallel `forEach` and `mapReduce` functions.
 * Various stats API.
-* **NEW** `Sequencer` class allowing strict FIFO ordering of tasks based on sequence ids.
+* `Sequencer` class allowing strict FIFO ordering of tasks based on sequence ids.
+* **NEW** Added support for simpler V2 coroutine API which returns computed values [directly](https://github.com/bloomberg/quantum/wiki/4.-Quick-reference-guide).
 
 ### Sample code
 **Quantum** is very simple and easy to use:
@@ -71,6 +72,24 @@ std::list<int>& listRef = ctx->getRefAt<std::list<int>>(3); //get list reference
 std::list<int>& listRef2 = ctx->getRef(); //get another list reference.
                                           //The 'At' overload is optional for last chain future
 std::list<int> listValue = ctx->get(); //get list value
+```
+Chaining with the **new** V2 api and using 'auto':
+```c++
+using namespace Bloomberg::quantum;
+
+// Create a dispatcher
+Dispatcher dispatcher;
+
+auto ctx = dispatcher.postFirst2([](auto ctx)->int {
+    return 55; //Set the 1st value
+})->then2<double>([](auto ctx)->double {
+    // Get the first value and add something to it
+    return ctx->getPrev<int>() + 22.33; //Set the 2nd value
+})->then2<std::string>([](auto ctx)->std::string {
+    return "Hello world!"; //Set the 3rd value
+})->finally2<std::list<int>>([](auto ctx)->std::list<int> {
+    return {1,2,3}; //Set 4th value
+})->end();
 ```
 
 ### Building and installing
