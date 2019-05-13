@@ -40,7 +40,7 @@ template <typename T>
 struct ContiguousPoolManager
 {
     template <typename U>
-    friend class ContiguousPoolManager;
+    friend struct ContiguousPoolManager;
     //------------------------------ Typedefs ----------------------------------
     typedef ContiguousPoolManager<T>        this_type;
     typedef T                               value_type;
