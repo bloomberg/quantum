@@ -115,6 +115,8 @@ Various **CMake** options can be used to configure the output:
 * `QUANTUM_BOOST_USE_FIXEDSIZE_STACKS` : Use Boost fixed size stacks for coroutines. Default `OFF`.
 * `QUANTUM_INSTALL_ROOT`     : Specify custom install path.
                                Default is `/usr/local/include` for Linux or `c:/Program Files` for Windows.
+* `QUANTUM_PKGCONFIG_DIR`    : Specify custom install path for .pc file. Default is `${QUANTUM_INSTALL_ROOT}/share/pkgconfig`.
+                               To specify a relative path from `QUANTUM_INSTALL_ROOT`, omit leading `/`. 
 * `BOOST_ROOT`               : Specify a different Boost install directory.
 * `GTEST_ROOT`               : Specify a different GTest install directory.
 

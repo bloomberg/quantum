@@ -26,7 +26,8 @@ namespace quantum {
 struct Void{};
 template <typename T>
 struct ICoroContext;
-using VoidContextPtr = std::shared_ptr<ICoroContext<Void>>;
+using VoidCoroContextPtr = std::shared_ptr<ICoroContext<Void>>;
+using VoidContextPtr = VoidCoroContextPtr; //shorthand version
 
 //==============================================================================================
 //                                    struct Functions

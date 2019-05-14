@@ -513,7 +513,8 @@ using CoroContext = ICoroContext<RET>;
 
 template <class RET>
 using CoroContextPtr = typename ICoroContext<RET>::Ptr;
-using VoidContextPtr = CoroContextPtr<Void>;
+using VoidCoroContextPtr = CoroContextPtr<Void>;
+using VoidContextPtr = VoidCoroContextPtr; //shorthand version
 
 }}
 

@@ -4,11 +4,11 @@ file(GLOB SOURCE_FILES *.cpp)
 include_directories(AFTER
     ${PROJECT_SOURCE_DIR}
     ${CMAKE_CURRENT_SOURCE_DIR}
-    ${BOOST_ROOT}
+    ${Boost_INCLUDE_DIRS}
     ${GTEST_ROOT}
 )
 link_directories(
-    ${BOOST_ROOT}
+    ${Boost_LIBRARY_DIRS}
     ${GTEST_ROOT}
 )
 add_executable(${TEST_TARGET} ${SOURCE_FILES})
