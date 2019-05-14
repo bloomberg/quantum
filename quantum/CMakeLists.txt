@@ -57,6 +57,6 @@ install(
 )
 install(
     FILES ${PKG_CONFIG}
-    DESTINATION share/pkgconfig
+    DESTINATION ${QUANTUM_PKGCONFIG_DIR}
     COMPONENT pkgconfig
 )
