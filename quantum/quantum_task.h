@@ -79,6 +79,7 @@ public:
     bool isBlocked() const final;
     bool isSleeping(bool updateTimer = false) final;
     bool isHighPriority() const final;
+    bool isSuspended() const final;
     
     //ITaskContinuation
     ITaskContinuation::Ptr getNextTask() final;
@@ -97,8 +98,21 @@ public:
     static void* operator new(size_t size);
     static void operator delete(void* p);
     static void deleter(Task* p);
-    
+   
 private:
+    struct SuspensionGuard {
+        SuspensionGuard(std::atomic_bool& isSuspended) :
+            _isSuspended(isSuspended)
+        {
+            _isSuspended = false;
+        }
+        ~SuspensionGuard()
+        {
+            _isSuspended = true;
+        }
+        std::atomic_bool& _isSuspended;
+    };
+    
     ITaskAccessor::Ptr          _ctx; //holds execution context
     Traits::Coroutine           _coro; //the current runnable coroutine
     int                         _queueId;
@@ -108,6 +122,7 @@ private:
     ITaskContinuation::WeakPtr  _prev; //Previous task in the chain
     ITask::Type                 _type;
     std::atomic_bool            _terminated;
+    std::atomic_bool            _isSuspended;
 };
 
 using TaskPtr = Task::Ptr;

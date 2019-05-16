@@ -63,6 +63,10 @@ namespace quantum {
     #define __QUANTUM_QUEUE_LIST_ALLOC_SIZE __QUANTUM_DEFAULT_POOL_ALLOC_SIZE
 #endif
 
+#ifndef __QUANTUM_IO_QUEUE_LIST_ALLOC_SIZE
+    #define __QUANTUM_IO_QUEUE_LIST_ALLOC_SIZE __QUANTUM_DEFAULT_POOL_ALLOC_SIZE
+#endif
+
 //==============================================================================================
 //                                 struct AllocatorTraits
 //==============================================================================================
@@ -140,12 +144,22 @@ struct AllocatorTraits {
     }
     
     /**
-     * @brief Get/set if the default size for task queue pools.
+     * @brief Get/set if the default size for coroutine queue pools.
      * @return A modifiable reference to the value.
      * @remark Normally this should not be modified unless very specific tuning is needed.
      */
     static size_type& queueListAllocSize() {
         static size_type size = __QUANTUM_QUEUE_LIST_ALLOC_SIZE;
+        return size;
+    }
+    
+    /**
+     * @brief Get/set if the default size for async IO queue pools.
+     * @return A modifiable reference to the value.
+     * @remark Normally this should not be modified unless very specific tuning is needed.
+     */
+    static size_type& ioQueueListAllocSize() {
+        static size_type size = __QUANTUM_IO_QUEUE_LIST_ALLOC_SIZE;
         return size;
     }
 };

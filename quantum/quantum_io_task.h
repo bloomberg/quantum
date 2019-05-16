@@ -70,6 +70,7 @@ public:
     bool isBlocked() const final;
     bool isSleeping(bool updateTimer = false) final;
     bool isHighPriority() const final;
+    bool isSuspended() const final;
     
     //===================================
     //           NEW / DELETE

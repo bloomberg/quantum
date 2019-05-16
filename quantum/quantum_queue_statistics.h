@@ -17,6 +17,7 @@
 #define BLOOMBERG_QUANTUM_QUEUE_STATISTICS_H
 
 #include <quantum/interface/quantum_iqueue_statistics.h>
+#include <atomic>
 
 namespace Bloomberg {
 namespace quantum {
@@ -34,6 +35,7 @@ class QueueStatistics : public IQueueStatistics
     
 public:
     QueueStatistics();
+    QueueStatistics(const QueueStatistics&);
     
     //===================================
     //         IQUEUESTATISTICS
@@ -78,7 +80,7 @@ public:
                                      const IQueueStatistics& rhs);
 
 private:
-    size_t      _numElements;
+    std::atomic_size_t  _numElements;
     size_t      _errorCount;
     size_t      _sharedQueueErrorCount;
     size_t      _completedCount;

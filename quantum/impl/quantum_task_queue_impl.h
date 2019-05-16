@@ -30,9 +30,11 @@ TaskQueue::TaskQueue() :
 
 inline
 TaskQueue::TaskQueue(const Configuration&) :
-    _queue(Allocator<QueueListAllocator>::instance(AllocatorTraits::queueListAllocSize())),
-    _queueIt(_queue.end()),
-    _blockedIt(_queue.end()),
+    _alloc(Allocator<QueueListAllocator>::instance(AllocatorTraits::queueListAllocSize())),
+    _runQueue(_alloc),
+    _waitQueue(_alloc),
+    _queueIt(_runQueue.end()),
+    _blockedIt(_runQueue.end()),
     _isEmpty(true),
     _isInterrupted(false),
     _isIdle(true),
@@ -81,7 +83,7 @@ void TaskQueue::run()
         {
             if (_isEmpty)
             {
-                _blockedIt = _queue.end(); //clear iterator
+                _blockedIt = _runQueue.end(); //clear iterator
                 std::unique_lock<std::mutex> lock(_notEmptyMutex);
                 //========================= BLOCK WHEN EMPTY =========================
                 //Wait for the queue to have at least one element
@@ -94,7 +96,7 @@ void TaskQueue::run()
             }
             
             //Iterate to the next runnable task
-            if (advance() == _queue.end())
+            if (advance() == _runQueue.end())
             {
                 continue;
             }
@@ -111,7 +113,7 @@ void TaskQueue::run()
             //Check if blocked or sleeping
             if (task->isBlocked() || task->isSleeping(true))
             {
-                if (_blockedIt == _queue.end()) {
+                if (_blockedIt == _runQueue.end()) {
                     _blockedIt = _queueIt;
                 }
                 continue;
@@ -125,7 +127,7 @@ void TaskQueue::run()
             {
                 //clear the blocked position iterator if it's the same as the finished task
                 if (_blockedIt == _queueIt) {
-                    _blockedIt = _queue.end();
+                    _blockedIt = _runQueue.end();
                 }
                 ITaskContinuation::Ptr nextTask;
                 if (rc == (int)ITask::RetCode::Success)
@@ -167,7 +169,7 @@ void TaskQueue::run()
             }
             else if (!task->isBlocked() && !task->isSleeping()) {
                 //This coroutine will run again so we reset the blocked position iterator
-                _blockedIt = _queue.end();
+                _blockedIt = _runQueue.end();
             }
         }
         catch (std::exception& ex)
@@ -222,18 +224,18 @@ inline
 void TaskQueue::doEnqueue(ITask::Ptr task)
 {
     //NOTE: _queueIt remains unchanged following this operation
-    bool isEmpty = _queue.empty();
-    if (isEmpty || !task->isHighPriority())
+    bool isEmpty = _waitQueue.empty();
+    if (task->isHighPriority())
     {
         //insert before the current position. If _queueIt == begin(), then the new
         //task will be at the head of the queue.
-        _queue.emplace(_queueIt, std::static_pointer_cast<Task>(task));
+        _waitQueue.emplace_front(std::static_pointer_cast<Task>(task));
     }
     else
     {
         //insert after the current position. If next(_queueIt) == end()
         //then the new task will be the last element in the queue
-        _queue.emplace(std::next(_queueIt), std::static_pointer_cast<Task>(task));
+        _waitQueue.emplace_back(std::static_pointer_cast<Task>(task));
     }
     if (task->isHighPriority())
     {
@@ -251,53 +253,43 @@ void TaskQueue::doEnqueue(ITask::Ptr task)
 inline
 ITask::Ptr TaskQueue::dequeue(std::atomic_bool& hint)
 {
-    //========================= LOCKED SCOPE =========================
-    SpinLock::Guard lock(_spinlock);
     return doDequeue(hint);
 }
 
 inline
 ITask::Ptr TaskQueue::tryDequeue(std::atomic_bool& hint)
 {
-    //========================= LOCKED SCOPE =========================
-    SpinLock::Guard lock(_spinlock, SpinLock::TryToLock{});
-    if (lock.ownsLock())
-    {
-        return doDequeue(hint);
-    }
-    return nullptr;
+    return doDequeue(hint);
 }
 
 inline
 ITask::Ptr TaskQueue::doDequeue(std::atomic_bool& hint)
 {
-    hint = (_queueIt == _queue.end());
-    if (!hint)
+    hint = (_queueIt == _runQueue.end());
+    if (hint)
     {
-        (*_queueIt)->terminate();
-        //Remove error task from the queue
-        _queueIt = _queue.erase(_queueIt);
-        _stats.decNumElements();
-        _isAdvanced = true; //_queueIt now points to the next element in the list or to _queue.end()
+        return nullptr;
     }
-    return nullptr; //not used!
+    ITask::Ptr task = *_queueIt;
+    task->terminate();
+    //Remove error task from the queue
+    _queueIt = _runQueue.erase(_queueIt);
+    //_queueIt now points to the next element in the list or to _queue.end()
+    _stats.decNumElements();
+    _isAdvanced = true;
+    return task;
 }
 
 inline
 size_t TaskQueue::size() const
 {
-#if defined(_GLIBCXX_USE_CXX11_ABI) && (_GLIBCXX_USE_CXX11_ABI==0)
-    //Avoid linear time implementation
     return _stats.numElements();
-#else
-    return _queue.size();
-#endif
 }
 
 inline
 bool TaskQueue::empty() const
 {
-    return _queue.empty();
+    return _stats.numElements() == 0;
 }
 
 inline
@@ -313,13 +305,18 @@ void TaskQueue::terminate()
         _notEmptyCond.notify_all();
         _thread->join();
         
-        //clear the queue
+        //clear the queues
+        while (!_runQueue.empty())
+        {
+            _runQueue.front()->terminate();
+            _runQueue.pop_front();
+        }
         //========================= LOCKED SCOPE =========================
         SpinLock::Guard lock(_spinlock);
-        while (!_queue.empty())
+        while (!_waitQueue.empty())
         {
-            _queue.front()->terminate();
-            _queue.pop_front();
+            _waitQueue.front()->terminate();
+            _waitQueue.pop_front();
         }
     }
 }
@@ -353,15 +350,14 @@ void TaskQueue::signalEmptyCondition(bool value)
 inline
 TaskQueue::TaskListIter TaskQueue::advance()
 {
-    //========================= LOCKED SCOPE =========================
-    SpinLock::Guard lock(_spinlock);
     //Iterate to the next element
-    if ((_queueIt == _queue.end()) || (!_isAdvanced && (++_queueIt == _queue.end())))
+    if ((_queueIt == _runQueue.end()) || (!_isAdvanced && (++_queueIt == _runQueue.end())))
     {
-        _queueIt = _queue.begin();
+        acquireWaiting();
+        _queueIt = _runQueue.begin();
     }
     _isAdvanced = false; //reset flag
-    if (_queueIt == _queue.end())
+    if (_queueIt == _runQueue.end())
     {
         signalEmptyCondition(true);
     }
@@ -372,6 +368,18 @@ inline
 bool TaskQueue::isIdle() const
 {
     return _isIdle;
+}
+
+inline
+void TaskQueue::acquireWaiting()
+{
+    //========================= LOCKED SCOPE =========================
+    SpinLock::Guard lock(_spinlock);
+    if (!_waitQueue.empty())
+    {
+        _runQueue.splice(_runQueue.end(), _waitQueue);
+    }
+    return;
 }
 
 }}

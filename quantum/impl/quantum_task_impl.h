@@ -48,7 +48,8 @@ Task::Task(std::shared_ptr<Context<RET>> ctx,
     _isHighPriority(isHighPriority),
     _rc((int)ITask::RetCode::Running),
     _type(type),
-    _terminated(false)
+    _terminated(false),
+    _isSuspended(true)
 {}
 
 template <class RET, class FUNC, class ... ARGS>
@@ -66,7 +67,8 @@ Task::Task(Void,
     _isHighPriority(isHighPriority),
     _rc((int)ITask::RetCode::Running),
     _type(type),
-    _terminated(false)
+    _terminated(false),
+    _isSuspended(true)
 {}
 
 inline
@@ -90,6 +92,7 @@ int Task::run()
 {
     if (_coro)
     {
+        SuspensionGuard guard{_isSuspended};
         _coro(_rc);
         return _rc;
     }
@@ -165,6 +168,12 @@ inline
 bool Task::isHighPriority() const
 {
     return _isHighPriority;
+}
+
+inline
+bool Task::isSuspended() const
+{
+    return _isSuspended;
 }
 
 inline
