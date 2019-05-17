@@ -354,7 +354,6 @@ TaskQueue::TaskListIter TaskQueue::advance()
     if ((_queueIt == _runQueue.end()) || (!_isAdvanced && (++_queueIt == _runQueue.end())))
     {
         acquireWaiting();
-        _queueIt = _runQueue.begin();
     }
     _isAdvanced = false; //reset flag
     if (_queueIt == _runQueue.end())
@@ -374,12 +373,31 @@ inline
 void TaskQueue::acquireWaiting()
 {
     //========================= LOCKED SCOPE =========================
-    SpinLock::Guard lock(_spinlock);
-    if (!_waitQueue.empty())
+    if (_waitQueue.empty())
     {
+        _queueIt = _runQueue.begin();
+        return;
+    }
+    bool isEmpty = _runQueue.empty();
+    if (!isEmpty)
+    {
+        //rewind by one since we are at end()
+        --_queueIt;
+    }
+    {
+        //splice wait queue unto run queue.
+        SpinLock::Guard lock(_spinlock);
         _runQueue.splice(_runQueue.end(), _waitQueue);
     }
-    return;
+    if (!isEmpty)
+    {
+        //move to first element from spliced queue
+        ++_queueIt;
+    }
+    else
+    {
+        _queueIt = _runQueue.begin();
+    }
 }
 
 }}
