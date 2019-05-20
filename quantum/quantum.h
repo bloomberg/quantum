@@ -59,6 +59,7 @@
 #include <quantum/quantum_mutex.h>
 #include <quantum/quantum_promise.h>
 #include <quantum/quantum_queue_statistics.h>
+#include <quantum/quantum_read_write_spinlock.h>
 #include <quantum/quantum_shared_state.h>
 #include <quantum/quantum_spinlock.h>
 #include <quantum/quantum_stack_allocator.h>
