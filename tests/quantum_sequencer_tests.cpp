@@ -17,7 +17,6 @@
 #include <gtest/gtest.h>
 #include <quantum_fixture.h>
 
-#if 1
 using namespace quantum;
 
 // Utility with common functionality for the sequencer related tests
@@ -524,4 +523,3 @@ TEST(Sequencer, DeleteDispatcherInstance)
 {
     DispatcherSingleton::deleteInstance();
 }
-#endif

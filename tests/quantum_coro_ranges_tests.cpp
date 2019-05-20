@@ -16,7 +16,7 @@
 #include <gtest/gtest.h>
 #include <quantum/quantum.h>
 
-namespace quantum = Bloomberg::quantum;
+using namespace Bloomberg;
 
 //==============================================================================
 //                             TEST CASES
