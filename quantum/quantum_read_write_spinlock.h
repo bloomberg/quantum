@@ -22,25 +22,25 @@
 namespace Bloomberg {
 namespace quantum {
 
-class ReadWriteSpinlock
+class ReadWriteSpinLock
 {
 public:
     using TryToLock = std::try_to_lock_t;
     
     /// @brief Constructor. The object is in the unlocked state.
-    ReadWriteSpinlock() = default;
+    ReadWriteSpinLock() = default;
     
     /// @brief Copy constructor.
-    ReadWriteSpinlock(const ReadWriteSpinlock&) = delete;
+    ReadWriteSpinLock(const ReadWriteSpinLock&) = delete;
     
     /// @brief Move constructor.
-    ReadWriteSpinlock(ReadWriteSpinlock&&) = default;
+    ReadWriteSpinLock(ReadWriteSpinLock&&) = default;
     
     /// @brief Copy assignment operator.
-    ReadWriteSpinlock& operator=(const ReadWriteSpinlock&) = delete;
+    ReadWriteSpinLock& operator=(const ReadWriteSpinLock&) = delete;
     
     /// @brief Move assignment operator.
-    ReadWriteSpinlock& operator=(ReadWriteSpinlock&&) = default;
+    ReadWriteSpinLock& operator=(ReadWriteSpinLock&&) = default;
     
     /// @brief Lock this object as a reader (shared with other readers)
     void lockRead();
@@ -84,14 +84,14 @@ public:
     {
     public:
         /// @brief Construct this object and lock the passed-in spinlock as a reader.
-        /// @param[in] lock ReadWriteSpinlock which protects a scope during the lifetime of the Guard.
+        /// @param[in] lock ReadWriteSpinLock which protects a scope during the lifetime of the Guard.
         /// @note Blocks the current thread until the spinlock is acquired.
-        explicit ReadGuard(ReadWriteSpinlock& lock);
+        explicit ReadGuard(ReadWriteSpinLock& lock);
         
         /// @brief Construct this object and tries to lock the passed-in spinlock as a reader.
-        /// @param[in] lock ReadWriteSpinlock which protects a scope during the lifetime of the Guard.
+        /// @param[in] lock ReadWriteSpinLock which protects a scope during the lifetime of the Guard.
         /// @note Attempts to lock the spinlock. Does not block.
-        ReadGuard(ReadWriteSpinlock& lock, ReadWriteSpinlock::TryToLock);
+        ReadGuard(ReadWriteSpinLock& lock, ReadWriteSpinLock::TryToLock);
         
         /// @brief Destroy this object and unlock the underlying spinlock.
         ~ReadGuard();
@@ -109,7 +109,7 @@ public:
         /// @return True if ownership is acquired.
         bool ownsLock() const;
     private:
-        ReadWriteSpinlock&	_spinlock;
+        ReadWriteSpinLock&	_spinlock;
         bool                _ownsLock;
     };
     
@@ -117,14 +117,14 @@ public:
     {
     public:
         /// @brief Construct this object and lock the passed-in spinlock as a writer.
-        /// @param[in] lock ReadWriteSpinlock which protects a scope during the lifetime of the Guard.
+        /// @param[in] lock ReadWriteSpinLock which protects a scope during the lifetime of the Guard.
         /// @note Blocks the current thread until the spinlock is acquired.
-        explicit WriteGuard(ReadWriteSpinlock& lock);
+        explicit WriteGuard(ReadWriteSpinLock& lock);
         
         /// @brief Construct this object and tries to lock the passed-in spinlock as a writer.
-        /// @param[in] lock ReadWriteSpinlock which protects a scope during the lifetime of the Guard.
+        /// @param[in] lock ReadWriteSpinLock which protects a scope during the lifetime of the Guard.
         /// @note Attempts to lock the spinlock. Does not block.
-        WriteGuard(ReadWriteSpinlock& lock, ReadWriteSpinlock::TryToLock);
+        WriteGuard(ReadWriteSpinLock& lock, ReadWriteSpinLock::TryToLock);
         
         /// @brief Destroy this object and unlock the underlying spinlock.
         ~WriteGuard();
@@ -142,7 +142,7 @@ public:
         /// @return True if ownership is acquired.
         bool ownsLock() const;
     private:
-        ReadWriteSpinlock&	_spinlock;
+        ReadWriteSpinLock&	_spinlock;
         bool                _ownsLock;
     };
     
