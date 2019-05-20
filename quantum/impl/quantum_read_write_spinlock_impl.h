@@ -23,7 +23,7 @@ namespace Bloomberg {
 namespace quantum {
 
 inline
-void ReadWriteSpinlock::lockRead()
+void ReadWriteSpinLock::lockRead()
 {
     int oldValue = 0;
     int newValue = 1;
@@ -42,7 +42,7 @@ void ReadWriteSpinlock::lockRead()
 }
 
 inline
-void ReadWriteSpinlock::lockWrite()
+void ReadWriteSpinLock::lockWrite()
 {
     int i{0};
     while (!_count.compare_exchange_weak(i, -1, std::memory_order_acq_rel)) {
@@ -51,7 +51,7 @@ void ReadWriteSpinlock::lockWrite()
 }
 
 inline
-bool ReadWriteSpinlock::tryLockRead()
+bool ReadWriteSpinLock::tryLockRead()
 {
     int oldValue = 0;
     int newValue = 1;
@@ -70,51 +70,51 @@ bool ReadWriteSpinlock::tryLockRead()
 }
 
 inline
-bool ReadWriteSpinlock::tryLockWrite()
+bool ReadWriteSpinLock::tryLockWrite()
 {
     int i{0};
     return _count.compare_exchange_strong(i, -1, std::memory_order_acq_rel);
 }
 
 inline
-void ReadWriteSpinlock::unlockRead()
+void ReadWriteSpinLock::unlockRead()
 {
     _count.fetch_sub(1, std::memory_order_acq_rel);
 }
 
 inline
-void ReadWriteSpinlock::unlockWrite()
+void ReadWriteSpinLock::unlockWrite()
 {
     _count.fetch_add(1, std::memory_order_acq_rel);
 }
 
 inline
-bool ReadWriteSpinlock::isLocked()
+bool ReadWriteSpinLock::isLocked()
 {
     return _count.load(std::memory_order_acquire) != 0;
 }
 
 inline
-bool ReadWriteSpinlock::isReadLocked()
+bool ReadWriteSpinLock::isReadLocked()
 {
     return _count.load(std::memory_order_acquire) > 0;
 }
 
 inline
-bool ReadWriteSpinlock::isWriteLocked()
+bool ReadWriteSpinLock::isWriteLocked()
 {
     return _count.load(std::memory_order_acquire) == -1;
 }
 
 inline
-int ReadWriteSpinlock::numReaders() const
+int ReadWriteSpinLock::numReaders() const
 {
     int num = _count.load(std::memory_order_acquire);
     return num == -1 ? 0 : num;
 }
 
 inline
-ReadWriteSpinlock::ReadGuard::ReadGuard(ReadWriteSpinlock& lock) :
+ReadWriteSpinLock::ReadGuard::ReadGuard(ReadWriteSpinLock& lock) :
     _spinlock(lock),
     _ownsLock(true)
 {
@@ -122,14 +122,14 @@ ReadWriteSpinlock::ReadGuard::ReadGuard(ReadWriteSpinlock& lock) :
 }
 
 inline
-ReadWriteSpinlock::ReadGuard::ReadGuard(ReadWriteSpinlock& lock, ReadWriteSpinlock::TryToLock) :
+ReadWriteSpinLock::ReadGuard::ReadGuard(ReadWriteSpinLock& lock, ReadWriteSpinLock::TryToLock) :
     _spinlock(lock),
     _ownsLock(_spinlock.tryLockRead())
 {
 }
 
 inline
-ReadWriteSpinlock::ReadGuard::~ReadGuard()
+ReadWriteSpinLock::ReadGuard::~ReadGuard()
 {
     if (_ownsLock) {
         _spinlock.unlockRead();
@@ -137,7 +137,7 @@ ReadWriteSpinlock::ReadGuard::~ReadGuard()
 }
 
 inline
-void ReadWriteSpinlock::ReadGuard::lock()
+void ReadWriteSpinLock::ReadGuard::lock()
 {
     if (!_ownsLock) {
         _spinlock.lockRead();
@@ -146,7 +146,7 @@ void ReadWriteSpinlock::ReadGuard::lock()
 }
 
 inline
-bool ReadWriteSpinlock::ReadGuard::tryLock()
+bool ReadWriteSpinLock::ReadGuard::tryLock()
 {
     if (!_ownsLock) {
         _ownsLock = _spinlock.tryLockRead();
@@ -155,13 +155,13 @@ bool ReadWriteSpinlock::ReadGuard::tryLock()
 }
 
 inline
-bool ReadWriteSpinlock::ReadGuard::ownsLock() const
+bool ReadWriteSpinLock::ReadGuard::ownsLock() const
 {
     return _ownsLock;
 }
 
 inline
-ReadWriteSpinlock::WriteGuard::WriteGuard(ReadWriteSpinlock& lock) :
+ReadWriteSpinLock::WriteGuard::WriteGuard(ReadWriteSpinLock& lock) :
     _spinlock(lock),
     _ownsLock(true)
 {
@@ -169,14 +169,14 @@ ReadWriteSpinlock::WriteGuard::WriteGuard(ReadWriteSpinlock& lock) :
 }
 
 inline
-ReadWriteSpinlock::WriteGuard::WriteGuard(ReadWriteSpinlock& lock, ReadWriteSpinlock::TryToLock) :
+ReadWriteSpinLock::WriteGuard::WriteGuard(ReadWriteSpinLock& lock, ReadWriteSpinLock::TryToLock) :
     _spinlock(lock),
     _ownsLock(_spinlock.tryLockWrite())
 {
 }
 
 inline
-ReadWriteSpinlock::WriteGuard::~WriteGuard()
+ReadWriteSpinLock::WriteGuard::~WriteGuard()
 {
     if (_ownsLock) {
         _spinlock.unlockWrite();
@@ -184,7 +184,7 @@ ReadWriteSpinlock::WriteGuard::~WriteGuard()
 }
 
 inline
-void ReadWriteSpinlock::WriteGuard::lock()
+void ReadWriteSpinLock::WriteGuard::lock()
 {
     if (!_ownsLock) {
         _spinlock.lockWrite();
@@ -193,7 +193,7 @@ void ReadWriteSpinlock::WriteGuard::lock()
 }
 
 inline
-bool ReadWriteSpinlock::WriteGuard::tryLock()
+bool ReadWriteSpinLock::WriteGuard::tryLock()
 {
     if (!_ownsLock) {
         _ownsLock = _spinlock.tryLockWrite();
@@ -202,7 +202,7 @@ bool ReadWriteSpinlock::WriteGuard::tryLock()
 }
 
 inline
-bool ReadWriteSpinlock::WriteGuard::ownsLock() const
+bool ReadWriteSpinLock::WriteGuard::ownsLock() const
 {
     return _ownsLock;
 }
