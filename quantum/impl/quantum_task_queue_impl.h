@@ -356,10 +356,6 @@ TaskQueue::TaskListIter TaskQueue::advance()
         acquireWaiting();
     }
     _isAdvanced = false; //reset flag
-    if (_queueIt == _runQueue.end())
-    {
-        signalEmptyCondition(true);
-    }
     return _queueIt;
 }
 
@@ -373,12 +369,17 @@ inline
 void TaskQueue::acquireWaiting()
 {
     //========================= LOCKED SCOPE =========================
+    SpinLock::Guard lock(_spinlock);
+    bool isEmpty = _runQueue.empty();
     if (_waitQueue.empty())
     {
+        if (isEmpty)
+        {
+            signalEmptyCondition(true);
+        }
         _queueIt = _runQueue.begin();
         return;
     }
-    bool isEmpty = _runQueue.empty();
     if (!isEmpty)
     {
         //rewind by one since we are at end()
@@ -386,7 +387,6 @@ void TaskQueue::acquireWaiting()
     }
     {
         //splice wait queue unto run queue.
-        SpinLock::Guard lock(_spinlock);
         _runQueue.splice(_runQueue.end(), _waitQueue);
     }
     if (!isEmpty)
