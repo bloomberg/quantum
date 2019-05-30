@@ -324,7 +324,7 @@ void Dispatcher::drain(std::chrono::milliseconds timeout)
 {
     DrainGuard guard(_drain);
     
-    auto start = std::chrono::high_resolution_clock::now();
+    auto start = std::chrono::steady_clock::now();
     
     //wait until all queues have completed their work
     YieldingThread yield;
@@ -335,7 +335,7 @@ void Dispatcher::drain(std::chrono::milliseconds timeout)
         //check remaining time
         if (timeout != std::chrono::milliseconds::zero())
         {
-            auto present = std::chrono::high_resolution_clock::now();
+            auto present = std::chrono::steady_clock::now();
             if (std::chrono::duration_cast<std::chrono::milliseconds>(present-start) > timeout)
             {
                 //timeout reached

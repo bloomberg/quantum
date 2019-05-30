@@ -200,7 +200,7 @@ bool ConditionVariable::waitForImpl(ICoroSync::Ptr sync,
     }
     //========= UNLOCKED SCOPE =========
     Mutex::ReverseGuard unlock(sync, mutex);
-    auto start = std::chrono::high_resolution_clock::now();
+    auto start = std::chrono::steady_clock::now();
     auto elapsed = std::chrono::duration<REP, PERIOD>::zero();
     bool timeout = false;
     
@@ -209,7 +209,7 @@ bool ConditionVariable::waitForImpl(ICoroSync::Ptr sync,
     {
         yield(sync);
         elapsed = std::chrono::duration_cast<std::chrono::duration<REP, PERIOD>>
-                  (std::chrono::high_resolution_clock::now() - start);
+                  (std::chrono::steady_clock::now() - start);
         if (elapsed >= time)
         {
             timeout = true;

@@ -30,9 +30,9 @@ public: // types
     struct TaskResult
     {
         /// Task start time
-        std::chrono::system_clock::time_point startTime;
+        std::chrono::steady_clock::time_point startTime;
         /// Task end time
-        std::chrono::system_clock::time_point endTime;
+        std::chrono::steady_clock::time_point endTime;
     };
     using TaskResultMap = std::unordered_map<TaskId, TaskResult>;
     using SequenceKeyMap = std::unordered_map<SequenceKey, std::vector<TaskId>>;
@@ -94,14 +94,14 @@ private: // methods
 
     void taskFunc(VoidContextPtr ctx, TaskId id, std::atomic<bool>* blockFlag, std::string error)
     {
-        std::chrono::system_clock::time_point startTime = std::chrono::system_clock::now();
+        std::chrono::steady_clock::time_point startTime = std::chrono::steady_clock::now();
         do {
             ctx->sleep(std::chrono::milliseconds(1));
             if (not error.empty())
                 throw std::runtime_error(error);
         }
         while(blockFlag and *blockFlag);
-        std::chrono::system_clock::time_point endTime = std::chrono::system_clock::now();
+        std::chrono::steady_clock::time_point endTime = std::chrono::steady_clock::now();
 
         // update the task map with the time stats
         quantum::Mutex::Guard lock(ctx, _resultMutex);
