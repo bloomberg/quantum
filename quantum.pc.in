@@ -8,6 +8,6 @@ Name: quantum
 Url: https://github.com/bloomberg/quantum
 Description: C++ coroutine library using Boost.Coroutine2
 Version: @QUANTUM_VERSION@
-Requires.private: boost_context >= 1.61
+Requires.private: boost-context >= 1.61
 Libs: -L${libdir} -L${sharedlibdir}
 Cflags: -I${includedir}

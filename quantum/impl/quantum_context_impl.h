@@ -638,19 +638,14 @@ bool Context<RET>::isSleeping(bool updateTimer)
         if (!updateTimer) {
             return true;
         }
-        auto now = std::chrono::high_resolution_clock::now();
+        auto now = std::chrono::steady_clock::now();
         auto elapsed = std::chrono::duration_cast<std::chrono::microseconds>(now-_sleepTimestamp);
-        if (elapsed >= _sleepDuration) {
-            //expired so we reset all values
-            _sleepDuration = std::chrono::microseconds(0);
-            _sleepTimestamp = std::chrono::high_resolution_clock::time_point{};
-        }
-        else {
-            //reduce duration and save new timestamp
-            _sleepDuration -= elapsed;
-            _sleepTimestamp = now;
+        if (elapsed <= _sleepDuration) {
             return true;
         }
+        // reset value since we have expired
+        _sleepDuration = std::chrono::microseconds::zero();
+        _sleepTimestamp = std::chrono::steady_clock::time_point{};
     }
     return false;
 }
@@ -767,7 +762,7 @@ template <class RET>
 void Context<RET>::sleep(const std::chrono::microseconds& timeUs)
 {
     _sleepDuration = timeUs;
-    _sleepTimestamp = std::chrono::high_resolution_clock::now();
+    _sleepTimestamp = std::chrono::steady_clock::now();
     if (isSleeping()) {
         yield();
     }

@@ -579,9 +579,9 @@ TEST(ExecutionTest, CoroutineSleep)
         return 0;
     });
     
-    auto start = std::chrono::high_resolution_clock::now();
+    auto start = std::chrono::steady_clock::now();
     ctx->wait(); //block until value is available
-    auto end = std::chrono::high_resolution_clock::now();
+    auto end = std::chrono::steady_clock::now();
     
     //check elapsed time
     size_t elapsed = std::chrono::duration_cast<std::chrono::milliseconds>(end-start).count();
@@ -864,9 +864,9 @@ TEST(PromiseTest, FutureTimeout)
         return 0;
     });
     
-    auto start = std::chrono::high_resolution_clock::now();
+    auto start = std::chrono::steady_clock::now();
     std::future_status status = ctx->waitFor(ms(100)); //block until value is available or 100ms have expired
-    auto end = std::chrono::high_resolution_clock::now();
+    auto end = std::chrono::steady_clock::now();
     
     //check elapsed time
     size_t elapsed = std::chrono::duration_cast<std::chrono::milliseconds>(end-start).count();
@@ -882,9 +882,9 @@ TEST(PromiseTest, FutureWithoutTimeout)
         return 0;
     });
     
-    auto start = std::chrono::high_resolution_clock::now();
+    auto start = std::chrono::steady_clock::now();
     std::future_status status = ctx->waitFor(ms(300)); //block until value is available or 300ms have expired
-    auto end = std::chrono::high_resolution_clock::now();
+    auto end = std::chrono::steady_clock::now();
     
     //check elapsed time
     size_t elapsed = std::chrono::duration_cast<std::chrono::milliseconds>(end-start).count();
@@ -902,9 +902,9 @@ TEST(PromiseTest, WaitForAllFutures)
     };
     
     auto ctx = dispatcher.postFirst(func)->then(func)->then(func)->then(func)->end();
-    auto start = std::chrono::high_resolution_clock::now();
+    auto start = std::chrono::steady_clock::now();
     ctx->waitAll(); //block until value is available or 4x50ms has expired
-    auto end = std::chrono::high_resolution_clock::now();
+    auto end = std::chrono::steady_clock::now();
     
     //check elapsed time
     size_t elapsed = std::chrono::duration_cast<std::chrono::milliseconds>(end-start).count();
