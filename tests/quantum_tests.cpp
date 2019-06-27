@@ -28,7 +28,99 @@ using ms = std::chrono::milliseconds;
 using us = std::chrono::microseconds;
 constexpr int DispatcherSingleton::numCoro;
 constexpr int DispatcherSingleton::numThreads;
-Dispatcher* DispatcherSingleton::_dispatcher = nullptr;
+DispatcherSingleton::DispatcherMap DispatcherSingleton::_dispatchers;
+
+//==============================================================================
+// TEST FIXTURES
+//==============================================================================
+
+struct CoreTest: public DispatcherFixture
+{};
+
+INSTANTIATE_TEST_CASE_P(CoreTest_Default,
+                        CoreTest,
+                        ::testing::Values(TestConfiguration(false, false),
+                                          TestConfiguration(false, true)));
+
+struct ParamtersTest: public DispatcherFixture
+{};
+
+INSTANTIATE_TEST_CASE_P(ParamtersTest_Default,
+                        ParamtersTest,
+                        ::testing::Values(TestConfiguration(false, false),
+                                          TestConfiguration(false, true)));
+
+
+struct ExecutionTest: public DispatcherFixture
+{};
+
+INSTANTIATE_TEST_CASE_P(ExecutionTest_Default,
+                        ExecutionTest,
+                        ::testing::Values(TestConfiguration(false, false),
+                                          TestConfiguration(false, true)));
+
+
+struct PromiseTest: public DispatcherFixture
+{};
+
+INSTANTIATE_TEST_CASE_P(PromiseTest_Default,
+                        PromiseTest,
+                        ::testing::Values(TestConfiguration(false, false),
+                                          TestConfiguration(false, true)));
+
+
+struct MutexTest: public DispatcherFixture
+{};
+
+INSTANTIATE_TEST_CASE_P(MutexTest_Default,
+                        MutexTest,
+                        ::testing::Values(TestConfiguration(false, false),
+                                          TestConfiguration(false, true)));
+
+
+struct StressTest: public DispatcherFixture
+{};
+
+INSTANTIATE_TEST_CASE_P(StressTest_Default,
+                        StressTest,
+                        ::testing::Values(TestConfiguration(false, false),
+                                          TestConfiguration(false, true)));
+
+
+struct StressTestBalanced: public DispatcherFixture
+{};
+
+INSTANTIATE_TEST_CASE_P(StressTestBalanced_Default,
+                        StressTestBalanced,
+                        ::testing::Values(TestConfiguration(true, false),
+                                          TestConfiguration(true, true)));
+
+
+struct ForEachTest: public DispatcherFixture
+{};
+
+INSTANTIATE_TEST_CASE_P(ForEachTest_Default,
+                        ForEachTest,
+                        ::testing::Values(TestConfiguration(false, false),
+                                          TestConfiguration(false, true)));
+
+
+struct MapReduce: public DispatcherFixture
+{};
+
+INSTANTIATE_TEST_CASE_P(MapReduce_Default,
+                        MapReduce,
+                        ::testing::Values(TestConfiguration(false, false),
+                                          TestConfiguration(false, true)));
+
+
+struct FutureJoinerTest: public DispatcherFixture
+{};
+
+INSTANTIATE_TEST_CASE_P(FutureJoinerTest_Default,
+                        FutureJoinerTest,
+                        ::testing::Values(TestConfiguration(false, false),
+                                          TestConfiguration(false, true)));
 
 //==============================================================================
 //                           TEST HELPERS
@@ -70,6 +162,7 @@ int sequential_fib(CoroContext<size_t>::Ptr ctx, size_t fib)
 int recursive_fib(CoroContext<size_t>::Ptr ctx, size_t fib)
 {
     ctx->sleep(us(100));
+
     if (fib <= 2)
     {
         return ctx->set(1);
@@ -95,11 +188,25 @@ void run_coro(Traits::Coroutine& coro, std::mutex& m, int& end, int start)
     }
 }
 
+void enqueue_heavy_tasks(quantum::Dispatcher& dispatcher, size_t count)
+{
+    const ms sleepTime(10);
+    for(size_t i = 0; i < count; ++i)
+    {
+        dispatcher.post((int)IQueue::QueueId::Any,
+                        false,
+                        [sleepTime](CoroContext<int>::Ptr)->int {
+                            std::this_thread::sleep_for(ms(sleepTime)); 
+                            return 0;
+                        });
+    }
+}
+
 //==============================================================================
 //                             TEST CASES
 //==============================================================================
 /*
-TEST_F(DispatcherFixture, ResumeFromTwoThreads)
+TEST_P(CoreTest, ResumeFromTwoThreads)
 {
     int end{0};
     std::mutex m;
@@ -117,24 +224,24 @@ TEST_F(DispatcherFixture, ResumeFromTwoThreads)
 }
 */
 
-TEST_F(DispatcherFixture, Constructor)
+TEST_P(CoreTest, Constructor)
 {
     //Check if we have 0 coroutines and IO tasks running
-    EXPECT_EQ(0, (int)_dispatcher->size(IQueue::QueueType::Coro));
-    EXPECT_EQ(0, (int)_dispatcher->size(IQueue::QueueType::IO));
-    EXPECT_EQ(0, (int)_dispatcher->size());
+    EXPECT_EQ(0, (int)getDispatcher().size(IQueue::QueueType::Coro));
+    EXPECT_EQ(0, (int)getDispatcher().size(IQueue::QueueType::IO));
+    EXPECT_EQ(0, (int)getDispatcher().size());
 }
 
-TEST_F(DispatcherFixture, CheckReturnValue)
+TEST_P(CoreTest, CheckReturnValue)
 {
-    IThreadContext<std::string>::Ptr tctx = _dispatcher->post2<std::string>(DummyCoro2);
+    IThreadContext<std::string>::Ptr tctx = getDispatcher().post2<std::string>(DummyCoro2);
     std::string s = tctx->get();
     EXPECT_STREQ("test", s.c_str());
 }
 
-TEST_F(DispatcherFixture, CheckNumThreads)
+TEST_P(CoreTest, CheckNumThreads)
 {
-    IThreadContext<int>::Ptr tctx = _dispatcher->post([](CoroContext<int>::Ptr ctx)->int{
+    IThreadContext<int>::Ptr tctx = getDispatcher().post([](CoroContext<int>::Ptr ctx)->int{
         EXPECT_EQ(DispatcherSingleton::numCoro, ctx->getNumCoroutineThreads());
         EXPECT_EQ(DispatcherSingleton::numThreads, ctx->getNumIoThreads());
         return 0;
@@ -143,198 +250,198 @@ TEST_F(DispatcherFixture, CheckNumThreads)
     EXPECT_EQ(DispatcherSingleton::numThreads, tctx->getNumIoThreads());
 }
 
-TEST_F(DispatcherFixture, CheckCoroutineQueuing)
+TEST_P(CoreTest, CheckCoroutineQueuing)
 {
     //Post various IO tasks and coroutines and make sure they executed on the proper queues
     for (int i = 0; i < 3; ++i)
     {
-        _dispatcher->post(0, false, DummyCoro);
+        getDispatcher().post(0, false, DummyCoro);
     }
-    _dispatcher->post(1, true, DummyCoro);
-    _dispatcher->post(2, false, DummyCoro);
-    _dispatcher->drain();
+    getDispatcher().post(1, true, DummyCoro);
+    getDispatcher().post(2, false, DummyCoro);
+    getDispatcher().drain();
     
     //Posted
-    EXPECT_EQ((size_t)3, _dispatcher->stats(IQueue::QueueType::Coro, 0).postedCount());
-    EXPECT_EQ((size_t)1, _dispatcher->stats(IQueue::QueueType::Coro, 1).postedCount());
-    EXPECT_EQ((size_t)1, _dispatcher->stats(IQueue::QueueType::Coro, 2).postedCount());
-    EXPECT_EQ((size_t)5, _dispatcher->stats(IQueue::QueueType::Coro).postedCount()); //total
+    EXPECT_EQ((size_t)3, getDispatcher().stats(IQueue::QueueType::Coro, 0).postedCount());
+    EXPECT_EQ((size_t)1, getDispatcher().stats(IQueue::QueueType::Coro, 1).postedCount());
+    EXPECT_EQ((size_t)1, getDispatcher().stats(IQueue::QueueType::Coro, 2).postedCount());
+    EXPECT_EQ((size_t)5, getDispatcher().stats(IQueue::QueueType::Coro).postedCount()); //total
     
     //Completed
-    EXPECT_EQ((size_t)3, _dispatcher->stats(IQueue::QueueType::Coro, 0).completedCount());
-    EXPECT_EQ((size_t)1, _dispatcher->stats(IQueue::QueueType::Coro, 1).completedCount());
-    EXPECT_EQ((size_t)1, _dispatcher->stats(IQueue::QueueType::Coro, 2).completedCount());
-    EXPECT_EQ((size_t)5, _dispatcher->stats(IQueue::QueueType::Coro).completedCount()); //total
+    EXPECT_EQ((size_t)3, getDispatcher().stats(IQueue::QueueType::Coro, 0).completedCount());
+    EXPECT_EQ((size_t)1, getDispatcher().stats(IQueue::QueueType::Coro, 1).completedCount());
+    EXPECT_EQ((size_t)1, getDispatcher().stats(IQueue::QueueType::Coro, 2).completedCount());
+    EXPECT_EQ((size_t)5, getDispatcher().stats(IQueue::QueueType::Coro).completedCount()); //total
     
     //Errors
-    EXPECT_EQ((size_t)0, _dispatcher->stats(IQueue::QueueType::Coro, 0).errorCount());
-    EXPECT_EQ((size_t)0, _dispatcher->stats(IQueue::QueueType::Coro, 1).errorCount());
-    EXPECT_EQ((size_t)0, _dispatcher->stats(IQueue::QueueType::Coro, 2).errorCount());
-    EXPECT_EQ((size_t)0, _dispatcher->stats(IQueue::QueueType::Coro).errorCount()); //total
+    EXPECT_EQ((size_t)0, getDispatcher().stats(IQueue::QueueType::Coro, 0).errorCount());
+    EXPECT_EQ((size_t)0, getDispatcher().stats(IQueue::QueueType::Coro, 1).errorCount());
+    EXPECT_EQ((size_t)0, getDispatcher().stats(IQueue::QueueType::Coro, 2).errorCount());
+    EXPECT_EQ((size_t)0, getDispatcher().stats(IQueue::QueueType::Coro).errorCount()); //total
     
     //High Priority
-    EXPECT_EQ((size_t)0, _dispatcher->stats(IQueue::QueueType::Coro, 0).highPriorityCount());
-    EXPECT_EQ((size_t)1, _dispatcher->stats(IQueue::QueueType::Coro, 1).highPriorityCount());
-    EXPECT_EQ((size_t)0, _dispatcher->stats(IQueue::QueueType::Coro, 2).highPriorityCount());
-    EXPECT_EQ((size_t)1, _dispatcher->stats(IQueue::QueueType::Coro).highPriorityCount()); //total
+    EXPECT_EQ((size_t)0, getDispatcher().stats(IQueue::QueueType::Coro, 0).highPriorityCount());
+    EXPECT_EQ((size_t)1, getDispatcher().stats(IQueue::QueueType::Coro, 1).highPriorityCount());
+    EXPECT_EQ((size_t)0, getDispatcher().stats(IQueue::QueueType::Coro, 2).highPriorityCount());
+    EXPECT_EQ((size_t)1, getDispatcher().stats(IQueue::QueueType::Coro).highPriorityCount()); //total
     
     //Check if all tasks have stopped
-    EXPECT_EQ((size_t)0, _dispatcher->size(IQueue::QueueType::Coro));
+    EXPECT_EQ((size_t)0, getDispatcher().size(IQueue::QueueType::Coro));
 }
 
-TEST_F(DispatcherFixture, CheckIoQueuing)
+TEST_P(CoreTest, CheckIoQueuing)
 {
     //IO (10 tasks)
     for (int i = 0; i < 10; ++i)
     {
-        _dispatcher->postAsyncIo(DummyIoTask); //shared queue
+        getDispatcher().postAsyncIo(DummyIoTask); //shared queue
     }
-    _dispatcher->postAsyncIo(1, true, DummyIoTask);
-    _dispatcher->postAsyncIo(2, false, DummyIoTask);
+    getDispatcher().postAsyncIo(1, true, DummyIoTask);
+    getDispatcher().postAsyncIo(2, false, DummyIoTask);
     
-    _dispatcher->drain();
+    getDispatcher().drain();
     
     //Posted
-    EXPECT_EQ((size_t)10, _dispatcher->stats(IQueue::QueueType::IO, (int)IQueue::QueueId::Any).postedCount());
-    EXPECT_EQ((size_t)1, _dispatcher->stats(IQueue::QueueType::IO, 1).postedCount());
-    EXPECT_EQ((size_t)1, _dispatcher->stats(IQueue::QueueType::IO, 2).postedCount());
-    EXPECT_EQ((size_t)12, _dispatcher->stats(IQueue::QueueType::IO).postedCount()); //total
+    EXPECT_EQ((size_t)10, getDispatcher().stats(IQueue::QueueType::IO, (int)IQueue::QueueId::Any).postedCount());
+    EXPECT_EQ((size_t)1, getDispatcher().stats(IQueue::QueueType::IO, 1).postedCount());
+    EXPECT_EQ((size_t)1, getDispatcher().stats(IQueue::QueueType::IO, 2).postedCount());
+    EXPECT_EQ((size_t)12, getDispatcher().stats(IQueue::QueueType::IO).postedCount()); //total
     
     //Completed
-    EXPECT_LE((size_t)0, _dispatcher->stats(IQueue::QueueType::IO, (int)IQueue::QueueId::Any).completedCount());
-    EXPECT_EQ((size_t)10, _dispatcher->stats(IQueue::QueueType::IO, (int)IQueue::QueueId::Any).completedCount() +
-                          _dispatcher->stats(IQueue::QueueType::IO, 0).sharedQueueCompletedCount() +
-                          _dispatcher->stats(IQueue::QueueType::IO, 1).sharedQueueCompletedCount() +
-                          _dispatcher->stats(IQueue::QueueType::IO, 2).sharedQueueCompletedCount() +
-                          _dispatcher->stats(IQueue::QueueType::IO, 3).sharedQueueCompletedCount() +
-                          _dispatcher->stats(IQueue::QueueType::IO, 4).sharedQueueCompletedCount());
-    EXPECT_EQ((size_t)1, _dispatcher->stats(IQueue::QueueType::IO, 1).completedCount());
-    EXPECT_EQ((size_t)1, _dispatcher->stats(IQueue::QueueType::IO, 2).completedCount());
-    EXPECT_EQ((size_t)12, _dispatcher->stats(IQueue::QueueType::IO).completedCount() +
-                          _dispatcher->stats(IQueue::QueueType::IO).sharedQueueCompletedCount()); //total
+    EXPECT_LE((size_t)0, getDispatcher().stats(IQueue::QueueType::IO, (int)IQueue::QueueId::Any).completedCount());
+    EXPECT_EQ((size_t)10, getDispatcher().stats(IQueue::QueueType::IO, (int)IQueue::QueueId::Any).completedCount() +
+                          getDispatcher().stats(IQueue::QueueType::IO, 0).sharedQueueCompletedCount() +
+                          getDispatcher().stats(IQueue::QueueType::IO, 1).sharedQueueCompletedCount() +
+                          getDispatcher().stats(IQueue::QueueType::IO, 2).sharedQueueCompletedCount() +
+                          getDispatcher().stats(IQueue::QueueType::IO, 3).sharedQueueCompletedCount() +
+                          getDispatcher().stats(IQueue::QueueType::IO, 4).sharedQueueCompletedCount());
+    EXPECT_EQ((size_t)1, getDispatcher().stats(IQueue::QueueType::IO, 1).completedCount());
+    EXPECT_EQ((size_t)1, getDispatcher().stats(IQueue::QueueType::IO, 2).completedCount());
+    EXPECT_EQ((size_t)12, getDispatcher().stats(IQueue::QueueType::IO).completedCount() +
+                          getDispatcher().stats(IQueue::QueueType::IO).sharedQueueCompletedCount()); //total
     
     //Errors
-    EXPECT_EQ((size_t)0, _dispatcher->stats(IQueue::QueueType::IO, (int)IQueue::QueueId::Any).errorCount());
-    EXPECT_EQ((size_t)0, _dispatcher->stats(IQueue::QueueType::IO, 1).errorCount());
-    EXPECT_EQ((size_t)0, _dispatcher->stats(IQueue::QueueType::IO, 2).errorCount());
-    EXPECT_EQ((size_t)0, _dispatcher->stats(IQueue::QueueType::IO).errorCount()); //total
+    EXPECT_EQ((size_t)0, getDispatcher().stats(IQueue::QueueType::IO, (int)IQueue::QueueId::Any).errorCount());
+    EXPECT_EQ((size_t)0, getDispatcher().stats(IQueue::QueueType::IO, 1).errorCount());
+    EXPECT_EQ((size_t)0, getDispatcher().stats(IQueue::QueueType::IO, 2).errorCount());
+    EXPECT_EQ((size_t)0, getDispatcher().stats(IQueue::QueueType::IO).errorCount()); //total
     
     //High Priority
-    EXPECT_EQ((size_t)0, _dispatcher->stats(IQueue::QueueType::IO, (int)IQueue::QueueId::Any).highPriorityCount());
-    EXPECT_EQ((size_t)1, _dispatcher->stats(IQueue::QueueType::IO, 1).highPriorityCount());
-    EXPECT_EQ((size_t)0, _dispatcher->stats(IQueue::QueueType::IO, 2).highPriorityCount());
-    EXPECT_EQ((size_t)1, _dispatcher->stats(IQueue::QueueType::IO).highPriorityCount()); //total
+    EXPECT_EQ((size_t)0, getDispatcher().stats(IQueue::QueueType::IO, (int)IQueue::QueueId::Any).highPriorityCount());
+    EXPECT_EQ((size_t)1, getDispatcher().stats(IQueue::QueueType::IO, 1).highPriorityCount());
+    EXPECT_EQ((size_t)0, getDispatcher().stats(IQueue::QueueType::IO, 2).highPriorityCount());
+    EXPECT_EQ((size_t)1, getDispatcher().stats(IQueue::QueueType::IO).highPriorityCount()); //total
     
     //Check if all tasks have stopped
-    EXPECT_EQ((size_t)0, _dispatcher->size(IQueue::QueueType::IO));
+    EXPECT_EQ((size_t)0, getDispatcher().size(IQueue::QueueType::IO));
 }
 
-TEST_F(DispatcherFixture, CheckQueuingFromSameCoroutine)
+TEST_P(CoreTest, CheckQueuingFromSameCoroutine)
 {
-    _dispatcher->post(0, false, [](CoroContext<int>::Ptr ctx)->int {
+    getDispatcher().post(0, false, [](CoroContext<int>::Ptr ctx)->int {
         //Test with VoidContext
         Util::makeVoidContext<int>(ctx)->postFirst(1, true, DummyCoro)->then(DummyCoro)->finally(DummyCoro)->end();
         return 0;
     });
-    _dispatcher->drain();
+    getDispatcher().drain();
     
     //Posted
-    EXPECT_EQ((size_t)1, _dispatcher->stats(IQueue::QueueType::Coro, 0).postedCount());
-    EXPECT_EQ((size_t)3, _dispatcher->stats(IQueue::QueueType::Coro, 1).postedCount());
-    EXPECT_EQ((size_t)4, _dispatcher->stats(IQueue::QueueType::Coro).postedCount()); //total
+    EXPECT_EQ((size_t)1, getDispatcher().stats(IQueue::QueueType::Coro, 0).postedCount());
+    EXPECT_EQ((size_t)3, getDispatcher().stats(IQueue::QueueType::Coro, 1).postedCount());
+    EXPECT_EQ((size_t)4, getDispatcher().stats(IQueue::QueueType::Coro).postedCount()); //total
     
     //High priority
-    EXPECT_EQ((size_t)0, _dispatcher->stats(IQueue::QueueType::Coro, 0).highPriorityCount());
-    EXPECT_EQ((size_t)3, _dispatcher->stats(IQueue::QueueType::Coro, 1).highPriorityCount());
-    EXPECT_EQ((size_t)3, _dispatcher->stats(IQueue::QueueType::Coro).highPriorityCount()); //total
+    EXPECT_EQ((size_t)0, getDispatcher().stats(IQueue::QueueType::Coro, 0).highPriorityCount());
+    EXPECT_EQ((size_t)3, getDispatcher().stats(IQueue::QueueType::Coro, 1).highPriorityCount());
+    EXPECT_EQ((size_t)3, getDispatcher().stats(IQueue::QueueType::Coro).highPriorityCount()); //total
 }
 
-TEST_F(DispatcherFixture, CheckIoQueuingFromACoroutine)
+TEST_P(CoreTest, CheckIoQueuingFromACoroutine)
 {
-    _dispatcher->post(0, false, [](CoroContext<int>::Ptr ctx)->int {
+    getDispatcher().post(0, false, [](CoroContext<int>::Ptr ctx)->int {
         ctx->postAsyncIo(1, true, DummyIoTask);
         ctx->postAsyncIo(2, false, DummyIoTask);
         ctx->postAsyncIo(3, true, DummyIoTask);
         return 0;
     });
-    _dispatcher->drain();
+    getDispatcher().drain();
     
     //Posted
-    EXPECT_EQ((size_t)1, _dispatcher->stats(IQueue::QueueType::Coro, 0).postedCount());
-    EXPECT_EQ((size_t)1, _dispatcher->stats(IQueue::QueueType::IO, 1).postedCount());
-    EXPECT_EQ((size_t)1, _dispatcher->stats(IQueue::QueueType::IO, 2).postedCount());
-    EXPECT_EQ((size_t)1, _dispatcher->stats(IQueue::QueueType::IO, 3).postedCount());
+    EXPECT_EQ((size_t)1, getDispatcher().stats(IQueue::QueueType::Coro, 0).postedCount());
+    EXPECT_EQ((size_t)1, getDispatcher().stats(IQueue::QueueType::IO, 1).postedCount());
+    EXPECT_EQ((size_t)1, getDispatcher().stats(IQueue::QueueType::IO, 2).postedCount());
+    EXPECT_EQ((size_t)1, getDispatcher().stats(IQueue::QueueType::IO, 3).postedCount());
     
     //High priority
-    EXPECT_EQ((size_t)0, _dispatcher->stats(IQueue::QueueType::Coro, 0).highPriorityCount());
-    EXPECT_EQ((size_t)1, _dispatcher->stats(IQueue::QueueType::IO, 1).highPriorityCount());
-    EXPECT_EQ((size_t)0, _dispatcher->stats(IQueue::QueueType::IO, 2).highPriorityCount());
-    EXPECT_EQ((size_t)1, _dispatcher->stats(IQueue::QueueType::IO, 3).highPriorityCount());
+    EXPECT_EQ((size_t)0, getDispatcher().stats(IQueue::QueueType::Coro, 0).highPriorityCount());
+    EXPECT_EQ((size_t)1, getDispatcher().stats(IQueue::QueueType::IO, 1).highPriorityCount());
+    EXPECT_EQ((size_t)0, getDispatcher().stats(IQueue::QueueType::IO, 2).highPriorityCount());
+    EXPECT_EQ((size_t)1, getDispatcher().stats(IQueue::QueueType::IO, 3).highPriorityCount());
     
     //Completed count
-    EXPECT_EQ((size_t)1, _dispatcher->stats(IQueue::QueueType::Coro).completedCount());
-    EXPECT_EQ((size_t)3, _dispatcher->stats(IQueue::QueueType::IO).completedCount());
+    EXPECT_EQ((size_t)1, getDispatcher().stats(IQueue::QueueType::Coro).completedCount());
+    EXPECT_EQ((size_t)3, getDispatcher().stats(IQueue::QueueType::IO).completedCount());
     
     //Remaining
-    EXPECT_EQ((size_t)0, _dispatcher->size());
+    EXPECT_EQ((size_t)0, getDispatcher().size());
 }
 
-TEST_F(DispatcherFixture, CheckCoroutineErrors)
+TEST_P(CoreTest, CheckCoroutineErrors)
 {
     std::string s("original"); //string must remain unchanged
     
-    _dispatcher->post([](CoroContext<int>::Ptr ctx, std::string& str)->int {
+    getDispatcher().post([](CoroContext<int>::Ptr ctx, std::string& str)->int {
         ctx->yield();
         return 1; //error! coroutine must stop here
         str = "changed";
         return 0;
     }, s);
     
-    _dispatcher->post([](CoroContext<int>::Ptr ctx, std::string& str)->int {
+    getDispatcher().post([](CoroContext<int>::Ptr ctx, std::string& str)->int {
         ctx->yield(); //test yield via the VoidContext
         throw std::exception(); //error! coroutine must stop here
         str = "changed";
         return 0;
     }, s);
     
-    _dispatcher->post2<std::string>([](VoidContextPtr ctx, std::string& str)->std::string {
+    getDispatcher().post2<std::string>([](VoidContextPtr ctx, std::string& str)->std::string {
         ctx->yield(); //test yield via the VoidContext
         throw std::exception(); //error! coroutine must stop here
         str = "changed";
         return str;
     }, s);
     
-    _dispatcher->postAsyncIo([](ThreadPromise<int>::Ptr, std::string& str)->int {
+    getDispatcher().postAsyncIo([](ThreadPromise<int>::Ptr, std::string& str)->int {
         std::this_thread::sleep_for(ms(10));
         return 1; //error! coroutine must stop here
         str = "changed";
         return 0;
     }, s);
     
-    _dispatcher->postAsyncIo([](ThreadPromise<int>::Ptr, std::string& str)->int {
+    getDispatcher().postAsyncIo([](ThreadPromise<int>::Ptr, std::string& str)->int {
         std::this_thread::sleep_for(ms(10));
         throw std::exception(); //error! coroutine must stop here
         str = "changed";
         return 0;
     }, s);
     
-    _dispatcher->postAsyncIo2<std::string>([](std::string& str)->std::string {
+    getDispatcher().postAsyncIo2<std::string>([](std::string& str)->std::string {
         std::this_thread::sleep_for(ms(10));
         throw std::exception(); //error! coroutine must stop here
         str = "changed";
         return str;
     }, s);
     
-    _dispatcher->drain();
+    getDispatcher().drain();
     
     //Error count
-    EXPECT_EQ((size_t)3, _dispatcher->stats(IQueue::QueueType::Coro).errorCount());
-    EXPECT_EQ((size_t)3, _dispatcher->stats(IQueue::QueueType::IO).errorCount() +
-                         _dispatcher->stats(IQueue::QueueType::IO).sharedQueueErrorCount());
+    EXPECT_EQ((size_t)3, getDispatcher().stats(IQueue::QueueType::Coro).errorCount());
+    EXPECT_EQ((size_t)3, getDispatcher().stats(IQueue::QueueType::IO).errorCount() +
+                         getDispatcher().stats(IQueue::QueueType::IO).sharedQueueErrorCount());
     EXPECT_STREQ("original", s.c_str());
     
     //Remaining
-    EXPECT_EQ((size_t)0, _dispatcher->size());
+    EXPECT_EQ((size_t)0, getDispatcher().size());
 }
 
 struct NonCopyable {
@@ -347,7 +454,7 @@ struct NonCopyable {
     std::string _str;
 };
 
-TEST(ParamtersTest, CheckParameterPassingInCoroutines)
+TEST_P(ParamtersTest, CheckParameterPassingInCoroutines)
 {
     //Test pass by value, reference and address.
     int a = 5;
@@ -372,7 +479,7 @@ TEST(ParamtersTest, CheckParameterPassingInCoroutines)
         return ctx->set(0);
     };
     
-    DispatcherSingleton::instance().post(func, int(a), str, std::move(str2), std::move(nc), &dbl)->get();
+    getDispatcher().post(func, int(a), str, std::move(str2), std::move(nc), &dbl)->get();
     
     //Validate values
     EXPECT_EQ(5, a);
@@ -382,10 +489,10 @@ TEST(ParamtersTest, CheckParameterPassingInCoroutines)
     EXPECT_DOUBLE_EQ(6.543, dbl);
 }
 
-TEST(ExecutionTest, DrainAllTasks)
+TEST_P(ExecutionTest, DrainAllTasks)
 {
     //Turn the drain on and make sure we cannot queue any tasks
-    Dispatcher& dispatcher = DispatcherSingleton::instance();
+    Dispatcher& dispatcher = getDispatcher();
     
     //Post a bunch of coroutines to run and wait for completion.
     for (int i = 0; i < 100; ++i)
@@ -398,7 +505,7 @@ TEST(ExecutionTest, DrainAllTasks)
     EXPECT_EQ((size_t)0, dispatcher.size());
 }
 
-TEST(ExecutionTest, YieldingBetweenTwoCoroutines)
+TEST_P(ExecutionTest, YieldingBetweenTwoCoroutines)
 {
     //Basic test which verifies cooperation between two coroutines.
     //This also outlines lock-free coding.
@@ -423,7 +530,7 @@ TEST(ExecutionTest, YieldingBetweenTwoCoroutines)
     
     std::set<int> testSet; //this will contain [1,6]
     
-    Dispatcher& dispatcher = DispatcherSingleton::instance();
+    Dispatcher& dispatcher = getDispatcher();
     
     dispatcher.post(3, false, func, testSet);
     dispatcher.post(3, false, func2, testSet);
@@ -433,9 +540,9 @@ TEST(ExecutionTest, YieldingBetweenTwoCoroutines)
     EXPECT_EQ(validation, testSet);
 }
 
-TEST(ExecutionTest, ChainCoroutinesFromDispatcher)
+TEST_P(ExecutionTest, ChainCoroutinesFromDispatcher)
 {
-    Dispatcher& dispatcher = DispatcherSingleton::instance();
+    Dispatcher& dispatcher = getDispatcher();
     int i = 1;
     std::vector<int> v;
     std::vector<int> validation{1,2,3,4};
@@ -452,9 +559,9 @@ TEST(ExecutionTest, ChainCoroutinesFromDispatcher)
     EXPECT_EQ(validation, v);
 }
 
-TEST(ExecutionTest, ChainCoroutinesFromCoroutineContext)
+TEST_P(ExecutionTest, ChainCoroutinesFromCoroutineContext)
 {
-    Dispatcher& dispatcher = DispatcherSingleton::instance();
+    Dispatcher& dispatcher = getDispatcher();
     int i = 1, err = 10, final = 20;
     std::vector<int> v;
     std::vector<int> validation{1,2,3,4,20};
@@ -464,7 +571,7 @@ TEST(ExecutionTest, ChainCoroutinesFromCoroutineContext)
         v.push_back(i++);
         return 0;
     };
-    
+     
     auto func = [&](CoroContext<int>::Ptr ctx, std::vector<int>& v, int& i)->int
     {
         ctx->postFirst(func2, v, i)->
@@ -484,9 +591,9 @@ TEST(ExecutionTest, ChainCoroutinesFromCoroutineContext)
     EXPECT_EQ(validation, v);
 }
 
-TEST(ExecutionTest, ChainCoroutinesFromCoroutineContext2)
+TEST_P(ExecutionTest, ChainCoroutinesFromCoroutineContext2)
 {
-    Dispatcher& dispatcher = DispatcherSingleton::instance();
+    Dispatcher& dispatcher = getDispatcher();
     int i = 1, err = 10, final = 20;
     std::vector<int> v;
     std::vector<int> validation{1,2,3,4,20};
@@ -515,9 +622,9 @@ TEST(ExecutionTest, ChainCoroutinesFromCoroutineContext2)
     EXPECT_EQ(validation, v);
 }
 
-TEST(ExecutionTest, OnErrorTaskRuns)
+TEST_P(ExecutionTest, OnErrorTaskRuns)
 {
-    Dispatcher& dispatcher = DispatcherSingleton::instance();
+    Dispatcher& dispatcher = getDispatcher();
     int i = 1, err = 10, final = 20;
     std::vector<int> v;
     std::vector<int> validation{1,2,10,20}; //includes error
@@ -543,9 +650,9 @@ TEST(ExecutionTest, OnErrorTaskRuns)
     EXPECT_EQ(validation, v);
 }
 
-TEST(ExecutionTest, FinallyAlwaysRuns)
+TEST_P(ExecutionTest, FinallyAlwaysRuns)
 {
-    Dispatcher& dispatcher = DispatcherSingleton::instance();
+    Dispatcher& dispatcher = getDispatcher();
     int i = 1, final = 20;
     std::vector<int> v;
     std::vector<int> validation{1,2,20}; //includes error
@@ -571,9 +678,9 @@ TEST(ExecutionTest, FinallyAlwaysRuns)
     EXPECT_EQ(validation, v);
 }
 
-TEST(ExecutionTest, CoroutineSleep)
+TEST_P(ExecutionTest, CoroutineSleep)
 {
-    Dispatcher& dispatcher = DispatcherSingleton::instance();
+    Dispatcher& dispatcher = getDispatcher();
     IThreadContext<int>::Ptr ctx = dispatcher.post([](ICoroContext<int>::Ptr ctx)->int{
         ctx->sleep(ms(100));
         return 0;
@@ -588,9 +695,9 @@ TEST(ExecutionTest, CoroutineSleep)
     EXPECT_GE(elapsed, (size_t)100);
 }
 
-TEST(PromiseTest, GetFutureFromCoroutine)
+TEST_P(PromiseTest, GetFutureFromCoroutine)
 {
-    Dispatcher& dispatcher = DispatcherSingleton::instance();
+    Dispatcher& dispatcher = getDispatcher();
     IThreadContext<int>::Ptr ctx = dispatcher.post([](ICoroContext<int>::Ptr ctx)->int{
         return ctx->set(55); //Set the promise
     });
@@ -598,9 +705,9 @@ TEST(PromiseTest, GetFutureFromCoroutine)
     EXPECT_THROW(ctx->get(), FutureAlreadyRetrievedException);
 }
 
-TEST(PromiseTest, GetFutureFromIoTask)
+TEST_P(PromiseTest, GetFutureFromIoTask)
 {
-    Dispatcher& dispatcher = DispatcherSingleton::instance();
+    Dispatcher& dispatcher = getDispatcher();
     ThreadContext<int>::Ptr ctx = dispatcher.post([](CoroContext<int>::Ptr ctx)->int{
         //post an IO task and get future from there
         CoroFuture<double>::Ptr fut = ctx->postAsyncIo<double>([](ThreadPromise<double>::Ptr promise)->int{
@@ -611,9 +718,9 @@ TEST(PromiseTest, GetFutureFromIoTask)
     EXPECT_EQ(33, ctx->get()); //block until value is available
 }
 
-TEST(PromiseTest, GetFutureFromIoTask2)
+TEST_P(PromiseTest, GetFutureFromIoTask2)
 {
-    Dispatcher& dispatcher = DispatcherSingleton::instance();
+    Dispatcher& dispatcher = getDispatcher();
     ThreadContext<int>::Ptr ctx = dispatcher.post2([](VoidContextPtr ctx)->int{
         //post an IO task and get future from there
         CoroFuture<double>::Ptr fut = ctx->postAsyncIo2<double>([]()->double{
@@ -624,9 +731,9 @@ TEST(PromiseTest, GetFutureFromIoTask2)
     EXPECT_EQ(33, ctx->get()); //block until value is available
 }
 
-TEST(PromiseTest, GetFutureFromExternalSource)
+TEST_P(PromiseTest, GetFutureFromExternalSource)
 {
-    Dispatcher& dispatcher = DispatcherSingleton::instance();
+    Dispatcher& dispatcher = getDispatcher();
     Promise<int> promise;
     ThreadContext<int>::Ptr ctx = dispatcher.post([&promise](CoroContext<int>::Ptr ctx)->int{
         //post an IO task and get future from there
@@ -638,9 +745,9 @@ TEST(PromiseTest, GetFutureFromExternalSource)
     EXPECT_EQ(33, ctx->get()); //block until value is available
 }
 
-TEST(PromiseTest, BufferedFuture)
+TEST_P(PromiseTest, BufferedFuture)
 {
-    Dispatcher& dispatcher = DispatcherSingleton::instance();
+    Dispatcher& dispatcher = getDispatcher();
     ThreadContext<Buffer<int>>::Ptr ctx = dispatcher.post<Buffer<int>>([](CoroContext<Buffer<int>>::Ptr ctx)->int{
         for (int d = 0; d < 100; d++)
         {
@@ -665,9 +772,9 @@ TEST(PromiseTest, BufferedFuture)
     }
 }
 
-TEST(PromiseTest, BufferedFutureException)
+TEST_P(PromiseTest, BufferedFutureException)
 {
-    Dispatcher& dispatcher = DispatcherSingleton::instance();
+    Dispatcher& dispatcher = getDispatcher();
     ThreadContext<Buffer<double>>::Ptr ctx = dispatcher.post<Buffer<double>>([](CoroContext<Buffer<double>>::Ptr ctx)->int{
         for (int d = 0; d < 100; d++)
         {
@@ -704,9 +811,9 @@ TEST(PromiseTest, BufferedFutureException)
     EXPECT_GE(100, (int)v.size());
 }
 
-TEST(PromiseTest, GetFutureReference)
+TEST_P(PromiseTest, GetFutureReference)
 {
-    Dispatcher& dispatcher = DispatcherSingleton::instance();
+    Dispatcher& dispatcher = getDispatcher();
     IThreadContext<int>::Ptr ctx = dispatcher.post([](ICoroContext<int>::Ptr ctx)->int{
         return ctx->set(55); //Set the promise
     });
@@ -716,9 +823,9 @@ TEST(PromiseTest, GetFutureReference)
     EXPECT_THROW(ctx->get(), FutureAlreadyRetrievedException);
 }
 
-TEST(PromiseTest, GetIntermediateFutures)
+TEST_P(PromiseTest, GetIntermediateFutures)
 {
-    Dispatcher& dispatcher = DispatcherSingleton::instance();
+    Dispatcher& dispatcher = getDispatcher();
     auto ctx = dispatcher.postFirst([](CoroContext<int>::Ptr ctx)->int {
         return ctx->set(55); //Set the promise
     })->then<double>([](CoroContext<double>::Ptr ctx)->int {
@@ -739,9 +846,9 @@ TEST(PromiseTest, GetIntermediateFutures)
     EXPECT_EQ(validate, ctx->get()); //ok - can read value again
 }
 
-TEST(PromiseTest, GetIntermediateFutures2)
+TEST_P(PromiseTest, GetIntermediateFutures2)
 {
-    Dispatcher& dispatcher = DispatcherSingleton::instance();
+    Dispatcher& dispatcher = getDispatcher();
     auto ctx = dispatcher.postFirst2([](VoidContextPtr)->int {
         return 55; //Set the promise
     })->then<double>([](CoroContext<double>::Ptr ctx)->int { //mix with V1 API
@@ -762,9 +869,9 @@ TEST(PromiseTest, GetIntermediateFutures2)
     EXPECT_EQ(validate, ctx->get()); //ok - can read value again
 }
 
-TEST(PromiseTest, GetPreviousFutures)
+TEST_P(PromiseTest, GetPreviousFutures)
 {
-    Dispatcher& dispatcher = DispatcherSingleton::instance();
+    Dispatcher& dispatcher = getDispatcher();
     auto ctx = dispatcher.postFirst([](CoroContext<int>::Ptr ctx)->int {
         return ctx->set(55); //Set the promise
     })->then<double>([](CoroContext<double>::Ptr ctx)->int {
@@ -783,9 +890,9 @@ TEST(PromiseTest, GetPreviousFutures)
     EXPECT_STREQ("future", ctx->getAt<std::string>(2).c_str());
 }
 
-TEST(PromiseTest, BrokenPromiseInAsyncIo)
+TEST_P(PromiseTest, BrokenPromiseInAsyncIo)
 {
-    Dispatcher& dispatcher = DispatcherSingleton::instance();
+    Dispatcher& dispatcher = getDispatcher();
     ThreadContext<int>::Ptr ctx = dispatcher.post([](CoroContext<int>::Ptr ctx)->int{
         //post an IO task and get future from there
         CoroFuture<double>::Ptr fut = ctx->postAsyncIo<double>([](ThreadPromise<double>::Ptr)->int{
@@ -797,9 +904,9 @@ TEST(PromiseTest, BrokenPromiseInAsyncIo)
     });
 }
 
-TEST(PromiseTest, BreakPromiseByThrowingError)
+TEST_P(PromiseTest, BreakPromiseByThrowingError)
 {
-    Dispatcher& dispatcher = DispatcherSingleton::instance();
+    Dispatcher& dispatcher = getDispatcher();
     IThreadContext<int>::Ptr ctx = dispatcher.post([](ICoroContext<int>::Ptr)->int{
         throw std::runtime_error("don't set the promise");
     });
@@ -807,9 +914,9 @@ TEST(PromiseTest, BreakPromiseByThrowingError)
     EXPECT_THROW(ctx->get(), std::runtime_error);
 }
 
-TEST(PromiseTest, PromiseBrokenWhenOnError)
+TEST_P(PromiseTest, PromiseBrokenWhenOnError)
 {
-    Dispatcher& dispatcher = DispatcherSingleton::instance();
+    Dispatcher& dispatcher = getDispatcher();
     int i = 1;
     
     auto func2 = [](CoroContext<int>::Ptr ctx, int& i)->int
@@ -841,9 +948,9 @@ TEST(PromiseTest, PromiseBrokenWhenOnError)
     dispatcher.drain();
 }
 
-TEST(PromiseTest, SetExceptionInPromise)
+TEST_P(PromiseTest, SetExceptionInPromise)
 {
-    Dispatcher& dispatcher = DispatcherSingleton::instance();
+    Dispatcher& dispatcher = getDispatcher();
     IThreadContext<int>::Ptr ctx = dispatcher.post([](ICoroContext<int>::Ptr ctx)->int{
         try {
             throw 5;
@@ -856,9 +963,9 @@ TEST(PromiseTest, SetExceptionInPromise)
     EXPECT_THROW(ctx->get(), int);
 }
 
-TEST(PromiseTest, FutureTimeout)
+TEST_P(PromiseTest, FutureTimeout)
 {
-    Dispatcher& dispatcher = DispatcherSingleton::instance();
+    Dispatcher& dispatcher = getDispatcher();
     IThreadContext<int>::Ptr ctx = dispatcher.post([](ICoroContext<int>::Ptr ctx)->int{
         ctx->sleep(ms(300));
         return 0;
@@ -874,9 +981,9 @@ TEST(PromiseTest, FutureTimeout)
     EXPECT_EQ(status, std::future_status::timeout);
 }
 
-TEST(PromiseTest, FutureWithoutTimeout)
+TEST_P(PromiseTest, FutureWithoutTimeout)
 {
-    Dispatcher& dispatcher = DispatcherSingleton::instance();
+    Dispatcher& dispatcher = getDispatcher();
     IThreadContext<int>::Ptr ctx = dispatcher.post([](ICoroContext<int>::Ptr ctx)->int{
         ctx->sleep(ms(100));
         return 0;
@@ -893,9 +1000,9 @@ TEST(PromiseTest, FutureWithoutTimeout)
     EXPECT_EQ(status, std::future_status::ready);
 }
 
-TEST(PromiseTest, WaitForAllFutures)
+TEST_P(PromiseTest, WaitForAllFutures)
 {
-    Dispatcher& dispatcher = DispatcherSingleton::instance();
+    Dispatcher& dispatcher = getDispatcher();
     auto func = [](CoroContext<int>::Ptr ctx)->int {
         ctx->sleep(ms(50));
         return 0;
@@ -911,9 +1018,9 @@ TEST(PromiseTest, WaitForAllFutures)
     EXPECT_GE(elapsed, (size_t)200);
 }
 
-TEST(MutexTest, LockingAndUnlocking)
+TEST_P(MutexTest, LockingAndUnlocking)
 {
-    Dispatcher& dispatcher = DispatcherSingleton::instance();
+    Dispatcher& dispatcher = getDispatcher();
     std::vector<int> v;
     
     Mutex m;
@@ -946,9 +1053,9 @@ TEST(MutexTest, LockingAndUnlocking)
     EXPECT_TRUE((6 == v[1] || 7 == v[1]) && (6 == v[2] || 7 == v[2]));
 }
 
-TEST(MutexTest, SignalWithConditionVariable)
+TEST_P(MutexTest, SignalWithConditionVariable)
 {
-    Dispatcher& dispatcher = DispatcherSingleton::instance();
+    Dispatcher& dispatcher = getDispatcher();
     std::vector<int> v;
     
     Mutex m;
@@ -985,9 +1092,9 @@ TEST(MutexTest, SignalWithConditionVariable)
     EXPECT_TRUE((6 == v[1] || 7 == v[1]) && (6 == v[2] || 7 == v[2]));
 }
 
-TEST(StressTest, ParallelFibonacciSerie)
+TEST_P(StressTest, ParallelFibonacciSerie)
 {
-    Dispatcher& dispatcher = DispatcherSingleton::instance();
+    Dispatcher& dispatcher = getDispatcher();
     
     for (int i = 0; i < 1; ++i)
     {
@@ -1004,21 +1111,21 @@ TEST(StressTest, ParallelFibonacciSerie)
     EXPECT_EQ((size_t)0, dispatcher.size());
 }
 
-TEST(StressTest, RecursiveFibonacciSerie)
+TEST_P(StressTest, RecursiveFibonacciSerie)
 {
-    ThreadContext<size_t>::Ptr tctx = DispatcherSingleton::instance().post<size_t>(recursive_fib, fibInput);
+    ThreadContext<size_t>::Ptr tctx = getDispatcher().post<size_t>(recursive_fib, fibInput);
     EXPECT_EQ((size_t)fibValues[fibInput], tctx->get());
 }
 
-TEST(StressTest, AsyncIo)
+TEST_P(StressTest, AsyncIo)
 {
     std::mutex m;
     std::set<std::pair<int, int>> s; //queueId,iteration
     std::vector<std::pair<int, int>> v;
     v.reserve(10000);
     for (int i = 0; i < 10000; ++i) {
-        int queueId = i % DispatcherSingleton::instance().getNumIoThreads();
-        DispatcherSingleton::instance().postAsyncIo<int>(queueId, false, [&m,&v,&s,queueId,i](ThreadPromise<int>::Ptr promise){
+        int queueId = i % getDispatcher().getNumIoThreads();
+        getDispatcher().postAsyncIo<int>(queueId, false, [&m,&v,&s,queueId,i](ThreadPromise<int>::Ptr promise){
             {
             std::lock_guard<std::mutex> lock(m);
             s.insert(std::make_pair(queueId, i));
@@ -1027,20 +1134,20 @@ TEST(StressTest, AsyncIo)
             return promise->set(0);
         });
     }
-    DispatcherSingleton::instance().drain();
+    getDispatcher().drain();
     EXPECT_EQ(10000, (int)v.size());
     EXPECT_EQ(10000, (int)s.size()); //all elements unique
 }
 
-TEST(StressTest, AsyncIoAnyQueue)
+TEST_P(StressTest, AsyncIoAnyQueue)
 {
     std::mutex m;
     std::set<std::pair<int, int>> s; //queueId,iteration
     std::vector<std::pair<int, int>> v;
     v.reserve(10000);
     for (int i = 0; i < 10000; ++i) {
-        int queueId = i % DispatcherSingleton::instance().getNumIoThreads();
-        DispatcherSingleton::instance().postAsyncIo<int>([&m,&v,&s,queueId,i](ThreadPromise<int>::Ptr promise){
+        int queueId = i % getDispatcher().getNumIoThreads();
+        getDispatcher().postAsyncIo<int>([&m,&v,&s,queueId,i](ThreadPromise<int>::Ptr promise){
             {
             std::lock_guard<std::mutex> lock(m);
             s.insert(std::make_pair(queueId, i));
@@ -1049,22 +1156,20 @@ TEST(StressTest, AsyncIoAnyQueue)
             return promise->set(0);
         });
     }
-    DispatcherSingleton::instance().drain();
+    getDispatcher().drain();
     EXPECT_EQ(10000, (int)v.size());
     EXPECT_EQ(10000, (int)s.size()); //all elements unique
 }
 
-TEST(StressTest, AsyncIoAnyQueueLoadBalance)
+TEST_P(StressTestBalanced, AsyncIoAnyQueueLoadBalance)
 {
-    DispatcherSingleton::deleteInstance();
-    DispatcherSingleton::createInstance(true);
     std::mutex m;
     std::set<std::pair<int, int>> s; //queueId,iteration
     std::vector<std::pair<int, int>> v;
     v.reserve(10000);
     for (int i = 0; i < 10000; ++i) {
-        int queueId = i % DispatcherSingleton::instance().getNumIoThreads();
-        DispatcherSingleton::instance().postAsyncIo<int>([&m,&v,&s,queueId,i](ThreadPromise<int>::Ptr promise){
+        int queueId = i % getDispatcher().getNumIoThreads();
+        getDispatcher().postAsyncIo<int>([&m,&v,&s,queueId,i](ThreadPromise<int>::Ptr promise){
             {
             std::lock_guard<std::mutex> lock(m);
             s.insert(std::make_pair(queueId, i));
@@ -1073,27 +1178,27 @@ TEST(StressTest, AsyncIoAnyQueueLoadBalance)
             return promise->set(0);
         });
     }
-    DispatcherSingleton::instance().drain();
+    getDispatcher().drain();
     EXPECT_EQ(10000, (int)v.size());
     EXPECT_EQ(10000, (int)s.size()); //all elements unique
 }
 
-TEST(ForEachTest, Simple)
+TEST_P(ForEachTest, Simple)
 {
     std::vector<int> start{0,1,2,3,4,5,6,7,8,9};
     std::vector<char> end{'a','b','c','d','e','f','g','h','i','j'};
-    std::vector<char> results = DispatcherSingleton::instance().forEach<char>(start.cbegin(), start.size(),
+    std::vector<char> results = getDispatcher().forEach<char>(start.cbegin(), start.size(),
         [](VoidContextPtr, const int& val)->char {
         return 'a'+val;
     })->get();
     EXPECT_EQ(end, results);
 }
 
-TEST(ForEachTest, SimpleNonConst)
+TEST_P(ForEachTest, SimpleNonConst)
 {
     std::vector<int> start{0,1,2,3,4,5,6,7,8,9};
     std::vector<char> end{'b','c','d','e','f','g','h','i','j','k'};
-    std::vector<char> results = DispatcherSingleton::instance().forEach<char>(start.begin(), start.size(),
+    std::vector<char> results = getDispatcher().forEach<char>(start.begin(), start.size(),
         [](VoidContextPtr ctx, int& val)->char {
         val = ctx->postAsyncIo<int>([&](ThreadPromisePtr<int> p){
             return p->set(++val);
@@ -1105,12 +1210,12 @@ TEST(ForEachTest, SimpleNonConst)
     EXPECT_EQ(10, start[9]);
 }
 
-TEST(ForEachTest, SmallBatch)
+TEST_P(ForEachTest, SmallBatch)
 {
     std::vector<int> start{0,1,2};
     std::vector<char> end{'a','b','c'};
     
-    std::vector<std::vector<char>> results = DispatcherSingleton::instance().forEachBatch<char>(start.cbegin(), start.size(),
+    std::vector<std::vector<char>> results = getDispatcher().forEachBatch<char>(start.cbegin(), start.size(),
         [](VoidContextPtr, const int& val)->char
     {
         return 'a'+val;
@@ -1122,7 +1227,7 @@ TEST(ForEachTest, SmallBatch)
     EXPECT_EQ(results[2].front(), end[2]);
 }
 
-TEST(ForEachTest, LargeBatch)
+TEST_P(ForEachTest, LargeBatch)
 {
     int num = 1003;
     std::vector<int> start(num);
@@ -1132,12 +1237,12 @@ TEST(ForEachTest, LargeBatch)
         start[i]=i;
     }
     
-    std::vector<std::vector<int>> results = DispatcherSingleton::instance().forEachBatch<int>(start.begin(), start.size(),
+    std::vector<std::vector<int>> results = getDispatcher().forEachBatch<int>(start.begin(), start.size(),
         [](VoidContextPtr, int val)->int {
         return val*2; //double the value
     })->get();
     
-    ASSERT_EQ((int)results.size(), DispatcherSingleton::instance().getNumCoroutineThreads());
+    ASSERT_EQ((int)results.size(), getDispatcher().getNumCoroutineThreads());
     
     //Merge batches
     std::vector<int> merged;
@@ -1151,9 +1256,9 @@ TEST(ForEachTest, LargeBatch)
     }
 }
 
-TEST(ForEachTest, LargeBatchFromCoroutine)
+TEST_P(ForEachTest, LargeBatchFromCoroutine)
 {
-    DispatcherSingleton::instance().post([](CoroContext<int>::Ptr ctx)->int {
+    getDispatcher().post([this](CoroContext<int>::Ptr ctx)->int {
         size_t num = 1003;
         std::vector<int> start(num);
     
@@ -1162,7 +1267,7 @@ TEST(ForEachTest, LargeBatchFromCoroutine)
             return val*2; //double the value
         })->get(ctx);
         
-        EXPECT_EQ(DispatcherSingleton::instance().getNumCoroutineThreads(), (int)results.size());
+        EXPECT_EQ(getDispatcher().getNumCoroutineThreads(), (int)results.size());
         
         //Merge batches
         std::vector<int> merged;
@@ -1179,7 +1284,7 @@ TEST(ForEachTest, LargeBatchFromCoroutine)
     })->get();
 }
 
-TEST(MapReduce, OccuranceCount)
+TEST_P(MapReduce, OccuranceCount)
 {
     //count the number of times a word of a specific length occurs
     std::vector<std::vector<std::string>> input = {
@@ -1189,7 +1294,7 @@ TEST(MapReduce, OccuranceCount)
         {"eee", "d", "a" }
     };
     
-    std::map<std::string, size_t> result = DispatcherSingleton::instance().mapReduce<std::string, size_t, size_t>(input.begin(), input.size(),
+    std::map<std::string, size_t> result = getDispatcher().mapReduce<std::string, size_t, size_t>(input.begin(), input.size(),
         //mapper
         [](VoidContextPtr, const std::vector<std::string>& input)->std::vector<std::pair<std::string, size_t>>
         {
@@ -1223,7 +1328,7 @@ TEST(MapReduce, OccuranceCount)
     EXPECT_EQ(result["eee"], 2UL);
 }
 
-TEST(MapReduce, WordLength)
+TEST_P(MapReduce, WordLength)
 {
     //count the number of times each string occurs
     std::vector<std::vector<std::string>> input = {
@@ -1233,7 +1338,7 @@ TEST(MapReduce, WordLength)
         {"eee", "d", "a" }
     };
     
-    std::map<size_t, size_t> result = DispatcherSingleton::instance().mapReduceBatch<size_t, std::string, size_t>(input.begin(), input.size(),
+    std::map<size_t, size_t> result = getDispatcher().mapReduceBatch<size_t, std::string, size_t>(input.begin(), input.size(),
         //mapper
         [](VoidContextPtr, const std::vector<std::string>& input)->std::vector<std::pair<size_t, std::string>>
         {
@@ -1257,7 +1362,7 @@ TEST(MapReduce, WordLength)
     EXPECT_EQ(result[5], 1UL);
 }
 
-TEST(MapReduce, WordLengthFromCoroutine)
+TEST_P(MapReduce, WordLengthFromCoroutine)
 {
     //count the number of times each string occurs
     std::vector<std::vector<std::string>> input = {
@@ -1267,7 +1372,7 @@ TEST(MapReduce, WordLengthFromCoroutine)
         {"eee", "d", "a" }
     };
     
-    DispatcherSingleton::instance().post([input](CoroContext<int>::Ptr ctx)->int
+    getDispatcher().post([input](CoroContext<int>::Ptr ctx)->int
     {
         std::map<size_t, size_t> result = ctx->mapReduceBatch<size_t, std::string, size_t>(input.begin(), input.size(),
         //mapper
@@ -1297,26 +1402,26 @@ TEST(MapReduce, WordLengthFromCoroutine)
     })->get();
 }
 
-TEST(FutureJoiner, JoinThreadFutures)
+TEST_P(FutureJoinerTest, JoinThreadFutures)
 {
     std::vector<ThreadContext<int>::Ptr> futures;
     
     for (int i = 0; i < 10; ++i) {
-        futures.push_back(DispatcherSingleton::instance().post<int>([i](CoroContext<int>::Ptr ctx)->int {
+        futures.push_back(getDispatcher().post<int>([i](CoroContext<int>::Ptr ctx)->int {
             ctx->sleep(std::chrono::milliseconds(10));
             return ctx->set(i);
         }));
     }
     
-    std::vector<int> output = FutureJoiner<int>()(DispatcherSingleton::instance(), std::move(futures))->get();
+    std::vector<int> output = FutureJoiner<int>()(getDispatcher(), std::move(futures))->get();
     EXPECT_EQ(output, std::vector<int>({0,1,2,3,4,5,6,7,8,9}));
 }
 
-TEST(FutureJoiner, JoinCoroFutures)
+TEST_P(FutureJoinerTest, JoinCoroFutures)
 {
     std::vector<int> output;
     
-    DispatcherSingleton::instance().post<double>([&output](CoroContext<double>::Ptr ctx)->int {
+    getDispatcher().post<double>([&output](CoroContext<double>::Ptr ctx)->int {
         std::vector<CoroContext<int>::Ptr> futures;
         for (int i = 0; i < 10; ++i) {
             futures.push_back(ctx->post<int>([i](CoroContext<int>::Ptr ctx2)->int {
@@ -1331,10 +1436,37 @@ TEST(FutureJoiner, JoinCoroFutures)
     EXPECT_EQ(output, std::vector<int>({0,1,2,3,4,5,6,7,8,9}));
 }
 
+TEST(SharedQueueTest, PerformanceTest1)
+{
+    size_t elapsedWithoutCoroSharing, elapsedWithCoroSharing;
+    {
+        const TestConfiguration noCoroSharingConfig(false, false);
+        quantum::Dispatcher& dispatcher = DispatcherSingleton::instance(noCoroSharingConfig);
+        
+        auto start = std::chrono::steady_clock::now();
+        enqueue_heavy_tasks(dispatcher, 100);
+        dispatcher.drain();
+        auto end = std::chrono::steady_clock::now();
+        elapsedWithoutCoroSharing = std::chrono::duration_cast<std::chrono::milliseconds>(end-start).count();
+    }
+    
+    {
+        const TestConfiguration coroSharingConfig(false, true);
+        quantum::Dispatcher& dispatcher = DispatcherSingleton::instance(coroSharingConfig);
+
+        auto start = std::chrono::steady_clock::now();
+        enqueue_heavy_tasks(dispatcher, 100);
+        dispatcher.drain();
+        auto end = std::chrono::steady_clock::now();
+        elapsedWithCoroSharing = std::chrono::duration_cast<std::chrono::milliseconds>(end-start).count();
+    }
+    EXPECT_LT(elapsedWithCoroSharing, elapsedWithoutCoroSharing);
+}
+
 //This test **must** come last to make Valgrind happy.
 TEST(TestCleanup, DeleteDispatcherInstance)
 {
-    DispatcherSingleton::deleteInstance();
+    DispatcherSingleton::deleteInstances();
 }
 
 

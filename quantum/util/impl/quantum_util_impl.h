@@ -34,7 +34,8 @@ int bindCoro(Traits::Yield& yield,
     try
     {
         ctx->setYieldHandle(yield); //set coroutine yield
-        yield.get() = std::forward<CAPTURE>(capture)();
+        int rc = std::forward<CAPTURE>(capture)();
+        yield.get() = rc;
         return 0;
     }
     catch(const boost::coroutines2::detail::forced_unwind&) {
@@ -69,7 +70,8 @@ int bindCoro2(Traits::Yield& yield,
     try
     {
         ctx->setYieldHandle(yield); //set coroutine yield
-        yield.get() = ctx->set(std::forward<CAPTURE>(capture)());
+        int rc = ctx->set(std::forward<CAPTURE>(capture)());
+        yield.get() = rc;
         return 0;
     }
     catch(const boost::coroutines2::detail::forced_unwind&) {

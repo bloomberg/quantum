@@ -137,6 +137,12 @@ void Configuration::setCoroQueueIdRangeForAny(const std::pair<int, int>& coroQue
 }
 
 inline
+void Configuration::setCoroutineSharingForAny(bool sharing)
+{
+     _coroutineSharingForAny = sharing;
+}
+
+inline
 int Configuration::getNumCoroutineThreads() const
 {
     return _numCoroutineThreads;
@@ -184,5 +190,11 @@ const std::pair<int, int>& Configuration::getCoroQueueIdRangeForAny() const
     return  _coroQueueIdRangeForAny;
 }
 
+inline
+bool Configuration::getCoroutineSharingForAny() const
+{
+    return _coroutineSharingForAny;
+}
+    
 }
 }

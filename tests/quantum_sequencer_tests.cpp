@@ -13,11 +13,22 @@
 ** See the License for the specific language governing permissions and
 ** limitations under the License.
 */
-#include <quantum/quantum.h>
-#include <gtest/gtest.h>
 #include <quantum_fixture.h>
+#include <gtest/gtest.h>
 
 using namespace quantum;
+
+//==============================================================================
+// TEST FIXTURES
+//==============================================================================
+
+struct SequencerTest: public DispatcherFixture
+{};
+
+INSTANTIATE_TEST_CASE_P(SequencerTest_Default,
+                        SequencerTest,
+                        ::testing::Values(TestConfiguration(false, false),
+                                          TestConfiguration(false, true)));
 
 // Utility with common functionality for the sequencer related tests
 class SequencerTestData
@@ -118,7 +129,7 @@ private: // members
     quantum::Mutex _resultMutex;
 };
 
-TEST(Sequencer, BasicTaskOrder)
+TEST_P(SequencerTest, BasicTaskOrder)
 {
     using namespace Bloomberg::quantum;
 
@@ -127,7 +138,7 @@ TEST(Sequencer, BasicTaskOrder)
     SequencerTestData testData;
     SequencerTestData::SequenceKeyMap sequenceKeys;
     
-    SequencerTestData::TaskSequencer sequencer(DispatcherSingleton::instance());
+    SequencerTestData::TaskSequencer sequencer(getDispatcher());
 
     // enqueue the tasks
     for(SequencerTestData::TaskId id = 0; id < taskCount; ++id) 
@@ -137,7 +148,7 @@ TEST(Sequencer, BasicTaskOrder)
         sequenceKeys[sequenceKey].push_back(id);
         sequencer.enqueue(sequenceKey, testData.makeTask(id));
     }
-    DispatcherSingleton::instance().drain();
+    getDispatcher().drain();
 
     EXPECT_EQ(testData.results().size(), (size_t)taskCount);
 
@@ -151,7 +162,7 @@ TEST(Sequencer, BasicTaskOrder)
     }
 }
 
-TEST(Sequencer, TrimKeys)
+TEST_P(SequencerTest, TrimKeys)
 {
     using namespace Bloomberg::quantum;
 
@@ -159,7 +170,7 @@ TEST(Sequencer, TrimKeys)
     const int sequenceKeyCount = 3;
     SequencerTestData testData;
     
-    SequencerTestData::TaskSequencer sequencer(DispatcherSingleton::instance());
+    SequencerTestData::TaskSequencer sequencer(getDispatcher());
 
     // enqueue the tasks
     for(SequencerTestData::TaskId id = 0; id < taskCount; ++id)
@@ -167,14 +178,14 @@ TEST(Sequencer, TrimKeys)
         SequencerTestData::SequenceKey sequenceKey = id % sequenceKeyCount;
         sequencer.enqueue(sequenceKey, testData.makeTask(id));
     }
-    DispatcherSingleton::instance().drain();
+    getDispatcher().drain();
 
     EXPECT_EQ(sequencer.getSequenceKeyCount(), (size_t)sequenceKeyCount);
     EXPECT_EQ(sequencer.trimSequenceKeys(), 0u);
     EXPECT_EQ(sequencer.getSequenceKeyCount(), 0u);
 }
 
-TEST(Sequencer, ExceptionHandler)
+TEST_P(SequencerTest, ExceptionHandler)
 {
     using namespace Bloomberg::quantum;
 
@@ -221,7 +232,7 @@ TEST(Sequencer, ExceptionHandler)
     
     SequencerTestData::TaskSequencerConfiguration config;
     config.setExceptionCallback(exceptionCallback);
-    SequencerTestData::TaskSequencer sequencer(DispatcherSingleton::instance(), config);
+    SequencerTestData::TaskSequencer sequencer(getDispatcher(), config);
     
     unsigned int generatedExceptionCount = 0;
     for(SequencerTestData::TaskId id = 0; id < taskCount; ++id)
@@ -239,12 +250,12 @@ TEST(Sequencer, ExceptionHandler)
             sequencer.enqueue(&sequenceKeys[id], (int)IQueue::QueueId::Any, false, sequenceKey, testData.makeTask(id));
         }
     }
-    DispatcherSingleton::instance().drain();
+    getDispatcher().drain();
 
     EXPECT_EQ(generatedExceptionCount, exceptionCallbackCallCount);
 }
 
-TEST(Sequencer, SequenceKeyStats)
+TEST_P(SequencerTest, SequenceKeyStats)
 {
     using namespace Bloomberg::quantum;
 
@@ -257,7 +268,7 @@ TEST(Sequencer, SequenceKeyStats)
     
     SequencerTestData::TaskSequencerConfiguration config;
     config.setControlQueueId(controlQueueId);
-    SequencerTestData::TaskSequencer sequencer(DispatcherSingleton::instance(), config);
+    SequencerTestData::TaskSequencer sequencer(getDispatcher(), config);
 
     // enqueue the first half
     for(SequencerTestData::TaskId id = 0; id < taskCount / 2; ++id)
@@ -279,7 +290,7 @@ TEST(Sequencer, SequenceKeyStats)
     };
     // this task will be done when all the tasks posted above
     // are scheduled because it's posted to the same controlQueueId
-    DispatcherSingleton::instance().post2(controlQueueId, false, halfWayDoneJob)->wait();
+    getDispatcher().post2(controlQueueId, false, halfWayDoneJob)->wait();
 
     // make sure all the enqueued tasks are pending
     size_t postedCount = 0;
@@ -317,7 +328,7 @@ TEST(Sequencer, SequenceKeyStats)
         }
     }
 
-    DispatcherSingleton::instance().drain();
+    getDispatcher().drain();
 
     // check the final stats
     postedCount = 0;
@@ -339,7 +350,7 @@ TEST(Sequencer, SequenceKeyStats)
     EXPECT_EQ(0u, sequencer.getTaskStatistics().getPendingTaskCount());
 }
 
-TEST(Sequencer, TaskOrderWithUniversal)
+TEST_P(SequencerTest, TaskOrderWithUniversal)
 {
     using namespace Bloomberg::quantum;
 
@@ -350,7 +361,7 @@ TEST(Sequencer, TaskOrderWithUniversal)
     SequencerTestData::SequenceKeyMap sequenceKeys;
     std::vector<SequencerTestData::TaskId> universal;
     
-    SequencerTestData::TaskSequencer sequencer(DispatcherSingleton::instance());
+    SequencerTestData::TaskSequencer sequencer(getDispatcher());
     
     for(SequencerTestData::TaskId id = 0; id < taskCount; ++id) 
     {
@@ -368,7 +379,7 @@ TEST(Sequencer, TaskOrderWithUniversal)
             sequencer.enqueue(sequenceKey, testData.makeTask(id));
         }
     }
-    DispatcherSingleton::instance().drain();
+    getDispatcher().drain();
 
     EXPECT_EQ((int)testData.results().size(), taskCount);
     EXPECT_EQ((int)sequencer.getSequenceKeyCount(), sequenceKeyCount);
@@ -399,7 +410,7 @@ TEST(Sequencer, TaskOrderWithUniversal)
     }    
 }
 
-TEST(Sequencer, MultiSequenceKeyTasks)
+TEST_P(SequencerTest, MultiSequenceKeyTasks)
 {
     using namespace Bloomberg::quantum;
 
@@ -423,14 +434,14 @@ TEST(Sequencer, MultiSequenceKeyTasks)
         return result;
     };
     
-    SequencerTestData::TaskSequencer sequencer(DispatcherSingleton::instance());    
+    SequencerTestData::TaskSequencer sequencer(getDispatcher());    
     for(SequencerTestData::TaskId id = 1; id <= taskCount; ++id) 
     {
         std::vector<SequencerTestData::SequenceKey> sequenceKeys = getBitVector(id);
         // save the task id for this sequenceKey
         sequencer.enqueue(sequenceKeys, testData.makeTask(id));
     }
-    DispatcherSingleton::instance().drain();
+    getDispatcher().drain();
 
     EXPECT_EQ((int)testData.results().size(), taskCount);
     EXPECT_EQ((int)sequencer.getSequenceKeyCount(), sequenceKeyCount);
@@ -455,7 +466,7 @@ TEST(Sequencer, MultiSequenceKeyTasks)
     }
 }
 
-TEST(Sequencer, CustomHashFunction)
+TEST_P(SequencerTest, CustomHashFunction)
 {
     using namespace Bloomberg::quantum;
 
@@ -493,7 +504,7 @@ TEST(Sequencer, CustomHashFunction)
     config.setKeyEqual(customEqual);
     
     Sequencer<SequencerTestData::SequenceKey, Hasher, KeyEqual>
-        sequencer(DispatcherSingleton::instance(), config);
+        sequencer(getDispatcher(), config);
     
     for(SequencerTestData::TaskId id = 0; id < taskCount; ++id) 
     {
@@ -503,7 +514,7 @@ TEST(Sequencer, CustomHashFunction)
         // enqueue the task with the real sequenceKey id
         sequencer.enqueue(std::move(sequenceKey), testData.makeTask(id));
     }
-    DispatcherSingleton::instance().drain();
+    getDispatcher().drain();
 
     EXPECT_EQ((int)testData.results().size(), taskCount);
     EXPECT_EQ((int)sequencer.getSequenceKeyCount(), restrictedSequenceKeyCount);
@@ -519,7 +530,7 @@ TEST(Sequencer, CustomHashFunction)
 }
 
 //This test **must** come last to make Valgrind happy.
-TEST(Sequencer, DeleteDispatcherInstance)
+TEST(SequencerTestCleanup, DeleteDispatcherInstance)
 {
-    DispatcherSingleton::deleteInstance();
+    DispatcherSingleton::deleteInstances();
 }

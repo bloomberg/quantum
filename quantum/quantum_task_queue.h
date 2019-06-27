@@ -50,7 +50,8 @@ public:
     
     TaskQueue();
     
-    explicit TaskQueue(const Configuration& config);
+    TaskQueue(const Configuration& config,
+              std::shared_ptr<TaskQueue> sharedQueue);
     
     TaskQueue(const TaskQueue& other);
     
@@ -85,10 +86,52 @@ public:
     bool isIdle() const final;
 
 private:
-    TaskListIter advance();
+    struct WorkItem
+    {
+        WorkItem(TaskPtr task,
+                 TaskListIter iter,
+                 bool isBlocked,
+                 unsigned int blockedQueueRound);
+        
+        TaskPtr _task;                   // task pointer
+        TaskListIter _iter;              // task iterator
+        bool _isBlocked;                 // true if the entire queue is blocked
+        unsigned int _blockedQueueRound; // blocked queue round id
+    };
+    struct ProcessTaskResult
+    {
+        ProcessTaskResult(bool isBlocked,
+                          unsigned int blockedQueueRound);
+            
+        bool _isBlocked;                 // true if the entire queue is blocked
+        unsigned int _blockedQueueRound; // blocked queue round id
+    };
+    //Coroutine result handlers
+    bool handleNotCallable(const WorkItem& entry);
+    bool handleAlreadyResumed(WorkItem& entry);
+    bool handleRunning(WorkItem& entry);
+    bool handleSuccess(const WorkItem& entry);
+    bool handleBlocked(WorkItem& entry);
+    bool handleSleeping(WorkItem& entry);
+    bool handleError(const WorkItem& entry);
+    bool handleException(const WorkItem& workItem,
+                         const std::exception* ex = nullptr);
+
+    void onBlockedTask(WorkItem& entry);
+    void onActiveTask(WorkItem& entry);
+    
+    bool isInterrupted();
+    void signalSharedQueueEmptyCondition(bool value);
+    ProcessTaskResult processTask();
+    WorkItem grabWorkItem();
     void doEnqueue(ITask::Ptr task);
-    ITask::Ptr doDequeue(std::atomic_bool& hint);
+    ITask::Ptr doDequeue(std::atomic_bool& hint,
+                         TaskListIter iter);
     void acquireWaiting();
+    void sleepOnBlockedQueue(const ProcessTaskResult& mainQueueResult);
+    void sleepOnBlockedQueue(const ProcessTaskResult& mainQueueResult,
+                             const ProcessTaskResult& sharedQueueResult);
+
     
     QueueListAllocator                  _alloc;
     std::shared_ptr<std::thread>        _thread;
@@ -96,15 +139,23 @@ private:
     TaskList                            _waitQueue;
     TaskListIter                        _queueIt;
     TaskListIter                        _blockedIt;
-    mutable SpinLock                    _spinlock;
+    bool                                _isBlocked;
+    mutable SpinLock                    _runQueueLock;
+    mutable SpinLock                    _waitQueueLock;
     std::mutex                          _notEmptyMutex; //for accessing the condition variable
     std::condition_variable             _notEmptyCond;
     std::atomic_bool                    _isEmpty;
+    std::atomic_bool                    _isSharedQueueEmpty;
     std::atomic_bool                    _isInterrupted;
     std::atomic_bool                    _isIdle;
     std::atomic_bool                    _terminated;
     bool                                _isAdvanced;
     QueueStatistics                     _stats;
+    std::shared_ptr<TaskQueue>          _sharedQueue;
+    std::vector<TaskQueue*>             _helpers;
+    unsigned int                        _queueRound;
+    unsigned int                        _lastSleptQueueRound;
+    unsigned int                        _lastSleptSharedQueueRound;
 };
 
 }}

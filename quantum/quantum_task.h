@@ -44,6 +44,8 @@ public:
     using Ptr = std::shared_ptr<Task>;
     using WeakPtr = std::weak_ptr<Task>;
     
+    enum class State : int { Running, Suspended, Terminated };
+    
     template <class RET, class FUNC, class ... ARGS>
     Task(std::shared_ptr<Context<RET>> ctx,
          int queueId,
@@ -98,31 +100,50 @@ public:
     static void* operator new(size_t size);
     static void operator delete(void* p);
     static void deleter(Task* p);
-   
+    
 private:
+    
     struct SuspensionGuard {
-        SuspensionGuard(std::atomic_bool& isSuspended) :
-            _isSuspended(isSuspended)
+        SuspensionGuard(std::atomic_int& suspendedState) :
+            _isLocked(false),
+            _suspendedState(suspendedState)
         {
-            _isSuspended = false;
+            int suspended = (int)State::Suspended;
+            _isLocked = _suspendedState.compare_exchange_strong(suspended,
+                                                                (int)State::Running,
+                                                                std::memory_order::memory_order_acq_rel);
         }
         ~SuspensionGuard()
         {
-            _isSuspended = true;
+            if (_isLocked)
+            {
+                _suspendedState.store((int)State::Suspended, std::memory_order::memory_order_acq_rel);
+            }
         }
-        std::atomic_bool& _isSuspended;
+        void set(int newState)
+        {
+            _suspendedState.store(newState, std::memory_order::memory_order_acq_rel);
+            _isLocked = false;
+        }
+               
+        operator bool() const
+        {
+            return _isLocked;
+        }
+        
+        bool _isLocked;
+        std::atomic_int& _suspendedState;
     };
     
     ITaskAccessor::Ptr          _ctx; //holds execution context
     Traits::Coroutine           _coro; //the current runnable coroutine
     int                         _queueId;
     bool                        _isHighPriority;
-    int                         _rc; //return from the co-routine
     ITaskContinuation::Ptr      _next; //Task scheduled to run after current completes.
     ITaskContinuation::WeakPtr  _prev; //Previous task in the chain
     ITask::Type                 _type;
     std::atomic_bool            _terminated;
-    std::atomic_bool            _isSuspended;
+    std::atomic_int             _suspendedState; // stores values of State
 };
 
 using TaskPtr = Task::Ptr;
