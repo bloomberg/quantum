@@ -1,0 +1,17 @@
+@PACKAGE_INIT@
+
+include(CMakeFindDependencyMacro)
+
+# Find Boost::context
+find_dependency(Boost 1.61 REQUIRED COMPONENTS context)
+
+# Export 'Quantum_ROOT'
+set_and_check(@PROJECT_NAME@_ROOT "@PACKAGE_CMAKE_INSTALL_PREFIX@")
+
+# Export 'Quantum_INSTALL_INCLUDE_DIR'
+set_and_check(@PROJECT_NAME@_INSTALL_INCLUDE_DIR "@PACKAGE_CMAKE_INSTALL_INCLUDEDIR@")
+
+include("${CMAKE_CURRENT_LIST_DIR}/@PROJECT_NAME@Targets.cmake")
+
+# Validate installed components
+check_required_components("@PROJECT_NAME@")

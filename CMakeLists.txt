@@ -1,5 +1,10 @@
-cmake_minimum_required(VERSION 3.10.3)
-project(quantum LANGUAGES CXX)
+cmake_minimum_required(VERSION 3.12.4)
+cmake_policy(SET CMP0074 NEW) #Prior to 3.12 this allows using '<Package>_ROOT' to point to an package location
+project(Quantum LANGUAGES CXX)
+set(PROJECT_TARGET_NAME quantum)
+
+include(GNUInstallDirs)
+include(CMakePackageConfigHelpers)
 
 # CMake options
 option(QUANTUM_BUILD_DOC "Build documentation" OFF)
@@ -15,7 +20,6 @@ option(QUANTUM_BOOST_USE_SEGMENTED_STACKS "Use Boost segmented stacks for corout
 option(QUANTUM_BOOST_USE_PROTECTED_STACKS "Use Boost protected stacks for coroutines." OFF)
 option(QUANTUM_BOOST_USE_FIXEDSIZE_STACKS "Use Boost fixed size stacks for coroutines." OFF)
 
-
 set(QUANTUM_VERSION_MAJOR 2)
 set(QUANTUM_VERSION_MINOR 0)
 set(QUANTUM_VERSION_REVISION 1)
@@ -27,6 +31,9 @@ endif()
 if (NOT QUANTUM_PKGCONFIG_DIR)
     set(QUANTUM_PKGCONFIG_DIR share/pkgconfig)
 endif()
+if (NOT QUANTUM_CMAKE_CONFIG_DIR)
+    set(QUANTUM_CMAKE_CONFIG_DIR share/cmake/${PROJECT_NAME})
+endif()
 
 #Global options
 set(MODE 64)
@@ -35,18 +42,16 @@ set(CMAKE_INCLUDE_DIRECTORIES_BEFORE ON)
 set(CMAKE_BUILD_TYPE Debug)
 
 #Set the compiler if the CXX environment variable is not set
-if (NOT DEFINED ENV{CXX})
+if (NOT CMAKE_CXX_COMPILER)
     set(CMAKE_CXX_COMPILER g++)
 endif()
 #Set the compiler if the CXX_STANDARD environment variable is not set
-if (NOT DEFINED ENV{CXXSTANDARD})
+if (NOT CMAKE_CXX_STANDARD)
     set(CMAKE_CXX_STANDARD 14)
-else()
-    set(CMAKE_CXX_STANDARD $ENV{CXXSTANDARD})
 endif()
 #Set compile flags if CXXFLAGS environment variable is not set
-if (NOT DEFINED ENV{CXXFLAGS})
-    set(CMAKE_CXX_FLAGS "-Wall -Wextra -Werror -Wabi -O0 -m${MODE} -std=c++${CMAKE_CXX_STANDARD} -ftemplate-backtrace-limit=0")
+if (NOT CMAKE_CXX_FLAGS)
+    set(CMAKE_CXX_FLAGS "-Wall -Wextra -O0 -m${MODE} -std=c++${CMAKE_CXX_STANDARD} -ftemplate-backtrace-limit=0")
 endif()
 if (QUANTUM_VERBOSE_MAKEFILE)
     message(STATUS "CMAKE_CXX_FLAGS = ${CMAKE_CXX_FLAGS}")
@@ -83,9 +88,9 @@ if (QUANTUM_BUILD_DOC)
     if(DOXYGEN_FOUND)
         # Configure Doxygen parameters
         set(DOXYGEN_PROJECT_NAME "Quantum Library")
-        set(DOXYGEN_OUTPUT_DIRECTORY ${PROJECT_SOURCE_DIR})
-        set(DOXYGEN_INPUT ${PROJECT_SOURCE_DIR}/${PROJECT_NAME})
-        set(DOXYGEN_HTML_OUTPUT ${PROJECT_SOURCE_DIR}/docs)
+        set(DOXYGEN_OUTPUT_DIRECTORY "${PROJECT_SOURCE_DIR}")
+        set(DOXYGEN_INPUT "${PROJECT_SOURCE_DIR}/${PROJECT_TARGET_NAME}")
+        set(DOXYGEN_HTML_OUTPUT "${PROJECT_SOURCE_DIR}/docs")
         set(DOXYGEN_CREATE_SUBDIRS YES)
         if (DOXYGEN_DOT_FOUND AND QUANTUM_ENABLE_DOT)
             set(DOXYGEN_HAVE_DOT YES)
@@ -134,12 +139,12 @@ else()
     message(FATAL_ERROR "Boost not found, please define BOOST_ROOT.")
 endif()
 
-add_subdirectory(${PROJECT_NAME})
+add_subdirectory(${PROJECT_TARGET_NAME})
 
 if (QUANTUM_ENABLE_TESTS)
     find_package(GTest REQUIRED)
     if (GTEST_FOUND)
-        message(STATUS "Adding target 'quantum_tests' to build output")
+        message(STATUS "Adding target '${PROJECT_TARGET_NAME}_tests' to build output")
         enable_testing()
         add_subdirectory(tests)
     else()
