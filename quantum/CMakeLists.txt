@@ -5,7 +5,6 @@ function(make_quantum_header)
             "*.h"
             "interface/*.h"
             "util/*.h")
-    SET(PROJECT_INCLUDE_HEADERS  "${INCLUDE_HEADERS}" CACHE INTERNAL "Quantum include headers")
     list(SORT INCLUDE_HEADERS)
     foreach(header ${INCLUDE_HEADERS})
         if (NOT ${header} MATCHES "quantum.h")
@@ -29,11 +28,12 @@ set(NAMESPACE           "${PROJECT_NAME}::")
 
 add_library(${PROJECT_TARGET_NAME} INTERFACE)
 set(QUANTUM_DEPENDENCIES Boost::context pthread)
+set(QUANTUM_PUBLIC_HEADER_FILE "${CMAKE_INSTALL_PREFIX}/${CMAKE_INSTALL_INCLUDEDIR}/${PROJECT_TARGET_NAME}/quantum.h")
 set_target_properties(${PROJECT_TARGET_NAME} PROPERTIES
         INTERFACE_INCLUDE_DIRECTORIES $<INSTALL_INTERFACE:include>
         INTERFACE_LINK_LIBRARIES "${QUANTUM_DEPENDENCIES}"
         INTERFACE_POSITION_INDEPENDENT_CODE ON
-        INTERFACE_SOURCES ${CMAKE_INSTALL_PREFIX}/include/quantum.h
+        INTERFACE_SOURCES "${QUANTUM_PUBLIC_HEADER_FILE}"
 )
 
 # Install target
@@ -44,8 +44,10 @@ install(
 )
 
 # Install headers
-install(FILES ${PROJECT_INCLUDE_HEADERS}
-        DESTINATION "${CMAKE_INSTALL_INCLUDEDIR}")
+install(DIRECTORY
+        ${CMAKE_CURRENT_SOURCE_DIR}
+        DESTINATION "${CMAKE_INSTALL_INCLUDEDIR}"
+        FILES_MATCHING PATTERN "*.h")
 
 # Install the exported file
 install(
