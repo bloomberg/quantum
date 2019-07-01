@@ -1,5 +1,5 @@
 include(GoogleTest)
-set(TEST_TARGET quantum_tests)
+set(TEST_TARGET ${PROJECT_NAME}Tests)
 file(GLOB SOURCE_FILES *.cpp)
 include_directories(AFTER
     ${PROJECT_SOURCE_DIR}
@@ -15,7 +15,7 @@ add_executable(${TEST_TARGET} ${SOURCE_FILES})
 gtest_discover_tests(${TEST_TARGET}
                      WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR})
 target_link_libraries(${TEST_TARGET}
-    ${Boost_LIBRARIES}
+    Boost::context
     GTest::GTest
     GTest::Main
     pthread
@@ -32,6 +32,5 @@ if (QUANTUM_VERBOSE_MAKEFILE)
     message(STATUS "INCLUDE_DIRECTORIES = ${inc_dirs}")
     message(STATUS "LINK_DIRECTORIES = ${link_dirs}")
 endif()
-add_custom_target(tests)
-add_dependencies(tests ${TEST_TARGET})
-add_test(${PROJECT_NAME} ${TEST_TARGET})
+add_test(NAME ${TEST_TARGET}
+         COMMAND ${TEST_TARGET})

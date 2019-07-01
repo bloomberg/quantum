@@ -4,6 +4,8 @@
 **Quantum** is a full-featured and powerful C++ framework build on top of the [Boost coroutine](https://www.boost.org/doc/libs/1_65_0/libs/coroutine2/doc/html/index.html) library. The framework allows users to dispatch units of work (a.k.a. _tasks_) as coroutines and execute them concurrently using the 'reactor' pattern.
 
 ### Features
+
+* **NEW** Added support for simpler V2 coroutine API which returns computed values [directly](https://github.com/bloomberg/quantum/wiki/4.-Quick-reference-guide).
 * Header-only library and interface-based design.
 * Full integration with Boost asymmetric coroutine library.
 * Highly parallelized coroutine framework for CPU-bound workloads.
@@ -22,7 +24,6 @@
 * Parallel `forEach` and `mapReduce` functions.
 * Various stats API.
 * `Sequencer` class allowing strict FIFO ordering of tasks based on sequence ids.
-* **NEW** Added support for simpler V2 coroutine API which returns computed values [directly](https://github.com/bloomberg/quantum/wiki/4.-Quick-reference-guide).
 
 ### Sample code
 **Quantum** is very simple and easy to use:
@@ -117,6 +118,7 @@ Various **CMake** options can be used to configure the output:
                                Default is `/usr/local/include` for Linux or `c:/Program Files` for Windows.
 * `QUANTUM_PKGCONFIG_DIR`    : Specify custom install path for .pc file. Default is `${QUANTUM_INSTALL_ROOT}/share/pkgconfig`.
                                To specify a relative path from `QUANTUM_INSTALL_ROOT`, omit leading `/`. 
+* `QUANTUM_CMAKE_CONFIG_DIR` : Specify a different install directory for the project's config file. Default is `${QUANTUM_INSTALL_ROOT}/share/cmake`.
 * `BOOST_ROOT`               : Specify a different Boost install directory.
 * `GTEST_ROOT`               : Specify a different GTest install directory.
 
