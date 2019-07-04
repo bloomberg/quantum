@@ -19,6 +19,8 @@ option(QUANTUM_ALLOCATE_POOL_FROM_HEAP "Pre-allocates object pools from heap ins
 option(QUANTUM_BOOST_USE_SEGMENTED_STACKS "Use Boost segmented stacks for coroutines." OFF)
 option(QUANTUM_BOOST_USE_PROTECTED_STACKS "Use Boost protected stacks for coroutines." OFF)
 option(QUANTUM_BOOST_USE_FIXEDSIZE_STACKS "Use Boost fixed size stacks for coroutines." OFF)
+option(QUANTUM_EXPORT_PKGCONFIG "Generate 'quantum.pc' file" ON)
+option(QUANTUM_EXPORT_CMAKE_CONFIG "Generate CMake config, target and version files." ON)
 
 set(QUANTUM_VERSION_MAJOR 2)
 set(QUANTUM_VERSION_MINOR 0)

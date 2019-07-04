@@ -49,39 +49,43 @@ install(DIRECTORY
         DESTINATION "${CMAKE_INSTALL_INCLUDEDIR}"
         FILES_MATCHING PATTERN "*.h")
 
-# Install the exported file
-install(
-    EXPORT ${TARGET_EXPORT_NAME}
-    NAMESPACE "${NAMESPACE}"
-    DESTINATION "${QUANTUM_CMAKE_CONFIG_DIR}"
-)
+if (QUANTUM_EXPORT_PKGCONFIG)
+    # Generate package configuration file
+    configure_file("${PROJECT_SOURCE_DIR}/cmake/quantum.pc.in" ${PKGCONFIG_FILE} @ONLY)
 
-# Generate package configuration file
-configure_file(${PROJECT_SOURCE_DIR}/cmake/quantum.pc.in ${PKGCONFIG_FILE} @ONLY)
+    # Install the pkgconfig file
+    install(
+        FILES ${PKGCONFIG_FILE}
+        DESTINATION ${QUANTUM_PKGCONFIG_DIR}
+        COMPONENT pkgconfig
+    )
+endif()
 
-# Install the pkgconfig file
-install(
-    FILES ${PKGCONFIG_FILE}
-    DESTINATION ${QUANTUM_PKGCONFIG_DIR}
-    COMPONENT pkgconfig
-)
+if (QUANTUM_EXPORT_CMAKE_CONFIG)
+    # Install the exported file
+    install(
+        EXPORT ${TARGET_EXPORT_NAME}
+        NAMESPACE "${NAMESPACE}"
+        DESTINATION "${QUANTUM_CMAKE_CONFIG_DIR}"
+    )
 
-# Generate CMAKE configuration file and exported targets
-configure_package_config_file(
-    "${PROJECT_SOURCE_DIR}/cmake/${PROJECT_NAME}Config.cmake.in"
-    "${TARGET_CONFIG_FILE}"
-    INSTALL_DESTINATION "${QUANTUM_CMAKE_CONFIG_DIR}"
-    PATH_VARS CMAKE_INSTALL_PREFIX CMAKE_INSTALL_INCLUDEDIR
-)
+    # Generate CMAKE configuration file and exported targets
+    configure_package_config_file(
+        "${PROJECT_SOURCE_DIR}/cmake/${PROJECT_NAME}Config.cmake.in"
+        "${TARGET_CONFIG_FILE}"
+        INSTALL_DESTINATION "${QUANTUM_CMAKE_CONFIG_DIR}"
+        PATH_VARS CMAKE_INSTALL_PREFIX CMAKE_INSTALL_INCLUDEDIR
+    )
 
-# Generate version file
-write_basic_package_version_file(
-    "${TARGET_VERSION_FILE}"
-    VERSION ${QUANTUM_VERSION}
-    COMPATIBILITY AnyNewerVersion
-)
+    # Generate version file
+    write_basic_package_version_file(
+        "${TARGET_VERSION_FILE}"
+        VERSION ${QUANTUM_VERSION}
+        COMPATIBILITY AnyNewerVersion
+    )
 
-install(
-    FILES "${TARGET_CONFIG_FILE}" "${TARGET_VERSION_FILE}"
-    DESTINATION "${QUANTUM_CMAKE_CONFIG_DIR}"
-)
+    install(
+        FILES "${TARGET_CONFIG_FILE}" "${TARGET_VERSION_FILE}"
+        DESTINATION "${QUANTUM_CMAKE_CONFIG_DIR}"
+    )
+endif()
