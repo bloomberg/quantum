@@ -34,6 +34,9 @@ int bindCoro(Traits::Yield& yield,
     try
     {
         ctx->setYieldHandle(yield); //set coroutine yield
+        // the return address of rc must be on the coroutine stack so that it can be properly captured
+        // in the coroutine context. Otherwise when multiple threads run the same coroutine,
+        // the return value will be copied in the wrong location.
         int rc = std::forward<CAPTURE>(capture)();
         yield.get() = rc;
         return 0;
@@ -70,6 +73,9 @@ int bindCoro2(Traits::Yield& yield,
     try
     {
         ctx->setYieldHandle(yield); //set coroutine yield
+        // the return address of rc must be on the coroutine stack so that it can be properly captured
+        // in the coroutine context. Otherwise when multiple threads run the same coroutine,
+        // the return value will be copied in the wrong location.
         int rc = ctx->set(std::forward<CAPTURE>(capture)());
         yield.get() = rc;
         return 0;

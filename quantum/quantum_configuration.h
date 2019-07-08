@@ -89,6 +89,10 @@ public:
 
     /// @brief Enables or disables the shared-coro-queue-for-any settings
     /// @param[in] isSharedCoroQueueForAny sets the shared-coro-queue-for any setting
+    /// @warning When the coroutine sharing feature is enabled, then after each yield 
+    /// (explicit or implicit) a coroutine sent to the Any queue may be executed by
+    /// a different thread. As a result, coroutines using thread-local-storage (e.g., via thread_local),
+    /// will _not_ work as expected.
     void setCoroutineSharingForAny(bool sharing);
     
     /// @brief Get the number of coroutine threads.

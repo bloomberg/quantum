@@ -72,6 +72,10 @@ const std::string& Configuration::getJsonSchema()
             "coroQueueIdRangeForAnyHigh": {
                 "type": "number",
                 "default": -1
+            },
+            "coroSharingForAny": {
+                "type": "boolean",
+                "default": false
             }
         },
         "additionalProperties": false,
