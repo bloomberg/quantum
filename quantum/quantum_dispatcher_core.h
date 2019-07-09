@@ -90,12 +90,13 @@ private:
     QueueStatistics ioStats(int queueId);
     
     //Members
-    std::vector<TaskQueue>    _coroQueues;     //coroutine queues
-    std::vector<IoQueue>      _sharedIoQueues; //shared IO task queues (hold tasks posted to 'Any' IO queue)
-    std::vector<IoQueue>      _ioQueues;       //dedicated IO task queues
-    bool                      _loadBalanceSharedIoQueues; //tasks posted to 'Any' IO queue are load balanced
-    std::atomic_bool          _terminated;
-    std::pair<int, int>       _coroQueueIdRangeForAny; // range of coroutine queueIds covered by 'Any' 
+    std::shared_ptr<TaskQueue>  _sharedCoroAnyQueue; // shared coro queue for Any
+    std::vector<TaskQueue>      _coroQueues;     //coroutine queues
+    std::vector<IoQueue>        _sharedIoQueues; //shared IO task queues (hold tasks posted to 'Any' IO queue)
+    std::vector<IoQueue>        _ioQueues;       //dedicated IO task queues
+    bool                        _loadBalanceSharedIoQueues; //tasks posted to 'Any' IO queue are load balanced
+    std::atomic_bool            _terminated;
+    std::pair<int, int>         _coroQueueIdRangeForAny; // range of coroutine queueIds covered by 'Any' 
 };
 
 }}

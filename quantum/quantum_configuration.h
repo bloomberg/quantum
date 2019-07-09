@@ -86,6 +86,14 @@ public:
     /// @remark if the provided range is empty or invalid, then the default range of
     /// std::pair<int, int>(0, getNumCoroutineThreads()-1) will be used
     void setCoroQueueIdRangeForAny(const std::pair<int, int>& coroQueueIdRangeForAny);
+
+    /// @brief Enables or disables the shared-coro-queue-for-any settings
+    /// @param[in] isSharedCoroQueueForAny sets the shared-coro-queue-for any setting
+    /// @warning When the coroutine sharing feature is enabled, then after each yield 
+    /// (explicit or implicit) a coroutine sent to the Any queue may be executed by
+    /// a different thread. As a result, coroutines using thread-local-storage (e.g., via thread_local),
+    /// will _not_ work as expected.
+    void setCoroutineSharingForAny(bool sharing);
     
     /// @brief Get the number of coroutine threads.
     /// @return The number of threads.
@@ -120,6 +128,10 @@ public:
     /// @return queueIdRange The range of queueIds that IQueue::QueueId::Any covers
     const std::pair<int, int>& getCoroQueueIdRangeForAny() const;
     
+    /// @brief Gets the enablement flag of the shared-coro-queue-for-any
+    /// @return the enablement flag for the feature
+    bool getCoroutineSharingForAny() const;
+    
 private:
     int                         _numCoroutineThreads{-1};
     int                         _numIoThreads{5};
@@ -129,6 +141,7 @@ private:
     BackoffPolicy               _loadBalancePollIntervalBackoffPolicy{BackoffPolicy::Linear};
     size_t                      _loadBalancePollIntervalNumBackoffs{0};
     std::pair<int, int>         _coroQueueIdRangeForAny{-1, -1};
+    bool                        _coroutineSharingForAny{false};
 };
 
 }}

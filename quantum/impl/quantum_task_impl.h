@@ -46,10 +46,9 @@ Task::Task(std::shared_ptr<Context<RET>> ctx,
           Util::bindCaller(ctx, std::forward<FUNC>(func), std::forward<ARGS>(args)...)),
     _queueId(queueId),
     _isHighPriority(isHighPriority),
-    _rc((int)ITask::RetCode::Running),
     _type(type),
     _terminated(false),
-    _isSuspended(true)
+    _suspendedState((int)State::Suspended)
 {}
 
 template <class RET, class FUNC, class ... ARGS>
@@ -65,10 +64,9 @@ Task::Task(Void,
           Util::bindCaller2(ctx, std::forward<FUNC>(func), std::forward<ARGS>(args)...)),
     _queueId(queueId),
     _isHighPriority(isHighPriority),
-    _rc((int)ITask::RetCode::Running),
     _type(type),
     _terminated(false),
-    _isSuspended(true)
+    _suspendedState((int)State::Suspended)
 {}
 
 inline
@@ -90,13 +88,31 @@ void Task::terminate()
 inline
 int Task::run()
 {
-    if (_coro)
+    SuspensionGuard guard(_suspendedState);
+    if (guard)
     {
-        SuspensionGuard guard{_isSuspended};
-        _coro(_rc);
-        return _rc;
+        if (!_coro)
+        {
+            return (int)ITask::RetCode::NotCallable;
+        }
+        if (isBlocked())
+        {
+            return (int)ITask::RetCode::Blocked;
+        }
+        if (isSleeping(true))
+        {
+            return (int)ITask::RetCode::Sleeping;
+        }
+        
+        int rc = (int)ITask::RetCode::Running;
+        _coro(rc);
+        if (!_coro)
+        {
+            guard.set((int)State::Terminated);
+        }
+        return rc;
     }
-    return (int)ITask::RetCode::Success;
+    return (int)ITask::RetCode::AlreadyResumed;
 }
 
 inline
@@ -173,9 +189,9 @@ bool Task::isHighPriority() const
 inline
 bool Task::isSuspended() const
 {
-    return _isSuspended;
+    return _suspendedState == (int)State::Suspended;
 }
-
+    
 inline
 void* Task::operator new(size_t)
 {
@@ -197,5 +213,5 @@ void Task::deleter(Task* p)
     delete p;
 #endif
 }
-
+    
 }}

@@ -18,68 +18,107 @@
 
 #include <gtest/gtest.h>
 #include <quantum/quantum.h>
+#include <unordered_map>
+#include <memory>
+#include <functional>
 
 namespace quantum = Bloomberg::quantum;
+
+struct TestConfiguration
+{
+    TestConfiguration(bool loadBalance, bool coroutineSharingForAny) :
+        _loadBalance(loadBalance),
+        _coroutineSharingForAny(coroutineSharingForAny)
+    {
+    }
+   
+    bool operator == (const TestConfiguration& that) const
+    {
+        return _loadBalance == that._loadBalance &&
+            _coroutineSharingForAny == that._coroutineSharingForAny;
+    }
+
+    bool _loadBalance;
+    bool _coroutineSharingForAny;
+};
+
+namespace std {
+    template<> struct hash<TestConfiguration>
+    {
+        size_t operator()(const TestConfiguration & x) const
+        {
+            return std::hash<bool>()(x._loadBalance) +
+                std::hash<bool>()(x._coroutineSharingForAny);
+        }
+    };
+}
+
 
 /// @brief Singleton class
 class DispatcherSingleton
 {
 public:
-    static quantum::Dispatcher& createInstance(bool loadBalance)
+    static std::shared_ptr<quantum::Dispatcher> createInstance(const TestConfiguration& taskConfig)
     {
-        if (_dispatcher == nullptr)
-        {
-            quantum::Configuration config;
-            config.setNumCoroutineThreads(numCoro);
-            config.setNumIoThreads(numThreads);
-            config.setLoadBalanceSharedIoQueues(loadBalance);
-            config.setLoadBalancePollIntervalMs(std::chrono::milliseconds(10));
-            config.setCoroQueueIdRangeForAny(std::make_pair(1,numCoro-1));
-            _dispatcher = new quantum::Dispatcher(config);
-        }
-        return *_dispatcher;
+        quantum::Configuration config;
+        config.setNumCoroutineThreads(numCoro);
+        config.setNumIoThreads(numThreads);
+        config.setLoadBalanceSharedIoQueues(taskConfig._loadBalance);
+        config.setLoadBalancePollIntervalMs(std::chrono::milliseconds(10));
+        config.setCoroQueueIdRangeForAny(std::make_pair(1,numCoro-1));
+        config.setCoroutineSharingForAny(taskConfig._coroutineSharingForAny);
+        return std::make_shared<quantum::Dispatcher>(config);
     }
     
-    static quantum::Dispatcher& instance()
+    static quantum::Dispatcher& instance(const TestConfiguration& config)
     {
-        if (_dispatcher == nullptr)
-        {
-            createInstance(false);
+        auto it = _dispatchers.find(config);
+        if (it == _dispatchers.end())
+        {                
+            it = _dispatchers.emplace(config, createInstance(config)).first;
         }
-        return *_dispatcher;
+        return *it->second;
     }
     
-    static void deleteInstance()
+    static void deleteInstances()
     {
-        delete _dispatcher;
-        _dispatcher = nullptr;
+        _dispatchers.clear();
     }
     
     static constexpr int numCoro{4};
     
     static constexpr int numThreads{5};
 private:
-    static quantum::Dispatcher*  _dispatcher;
+    using DispatcherMap = std::unordered_map<TestConfiguration, std::shared_ptr<quantum::Dispatcher>>;
+    static DispatcherMap _dispatchers;
 };
 
 /// @brief Fixture used for certain tests
-class DispatcherFixture : public ::testing::Test
+class DispatcherFixture : public ::testing::TestWithParam<TestConfiguration>
 {
 public:
-    DispatcherFixture()
+    DispatcherFixture():
+        _dispatcher()
     {
         quantum::StackTraits::defaultSize() = 1 << 14; //16k stack for testing
     }
     /// @brief Create a dispatcher object with equal number of coroutine and IO threads
     void SetUp()
     {
-        _dispatcher = &DispatcherSingleton::instance();
+        _dispatcher = &DispatcherSingleton::instance(GetParam());
     }
     
     void TearDown()
     {
-        DispatcherSingleton::deleteInstance();
+        _dispatcher = nullptr;
+        DispatcherSingleton::deleteInstances();
     }
+
+    quantum::Dispatcher& getDispatcher()
+    {
+        return *_dispatcher;
+    }
+    
 protected:
     quantum::Dispatcher*  _dispatcher;
 };

@@ -41,10 +41,14 @@ struct ITask : public ITerminate
     
     enum class RetCode : int
     {
-        Success = 0,
-        Running = std::numeric_limits<int>::max(),
-        Exception = (int)Running-1,
-        NotCallable = (int)Running-2,
+        Success = 0,                                ///< Coroutine finished successfully
+        Running = std::numeric_limits<int>::max(),  ///< Coroutine is still active
+        AlreadyResumed = (int)Running-1,            ///< Coroutine is running on a different thread
+        Exception = (int)Running-2,                 ///< Coroutine ended in an exception
+        NotCallable = (int)Running-3,               ///< Coroutine cannot be called
+        Blocked = (int)Running-4,                   ///< Coroutine is blocked
+        Sleeping = (int)Running-5,                  ///< Coroutine is sleeping
+        Max = (int)Running-10,                      ///< Value of the max reserved return code
     };
     
     ~ITask() = default;

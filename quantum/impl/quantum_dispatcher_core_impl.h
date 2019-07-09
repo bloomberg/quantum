@@ -46,14 +46,37 @@ DispatcherCore::DispatcherCore(int numCoroutineThreads,
 
 inline
 DispatcherCore::DispatcherCore(const Configuration& config) :
-    _coroQueues((config.getNumCoroutineThreads() == -1) ? std::thread::hardware_concurrency() :
-                (config.getNumCoroutineThreads() == 0) ? 1 : config.getNumCoroutineThreads(), TaskQueue(config)),
+    _sharedCoroAnyQueue(config.getCoroutineSharingForAny() ? std::make_shared<TaskQueue>(config, nullptr): nullptr),
     _sharedIoQueues((config.getNumIoThreads() <= 0) ? 1 : config.getNumIoThreads(), IoQueue(config, nullptr)),
     _ioQueues((config.getNumIoThreads() <= 0) ? 1 : config.getNumIoThreads(), IoQueue(config, &_sharedIoQueues)),
     _loadBalanceSharedIoQueues(false),
-    _terminated(false),
-    _coroQueueIdRangeForAny(0, (int)_coroQueues.size()-1)
+    _terminated(false)
 {
+    const int coroCount = (config.getNumCoroutineThreads() == -1) ? std::thread::hardware_concurrency() :
+        (config.getNumCoroutineThreads() == 0) ? 1 : config.getNumCoroutineThreads();
+
+    _coroQueueIdRangeForAny = std::make_pair(0, coroCount-1);
+    
+    const auto& coroQueueIdRangeForAny = config.getCoroQueueIdRangeForAny();
+    // set the range to the default if the configured one is invalid or empty
+    if (coroQueueIdRangeForAny.first <= coroQueueIdRangeForAny.second &&
+        coroQueueIdRangeForAny.first >= 0 &&
+        coroQueueIdRangeForAny.second < (int)coroCount)
+    {
+        _coroQueueIdRangeForAny = coroQueueIdRangeForAny;
+    }
+
+    // start the coro threads
+    _coroQueues.reserve(coroCount);
+    for (int coroId = 0; coroId < coroCount; ++coroId)
+    {
+        _coroQueues.emplace_back(
+            config,
+            (coroId >= _coroQueueIdRangeForAny.first && coroId <= _coroQueueIdRangeForAny.second) ?
+                _sharedCoroAnyQueue : std::shared_ptr<TaskQueue>());
+    }
+    
+    // pin to cores
     if (config.getPinCoroutineThreadsToCores())
     {
         unsigned int cores = std::thread::hardware_concurrency();
@@ -61,14 +84,6 @@ DispatcherCore::DispatcherCore(const Configuration& config) :
         {
             _coroQueues[i].pinToCore(i%cores);
         }
-    }
-    const auto& coroQueueIdRangeForAny = config.getCoroQueueIdRangeForAny();
-    // set the range to the default if the configured one is invalid or empty
-    if (coroQueueIdRangeForAny.first <= coroQueueIdRangeForAny.second &&
-        coroQueueIdRangeForAny.first >= 0 &&
-        coroQueueIdRangeForAny.second < (int)_coroQueues.size())
-    {
-        _coroQueueIdRangeForAny = coroQueueIdRangeForAny;
     }
 }
 
@@ -87,6 +102,10 @@ void DispatcherCore::terminate()
         for (auto&& queue : _coroQueues)
         {
             queue.terminate();
+        }
+        if (_sharedCoroAnyQueue)
+        {
+            _sharedCoroAnyQueue->terminate();
         }
         for (auto&& queue : _ioQueues)
         {
@@ -147,6 +166,10 @@ size_t DispatcherCore::coroSize(int queueId) const
         {
             size += queue.size();
         }
+        if (_sharedCoroAnyQueue)
+        {
+            size += _sharedCoroAnyQueue->size();
+        }
         return size;
     }
     else if ((queueId >= (int)_coroQueues.size()) || (queueId < 0))
@@ -164,6 +187,10 @@ bool DispatcherCore::coroEmpty(int queueId) const
         for (auto&& queue : _coroQueues)
         {
             if (!queue.empty()) return false;
+        }
+        if (_sharedCoroAnyQueue && !_sharedCoroAnyQueue->empty())
+        {
+            return false;
         }
         return true;
     }
@@ -265,6 +292,10 @@ QueueStatistics DispatcherCore::coroStats(int queueId)
         {
             stats += queue.stats();
         }
+        if (_sharedCoroAnyQueue)
+        {
+            stats += _sharedCoroAnyQueue->stats();
+        }
         return stats;
     }
     else
@@ -319,6 +350,10 @@ void DispatcherCore::resetStats()
     {
         queue.stats().reset();
     }
+    if (_sharedCoroAnyQueue)
+    {
+        _sharedCoroAnyQueue->stats().reset();
+    }
     for (auto&& queue : _sharedIoQueues)
     {
         queue.stats().reset();
@@ -339,6 +374,12 @@ void DispatcherCore::post(Task::Ptr task)
     
     if (task->getQueueId() == (int)IQueue::QueueId::Any)
     {
+        if (_sharedCoroAnyQueue)
+        {
+            _sharedCoroAnyQueue->enqueue(task);
+            return;
+        }
+        
         size_t index = 0;
         
         //Insert into the shortest queue or the first empty queue found
