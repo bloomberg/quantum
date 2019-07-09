@@ -188,17 +188,20 @@ void run_coro(Traits::Coroutine& coro, std::mutex& m, int& end, int start)
     }
 }
 
-void enqueue_heavy_tasks(quantum::Dispatcher& dispatcher, size_t count)
+void enqueue_sleep_tasks(quantum::Dispatcher& dispatcher,
+                         const std::vector<std::pair<size_t, ms>> & sleepTimes)
 {
-    const ms sleepTime(10);
-    for(size_t i = 0; i < count; ++i)
+    for(auto item : sleepTimes)
     {
-        dispatcher.post((int)IQueue::QueueId::Any,
-                        false,
-                        [sleepTime](CoroContext<int>::Ptr)->int {
-                            std::this_thread::sleep_for(ms(sleepTime)); 
-                            return 0;
-                        });
+        for(size_t i = 0; i < item.first; ++i)
+        {
+            dispatcher.post((int)IQueue::QueueId::Any,
+                            false,
+                            [item](CoroContext<int>::Ptr)->int {
+                                std::this_thread::sleep_for(item.second); 
+                                return 0;
+                            });
+        }
     }
 }
 
@@ -1438,13 +1441,21 @@ TEST_P(FutureJoinerTest, JoinCoroFutures)
 
 TEST(SharedQueueTest, PerformanceTest1)
 {
+    // The code below enqueues 30 short tasks, then 1 large task, and then 30 short tasks.
+    // The intuition is that in the shared-coro mode, while one thread is busy with the large task,
+    // the other threads will help it with the short tasks, and as a result
+    // the shared-coro dispatcher will finish faster.
     size_t elapsedWithoutCoroSharing, elapsedWithCoroSharing;
+    const std::vector<std::pair<size_t, ms>> sleepTimes =
+        {{30, ms(10)},
+         {1, ms(100)},
+         {30, ms(10)}};
     {
         const TestConfiguration noCoroSharingConfig(false, false);
         quantum::Dispatcher& dispatcher = DispatcherSingleton::instance(noCoroSharingConfig);
         
         auto start = std::chrono::steady_clock::now();
-        enqueue_heavy_tasks(dispatcher, 100);
+        enqueue_sleep_tasks(dispatcher, sleepTimes);
         dispatcher.drain();
         auto end = std::chrono::steady_clock::now();
         elapsedWithoutCoroSharing = std::chrono::duration_cast<std::chrono::milliseconds>(end-start).count();
@@ -1455,7 +1466,7 @@ TEST(SharedQueueTest, PerformanceTest1)
         quantum::Dispatcher& dispatcher = DispatcherSingleton::instance(coroSharingConfig);
 
         auto start = std::chrono::steady_clock::now();
-        enqueue_heavy_tasks(dispatcher, 100);
+        enqueue_sleep_tasks(dispatcher, sleepTimes);
         dispatcher.drain();
         auto end = std::chrono::steady_clock::now();
         elapsedWithCoroSharing = std::chrono::duration_cast<std::chrono::milliseconds>(end-start).count();
