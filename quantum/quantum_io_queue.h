@@ -80,6 +80,8 @@ public:
     
     bool isIdle() const final;
     
+    const std::shared_ptr<std::thread>& getThread() const final;
+    
 private:
     ITask::Ptr grabWorkItem();
     ITask::Ptr grabWorkItemFromAll();

@@ -84,6 +84,8 @@ public:
     void signalEmptyCondition(bool value) final;
     
     bool isIdle() const final;
+    
+    const std::shared_ptr<std::thread>& getThread() const final;
 
 private:
     struct WorkItem

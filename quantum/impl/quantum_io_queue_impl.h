@@ -447,4 +447,10 @@ bool IoQueue::isIdle() const
     return _isIdle;
 }
 
+inline
+const std::shared_ptr<std::thread>& IoQueue::getThread() const
+{
+    return _thread;
+}
+
 }}

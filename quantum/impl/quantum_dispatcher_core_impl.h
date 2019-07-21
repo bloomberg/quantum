@@ -23,28 +23,6 @@ namespace Bloomberg {
 namespace quantum {
 
 inline
-DispatcherCore::DispatcherCore(int numCoroutineThreads,
-                               int numIoThreads,
-                               bool pinCoroutineThreadsToCores) :
-    _coroQueues((numCoroutineThreads == -1) ? std::thread::hardware_concurrency() :
-                (numCoroutineThreads == 0) ? 1 : numCoroutineThreads),
-    _sharedIoQueues((numIoThreads <= 0) ? 1 : numIoThreads),
-    _ioQueues((numIoThreads <= 0) ? 1 : numIoThreads, IoQueue(Configuration(), &_sharedIoQueues)),
-    _loadBalanceSharedIoQueues(false),
-    _terminated(false),
-    _coroQueueIdRangeForAny(0, (int)_coroQueues.size()-1)
-{
-    if (pinCoroutineThreadsToCores)
-    {
-        unsigned int cores = std::thread::hardware_concurrency();
-        for (size_t i = 0; i < _coroQueues.size(); ++i)
-        {
-            _coroQueues[i].pinToCore(i%cores);
-        }
-    }
-}
-
-inline
 DispatcherCore::DispatcherCore(const Configuration& config) :
     _sharedCoroAnyQueue(config.getCoroutineSharingForAny() ? std::make_shared<TaskQueue>(config, nullptr): nullptr),
     _sharedIoQueues((config.getNumIoThreads() <= 0) ? 1 : config.getNumIoThreads(), IoQueue(config, nullptr)),
@@ -65,15 +43,39 @@ DispatcherCore::DispatcherCore(const Configuration& config) :
     {
         _coroQueueIdRangeForAny = coroQueueIdRangeForAny;
     }
+    
+    // set thread name for shared queue
+    if (_sharedCoroAnyQueue) {
+        IQueue::setThreadName(IQueue::QueueType::Coro,
+                              _sharedCoroAnyQueue->getThread()->native_handle(),
+                              0,
+                              true,
+                              false);
+    }
 
     // start the coro threads
     _coroQueues.reserve(coroCount);
     for (int coroId = 0; coroId < coroCount; ++coroId)
     {
-        _coroQueues.emplace_back(
-            config,
-            (coroId >= _coroQueueIdRangeForAny.first && coroId <= _coroQueueIdRangeForAny.second) ?
-                _sharedCoroAnyQueue : std::shared_ptr<TaskQueue>());
+        bool hasSharedQueue = (coroId >= _coroQueueIdRangeForAny.first &&
+                               coroId <= _coroQueueIdRangeForAny.second);
+        _coroQueues.emplace_back(config, hasSharedQueue ? _sharedCoroAnyQueue : nullptr);
+        // set thread name for coro queues
+        IQueue::setThreadName(IQueue::QueueType::Coro,
+                              _coroQueues.back().getThread()->native_handle(),
+                              coroId,
+                              false,
+                              hasSharedQueue);
+    }
+    
+    // set thread names for io queues
+    for (size_t ioId = 0; ioId < _ioQueues.size(); ++ioId)
+    {
+        IQueue::setThreadName(IQueue::QueueType::IO,
+                              _ioQueues[ioId].getThread()->native_handle(),
+                              ioId,
+                              false,
+                              false);
     }
     
     // pin to cores
