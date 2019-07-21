@@ -568,6 +568,12 @@ bool TaskQueue::isIdle() const
 }
 
 inline
+const std::shared_ptr<std::thread>& TaskQueue::getThread() const
+{
+    return _thread;
+}
+
+inline
 void TaskQueue::acquireWaiting()
 {
     //========================= LOCKED SCOPE =========================

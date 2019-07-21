@@ -21,6 +21,10 @@
 #include <quantum/interface/quantum_itask.h>
 #include <quantum/interface/quantum_iqueue_statistics.h>
 #include <quantum/quantum_allocator.h>
+#ifndef __GLIBC__
+#include <pthread.h>
+#endif
+#include <thread>
 
 namespace Bloomberg {
 namespace quantum {
@@ -61,9 +65,48 @@ struct IQueue : public ITerminate
     virtual void signalEmptyCondition(bool value) = 0;
     
     virtual bool isIdle() const = 0;
+    
+    virtual const std::shared_ptr<std::thread>& getThread() const = 0;
+    
+    static void setThreadName(QueueType type,
+                              std::thread::native_handle_type threadHandle,
+                              int queueId,
+                              bool shared,
+                              bool any);
 };
 
 using IQueuePtr = IQueue::Ptr;
+
+inline
+void IQueue::setThreadName(QueueType type,
+                           std::thread::native_handle_type threadHandle,
+                           int queueId,
+                           bool shared,
+                           bool any)
+{
+    int idx = 0;
+    char name[16] = {0};
+    memcpy(name + idx, "quantum:", 8); idx += 8;
+    if (type == QueueType::Coro) {
+        memcpy(name + idx, "co:", 3); idx += 3;
+        if (shared) {
+            memcpy(name + idx, "s:", 2); idx += 2;
+        }
+        else if (any) {
+            memcpy(name + idx, "a:", 2); idx += 2;
+        }
+    }
+    else {
+        memcpy(name + idx, "io:", 3); idx += 3;
+    }
+    //last 2 digits of the queueId
+    name[idx+1] = '0' + queueId % 10; queueId /= 10;
+    name[idx] = '0' + queueId % 10;
+    
+    #if (__GLIBC__ >= 2) && (__GLIBC_MINOR__ >= 12)
+        pthread_setname_np(threadHandle, name);
+    #endif
+}
 
 #ifndef __QUANTUM_USE_DEFAULT_ALLOCATOR
     #ifdef __QUANTUM_ALLOCATE_POOL_FROM_HEAP

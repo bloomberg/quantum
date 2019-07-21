@@ -70,11 +70,6 @@ public:
     const std::pair<int, int>& getCoroQueueIdRangeForAny() const;
     
 private:
-    // TODO : Remove - deprecated
-    DispatcherCore(int numCoroutineThreads,
-                   int numIoThreads,
-                   bool pinCoroutineThreadsToCores);
-    
     DispatcherCore(const Configuration& config);
     
     size_t coroSize(int queueId) const;
