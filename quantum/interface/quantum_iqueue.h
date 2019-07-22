@@ -25,6 +25,7 @@
 #include <pthread.h>
 #endif
 #include <thread>
+#include <string.h>
 
 namespace Bloomberg {
 namespace quantum {
