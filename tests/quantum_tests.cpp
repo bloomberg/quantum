@@ -122,6 +122,14 @@ INSTANTIATE_TEST_CASE_P(FutureJoinerTest_Default,
                         ::testing::Values(TestConfiguration(false, false),
                                           TestConfiguration(false, true)));
 
+struct CoroLocalStorageTest: public DispatcherFixture
+{};
+
+INSTANTIATE_TEST_CASE_P(CoroLocalStorageTest_Default,
+                        CoroLocalStorageTest,
+                        ::testing::Values(TestConfiguration(false, false),
+                                          TestConfiguration(false, true)));
+
 struct CleanupTest: public DispatcherFixture
 {};
 
@@ -1499,6 +1507,49 @@ TEST(SharedQueueTest, PerformanceTest1)
         elapsedWithCoroSharing = std::chrono::duration_cast<std::chrono::milliseconds>(end-start).count();
     }
     EXPECT_LT(elapsedWithCoroSharing, elapsedWithoutCoroSharing);
+}
+
+TEST_P(CoroLocalStorageTest, AccessTest)
+{
+    for(int globalCounter = 0; globalCounter < 100; ++globalCounter)
+    {
+        getDispatcher().post([this, globalCounter](CoroContext<int>::Ptr ctx)->int
+        {
+            static const std::string globalCounterName = "globalCounter";            
+            static const std::string localCounterName = "localCounter";
+            // make sure nothing is inherited from the previous tasks
+            EXPECT_EQ(nullptr, cls::variable<int>(globalCounterName));
+            EXPECT_EQ(nullptr, cls::variable<int>(localCounterName));
+
+            // set the local variable that remains constant
+            int globalCounterCopy = globalCounter;
+            cls::variable<int>(globalCounterName) = &globalCounterCopy;
+
+            int i = 0;
+            // set the local variable that is changed in every iteration
+            cls::variable<int>(localCounterName) = &i;
+
+            for(i = 0; i < 10; ++i)
+            {
+                ctx->sleep(ms(10));
+
+                int* localCounterValue = cls::variable<int>(localCounterName);
+                EXPECT_EQ(&i, localCounterValue);
+
+                int* globalCounterValue = cls::variable<int>(globalCounterName);
+                EXPECT_EQ(&globalCounterCopy, globalCounterValue);
+            }
+
+            // exit abnormally from time to time
+            if (globalCounter % 5 == 0)
+            {
+                throw std::runtime_error("test");
+            }
+
+            return ctx->set(0);
+        });
+    }
+    getDispatcher().drain();
 }
 
 //This test **must** come last to make Valgrind happy.

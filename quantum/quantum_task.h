@@ -20,6 +20,7 @@
 #include <memory>
 #include <list>
 #include <utility>
+#include <unordered_map>
 #include <quantum/interface/quantum_iterminate.h>
 #include <quantum/interface/quantum_icontext.h>
 #include <quantum/interface/quantum_iqueue.h>
@@ -45,6 +46,8 @@ public:
     using WeakPtr = std::weak_ptr<Task>;
     
     enum class State : int { Running, Suspended, Terminated };
+
+    using CoroLocalStorage = std::unordered_map<std::string, void*>;
     
     template <class RET, class FUNC, class ... ARGS>
     Task(std::shared_ptr<Context<RET>> ctx,
@@ -93,7 +96,10 @@ public:
     //Returns a final or error handler task in the chain and in the process frees all
     //the subsequent continuation tasks
     ITaskContinuation::Ptr getErrorHandlerOrFinalTask() final;
-    
+
+    //Local storage accessors
+    CoroLocalStorage& getCoroLocalStorage();
+
     //===================================
     //           NEW / DELETE
     //===================================
@@ -144,6 +150,7 @@ private:
     ITask::Type                 _type;
     std::atomic_bool            _terminated;
     std::atomic_int             _suspendedState; // stores values of State
+    CoroLocalStorage            _coroLocalStorage; // local storage of the coroutine
 };
 
 using TaskPtr = Task::Ptr;

@@ -23,7 +23,7 @@
 
 namespace Bloomberg {
 namespace quantum {
-    
+
 inline
 TaskQueue::WorkItem::WorkItem(TaskPtr task,
                               TaskListIter iter,
@@ -44,6 +44,19 @@ TaskQueue::ProcessTaskResult::ProcessTaskResult(bool isBlocked,
 {
 }
 
+inline
+TaskQueue::CurrentTaskSetter::CurrentTaskSetter(TaskQueue& taskQueue, const TaskPtr & task) :
+    _taskQueue(taskQueue)
+{
+    _taskQueue.setCurrentTask(task.get());
+}
+
+inline
+TaskQueue::CurrentTaskSetter::~CurrentTaskSetter()
+{
+    _taskQueue.setCurrentTask(nullptr);
+}
+    
 inline
 TaskQueue::TaskQueue() :
     TaskQueue(Configuration(), nullptr)
@@ -172,10 +185,16 @@ TaskQueue::ProcessTaskResult TaskQueue::processTask()
         {
             return ProcessTaskResult(workItem._isBlocked, workItem._blockedQueueRound);
         }
+
+        int rc;
+        {
+            // set the current task for local-storage queries
+            CurrentTaskSetter taskSetter(*this, task);
+            //========================= START/RESUME COROUTINE =========================
+            rc = task->run();
+            //=========================== END/YIELD COROUTINE ==========================
+        }
         
-        //========================= START/RESUME COROUTINE =========================
-        int rc = task->run();
-        //=========================== END/YIELD COROUTINE ==========================
         switch (rc)
         {
             case (int)ITask::RetCode::NotCallable:
@@ -447,7 +466,7 @@ bool TaskQueue::handleSuccess(const WorkItem& workItem)
     ITaskContinuation::Ptr nextTask;
     //Coroutine ended normally with "return 0" statement
     _stats.incCompletedCount();
-    
+
     //check if there's another task scheduled to run after this one
     nextTask = workItem._task->getNextTask();
     if (nextTask && (nextTask->getType() == ITask::Type::ErrorHandler))
@@ -594,7 +613,7 @@ void TaskQueue::acquireWaiting()
         //rewind by one since we are at end()
         --_queueIt;
     }
-    {
+    {        
         //splice wait queue unto run queue.
         _runQueue.splice(_runQueue.end(), _waitQueue);
     }
@@ -608,6 +627,24 @@ void TaskQueue::acquireWaiting()
         _queueIt = _runQueue.begin();
         ++_queueRound;
     }
+}
+
+inline
+Task*& getCurrentTaskImpl()
+{
+    static thread_local Task* currentTask = nullptr;
+    return currentTask;
+}
+
+inline
+Task* TaskQueue::getCurrentTask()
+{
+    return getCurrentTaskImpl();
+}
+
+inline void TaskQueue::setCurrentTask(Task* task)
+{
+    getCurrentTaskImpl() = task;
 }
 
 }}
