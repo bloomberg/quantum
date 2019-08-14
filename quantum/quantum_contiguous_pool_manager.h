@@ -118,6 +118,9 @@ private:
 
     //------------------------------- Members ----------------------------------
     struct Control {
+        ~Control() {
+            delete[] _freeBlocks;
+        }
         index_type          _size{0};
         aligned_type*       _buffer{nullptr}; //non-owning
         index_type*         _freeBlocks{nullptr};

@@ -38,7 +38,8 @@ template <typename RET, typename FUNC, typename ... ARGS>
 class Capture
 {
 public:
-    Capture(FUNC&& func, ARGS&&...args);
+    template <typename F, typename ... T>
+    Capture(F&& func, T&&...args);
 
     template <typename ... T>
     RET operator()(T&&...t);
@@ -67,6 +68,7 @@ class Function<RET(ARGS...)>
     static constexpr size_t size{__QUANTUM_FUNCTION_ALLOC_SIZE};
     using Func = RET(*)(ARGS...);
     using Callback = RET(*)(void*, ARGS...);
+    using Destructor = void(*)(void*);
     using Deleter = void(*)(void*);
     
 public:
@@ -74,9 +76,9 @@ public:
     Function(RET(*ptr)(ARGS...)); //construct with function pointer
     template <typename FUNCTOR>
     Function(FUNCTOR&& functor); //construct with functor
-    Function(const Function<RET(ARGS...)>& other);
+    Function(const Function<RET(ARGS...)>& other) = delete;
     Function(Function<RET(ARGS...)>&& other);
-    Function& operator=(const Function<RET(ARGS...)>& other);
+    Function& operator=(const Function<RET(ARGS...)>& other) = delete;
     Function& operator=(Function<RET(ARGS...)>&& other);
     ~Function();
     
@@ -85,7 +87,7 @@ public:
     explicit operator bool() const;
     
 private:
-    static void dummyDeleter(void*) {}
+    static void dummy(void*) {}
     static void deleter(void* p) { delete[] static_cast<char*>(p); }
     
     template <typename FUNCTOR>
@@ -95,9 +97,10 @@ private:
     void initFunctor(FUNCTOR&& functor, std::false_type);
     
     std::array<char, size>  _storage;
-    void*                   _callable;
-    Callback                _callback;
-    Deleter                 _deleter;
+    void*                   _callable{nullptr};
+    Callback                _invoker{nullptr};
+    Destructor              _destructor{dummy};
+    Deleter                 _deleter{dummy};
 };
 
 }}

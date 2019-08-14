@@ -67,7 +67,19 @@ void QueueStatistics::incNumElements()
 inline
 void QueueStatistics::decNumElements()
 {
-    --_numElements;
+    size_t oldValue = 1;
+    size_t newValue = 0;
+    while(!_numElements.compare_exchange_weak(oldValue, newValue, std::memory_order_acq_rel))
+    {
+        if (oldValue == 0)
+        {
+            break;
+        }
+        else
+        {
+            newValue = oldValue - 1;
+        }
+    }
 }
 
 inline

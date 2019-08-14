@@ -19,9 +19,15 @@
 
 using namespace Bloomberg::quantum;
 
+#ifdef BOOST_USE_VALGRIND
+    int spins = 100;
+#else
+    int spins = 1000000;
+#endif
+
 TEST(Spinlock, Spinlock)
 {
-    int num = 1000000;
+    int num = spins;
     int val = 0;
     SpinLock spin;
     std::thread t1([&, num]() mutable {
@@ -60,7 +66,7 @@ TEST(ReadWriteSpinLock, LockReadMultipleTimes)
 
 TEST(ReadWriteSpinLock, LockReadAndWrite)
 {
-    int num = 1000000;
+    int num = spins;
     int val = 0;
     ReadWriteSpinLock spin;
     std::thread t1([&, num]() mutable {
@@ -100,7 +106,7 @@ TEST(ReadWriteSpinLock, LockReadAndWrite)
 
 TEST(ReadWriteSpinLock, LockReadAndWriteList)
 {
-    int num = 1000000;
+    int num = spins;
     std::list<int> val;
     ReadWriteSpinLock spin;
     bool exit = false;
