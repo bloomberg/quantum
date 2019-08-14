@@ -26,9 +26,10 @@ namespace quantum {
 //                                   class Capture
 //==============================================================================================
 template <typename RET, typename FUNC, typename ... ARGS>
-Capture<RET,FUNC,ARGS...>::Capture(FUNC&& func, ARGS&&...args) :
-    _func(std::forward<FUNC>(func)),
-    _args(std::forward<ARGS>(args)...) //pack
+template <typename F, typename ... T>
+Capture<RET,FUNC,ARGS...>::Capture(F&& func, T&&...args) :
+    _func(std::forward<F>(func)),
+    _args(std::forward<T>(args)...) //pack
 {}
 
 template <typename RET, typename FUNC, typename ... ARGS>
@@ -50,59 +51,11 @@ makeCapture(FUNC&& func, ARGS&& ... args)
 
 template <typename RET, typename ... ARGS>
 Function<RET(ARGS...)>::Function(RET(*ptr)(ARGS...)) :
-    _callable(reinterpret_cast<void*>(ptr)),
-    _deleter(dummyDeleter)
+    _callable(reinterpret_cast<void*>(ptr))
 {
-    _callback = [](void* ptr, ARGS...args)->RET {
+    _invoker = [](void* ptr, ARGS...args)->RET {
         return (*reinterpret_cast<Func>(ptr))(std::forward<ARGS>(args)...);
     };
-}
-
-template <typename RET, typename ... ARGS>
-Function<RET(ARGS...)>::Function(const Function<RET(ARGS...)>& other)
-{
-    *this = other;
-}
-
-template <typename RET, typename ... ARGS>
-Function<RET(ARGS...)>::Function(Function<RET(ARGS...)>&& other)
-{
-    *this = std::move(other);
-}
-
-template <typename RET, typename ... ARGS>
-Function<RET(ARGS...)>&
-Function<RET(ARGS...)>::operator=(const Function<RET(ARGS...)>& other)
-{
-    if (this != &other) {
-        _callback = other._callback;
-        _deleter = other._deleter;
-        if (other._callable == other._storage.data()) {
-            _storage = other._storage;
-            _callable = _storage.data();
-        }
-        else {
-            _callable = other._callable;
-        }
-    }
-    return *this;
-}
-
-template <typename RET, typename ... ARGS>
-Function<RET(ARGS...)>&
-Function<RET(ARGS...)>::operator=(Function<RET(ARGS...)>&& other)
-{
-    *this = other;
-    if (this != &other) {
-        other._callable = nullptr; //disable
-    }
-    return *this;
-}
-
-template <typename RET, typename ... ARGS>
-Function<RET(ARGS...)>::~Function()
-{
-    _deleter(_callable);
 }
 
 template <typename RET, typename ... ARGS>
@@ -113,8 +66,46 @@ Function<RET(ARGS...)>::Function(FUNCTOR&& functor)
 }
 
 template <typename RET, typename ... ARGS>
+Function<RET(ARGS...)>::Function(Function<RET(ARGS...)>&& other)
+{
+    *this = std::move(other);
+}
+
+template <typename RET, typename ... ARGS>
+Function<RET(ARGS...)>&
+Function<RET(ARGS...)>::operator=(Function<RET(ARGS...)>&& other)
+{
+    if (this != &other)
+    {
+        this->~Function(); //delete current
+        _invoker = other._invoker;
+        _destructor = other._destructor;
+        _deleter = other._deleter;
+        if (other._callable == other._storage.data()) {
+            //copy byte-wise data
+            //Note that in this case the destructor will be called on a seemingly different object than the constructor
+            //however this is valid.
+            _storage = other._storage;
+            _callable = _storage.data();
+        }
+        else {
+            _callable = other._callable; //steal buffer
+        }
+        other._callable = nullptr; //disable other callable
+    }
+    return *this;
+}
+
+template <typename RET, typename ... ARGS>
+Function<RET(ARGS...)>::~Function()
+{
+    if (_destructor) _destructor(_callable);
+    if (_deleter) _deleter(_callable);
+}
+
+template <typename RET, typename ... ARGS>
 RET Function<RET(ARGS...)>::operator()(ARGS...args) {
-    return _callback(_callable, std::forward<ARGS>(args)...);
+    return _invoker(_callable, std::forward<ARGS>(args)...);
 }
 
 template <typename RET, typename ... ARGS>
@@ -127,9 +118,8 @@ template <typename FUNCTOR>
 void Function<RET(ARGS...)>::initFunctor(FUNCTOR&& functor, std::true_type)
 {
     _callable = std::addressof(functor);
-    _deleter = dummyDeleter;
-    _callback = [](void* ptr, ARGS...args)->RET {
-        return (*reinterpret_cast<std::remove_reference_t<FUNCTOR>*>(ptr))(std::forward<ARGS>(args)...);
+    _invoker = [](void* ptr, ARGS...args)->RET {
+        return (*reinterpret_cast<FUNCTOR*>(ptr))(std::forward<ARGS>(args)...);
     };
 }
 
@@ -137,18 +127,21 @@ template <typename RET, typename ... ARGS>
 template <typename FUNCTOR>
 void Function<RET(ARGS...)>::initFunctor(FUNCTOR&& functor, std::false_type)
 {
+    _destructor = [](void* ptr){
+        if (!ptr) return;
+        reinterpret_cast<FUNCTOR*>(ptr)->~FUNCTOR(); //invoke destructor
+    };
     if (sizeof(FUNCTOR) <= size) {
         new (_storage.data()) FUNCTOR(std::forward<FUNCTOR>(functor));
         _callable = _storage.data();
-        _deleter = dummyDeleter;
     }
     else {
         _callable = new char[sizeof(FUNCTOR)];
         new (_callable) FUNCTOR(std::forward<FUNCTOR>(functor));
         _deleter = deleter;
     }
-    _callback = [](void* ptr, ARGS...args)->RET {
-        return (*reinterpret_cast<std::remove_reference_t<FUNCTOR>*>(ptr))(std::forward<ARGS>(args)...);
+    _invoker = [](void* ptr, ARGS...args)->RET {
+        return (*reinterpret_cast<FUNCTOR*>(ptr))(std::forward<ARGS>(args)...);
     };
 }
 

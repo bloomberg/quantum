@@ -528,9 +528,3 @@ TEST_P(SequencerTest, CustomHashFunction)
         }
     }
 }
-
-//This test **must** come last to make Valgrind happy.
-TEST(SequencerTestCleanup, DeleteDispatcherInstance)
-{
-    DispatcherSingleton::deleteInstances();
-}

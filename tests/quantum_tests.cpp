@@ -122,6 +122,14 @@ INSTANTIATE_TEST_CASE_P(FutureJoinerTest_Default,
                         ::testing::Values(TestConfiguration(false, false),
                                           TestConfiguration(false, true)));
 
+struct CleanupTest: public DispatcherFixture
+{};
+
+INSTANTIATE_TEST_CASE_P(CleanupTest_Default,
+                        CleanupTest,
+                        ::testing::Values(TestConfiguration(false, false),
+                                          TestConfiguration(false, true)));
+
 //==============================================================================
 //                           TEST HELPERS
 //==============================================================================
@@ -143,7 +151,12 @@ int DummyIoTask(ThreadPromise<int>::Ptr promise)
     return 0;
 }
 
-int fibInput = 23;
+#ifdef BOOST_USE_VALGRIND
+    int fibInput = 10;
+#else
+    int fibInput = 23;
+#endif
+
 std::map<int, int> fibValues{{10, 55}, {20, 6765}, {21, 10946}, {22, 17711},
                              {23, 28657}, {24, 46368}, {25, 75025}, {30, 832040}};
 
@@ -1120,13 +1133,21 @@ TEST_P(StressTest, RecursiveFibonacciSerie)
     EXPECT_EQ((size_t)fibValues[fibInput], tctx->get());
 }
 
+#ifdef BOOST_USE_VALGRIND
+    int ioLoops = 10;
+    int batchNum = 10;
+#else
+    int ioLoops = 10000;
+    int batchNum = 1000;
+#endif
+
 TEST_P(StressTest, AsyncIo)
 {
     std::mutex m;
     std::set<std::pair<int, int>> s; //queueId,iteration
     std::vector<std::pair<int, int>> v;
-    v.reserve(10000);
-    for (int i = 0; i < 10000; ++i) {
+    v.reserve(ioLoops);
+    for (int i = 0; i < ioLoops; ++i) {
         int queueId = i % getDispatcher().getNumIoThreads();
         getDispatcher().postAsyncIo<int>(queueId, false, [&m,&v,&s,queueId,i](ThreadPromise<int>::Ptr promise){
             {
@@ -1138,8 +1159,8 @@ TEST_P(StressTest, AsyncIo)
         });
     }
     getDispatcher().drain();
-    EXPECT_EQ(10000, (int)v.size());
-    EXPECT_EQ(10000, (int)s.size()); //all elements unique
+    EXPECT_EQ(ioLoops, (int)v.size());
+    EXPECT_EQ(ioLoops, (int)s.size()); //all elements unique
 }
 
 TEST_P(StressTest, AsyncIoAnyQueue)
@@ -1147,8 +1168,8 @@ TEST_P(StressTest, AsyncIoAnyQueue)
     std::mutex m;
     std::set<std::pair<int, int>> s; //queueId,iteration
     std::vector<std::pair<int, int>> v;
-    v.reserve(10000);
-    for (int i = 0; i < 10000; ++i) {
+    v.reserve(ioLoops);
+    for (int i = 0; i < ioLoops; ++i) {
         int queueId = i % getDispatcher().getNumIoThreads();
         getDispatcher().postAsyncIo<int>([&m,&v,&s,queueId,i](ThreadPromise<int>::Ptr promise){
             {
@@ -1160,8 +1181,8 @@ TEST_P(StressTest, AsyncIoAnyQueue)
         });
     }
     getDispatcher().drain();
-    EXPECT_EQ(10000, (int)v.size());
-    EXPECT_EQ(10000, (int)s.size()); //all elements unique
+    EXPECT_EQ(ioLoops, (int)v.size());
+    EXPECT_EQ(ioLoops, (int)s.size()); //all elements unique
 }
 
 TEST_P(StressTestBalanced, AsyncIoAnyQueueLoadBalance)
@@ -1169,8 +1190,8 @@ TEST_P(StressTestBalanced, AsyncIoAnyQueueLoadBalance)
     std::mutex m;
     std::set<std::pair<int, int>> s; //queueId,iteration
     std::vector<std::pair<int, int>> v;
-    v.reserve(10000);
-    for (int i = 0; i < 10000; ++i) {
+    v.reserve(ioLoops);
+    for (int i = 0; i < ioLoops; ++i) {
         int queueId = i % getDispatcher().getNumIoThreads();
         getDispatcher().postAsyncIo<int>([&m,&v,&s,queueId,i](ThreadPromise<int>::Ptr promise){
             {
@@ -1182,8 +1203,8 @@ TEST_P(StressTestBalanced, AsyncIoAnyQueueLoadBalance)
         });
     }
     getDispatcher().drain();
-    EXPECT_EQ(10000, (int)v.size());
-    EXPECT_EQ(10000, (int)s.size()); //all elements unique
+    EXPECT_EQ(ioLoops, (int)v.size());
+    EXPECT_EQ(ioLoops, (int)s.size()); //all elements unique
 }
 
 TEST_P(ForEachTest, Simple)
@@ -1232,11 +1253,10 @@ TEST_P(ForEachTest, SmallBatch)
 
 TEST_P(ForEachTest, LargeBatch)
 {
-    int num = 1003;
-    std::vector<int> start(num);
+    std::vector<int> start(batchNum);
     
     //Build a large input vector
-    for (int i = 0; i < num; ++i) {
+    for (int i = 0; i < batchNum; ++i) {
         start[i]=i;
     }
     
@@ -1253,7 +1273,7 @@ TEST_P(ForEachTest, LargeBatch)
         merged.insert(merged.end(), v.begin(), v.end());
     }
     
-    ASSERT_EQ(num, (int)merged.size());
+    ASSERT_EQ(batchNum, (int)merged.size());
     for (size_t i = 0; i < merged.size(); ++i) {
         EXPECT_EQ(merged[i], start[i]*2);
     }
@@ -1262,8 +1282,7 @@ TEST_P(ForEachTest, LargeBatch)
 TEST_P(ForEachTest, LargeBatchFromCoroutine)
 {
     getDispatcher().post([this](CoroContext<int>::Ptr ctx)->int {
-        size_t num = 1003;
-        std::vector<int> start(num);
+        std::vector<int> start(batchNum);
     
         std::vector<std::vector<int>> results = ctx->forEachBatch<int>(start.begin(), start.size(),
             [](VoidContextPtr, int val)->int {
@@ -1279,7 +1298,7 @@ TEST_P(ForEachTest, LargeBatchFromCoroutine)
         }
         
         size_t size = merged.size();
-        EXPECT_EQ(num, size);
+        EXPECT_EQ(batchNum, size);
         for (size_t i = 0; i < size; ++i) {
             EXPECT_EQ(merged[i], start[i]*2);
         }
@@ -1475,11 +1494,10 @@ TEST(SharedQueueTest, PerformanceTest1)
 }
 
 //This test **must** come last to make Valgrind happy.
-TEST(TestCleanup, DeleteDispatcherInstance)
+TEST_P(CleanupTest, DeleteDispatcherInstance)
 {
     DispatcherSingleton::deleteInstances();
 }
-
 
 
 
