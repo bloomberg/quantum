@@ -25,8 +25,10 @@ namespace quantum {
 
 #define UNUSED(x) (void)(x) //remove compiler warnings
 
+//fwd declarations
 template <class T, class ALLOCATOR = std::allocator<T>>
-class Buffer; //fwd declaration
+class Buffer;
+class Deprecated;
 
 //==============================================================================================
 //                                    struct Traits
@@ -62,6 +64,13 @@ struct Traits
         operator B*() { return static_cast<D*>(static_cast<THIS*>(this)); }
         operator B&() { return static_cast<D&>(static_cast<THIS&>(*this)); }
     };
+    
+    //Partially specialize this trait to access inner types
+    template <typename T>
+    struct InnerType
+    {
+        using Type = T;
+    };
 };
 
 template <class T, class V>
@@ -74,6 +83,18 @@ template <class T>
 using BufferRetType = std::enable_if_t<Traits::IsBuffer<T>::value, typename Traits::IsBuffer<T>::Type>;
 template <class T>
 using NonBufferRetType = std::enable_if_t<!Traits::IsBuffer<T>::value, typename Traits::IsBuffer<T>::Type>;
+template <typename FUNC>
+auto resultOf(FUNC&& func)->typename Traits::InnerType<typename FunctionArguments<decltype(Callable::ref(func))>::FirstType>::Type;
+template <typename FUNC>
+auto resultOf2(FUNC&& func)->typename FunctionArguments<decltype(Callable::ref(func))>::RetType;
+template <class T>
+struct Traits::InnerType<std::vector<T>> { using Type = T; };
+template <typename FUNC>
+auto mappedKeyOf(FUNC&& func)->typename std::tuple_element<0, typename Traits::InnerType<decltype(resultOf2(func))>::Type>::type;
+template <typename FUNC>
+auto mappedTypeOf(FUNC&& func)->typename std::tuple_element<1, typename Traits::InnerType<decltype(resultOf2(func))>::Type>::type;
+template <typename FUNC>
+auto reducedTypeOf(FUNC&& func)->typename std::tuple_element<1, decltype(resultOf2(func))>::type;
 
 }}
 

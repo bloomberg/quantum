@@ -183,8 +183,8 @@ int recursive_fib(CoroContext<size_t>::Ptr ctx, size_t fib)
     else
     {
         //Post both branches of the Fibonacci series before blocking on get().
-        auto ctx1 = ctx->post<size_t>(recursive_fib, fib - 2);
-        auto ctx2 = ctx->post<size_t>(recursive_fib, fib - 1);
+        auto ctx1 = ctx->post(recursive_fib, fib - 2);
+        auto ctx2 = ctx->post(recursive_fib, fib - 1);
         return ctx->set(ctx1->get(ctx) + ctx2->get(ctx));
     }
 }
@@ -250,7 +250,7 @@ TEST_P(CoreTest, Constructor)
 
 TEST_P(CoreTest, CheckReturnValue)
 {
-    IThreadContext<std::string>::Ptr tctx = getDispatcher().post2<std::string>(DummyCoro2);
+    IThreadContext<std::string>::Ptr tctx = getDispatcher().post2(DummyCoro2);
     std::string s = tctx->get();
     EXPECT_STREQ("test", s.c_str());
 }
@@ -420,7 +420,7 @@ TEST_P(CoreTest, CheckCoroutineErrors)
         return 0;
     }, s);
     
-    getDispatcher().post2<std::string>([](VoidContextPtr ctx, std::string& str)->std::string {
+    getDispatcher().post2([](VoidContextPtr ctx, std::string& str)->std::string {
         ctx->yield(); //test yield via the VoidContext
         throw std::exception(); //error! coroutine must stop here
         str = "changed";
@@ -441,7 +441,7 @@ TEST_P(CoreTest, CheckCoroutineErrors)
         return 0;
     }, s);
     
-    getDispatcher().postAsyncIo2<std::string>([](std::string& str)->std::string {
+    getDispatcher().postAsyncIo2([](std::string& str)->std::string {
         std::this_thread::sleep_for(ms(10));
         throw std::exception(); //error! coroutine must stop here
         str = "changed";
@@ -622,16 +622,16 @@ TEST_P(ExecutionTest, ChainCoroutinesFromCoroutineContext2)
     
     auto func = [&](VoidContextPtr ctx, std::vector<int>& v, int& i)->std::vector<int>
     {
-        return ctx->postFirst2<std::vector<int>>(func2, v, i)->
-                    then2<std::vector<int>>(func2, v, i)->
-                    then2<std::vector<int>>(func2, v, i)->
-                    then2<std::vector<int>>(func2, v, i)->
-                    onError2<std::vector<int>>(func2, v, err)->
-                    finally2<std::vector<int>>(func2, v, final)->
+        return ctx->postFirst2(func2, v, i)->
+                    then2(func2, v, i)->
+                    then2(func2, v, i)->
+                    then2(func2, v, i)->
+                    onError2(func2, v, err)->
+                    finally2(func2, v, final)->
                     end()->get(ctx); //OnError *should not* run
     };
     
-    dispatcher.post2<std::vector<int>>(func, v, i);
+    dispatcher.post2(func, v, i);
     dispatcher.drain();
     
     //Validate values
@@ -739,7 +739,7 @@ TEST_P(PromiseTest, GetFutureFromIoTask2)
     Dispatcher& dispatcher = getDispatcher();
     ThreadContext<int>::Ptr ctx = dispatcher.post2([](VoidContextPtr ctx)->int{
         //post an IO task and get future from there
-        CoroFuture<double>::Ptr fut = ctx->postAsyncIo2<double>([]()->double{
+        CoroFuture<double>::Ptr fut = ctx->postAsyncIo2([]()->double{
             return 33.22;
         });
         return (int)fut->get(ctx); //forward the promise
@@ -764,7 +764,7 @@ TEST_P(PromiseTest, GetFutureFromExternalSource)
 TEST_P(PromiseTest, BufferedFuture)
 {
     Dispatcher& dispatcher = getDispatcher();
-    ThreadContext<Buffer<int>>::Ptr ctx = dispatcher.post<Buffer<int>>([](CoroContext<Buffer<int>>::Ptr ctx)->int{
+    ThreadContext<Buffer<int>>::Ptr ctx = dispatcher.post([](CoroContext<Buffer<int>>::Ptr ctx)->int{
         for (int d = 0; d < 100; d++)
         {
             ctx->push(d);
@@ -791,7 +791,7 @@ TEST_P(PromiseTest, BufferedFuture)
 TEST_P(PromiseTest, BufferedFutureException)
 {
     Dispatcher& dispatcher = getDispatcher();
-    ThreadContext<Buffer<double>>::Ptr ctx = dispatcher.post<Buffer<double>>([](CoroContext<Buffer<double>>::Ptr ctx)->int{
+    ThreadContext<Buffer<double>>::Ptr ctx = dispatcher.post([](CoroContext<Buffer<double>>::Ptr ctx)->int{
         for (int d = 0; d < 100; d++)
         {
             ctx->push(d);
@@ -844,11 +844,11 @@ TEST_P(PromiseTest, GetIntermediateFutures)
     Dispatcher& dispatcher = getDispatcher();
     auto ctx = dispatcher.postFirst([](CoroContext<int>::Ptr ctx)->int {
         return ctx->set(55); //Set the promise
-    })->then<double>([](CoroContext<double>::Ptr ctx)->int {
+    })->then([](CoroContext<double>::Ptr ctx)->int {
         return ctx->set(22.33); //Set the promise
-    })->then<std::string>([](CoroContext<std::string>::Ptr ctx)->int {
+    })->then([](CoroContext<std::string>::Ptr ctx)->int {
         return ctx->set("future"); //Set the promise
-    })->then<std::list<int>>([](CoroContext<std::list<int>>::Ptr ctx)->int {
+    })->then([](CoroContext<std::list<int>>::Ptr ctx)->int {
         return ctx->set(std::list<int>{1,2,3}); //Set the promise
     })->end();
     
@@ -867,11 +867,11 @@ TEST_P(PromiseTest, GetIntermediateFutures2)
     Dispatcher& dispatcher = getDispatcher();
     auto ctx = dispatcher.postFirst2([](VoidContextPtr)->int {
         return 55; //Set the promise
-    })->then<double>([](CoroContext<double>::Ptr ctx)->int { //mix with V1 API
+    })->then([](CoroContext<double>::Ptr ctx)->int { //mix with V1 API
         return ctx->set(22.33); //Set the promise
-    })->then2<std::string>([](VoidContextPtr)->std::string {
+    })->then2([](VoidContextPtr)->std::string {
         return "future"; //Set the promise
-    })->then2<std::list<int>>([](VoidContextPtr)->std::list<int> {
+    })->then2([](VoidContextPtr)->std::list<int> {
         return {1,2,3}; //Set the promise
     })->end();
     
@@ -890,13 +890,13 @@ TEST_P(PromiseTest, GetPreviousFutures)
     Dispatcher& dispatcher = getDispatcher();
     auto ctx = dispatcher.postFirst([](CoroContext<int>::Ptr ctx)->int {
         return ctx->set(55); //Set the promise
-    })->then<double>([](CoroContext<double>::Ptr ctx)->int {
+    })->then([](CoroContext<double>::Ptr ctx)->int {
         EXPECT_EQ(55, ctx->getPrev<int>());
         return ctx->set(22.33); //Set the promise
-    })->then<std::string>([](CoroContext<std::string>::Ptr ctx)->int {
+    })->then([](CoroContext<std::string>::Ptr ctx)->int {
         EXPECT_DOUBLE_EQ(22.33, ctx->getPrev<double>());
         return ctx->set("future"); //Set the promise
-    })->then<std::list<int>>([](CoroContext<std::list<int>>::Ptr ctx)->int {
+    })->then([](CoroContext<std::list<int>>::Ptr ctx)->int {
         EXPECT_STREQ("future", ctx->getPrevRef<std::string>().c_str());
         return ctx->set(std::list<int>{1,2,3}); //Set the promise
     })->end();
@@ -1114,7 +1114,7 @@ TEST_P(StressTest, ParallelFibonacciSerie)
     
     for (int i = 0; i < 1; ++i)
     {
-        ThreadContext<size_t>::Ptr tctx = dispatcher.post<size_t>(sequential_fib, fibInput);
+        ThreadContext<size_t>::Ptr tctx = dispatcher.post(sequential_fib, fibInput);
         if (i == 0)
         {
             //Check once
@@ -1129,7 +1129,7 @@ TEST_P(StressTest, ParallelFibonacciSerie)
 
 TEST_P(StressTest, RecursiveFibonacciSerie)
 {
-    ThreadContext<size_t>::Ptr tctx = getDispatcher().post<size_t>(recursive_fib, fibInput);
+    ThreadContext<size_t>::Ptr tctx = getDispatcher().post(recursive_fib, fibInput);
     EXPECT_EQ((size_t)fibValues[fibInput], tctx->get());
 }
 
@@ -1211,7 +1211,7 @@ TEST_P(ForEachTest, Simple)
 {
     std::vector<int> start{0,1,2,3,4,5,6,7,8,9};
     std::vector<char> end{'a','b','c','d','e','f','g','h','i','j'};
-    std::vector<char> results = getDispatcher().forEach<char>(start.cbegin(), start.size(),
+    std::vector<char> results = getDispatcher().forEach(start.cbegin(), start.size(),
         [](VoidContextPtr, const int& val)->char {
         return 'a'+val;
     })->get();
@@ -1222,7 +1222,7 @@ TEST_P(ForEachTest, SimpleNonConst)
 {
     std::vector<int> start{0,1,2,3,4,5,6,7,8,9};
     std::vector<char> end{'b','c','d','e','f','g','h','i','j','k'};
-    std::vector<char> results = getDispatcher().forEach<char>(start.begin(), start.size(),
+    std::vector<char> results = getDispatcher().forEach(start.begin(), start.size(),
         [](VoidContextPtr ctx, int& val)->char {
         val = ctx->postAsyncIo<int>([&](ThreadPromisePtr<int> p){
             return p->set(++val);
@@ -1239,7 +1239,7 @@ TEST_P(ForEachTest, SmallBatch)
     std::vector<int> start{0,1,2};
     std::vector<char> end{'a','b','c'};
     
-    std::vector<std::vector<char>> results = getDispatcher().forEachBatch<char>(start.cbegin(), start.size(),
+    std::vector<std::vector<char>> results = getDispatcher().forEachBatch(start.cbegin(), start.size(),
         [](VoidContextPtr, const int& val)->char
     {
         return 'a'+val;
@@ -1260,7 +1260,7 @@ TEST_P(ForEachTest, LargeBatch)
         start[i]=i;
     }
     
-    std::vector<std::vector<int>> results = getDispatcher().forEachBatch<int>(start.begin(), start.size(),
+    std::vector<std::vector<int>> results = getDispatcher().forEachBatch(start.begin(), start.size(),
         [](VoidContextPtr, int val)->int {
         return val*2; //double the value
     })->get();
@@ -1284,7 +1284,7 @@ TEST_P(ForEachTest, LargeBatchFromCoroutine)
     getDispatcher().post([this](CoroContext<int>::Ptr ctx)->int {
         std::vector<int> start(batchNum);
     
-        std::vector<std::vector<int>> results = ctx->forEachBatch<int>(start.begin(), start.size(),
+        std::vector<std::vector<int>> results = ctx->forEachBatch(start.begin(), start.size(),
             [](VoidContextPtr, int val)->int {
             return val*2; //double the value
         })->get(ctx);
@@ -1316,7 +1316,7 @@ TEST_P(MapReduce, OccuranceCount)
         {"eee", "d", "a" }
     };
     
-    std::map<std::string, size_t> result = getDispatcher().mapReduce<std::string, size_t, size_t>(input.begin(), input.size(),
+    std::map<std::string, size_t> result = getDispatcher().mapReduce(input.begin(), input.size(),
         //mapper
         [](VoidContextPtr, const std::vector<std::string>& input)->std::vector<std::pair<std::string, size_t>>
         {
@@ -1360,7 +1360,7 @@ TEST_P(MapReduce, WordLength)
         {"eee", "d", "a" }
     };
     
-    std::map<size_t, size_t> result = getDispatcher().mapReduceBatch<size_t, std::string, size_t>(input.begin(), input.size(),
+    std::map<size_t, size_t> result = getDispatcher().mapReduceBatch(input.begin(), input.size(),
         //mapper
         [](VoidContextPtr, const std::vector<std::string>& input)->std::vector<std::pair<size_t, std::string>>
         {
@@ -1396,7 +1396,7 @@ TEST_P(MapReduce, WordLengthFromCoroutine)
     
     getDispatcher().post([input](CoroContext<int>::Ptr ctx)->int
     {
-        std::map<size_t, size_t> result = ctx->mapReduceBatch<size_t, std::string, size_t>(input.begin(), input.size(),
+        std::map<size_t, size_t> result = ctx->mapReduceBatch(input.begin(), input.size(),
         //mapper
         [](VoidContextPtr, const std::vector<std::string>& input)->std::vector<std::pair<size_t, std::string>>
         {
@@ -1429,7 +1429,7 @@ TEST_P(FutureJoinerTest, JoinThreadFutures)
     std::vector<ThreadContext<int>::Ptr> futures;
     
     for (int i = 0; i < 10; ++i) {
-        futures.push_back(getDispatcher().post<int>([i](CoroContext<int>::Ptr ctx)->int {
+        futures.push_back(getDispatcher().post([i](CoroContext<int>::Ptr ctx)->int {
             ctx->sleep(std::chrono::milliseconds(10));
             return ctx->set(i);
         }));
@@ -1443,10 +1443,10 @@ TEST_P(FutureJoinerTest, JoinCoroFutures)
 {
     std::vector<int> output;
     
-    getDispatcher().post<double>([&output](CoroContext<double>::Ptr ctx)->int {
+    getDispatcher().post([&output](CoroContext<double>::Ptr ctx)->int {
         std::vector<CoroContext<int>::Ptr> futures;
         for (int i = 0; i < 10; ++i) {
-            futures.push_back(ctx->post<int>([i](CoroContext<int>::Ptr ctx2)->int {
+            futures.push_back(ctx->post([i](CoroContext<int>::Ptr ctx2)->int {
                 ctx2->sleep(std::chrono::milliseconds(10));
                 return ctx2->set(i);
             }));

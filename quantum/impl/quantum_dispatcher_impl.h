@@ -34,16 +34,17 @@ Dispatcher::Dispatcher(const Configuration& config) :
 inline
 Dispatcher::~Dispatcher()
 {
-    drain();
+    drain(std::chrono::milliseconds::zero(), true);
     terminate();
 }
 
 template <class RET, class FUNC, class ... ARGS>
-ThreadContextPtr<RET>
+auto
 Dispatcher::post(FUNC&& func,
-                 ARGS&&... args)
+                 ARGS&&... args)->ThreadContextPtr<decltype(resultOf(func))>
 {
-    return postImpl<RET>((int)IQueue::QueueId::Any,
+    using Ret = decltype(resultOf(func));
+    return postImpl<Ret>((int)IQueue::QueueId::Any,
                          false,
                          ITask::Type::Standalone,
                          std::forward<FUNC>(func),
@@ -51,11 +52,12 @@ Dispatcher::post(FUNC&& func,
 }
 
 template <class RET, class FUNC, class ... ARGS>
-ThreadContextPtr<RET>
+auto
 Dispatcher::post2(FUNC&& func,
-                  ARGS&&... args)
+                  ARGS&&... args)->ThreadContextPtr<decltype(resultOf2(func))>
 {
-    return postImpl2<RET>((int)IQueue::QueueId::Any,
+    using Ret = decltype(resultOf2(func));
+    return postImpl2<Ret>((int)IQueue::QueueId::Any,
                           false,
                           ITask::Type::Standalone,
                           std::forward<FUNC>(func),
@@ -63,13 +65,14 @@ Dispatcher::post2(FUNC&& func,
 }
 
 template <class RET, class FUNC, class ... ARGS>
-ThreadContextPtr<RET>
+auto
 Dispatcher::post(int queueId,
                  bool isHighPriority,
                  FUNC&& func,
-                 ARGS&&... args)
+                 ARGS&&... args)->ThreadContextPtr<decltype(resultOf(func))>
 {
-    return postImpl<RET>(queueId,
+    using Ret = decltype(resultOf(func));
+    return postImpl<Ret>(queueId,
                          isHighPriority,
                          ITask::Type::Standalone,
                          std::forward<FUNC>(func),
@@ -77,13 +80,14 @@ Dispatcher::post(int queueId,
 }
 
 template <class RET, class FUNC, class ... ARGS>
-ThreadContextPtr<RET>
+auto
 Dispatcher::post2(int queueId,
                   bool isHighPriority,
                   FUNC&& func,
-                  ARGS&&... args)
+                  ARGS&&... args)->ThreadContextPtr<decltype(resultOf2(func))>
 {
-    return postImpl2<RET>(queueId,
+    using Ret = decltype(resultOf2(func));
+    return postImpl2<Ret>(queueId,
                           isHighPriority,
                           ITask::Type::Standalone,
                           std::forward<FUNC>(func),
@@ -91,22 +95,24 @@ Dispatcher::post2(int queueId,
 }
 
 template <class RET, class FUNC, class ... ARGS>
-ThreadContextPtr<RET>
+auto
 Dispatcher::postFirst(FUNC&& func,
-                      ARGS&&... args)
+                      ARGS&&... args)->ThreadContextPtr<decltype(resultOf(func))>
 {
-    return postImpl<RET>((int)IQueue::QueueId::Any,
+    using Ret = decltype(resultOf(func));
+    return postImpl<Ret>((int)IQueue::QueueId::Any,
                          false, ITask::Type::First,
                          std::forward<FUNC>(func),
                          std::forward<ARGS>(args)...);
 }
 
 template <class RET, class FUNC, class ... ARGS>
-ThreadContextPtr<RET>
+auto
 Dispatcher::postFirst2(FUNC&& func,
-                       ARGS&&... args)
+                       ARGS&&... args)->ThreadContextPtr<decltype(resultOf2(func))>
 {
-    return postImpl2<RET>((int)IQueue::QueueId::Any,
+    using Ret = decltype(resultOf2(func));
+    return postImpl2<Ret>((int)IQueue::QueueId::Any,
                           false,
                           ITask::Type::First,
                           std::forward<FUNC>(func),
@@ -114,13 +120,14 @@ Dispatcher::postFirst2(FUNC&& func,
 }
 
 template <class RET, class FUNC, class ... ARGS>
-ThreadContextPtr<RET>
+auto
 Dispatcher::postFirst(int queueId,
                       bool isHighPriority,
                       FUNC&& func,
-                      ARGS&&... args)
+                      ARGS&&... args)->ThreadContextPtr<decltype(resultOf(func))>
 {
-    return postImpl<RET>(queueId,
+    using Ret = decltype(resultOf(func));
+    return postImpl<Ret>(queueId,
                          isHighPriority,
                          ITask::Type::First,
                          std::forward<FUNC>(func),
@@ -128,13 +135,14 @@ Dispatcher::postFirst(int queueId,
 }
 
 template <class RET, class FUNC, class ... ARGS>
-ThreadContextPtr<RET>
+auto
 Dispatcher::postFirst2(int queueId,
                        bool isHighPriority,
                        FUNC&& func,
-                       ARGS&&... args)
+                       ARGS&&... args)->ThreadContextPtr<decltype(resultOf2(func))>
 {
-    return postImpl2<RET>(queueId,
+    using Ret = decltype(resultOf2(func));
+    return postImpl2<Ret>(queueId,
                           isHighPriority,
                           ITask::Type::First,
                           std::forward<FUNC>(func),
@@ -142,105 +150,114 @@ Dispatcher::postFirst2(int queueId,
 }
 
 template <class RET, class FUNC, class ... ARGS>
-ThreadFuturePtr<RET>
+auto
 Dispatcher::postAsyncIo(FUNC&& func,
-                        ARGS&&... args)
+                        ARGS&&... args)->ThreadFuturePtr<decltype(resultOf(func))>
 {
-    return postAsyncIoImpl<RET>((int)IQueue::QueueId::Any,
+    using Ret = decltype(resultOf(func));
+    return postAsyncIoImpl<Ret>((int)IQueue::QueueId::Any,
                                 false,
                                 std::forward<FUNC>(func),
                                 std::forward<ARGS>(args)...);
 }
 
 template <class RET, class FUNC, class ... ARGS>
-ThreadFuturePtr<RET>
+auto
 Dispatcher::postAsyncIo2(FUNC&& func,
-                         ARGS&&... args)
+                         ARGS&&... args)->ThreadFuturePtr<decltype(resultOf2(func))>
 {
-    return postAsyncIoImpl2<RET>((int)IQueue::QueueId::Any,
+    using Ret = decltype(resultOf2(func));
+    return postAsyncIoImpl2<Ret>((int)IQueue::QueueId::Any,
                                  false, std::forward<FUNC>(func),
                                  std::forward<ARGS>(args)...);
 }
 
 template <class RET, class FUNC, class ... ARGS>
-ThreadFuturePtr<RET>
+auto
 Dispatcher::postAsyncIo(int queueId,
                         bool isHighPriority,
                         FUNC&& func,
-                        ARGS&&... args)
+                        ARGS&&... args)->ThreadFuturePtr<decltype(resultOf(func))>
 {
-    return postAsyncIoImpl<RET>(queueId,
+    using Ret = decltype(resultOf(func));
+    return postAsyncIoImpl<Ret>(queueId,
                                 isHighPriority,
                                 std::forward<FUNC>(func),
                                 std::forward<ARGS>(args)...);
 }
 
 template <class RET, class FUNC, class ... ARGS>
-ThreadFuturePtr<RET>
+auto
 Dispatcher::postAsyncIo2(int queueId,
                          bool isHighPriority,
                          FUNC&& func,
-                         ARGS&&... args)
+                         ARGS&&... args)->ThreadFuturePtr<decltype(resultOf2(func))>
 {
-    return postAsyncIoImpl2<RET>(queueId,
+    using Ret = decltype(resultOf2(func));
+    return postAsyncIoImpl2<Ret>(queueId,
                                  isHighPriority,
                                  std::forward<FUNC>(func),
                                  std::forward<ARGS>(args)...);
 }
 
 template <class RET, class INPUT_IT, class FUNC, class>
-ThreadContextPtr<std::vector<RET>>
+auto
 Dispatcher::forEach(INPUT_IT first,
                     INPUT_IT last,
-                    FUNC&& func)
+                    FUNC&& func)->ThreadContextPtr<std::vector<decltype(resultOf2(func))>>
 {
-    return forEach<RET>(first, std::distance(first, last), std::forward<FUNC>(func));
+    return forEach(first, std::distance(first, last), std::forward<FUNC>(func));
 }
 
 template <class RET, class INPUT_IT, class FUNC>
-ThreadContextPtr<std::vector<RET>>
+auto
 Dispatcher::forEach(INPUT_IT first,
                     size_t num,
-                    FUNC&& func)
+                    FUNC&& func)->ThreadContextPtr<std::vector<decltype(resultOf2(func))>>
 {
-    return post2<std::vector<RET>>(Util::forEachCoro<RET, INPUT_IT, FUNC&&>,
-                                   INPUT_IT{first},
-                                   size_t{num},
-                                   std::forward<FUNC>(func));
+    using Ret = decltype(resultOf2(func));
+    return post2(Util::forEachCoro<Ret, INPUT_IT, FUNC&&>,
+                 INPUT_IT{first},
+                 size_t{num},
+                 std::forward<FUNC>(func));
 }
 
 template <class RET, class INPUT_IT, class FUNC, class>
-ThreadContextPtr<std::vector<std::vector<RET>>>
+auto
 Dispatcher::forEachBatch(INPUT_IT first,
                          INPUT_IT last,
-                         FUNC&& func)
+                         FUNC&& func)->ThreadContextPtr<std::vector<std::vector<decltype(resultOf2(func))>>>
 {
-    return forEachBatch<RET>(first, std::distance(first, last), std::forward<FUNC>(func));
+    return forEachBatch(first, std::distance(first, last), std::forward<FUNC>(func));
 }
 
 template <class RET, class INPUT_IT, class FUNC>
-ThreadContextPtr<std::vector<std::vector<RET>>>
+auto
 Dispatcher::forEachBatch(INPUT_IT first,
                          size_t num,
-                         FUNC&& func)
+                         FUNC&& func)->ThreadContextPtr<std::vector<std::vector<decltype(resultOf2(func))>>>
 {
-    return post2<std::vector<std::vector<RET>>>(Util::forEachBatchCoro<RET, INPUT_IT, FUNC&&>,
-                                               INPUT_IT{first},
-                                               size_t{num},
-                                               std::forward<FUNC>(func),
-                                               getNumCoroutineThreads());
+    using Ret = decltype(resultOf2(func));
+    return post2(Util::forEachBatchCoro<Ret, INPUT_IT, FUNC&&>,
+                 INPUT_IT{first},
+                 size_t{num},
+                 std::forward<FUNC>(func),
+                 getNumCoroutineThreads());
 }
 
 template <class KEY,
           class MAPPED_TYPE,
           class REDUCED_TYPE,
+          class MAPPER_FUNC,
+          class REDUCER_FUNC,
           class INPUT_IT,
           class>
-ThreadContextPtr<std::map<KEY, REDUCED_TYPE>>
+auto
 Dispatcher::mapReduce(INPUT_IT first,
                       INPUT_IT last,
-                      Functions::MapFunc<KEY, MAPPED_TYPE, INPUT_IT> mapper,
-                      Functions::ReduceFunc<KEY, MAPPED_TYPE, REDUCED_TYPE> reducer)
+                      MAPPER_FUNC mapper,
+                      REDUCER_FUNC reducer)->
+          ThreadContextPtr<std::map<decltype(mappedKeyOf(mapper)), decltype(reducedTypeOf(reducer))>>
 {
     return mapReduce(first, std::distance(first, last), std::move(mapper), std::move(reducer));
 }
@@ -248,31 +265,40 @@ Dispatcher::mapReduce(INPUT_IT first,
 template <class KEY,
           class MAPPED_TYPE,
           class REDUCED_TYPE,
-          class INPUT_IT>
-ThreadContextPtr<std::map<KEY, REDUCED_TYPE>>
+          class MAPPER_FUNC,
+          class REDUCER_FUNC,
+          class INPUT_IT,
+          class>
+auto
 Dispatcher::mapReduce(INPUT_IT first,
                       size_t num,
-                      Functions::MapFunc<KEY, MAPPED_TYPE, INPUT_IT> mapper,
-                      Functions::ReduceFunc<KEY, MAPPED_TYPE, REDUCED_TYPE> reducer)
+                      MAPPER_FUNC mapper,
+                      REDUCER_FUNC reducer)->
+          ThreadContextPtr<std::map<decltype(mappedKeyOf(mapper)), decltype(reducedTypeOf(reducer))>>
 {
-    using ReducerOutput = std::map<KEY, REDUCED_TYPE>;
-    return post2<ReducerOutput>(Util::mapReduceCoro<KEY, MAPPED_TYPE, REDUCED_TYPE, INPUT_IT>,
-                               INPUT_IT{first},
-                               size_t{num},
-                               Functions::MapFunc<KEY, MAPPED_TYPE, INPUT_IT>{std::move(mapper)},
-                               Functions::ReduceFunc<KEY, MAPPED_TYPE, REDUCED_TYPE>{std::move(reducer)});
+    using Key = decltype(mappedKeyOf(mapper));
+    using MappedType = decltype(mappedTypeOf(mapper));
+    using ReducedType = decltype(reducedTypeOf(reducer));
+    return post2(Util::mapReduceCoro<Key, MappedType, ReducedType, INPUT_IT>,
+                 INPUT_IT{first},
+                 size_t{num},
+                 Functions::MapFunc<Key, MappedType, INPUT_IT>{std::move(mapper)},
+                 Functions::ReduceFunc<Key, MappedType, ReducedType>{std::move(reducer)});
 }
 
 template <class KEY,
           class MAPPED_TYPE,
           class REDUCED_TYPE,
+          class MAPPER_FUNC,
+          class REDUCER_FUNC,
           class INPUT_IT,
           class>
-ThreadContextPtr<std::map<KEY, REDUCED_TYPE>>
+auto
 Dispatcher::mapReduceBatch(INPUT_IT first,
                            INPUT_IT last,
-                           Functions::MapFunc<KEY, MAPPED_TYPE, INPUT_IT> mapper,
-                           Functions::ReduceFunc<KEY, MAPPED_TYPE, REDUCED_TYPE> reducer)
+                           MAPPER_FUNC mapper,
+                           REDUCER_FUNC reducer)->
+          ThreadContextPtr<std::map<decltype(mappedKeyOf(mapper)), decltype(reducedTypeOf(reducer))>>
 {
     return mapReduceBatch(first, std::distance(first, last), std::move(mapper), std::move(reducer));
 }
@@ -280,19 +306,25 @@ Dispatcher::mapReduceBatch(INPUT_IT first,
 template <class KEY,
           class MAPPED_TYPE,
           class REDUCED_TYPE,
-          class INPUT_IT>
-ThreadContextPtr<std::map<KEY, REDUCED_TYPE>>
+          class MAPPER_FUNC,
+          class REDUCER_FUNC,
+          class INPUT_IT,
+          class>
+auto
 Dispatcher::mapReduceBatch(INPUT_IT first,
                            size_t num,
-                           Functions::MapFunc<KEY, MAPPED_TYPE, INPUT_IT> mapper,
-                           Functions::ReduceFunc<KEY, MAPPED_TYPE, REDUCED_TYPE> reducer)
+                           MAPPER_FUNC mapper,
+                           REDUCER_FUNC reducer)->
+          ThreadContextPtr<std::map<decltype(mappedKeyOf(mapper)), decltype(reducedTypeOf(reducer))>>
 {
-    using ReducerOutput = std::map<KEY, REDUCED_TYPE>;
-    return post2<ReducerOutput>(Util::mapReduceBatchCoro<KEY, MAPPED_TYPE, REDUCED_TYPE, INPUT_IT>,
-                               INPUT_IT{first},
-                               size_t{num},
-                               Functions::MapFunc<KEY, MAPPED_TYPE, INPUT_IT>{std::move(mapper)},
-                               Functions::ReduceFunc<KEY, MAPPED_TYPE, REDUCED_TYPE>{std::move(reducer)});
+    using Key = decltype(mappedKeyOf(mapper));
+    using MappedType = decltype(mappedTypeOf(mapper));
+    using ReducedType = decltype(reducedTypeOf(reducer));
+    return post2(Util::mapReduceBatchCoro<Key, MappedType, ReducedType, INPUT_IT>,
+                 INPUT_IT{first},
+                 size_t{num},
+                 Functions::MapFunc<Key, MappedType, INPUT_IT>{std::move(mapper)},
+                 Functions::ReduceFunc<Key, MappedType, ReducedType>{std::move(reducer)});
 }
 
 inline
@@ -320,9 +352,10 @@ bool Dispatcher::empty(IQueue::QueueType type,
 }
 
 inline
-void Dispatcher::drain(std::chrono::milliseconds timeout)
+void Dispatcher::drain(std::chrono::milliseconds timeout,
+                       bool isFinal)
 {
-    DrainGuard guard(_drain);
+    DrainGuard guard(_drain, !isFinal);
     
     auto start = std::chrono::steady_clock::now();
     

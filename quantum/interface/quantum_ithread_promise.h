@@ -81,6 +81,9 @@ using ThreadPromise = IThreadPromise<Promise,T>;
 template <class T>
 using ThreadPromisePtr = typename IThreadPromise<Promise,T>::Ptr;
 
+template <class T>
+struct Traits::InnerType<std::shared_ptr<IThreadPromise<Promise, T>>> { using Type = T;};
+
 }}
 
 #endif //BLOOMBERG_QUANTUM_ITHREAD_PROMISE_H

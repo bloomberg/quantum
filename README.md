@@ -56,12 +56,12 @@ Dispatcher dispatcher;
 
 auto ctx = dispatcher.postFirst([](CoroContext<int>::Ptr ctx)->int {
     return ctx->set(55); //Set the 1st value
-})->then<double>([](CoroContext<double>::Ptr ctx)->int {
+})->then([](CoroContext<double>::Ptr ctx)->int {
     // Get the first value and add something to it
     return ctx->set(ctx->getPrev<int>() + 22.33); //Set the 2nd value
-})->then<std::string>([](CoroContext<std::string>::Ptr ctx)->int {
+})->then([](CoroContext<std::string>::Ptr ctx)->int {
     return ctx->set("Hello world!"); //Set the 3rd value
-})->finally<std::list<int>>([](CoroContext<std::list<int>>::Ptr ctx)->int {
+})->finally([](CoroContext<std::list<int>>::Ptr ctx)->int {
     return ctx->set(std::list<int>{1,2,3}); //Set 4th value
 })->end();
 
@@ -83,12 +83,12 @@ Dispatcher dispatcher;
 
 auto ctx = dispatcher.postFirst2([](auto ctx)->int {
     return 55; //Set the 1st value
-})->then2<double>([](auto ctx)->double {
+})->then2([](auto ctx)->double {
     // Get the first value and add something to it
     return ctx->getPrev<int>() + 22.33; //Set the 2nd value
-})->then2<std::string>([](auto ctx)->std::string {
+})->then2([](auto ctx)->std::string {
     return "Hello world!"; //Set the 3rd value
-})->finally2<std::list<int>>([](auto ctx)->std::list<int> {
+})->finally2([](auto ctx)->std::list<int> {
     return {1,2,3}; //Set 4th value
 })->end();
 ```
