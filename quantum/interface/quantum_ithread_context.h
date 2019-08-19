@@ -187,14 +187,12 @@ struct IThreadContext : public IThreadContextBase
     /// @note This function is non-blocking and runs when all previous chained functions have completed.
     ///       The returned context can be used to chain further functions. Possible method calls following this
     ///       are then(), onError(), finally() and end().
-    template <class OTHER_RET = int, class FUNC, class ... ARGS>
-    typename IThreadContext<OTHER_RET>::Ptr
-    then(FUNC&& func, ARGS&&... args);
+    template <class OTHER_RET = Deprecated, class FUNC, class ... ARGS>
+    auto then(FUNC&& func, ARGS&&... args)->typename IThreadContext<decltype(resultOf(func))>::Ptr;
     
     /// @brief Version 2 of the API which supports a simpler coroutine signature (see documentation).
-    template <class OTHER_RET = int, class FUNC, class ... ARGS>
-    typename IThreadContext<OTHER_RET>::Ptr
-    then2(FUNC&& func, ARGS&&... args);
+    template <class OTHER_RET = Deprecated, class FUNC, class ... ARGS>
+    auto then2(FUNC&& func, ARGS&&... args)->typename IThreadContext<decltype(resultOf2(func))>::Ptr;
     
     /// @brief Posts a function to run asynchronously. This is the error handler for a continuation chain and acts as
     ///        as a 'catch' clause.
@@ -212,14 +210,12 @@ struct IThreadContext : public IThreadContextBase
     /// @param[in] args Variable list of arguments passed to the callable object.
     /// @note The function is non-blocking. The returned context can be used to chain further functions.
     ///       Possible method calls following this are finally() and end().
-    template <class OTHER_RET = int, class FUNC, class ... ARGS>
-    typename IThreadContext<OTHER_RET>::Ptr
-    onError(FUNC&& func, ARGS&&... args);
+    template <class OTHER_RET = Deprecated, class FUNC, class ... ARGS>
+    auto onError(FUNC&& func, ARGS&&... args)->typename IThreadContext<decltype(resultOf(func))>::Ptr;
     
     /// @brief Version 2 of the API which supports a simpler coroutine signature (see documentation).
-    template <class OTHER_RET = int, class FUNC, class ... ARGS>
-    typename IThreadContext<OTHER_RET>::Ptr
-    onError2(FUNC&& func, ARGS&&... args);
+    template <class OTHER_RET = Deprecated, class FUNC, class ... ARGS>
+    auto onError2(FUNC&& func, ARGS&&... args)->typename IThreadContext<decltype(resultOf2(func))>::Ptr;
     
     /// @brief Posts a function to run asynchronously. This function is always guaranteed to run.
     /// @details This function is optional for the continuation chain and may be called at most once. If called, it must
@@ -233,14 +229,12 @@ struct IThreadContext : public IThreadContextBase
     /// @param[in] func Callable object.
     /// @param[in] args Variable list of arguments passed to the callable object.
     /// @note This function is non-blocking and returns immediately. After this function, the end() method must be called.
-    template <class OTHER_RET = int, class FUNC, class ... ARGS>
-    typename IThreadContext<OTHER_RET>::Ptr
-    finally(FUNC&& func, ARGS&&... args);
+    template <class OTHER_RET = Deprecated, class FUNC, class ... ARGS>
+    auto finally(FUNC&& func, ARGS&&... args)->typename IThreadContext<decltype(resultOf(func))>::Ptr;
     
     /// @brief Version 2 of the API which supports a simpler coroutine signature (see documentation).
-    template <class OTHER_RET = int, class FUNC, class ... ARGS>
-    typename IThreadContext<OTHER_RET>::Ptr
-    finally2(FUNC&& func, ARGS&&... args);
+    template <class OTHER_RET = Deprecated, class FUNC, class ... ARGS>
+    auto finally2(FUNC&& func, ARGS&&... args)->typename IThreadContext<decltype(resultOf2(func))>::Ptr;
     
     /// @brief This is the last method in a continuation chain.
     /// @details This method effectively closes the continuation chain and posts the entire chain to be executed,

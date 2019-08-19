@@ -102,50 +102,60 @@ const std::pair<int, int>& IThreadContext<RET>::getCoroQueueIdRangeForAny() cons
  
 template <class RET>
 template <class OTHER_RET, class FUNC, class ... ARGS>
-ThreadContextPtr<OTHER_RET>
-IThreadContext<RET>::then(FUNC&& func, ARGS&&... args)
+auto
+IThreadContext<RET>::then(FUNC&& func, ARGS&&... args)->ThreadContextPtr<decltype(resultOf(func))>
 {
-    return static_cast<Impl*>(this)->template then<OTHER_RET>(std::forward<FUNC>(func), std::forward<ARGS>(args)...);
+    using Ret = decltype(resultOf(func));
+    return static_cast<Impl*>(this)->template then<Ret>(std::forward<FUNC>(func), std::forward<ARGS>(args)...);
 }
 
 template <class RET>
 template <class OTHER_RET, class FUNC, class ... ARGS>
-ThreadContextPtr<OTHER_RET>
-IThreadContext<RET>::then2(FUNC&& func, ARGS&&... args)
+auto
+IThreadContext<RET>::then2(FUNC&& func, ARGS&&... args)->ThreadContextPtr<decltype(resultOf2(func))>
 {
-    return static_cast<Impl*>(this)->template then2<OTHER_RET>(std::forward<FUNC>(func), std::forward<ARGS>(args)...);
+    using Ret = decltype(resultOf2(func));
+    return static_cast<Impl*>(this)->template then2<Ret>(std::forward<FUNC>(func), std::forward<ARGS>(args)...);
 }
 
 template <class RET>
 template <class OTHER_RET, class FUNC, class ... ARGS>
-ThreadContextPtr<OTHER_RET>
-IThreadContext<RET>::onError(FUNC&& func, ARGS&&... args)
+auto
+IThreadContext<RET>::onError(FUNC&& func, ARGS&&... args)->ThreadContextPtr<decltype(resultOf(func))>
 {
-    return static_cast<Impl*>(this)->template onError<OTHER_RET>(std::forward<FUNC>(func), std::forward<ARGS>(args)...);
+    using Ret = decltype(resultOf(func));
+    return static_cast<Impl*>(this)->template onError<Ret>(std::forward<FUNC>(func), std::forward<ARGS>(args)...);
 }
 
 template <class RET>
 template <class OTHER_RET, class FUNC, class ... ARGS>
-ThreadContextPtr<OTHER_RET>
-IThreadContext<RET>::onError2(FUNC&& func, ARGS&&... args)
+auto
+IThreadContext<RET>::onError2(FUNC&& func, ARGS&&... args)->ThreadContextPtr<decltype(resultOf2(func))>
 {
-    return static_cast<Impl*>(this)->template onError2<OTHER_RET>(std::forward<FUNC>(func), std::forward<ARGS>(args)...);
+    using Ret = decltype(resultOf2(func));
+    return static_cast<Impl*>(this)->template onError2<Ret>(std::forward<FUNC>(func), std::forward<ARGS>(args)...);
 }
 
 template <class RET>
 template <class OTHER_RET, class FUNC, class ... ARGS>
-ThreadContextPtr<OTHER_RET>
-IThreadContext<RET>::finally(FUNC&& func, ARGS&&... args)
+auto
+IThreadContext<RET>::finally(FUNC&& func, ARGS&&... args)->ThreadContextPtr<decltype(resultOf(func))>
 {
-    return static_cast<Impl*>(this)->template finally<OTHER_RET>(std::forward<FUNC>(func), std::forward<ARGS>(args)...);
+    using Ret = decltype(resultOf(func));
+    return static_cast<Impl*>(this)->template finally<Ret>(
+        std::forward<FUNC>(func),
+        std::forward<ARGS>(args)...);
 }
 
 template <class RET>
 template <class OTHER_RET, class FUNC, class ... ARGS>
-ThreadContextPtr<OTHER_RET>
-IThreadContext<RET>::finally2(FUNC&& func, ARGS&&... args)
+auto
+IThreadContext<RET>::finally2(FUNC&& func, ARGS&&... args)->ThreadContextPtr<decltype(resultOf2(func))>
 {
-    return static_cast<Impl*>(this)->template finally2<OTHER_RET>(std::forward<FUNC>(func), std::forward<ARGS>(args)...);
+    using Ret = decltype(resultOf2(func));
+    return static_cast<Impl*>(this)->template finally2<Ret>(
+        std::forward<FUNC>(func),
+        std::forward<ARGS>(args)...);
 }
 
 template <class RET>
@@ -252,30 +262,32 @@ const std::pair<int, int>& ICoroContext<RET>::getCoroQueueIdRangeForAny() const
 
 template <class RET>
 template <class OTHER_RET, class FUNC, class ... ARGS>
-CoroContextPtr<OTHER_RET>
-ICoroContext<RET>::post(FUNC&& func, ARGS&&... args)
+auto
+ICoroContext<RET>::post(FUNC&& func, ARGS&&... args)->CoroContextPtr<decltype(resultOf(func))>
 {
-    return static_cast<Impl*>(this)->template post<OTHER_RET>(
+    using Ret = decltype(resultOf(func));
+    return static_cast<Impl*>(this)->template post<Ret>(
         std::forward<FUNC>(func),
         std::forward<ARGS>(args)...);
 }
 
 template <class RET>
 template <class OTHER_RET, class FUNC, class ... ARGS>
-CoroContextPtr<OTHER_RET>
-ICoroContext<RET>::post2(FUNC&& func, ARGS&&... args)
+auto
+ICoroContext<RET>::post2(FUNC&& func, ARGS&&... args)->CoroContextPtr<decltype(resultOf2(func))>
 {
-    return static_cast<Impl*>(this)->template post2<OTHER_RET>(
-        std::forward<FUNC>(func),
-        std::forward<ARGS>(args)...);
+    using Ret = decltype(resultOf2(func));
+    return static_cast<Impl*>(this)->template post2<Ret>
+        (std::forward<FUNC>(func), std::forward<ARGS>(args)...);
 }
 
 template <class RET>
 template <class OTHER_RET, class FUNC, class ... ARGS>
-CoroContextPtr<OTHER_RET>
-ICoroContext<RET>::post(int queueId, bool isHighPriority, FUNC&& func, ARGS&&... args)
+auto
+ICoroContext<RET>::post(int queueId, bool isHighPriority, FUNC&& func, ARGS&&... args)->CoroContextPtr<decltype(resultOf(func))>
 {
-    return static_cast<Impl*>(this)->template post<OTHER_RET>(
+    using Ret = decltype(resultOf(func));
+    return static_cast<Impl*>(this)->template post<Ret>(
         queueId,
         isHighPriority,
         std::forward<FUNC>(func),
@@ -284,10 +296,11 @@ ICoroContext<RET>::post(int queueId, bool isHighPriority, FUNC&& func, ARGS&&...
 
 template <class RET>
 template <class OTHER_RET, class FUNC, class ... ARGS>
-CoroContextPtr<OTHER_RET>
-ICoroContext<RET>::post2(int queueId, bool isHighPriority, FUNC&& func, ARGS&&... args)
+auto
+ICoroContext<RET>::post2(int queueId, bool isHighPriority, FUNC&& func, ARGS&&... args)->CoroContextPtr<decltype(resultOf2(func))>
 {
-    return static_cast<Impl*>(this)->template post2<OTHER_RET>(
+    using Ret = decltype(resultOf2(func));
+    return static_cast<Impl*>(this)->template post2<Ret>(
         queueId,
         isHighPriority,
         std::forward<FUNC>(func),
@@ -296,30 +309,33 @@ ICoroContext<RET>::post2(int queueId, bool isHighPriority, FUNC&& func, ARGS&&..
 
 template <class RET>
 template <class OTHER_RET, class FUNC, class ... ARGS>
-CoroContextPtr<OTHER_RET>
-ICoroContext<RET>::postFirst(FUNC&& func, ARGS&&... args)
+auto
+ICoroContext<RET>::postFirst(FUNC&& func, ARGS&&... args)->CoroContextPtr<decltype(resultOf(func))>
 {
-    return static_cast<Impl*>(this)->template postFirst<OTHER_RET>(
+    using Ret = decltype(resultOf(func));
+    return static_cast<Impl*>(this)->template postFirst<Ret>(
         std::forward<FUNC>(func),
         std::forward<ARGS>(args)...);
 }
 
 template <class RET>
 template <class OTHER_RET, class FUNC, class ... ARGS>
-CoroContextPtr<OTHER_RET>
-ICoroContext<RET>::postFirst2(FUNC&& func, ARGS&&... args)
+auto
+ICoroContext<RET>::postFirst2(FUNC&& func, ARGS&&... args)->CoroContextPtr<decltype(resultOf2(func))>
 {
-    return static_cast<Impl*>(this)->template postFirst2<OTHER_RET>(
+    using Ret = decltype(resultOf2(func));
+    return static_cast<Impl*>(this)->template postFirst2<Ret>(
         std::forward<FUNC>(func),
         std::forward<ARGS>(args)...);
 }
 
 template <class RET>
 template <class OTHER_RET, class FUNC, class ... ARGS>
-CoroContextPtr<OTHER_RET>
-ICoroContext<RET>::postFirst(int queueId, bool isHighPriority, FUNC&& func, ARGS&&... args)
+auto
+ICoroContext<RET>::postFirst(int queueId, bool isHighPriority, FUNC&& func, ARGS&&... args)->CoroContextPtr<decltype(resultOf(func))>
 {
-    return static_cast<Impl*>(this)->template postFirst<OTHER_RET>(
+    using Ret = decltype(resultOf(func));
+    return static_cast<Impl*>(this)->template postFirst<Ret>(
         queueId,
         isHighPriority,
         std::forward<FUNC>(func),
@@ -328,10 +344,11 @@ ICoroContext<RET>::postFirst(int queueId, bool isHighPriority, FUNC&& func, ARGS
 
 template <class RET>
 template <class OTHER_RET, class FUNC, class ... ARGS>
-CoroContextPtr<OTHER_RET>
-ICoroContext<RET>::postFirst2(int queueId, bool isHighPriority, FUNC&& func, ARGS&&... args)
+auto
+ICoroContext<RET>::postFirst2(int queueId, bool isHighPriority, FUNC&& func, ARGS&&... args)->CoroContextPtr<decltype(resultOf2(func))>
 {
-    return static_cast<Impl*>(this)->template postFirst2<OTHER_RET>(
+    using Ret = decltype(resultOf2(func));
+    return static_cast<Impl*>(this)->template postFirst2<Ret>(
         queueId,
         isHighPriority,
         std::forward<FUNC>(func),
@@ -340,60 +357,66 @@ ICoroContext<RET>::postFirst2(int queueId, bool isHighPriority, FUNC&& func, ARG
 
 template <class RET>
 template <class OTHER_RET, class FUNC, class ... ARGS>
-CoroContextPtr<OTHER_RET>
-ICoroContext<RET>::then(FUNC&& func, ARGS&&... args)
+auto
+ICoroContext<RET>::then(FUNC&& func, ARGS&&... args)->CoroContextPtr<decltype(resultOf(func))>
 {
-    return static_cast<Impl*>(this)->template then<OTHER_RET>(
+    using Ret = decltype(resultOf(func));
+    return static_cast<Impl*>(this)->template then<Ret>(
         std::forward<FUNC>(func),
         std::forward<ARGS>(args)...);
 }
 
 template <class RET>
 template <class OTHER_RET, class FUNC, class ... ARGS>
-CoroContextPtr<OTHER_RET>
-ICoroContext<RET>::then2(FUNC&& func, ARGS&&... args)
+auto
+ICoroContext<RET>::then2(FUNC&& func, ARGS&&... args)->CoroContextPtr<decltype(resultOf2(func))>
 {
-    return static_cast<Impl*>(this)->template then2<OTHER_RET>(
+    using Ret = decltype(resultOf2(func));
+    return static_cast<Impl*>(this)->template then2<Ret>(
         std::forward<FUNC>(func),
         std::forward<ARGS>(args)...);
 }
 
 template <class RET>
 template <class OTHER_RET, class FUNC, class ... ARGS>
-CoroContextPtr<OTHER_RET>
-ICoroContext<RET>::onError(FUNC&& func, ARGS&&... args)
+auto
+ICoroContext<RET>::onError(FUNC&& func, ARGS&&... args)->CoroContextPtr<decltype(resultOf(func))>
 {
-    return static_cast<Impl*>(this)->template onError<OTHER_RET>(
+    using Ret = decltype(resultOf(func));
+    return static_cast<Impl*>(this)->template onError<Ret>(
         std::forward<FUNC>(func),
         std::forward<ARGS>(args)...);
 }
 
 template <class RET>
 template <class OTHER_RET, class FUNC, class ... ARGS>
-CoroContextPtr<OTHER_RET>
-ICoroContext<RET>::onError2(FUNC&& func, ARGS&&... args)
+auto
+ICoroContext<RET>::onError2(FUNC&& func, ARGS&&... args)->CoroContextPtr<decltype(resultOf2(func))>
 {
-    return static_cast<Impl*>(this)->template onError2<OTHER_RET>(
+    using Ret = decltype(resultOf2(func));
+    return static_cast<Impl*>(this)->template onError2<Ret>(
         std::forward<FUNC>(func),
         std::forward<ARGS>(args)...);
 }
 
 template <class RET>
 template <class OTHER_RET, class FUNC, class ... ARGS>
-CoroContextPtr<OTHER_RET>
-ICoroContext<RET>::finally(FUNC&& func, ARGS&&... args)
+auto
+ICoroContext<RET>::finally(FUNC&& func, ARGS&&... args)->CoroContextPtr<decltype(resultOf(func))>
 {
-    return static_cast<Impl*>(this)->template finally<OTHER_RET>(
+    using Ret = decltype(resultOf(func));
+    return static_cast<Impl*>(this)->template finally<Ret>(
         std::forward<FUNC>(func),
         std::forward<ARGS>(args)...);
 }
 
 template <class RET>
 template <class OTHER_RET, class FUNC, class ... ARGS>
-CoroContextPtr<OTHER_RET>
-ICoroContext<RET>::finally2(FUNC&& func, ARGS&&... args)
+auto
+ICoroContext<RET>::finally2(FUNC&& func, ARGS&&... args)->CoroContextPtr<decltype(resultOf2(func))>
 {
-    return static_cast<Impl*>(this)->template finally2<OTHER_RET>(
+    using Ret = decltype(resultOf2(func));
+    return static_cast<Impl*>(this)->template finally2<Ret>(
         std::forward<FUNC>(func),
         std::forward<ARGS>(args)...);
 }
@@ -408,30 +431,33 @@ ICoroContext<RET>::end()
 
 template <class RET>
 template <class OTHER_RET, class FUNC, class ... ARGS>
-CoroFuturePtr<OTHER_RET>
-ICoroContext<RET>::postAsyncIo(FUNC&& func, ARGS&&... args)
+auto
+ICoroContext<RET>::postAsyncIo(FUNC&& func, ARGS&&... args)->CoroFuturePtr<decltype(resultOf(func))>
 {
-    return static_cast<Impl*>(this)->template postAsyncIo<OTHER_RET>(
+    using Ret = decltype(resultOf(func));
+    return static_cast<Impl*>(this)->template postAsyncIo<Ret>(
         std::forward<FUNC>(func),
         std::forward<ARGS>(args)...);
 }
 
 template <class RET>
 template <class OTHER_RET, class FUNC, class ... ARGS>
-CoroFuturePtr<OTHER_RET>
-ICoroContext<RET>::postAsyncIo2(FUNC&& func, ARGS&&... args)
+auto
+ICoroContext<RET>::postAsyncIo2(FUNC&& func, ARGS&&... args)->CoroFuturePtr<decltype(resultOf2(func))>
 {
-    return static_cast<Impl*>(this)->template postAsyncIo2<OTHER_RET>(
+    using Ret = decltype(resultOf2(func));
+    return static_cast<Impl*>(this)->template postAsyncIo2<Ret>(
         std::forward<FUNC>(func),
         std::forward<ARGS>(args)...);
 }
 
 template <class RET>
 template <class OTHER_RET, class FUNC, class ... ARGS>
-CoroFuturePtr<OTHER_RET>
-ICoroContext<RET>::postAsyncIo(int queueId, bool isHighPriority, FUNC&& func, ARGS&&... args)
+auto
+ICoroContext<RET>::postAsyncIo(int queueId, bool isHighPriority, FUNC&& func, ARGS&&... args)->CoroFuturePtr<decltype(resultOf(func))>
 {
-    return static_cast<Impl*>(this)->template postAsyncIo<OTHER_RET>(
+    using Ret = decltype(resultOf(func));
+    return static_cast<Impl*>(this)->template postAsyncIo<Ret>(
         queueId,
         isHighPriority,
         std::forward<FUNC>(func),
@@ -440,10 +466,11 @@ ICoroContext<RET>::postAsyncIo(int queueId, bool isHighPriority, FUNC&& func, AR
 
 template <class RET>
 template <class OTHER_RET, class FUNC, class ... ARGS>
-CoroFuturePtr<OTHER_RET>
-ICoroContext<RET>::postAsyncIo2(int queueId, bool isHighPriority, FUNC&& func, ARGS&&... args)
+auto
+ICoroContext<RET>::postAsyncIo2(int queueId, bool isHighPriority, FUNC&& func, ARGS&&... args)->CoroFuturePtr<decltype(resultOf2(func))>
 {
-    return static_cast<Impl*>(this)->template postAsyncIo2<OTHER_RET>(
+    using Ret = decltype(resultOf2(func));
+    return static_cast<Impl*>(this)->template postAsyncIo2<Ret>(
         queueId,
         isHighPriority,
         std::forward<FUNC>(func),
@@ -452,57 +479,67 @@ ICoroContext<RET>::postAsyncIo2(int queueId, bool isHighPriority, FUNC&& func, A
 
 template <class RET>
 template <class OTHER_RET, class INPUT_IT, class FUNC, class>
-CoroContextPtr<std::vector<OTHER_RET>>
+auto
 ICoroContext<RET>::forEach(INPUT_IT first,
                            INPUT_IT last,
-                           FUNC&& func)
+                           FUNC&& func)->CoroContextPtr<std::vector<decltype(resultOf2(func))>>
 {
-    return static_cast<Impl*>(this)->template forEach<OTHER_RET>(first, last, std::forward<FUNC>(func));
+    using Ret = decltype(resultOf2(func));
+    return static_cast<Impl*>(this)->template forEach<Ret>(first, last, std::forward<FUNC>(func));
 }
 
 template <class RET>
 template <class OTHER_RET, class INPUT_IT, class FUNC>
-CoroContextPtr<std::vector<OTHER_RET>>
+auto
 ICoroContext<RET>::forEach(INPUT_IT first,
                            size_t num,
-                           FUNC&& func)
+                           FUNC&& func)->CoroContextPtr<std::vector<decltype(resultOf2(func))>>
 {
-    return static_cast<Impl*>(this)->template forEach<OTHER_RET>(first, num, std::forward<FUNC>(func));
+    using Ret = decltype(resultOf2(func));
+    return static_cast<Impl*>(this)->template forEach<Ret>(first, num, std::forward<FUNC>(func));
 }
 
 template <class RET>
 template <class OTHER_RET, class INPUT_IT, class FUNC, class>
-CoroContextPtr<std::vector<std::vector<OTHER_RET>>>
+auto
 ICoroContext<RET>::forEachBatch(INPUT_IT first,
                                 INPUT_IT last,
-                                FUNC&& func)
+                                FUNC&& func)->CoroContextPtr<std::vector<std::vector<decltype(resultOf2(func))>>>
 {
-    return static_cast<Impl*>(this)->template forEachBatch<OTHER_RET>(first, last, std::forward<FUNC>(func));
+    using Ret = decltype(resultOf2(func));
+    return static_cast<Impl*>(this)->template forEachBatch<Ret>(first, last, std::forward<FUNC>(func));
 }
 
 template <class RET>
 template <class OTHER_RET, class INPUT_IT, class FUNC>
-CoroContextPtr<std::vector<std::vector<OTHER_RET>>>
+auto
 ICoroContext<RET>::forEachBatch(INPUT_IT first,
                                 size_t num,
-                                FUNC&& func)
+                                FUNC&& func)->CoroContextPtr<std::vector<std::vector<decltype(resultOf2(func))>>>
 {
-    return static_cast<Impl*>(this)->template forEachBatch<OTHER_RET>(first, num, std::forward<FUNC>(func));
+    using Ret = decltype(resultOf2(func));
+    return static_cast<Impl*>(this)->template forEachBatch<Ret>(first, num, std::forward<FUNC>(func));
 }
 
 template <class RET>
 template <class KEY,
           class MAPPED_TYPE,
           class REDUCED_TYPE,
+          class MAPPER_FUNC,
+          class REDUCER_FUNC,
           class INPUT_IT,
           class>
-CoroContextPtr<std::map<KEY, REDUCED_TYPE>>
+auto
 ICoroContext<RET>::mapReduce(INPUT_IT first,
                              INPUT_IT last,
-                             Functions::MapFunc<KEY, MAPPED_TYPE, INPUT_IT> mapper,
-                             Functions::ReduceFunc<KEY, MAPPED_TYPE, REDUCED_TYPE> reducer)
+                             MAPPER_FUNC mapper,
+                             REDUCER_FUNC reducer)->
+          CoroContextPtr<std::map<decltype(mappedKeyOf(mapper)), decltype(reducedTypeOf(reducer))>>
 {
-    return static_cast<Impl*>(this)->template mapReduce<KEY, MAPPED_TYPE, REDUCED_TYPE>
+    using Key = decltype(mappedKeyOf(mapper));
+    using MappedType = decltype(mappedTypeOf(mapper));
+    using ReducedType = decltype(reducedTypeOf(reducer));
+    return static_cast<Impl*>(this)->template mapReduce<Key, MappedType, ReducedType>
         (first, last, std::move(mapper), std::move(reducer));
 }
 
@@ -510,14 +547,21 @@ template <class RET>
 template <class KEY,
           class MAPPED_TYPE,
           class REDUCED_TYPE,
-          class INPUT_IT>
-CoroContextPtr<std::map<KEY, REDUCED_TYPE>>
+          class MAPPER_FUNC,
+          class REDUCER_FUNC,
+          class INPUT_IT,
+          class>
+auto
 ICoroContext<RET>::mapReduce(INPUT_IT first,
                              size_t num,
-                             Functions::MapFunc<KEY, MAPPED_TYPE, INPUT_IT> mapper,
-                             Functions::ReduceFunc<KEY, MAPPED_TYPE, REDUCED_TYPE> reducer)
+                             MAPPER_FUNC mapper,
+                             REDUCER_FUNC reducer)->
+          CoroContextPtr<std::map<decltype(mappedKeyOf(mapper)), decltype(reducedTypeOf(reducer))>>
 {
-    return static_cast<Impl*>(this)->template mapReduce<KEY, MAPPED_TYPE, REDUCED_TYPE>
+    using Key = decltype(mappedKeyOf(mapper));
+    using MappedType = decltype(mappedTypeOf(mapper));
+    using ReducedType = decltype(reducedTypeOf(reducer));
+    return static_cast<Impl*>(this)->template mapReduce<Key, MappedType, ReducedType>
         (first, num, std::move(mapper), std::move(reducer));
 }
 
@@ -525,15 +569,21 @@ template <class RET>
 template <class KEY,
           class MAPPED_TYPE,
           class REDUCED_TYPE,
+          class MAPPER_FUNC,
+          class REDUCER_FUNC,
           class INPUT_IT,
           class>
-CoroContextPtr<std::map<KEY, REDUCED_TYPE>>
+auto
 ICoroContext<RET>::mapReduceBatch(INPUT_IT first,
                                   INPUT_IT last,
-                                  Functions::MapFunc<KEY, MAPPED_TYPE, INPUT_IT> mapper,
-                                  Functions::ReduceFunc<KEY, MAPPED_TYPE, REDUCED_TYPE> reducer)
+                                  MAPPER_FUNC mapper,
+                                  REDUCER_FUNC reducer)->
+          CoroContextPtr<std::map<decltype(mappedKeyOf(mapper)), decltype(reducedTypeOf(reducer))>>
 {
-    return static_cast<Impl*>(this)->template mapReduceBatch<KEY, MAPPED_TYPE, REDUCED_TYPE>
+    using Key = decltype(mappedKeyOf(mapper));
+    using MappedType = decltype(mappedTypeOf(mapper));
+    using ReducedType = decltype(reducedTypeOf(reducer));
+    return static_cast<Impl*>(this)->template mapReduceBatch<Key, MappedType, ReducedType>
         (first, last, std::move(mapper), std::move(reducer));
 }
 
@@ -541,14 +591,21 @@ template <class RET>
 template <class KEY,
           class MAPPED_TYPE,
           class REDUCED_TYPE,
-          class INPUT_IT>
-CoroContextPtr<std::map<KEY, REDUCED_TYPE>>
+          class MAPPER_FUNC,
+          class REDUCER_FUNC,
+          class INPUT_IT,
+          class>
+auto
 ICoroContext<RET>::mapReduceBatch(INPUT_IT first,
                                   size_t num,
-                                  Functions::MapFunc<KEY, MAPPED_TYPE, INPUT_IT> mapper,
-                                  Functions::ReduceFunc<KEY, MAPPED_TYPE, REDUCED_TYPE> reducer)
+                                  MAPPER_FUNC mapper,
+                                  REDUCER_FUNC reducer)->
+          CoroContextPtr<std::map<decltype(mappedKeyOf(mapper)), decltype(reducedTypeOf(reducer))>>
 {
-    return static_cast<Impl*>(this)->template mapReduceBatch<KEY, MAPPED_TYPE, REDUCED_TYPE>
+    using Key = decltype(mappedKeyOf(mapper));
+    using MappedType = decltype(mappedTypeOf(mapper));
+    using ReducedType = decltype(reducedTypeOf(reducer));
+    return static_cast<Impl*>(this)->template mapReduceBatch<Key, MappedType, ReducedType>
         (first, num, std::move(mapper), std::move(reducer));
 }
 

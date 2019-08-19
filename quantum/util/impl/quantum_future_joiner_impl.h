@@ -60,7 +60,7 @@ FutureJoiner<T>::join(ThreadContextTag, DISPATCHER& dispatcher, std::vector<type
 {
 #if (__cplusplus == 201103L)
     std::shared_ptr<std::vector<typename FUTURE<T>::Ptr>> containerPtr(new std::vector<typename FUTURE<T>::Ptr>(std::move(futures)));
-    return dispatcher.template postAsyncIo2<std::vector<T>>([containerPtr]()->std::vector<T>
+    return dispatcher.template postAsyncIo2([containerPtr]()->std::vector<T>
     {
         std::vector<T> result;
         result.reserve(containerPtr->size());
@@ -71,7 +71,7 @@ FutureJoiner<T>::join(ThreadContextTag, DISPATCHER& dispatcher, std::vector<type
         return result;
     });
 #else
-    return dispatcher.template postAsyncIo2<std::vector<T>>([container{std::move(futures)}]()->std::vector<T>
+    return dispatcher.template postAsyncIo2([container{std::move(futures)}]()->std::vector<T>
     {
         std::vector<T> result;
         result.reserve(container.size());
@@ -91,7 +91,7 @@ FutureJoiner<T>::join(CoroContextTag, DISPATCHER& dispatcher, std::vector<typena
 {
 #if (__cplusplus == 201103L)
     std::shared_ptr<std::vector<typename FUTURE<T>::Ptr>> containerPtr(new std::vector<typename FUTURE<T>::Ptr>(std::move(futures)));
-    return dispatcher.template post2<std::vector<T>>([containerPtr](VoidContextPtr ctx)->std::vector<T>
+    return dispatcher.template post2([containerPtr](VoidContextPtr ctx)->std::vector<T>
     {
         std::vector<T> result;
         result.reserve(containerPtr->size());
@@ -102,7 +102,7 @@ FutureJoiner<T>::join(CoroContextTag, DISPATCHER& dispatcher, std::vector<typena
         return result;
     });
 #else
-    return dispatcher.template post2<std::vector<T>>([container{std::move(futures)}](VoidContextPtr ctx)->std::vector<T>
+    return dispatcher.template post2([container{std::move(futures)}](VoidContextPtr ctx)->std::vector<T>
     {
         std::vector<T> result;
         result.reserve(container.size());

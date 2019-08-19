@@ -207,7 +207,7 @@ std::vector<RET> Util::forEachCoro(VoidContextPtr ctx,
     for (size_t i = 0; i < num; ++i, ++inputIt)
     {
         //Run the function
-        asyncResults.emplace_back(ctx->template post2<RET>([inputIt, &func](VoidContextPtr ctx) mutable ->RET
+        asyncResults.emplace_back(ctx->template post2([inputIt, &func](VoidContextPtr ctx) mutable ->RET
         {
             return std::forward<FUNC>(func)(ctx, *inputIt);
         }));
@@ -237,7 +237,7 @@ Util::forEachBatchCoro(VoidContextPtr ctx,
         {
             break; //nothing to do
         }
-        asyncResults.emplace_back(ctx->template post2<std::vector<RET>>([inputIt, batchSize, &func](VoidContextPtr ctx) mutable ->std::vector<RET>
+        asyncResults.emplace_back(ctx->template post2([inputIt, batchSize, &func](VoidContextPtr ctx) mutable ->std::vector<RET>
         {
             std::vector<RET> result;
             result.reserve(batchSize);
@@ -273,7 +273,7 @@ Util::mapReduceCoro(VoidContextPtr ctx,
     using ReducerOutput = std::map<KEY, REDUCED_TYPE>;
     
     // Map stage
-    IndexerInput indexerInput = ctx->template forEach<MapperOutput>(inputIt, num, mapper)->get(ctx);
+    IndexerInput indexerInput = ctx->forEach(inputIt, num, mapper)->get(ctx);
     
     // Index stage
     IndexerOutput indexerOutput;
@@ -285,7 +285,7 @@ Util::mapReduceCoro(VoidContextPtr ctx,
     }
     
     // Reduce stage
-    ReducedResults reducedResults = ctx->template forEach<ReducedResult>
+    ReducedResults reducedResults = ctx->forEach
         (indexerOutput.begin(), indexerOutput.size(), reducer)->get(ctx);
     
     ReducerOutput reducerOutput;
@@ -318,7 +318,7 @@ Util::mapReduceBatchCoro(VoidContextPtr ctx,
     using ReducerOutput = std::map<KEY, REDUCED_TYPE>;
     
     // Map stage
-    IndexerInput indexerInput = ctx->template forEachBatch<MapperOutput>(inputIt, num, mapper)->get(ctx);
+    IndexerInput indexerInput = ctx->forEachBatch(inputIt, num, mapper)->get(ctx);
     
     // Index stage
     IndexerOutput indexerOutput;
@@ -333,7 +333,7 @@ Util::mapReduceBatchCoro(VoidContextPtr ctx,
     }
     
     // Reduce stage
-    ReducedResults reducedResults = ctx->template forEachBatch<ReducedResult>
+    ReducedResults reducedResults = ctx->forEachBatch
         (indexerOutput.begin(), indexerOutput.size(), reducer)->get(ctx);
     
     ReducerOutput reducerOutput;

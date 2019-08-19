@@ -58,15 +58,12 @@ public:
     /// @return A pointer to a thread context object.
     /// @note This function is non-blocking and returns immediately. The returned thread context cannot be used to chain
     ///       further coroutines.
-    template <class RET = int, class FUNC, class ... ARGS>
-    ThreadContextPtr<RET>
-    post(FUNC&& func, ARGS&&... args);
+    template <class RET = Deprecated, class FUNC, class ... ARGS>
+    auto post(FUNC&& func, ARGS&&... args)->ThreadContextPtr<decltype(resultOf(func))>;
     
     /// @brief Version 2 of the API which supports a simpler coroutine signature (see documentation).
-    template <class RET = int, class FUNC, class ... ARGS>
-    ThreadContextPtr<RET>
-    post2(FUNC&& func, ARGS&&... args);
-    
+    template <class RET = Deprecated, class FUNC, class ... ARGS>
+    auto post2(FUNC&& func, ARGS&&... args)->ThreadContextPtr<decltype(resultOf2(func))>;
     
     /// @brief Post a coroutine to run asynchronously on a specific queue (thread).
     /// @tparam RET Type of future returned by this coroutine.
@@ -84,14 +81,14 @@ public:
     /// @return A pointer to a thread context object.
     /// @note This function is non-blocking and returns immediately. The returned thread context cannot be used to chain
     ///       further coroutines.
-    template <class RET = int, class FUNC, class ... ARGS>
-    ThreadContextPtr<RET>
-    post(int queueId, bool isHighPriority, FUNC&& func, ARGS&&... args);
+    template <class RET = Deprecated, class FUNC, class ... ARGS>
+    auto post(int queueId, bool isHighPriority, FUNC&& func, ARGS&&... args)
+        ->ThreadContextPtr<decltype(resultOf(func))>;
     
     /// @brief Version 2 of the API which supports a simpler coroutine signature (see documentation).
-    template <class RET = int, class FUNC, class ... ARGS>
-    ThreadContextPtr<RET>
-    post2(int queueId, bool isHighPriority, FUNC&& func, ARGS&&... args);
+    template <class RET = Deprecated, class FUNC, class ... ARGS>
+    auto post2(int queueId, bool isHighPriority, FUNC&& func, ARGS&&... args)
+        ->ThreadContextPtr<decltype(resultOf2(func))>;
     
     /// @brief Post the first coroutine in a continuation chain to run asynchronously.
     /// @tparam RET Type of future returned by this coroutine.
@@ -104,14 +101,12 @@ public:
     /// @return A pointer to a thread context object.
     /// @note This function is non-blocking and returns immediately. The returned context can be used to chain other
     ///       coroutines which will run sequentially.
-    template <class RET = int, class FUNC, class ... ARGS>
-    ThreadContextPtr<RET>
-    postFirst(FUNC&& func, ARGS&&... args);
+    template <class RET = Deprecated, class FUNC, class ... ARGS>
+    auto postFirst(FUNC&& func, ARGS&&... args)->ThreadContextPtr<decltype(resultOf(func))>;
     
     /// @brief Version 2 of the API which supports a simpler coroutine signature (see documentation).
-    template <class RET = int, class FUNC, class ... ARGS>
-    ThreadContextPtr<RET>
-    postFirst2(FUNC&& func, ARGS&&... args);
+    template <class RET = Deprecated, class FUNC, class ... ARGS>
+    auto postFirst2(FUNC&& func, ARGS&&... args)->ThreadContextPtr<decltype(resultOf2(func))>;
     
     /// @brief Post the first coroutine in a continuation chain to run asynchronously on a specific queue (thread).
     /// @tparam RET Type of future returned by this coroutine.
@@ -129,14 +124,14 @@ public:
     /// @return A pointer to a thread context object.
     /// @note This function is non-blocking and returns immediately. The returned context can be used to chain other
     ///       coroutines which will run sequentially.
-    template <class RET = int, class FUNC, class ... ARGS>
-    ThreadContextPtr<RET>
-    postFirst(int queueId, bool isHighPriority, FUNC&& func, ARGS&&... args);
+    template <class RET = Deprecated, class FUNC, class ... ARGS>
+    auto postFirst(int queueId, bool isHighPriority, FUNC&& func, ARGS&&... args)
+        ->ThreadContextPtr<decltype(resultOf(func))>;
     
     /// @brief Version 2 of the API which supports a simpler coroutine signature (see documentation).
-    template <class RET = int, class FUNC, class ... ARGS>
-    ThreadContextPtr<RET>
-    postFirst2(int queueId, bool isHighPriority, FUNC&& func, ARGS&&... args);
+    template <class RET = Deprecated, class FUNC, class ... ARGS>
+    auto postFirst2(int queueId, bool isHighPriority, FUNC&& func, ARGS&&... args)
+        ->ThreadContextPtr<decltype(resultOf2(func))>;
     
     /// @brief Post a blocking IO (or long running) task to run asynchronously on the IO thread pool.
     /// @tparam RET Type of future returned by this task.
@@ -148,14 +143,12 @@ public:
     /// @param[in] args Variable list of arguments passed to the callable object.
     /// @return A pointer to a thread future object.
     /// @note This function is non-blocking and returns immediately. The passed function will not be wrapped in a coroutine.
-    template <class RET = int, class FUNC, class ... ARGS>
-    ThreadFuturePtr<RET>
-    postAsyncIo(FUNC&& func, ARGS&&... args);
+    template <class RET = Deprecated, class FUNC, class ... ARGS>
+    auto postAsyncIo(FUNC&& func, ARGS&&... args)->ThreadFuturePtr<decltype(resultOf(func))>;
     
     /// @brief Version 2 of the API which supports a simpler IO task signature (see documentation).
-    template <class RET = int, class FUNC, class ... ARGS>
-    ThreadFuturePtr<RET>
-    postAsyncIo2(FUNC&& func, ARGS&&... args);
+    template <class RET = Deprecated, class FUNC, class ... ARGS>
+    auto postAsyncIo2(FUNC&& func, ARGS&&... args)->ThreadFuturePtr<decltype(resultOf2(func))>;
     
     /// @brief Post a blocking IO (or long running) task to run asynchronously on a specific thread in the IO thread pool.
     /// @tparam RET Type of future returned by this task.
@@ -171,14 +164,14 @@ public:
     /// @param[in] args Variable list of arguments passed to the callable object.
     /// @return A pointer to a thread future object.
     /// @note This function is non-blocking and returns immediately. The passed function will not be wrapped in a coroutine.
-    template <class RET = int, class FUNC, class ... ARGS>
-    ThreadFuturePtr<RET>
-    postAsyncIo(int queueId, bool isHighPriority, FUNC&& func, ARGS&&... args);
+    template <class RET = Deprecated, class FUNC, class ... ARGS>
+    auto postAsyncIo(int queueId, bool isHighPriority, FUNC&& func, ARGS&&... args)
+        ->ThreadFuturePtr<decltype(resultOf(func))>;
     
     /// @brief Version 2 of the API which supports a simpler IO task signature (see documentation).
-    template <class RET = int, class FUNC, class ... ARGS>
-    ThreadFuturePtr<RET>
-    postAsyncIo2(int queueId, bool isHighPriority, FUNC&& func, ARGS&&... args);
+    template <class RET = Deprecated, class FUNC, class ... ARGS>
+    auto postAsyncIo2(int queueId, bool isHighPriority, FUNC&& func, ARGS&&... args)
+        ->ThreadFuturePtr<decltype(resultOf2(func))>;
     
     /// @brief Applies the given unary function to all the elements in the range [first,last).
     ///        This function runs in parallel.
@@ -194,20 +187,20 @@ public:
     ///       Prefer this function over forEachBatch() if performing IO inside FUNC.
     /// @warning The VoidContextPtr can be used to yield() or to post additional coroutines or IO tasks.
     ///          However it should *not* be set and this will result in undefined behavior.
-    template <class RET = int,
+    template <class RET = Deprecated,
               class INPUT_IT,
               class FUNC,
               class = Traits::IsInputIterator<INPUT_IT>>
-    ThreadContextPtr<std::vector<RET>>
-    forEach(INPUT_IT first, INPUT_IT last, FUNC&& func);
+    auto forEach(INPUT_IT first, INPUT_IT last, FUNC&& func)
+        ->ThreadContextPtr<std::vector<decltype(resultOf2(func))>>;
     
     /// @brief Same as forEach() but takes a length as second argument in case INPUT_IT
     ///        is not a random access iterator.
-    template <class RET = int,
+    template <class RET = Deprecated,
               class INPUT_IT,
               class FUNC>
-    ThreadContextPtr<std::vector<RET>>
-    forEach(INPUT_IT first, size_t num, FUNC&& func);
+    auto forEach(INPUT_IT first, size_t num, FUNC&& func)
+        ->ThreadContextPtr<std::vector<decltype(resultOf2(func))>>;
     
     /// @brief The batched version of forEach(). This function applies the given unary function
     ///        to all the elements in the range [first,last). This function runs serially with respect
@@ -216,20 +209,20 @@ public:
     /// @note Use this function if InputIt meets the requirement of a RandomAccessIterator.
     /// @note The input range is split equally among coroutines and executed in batches. This function
     ///       achieves higher throughput rates than the non-batched mode, if FUNC is CPU-bound.
-    template <class RET = int,
+    template <class RET = Deprecated,
               class INPUT_IT,
               class FUNC,
               class = Traits::IsInputIterator<INPUT_IT>>
-    ThreadContextPtr<std::vector<std::vector<RET>>>
-    forEachBatch(INPUT_IT first, INPUT_IT last, FUNC&& func);
+    auto forEachBatch(INPUT_IT first, INPUT_IT last, FUNC&& func)
+        ->ThreadContextPtr<std::vector<std::vector<decltype(resultOf2(func))>>>;
     
     /// @brief Same as forEachBatch() but takes a length as second argument in case INPUT_IT
     ///        is not a random access iterator.
-    template <class RET = int,
+    template <class RET = Deprecated,
               class INPUT_IT,
               class FUNC>
-    ThreadContextPtr<std::vector<std::vector<RET>>>
-    forEachBatch(INPUT_IT first, size_t num, FUNC&& func);
+    auto forEachBatch(INPUT_IT first, size_t num, FUNC&& func)
+        ->ThreadContextPtr<std::vector<std::vector<decltype(resultOf2(func))>>>;
     
     /// @brief Implementation of map-reduce functionality.
     /// @tparam KEY The KEY type used for mapping and reducing.
@@ -248,55 +241,65 @@ public:
     /// @note Use this function if InputIt meets the requirement of a RandomAccessIterator.
     /// @warning The VoidContextPtr can be used to yield() or to post additional coroutines or IO tasks.
     ///          However it should *not* be set and this will result in undefined behavior.
-    template <class KEY,
-              class MAPPED_TYPE,
-              class REDUCED_TYPE,
+    template <class KEY = Deprecated,
+              class MAPPED_TYPE = Deprecated,
+              class REDUCED_TYPE = Deprecated,
+              class MAPPER_FUNC,
+              class REDUCER_FUNC,
               class INPUT_IT,
               class = Traits::IsInputIterator<INPUT_IT>>
-    ThreadContextPtr<std::map<KEY, REDUCED_TYPE>>
-    mapReduce(INPUT_IT first,
-              INPUT_IT last,
-              Functions::MapFunc<KEY, MAPPED_TYPE, INPUT_IT> mapper,
-              Functions::ReduceFunc<KEY, MAPPED_TYPE, REDUCED_TYPE> reducer);
+    auto mapReduce(INPUT_IT first,
+                   INPUT_IT last,
+                   MAPPER_FUNC mapper,
+                   REDUCER_FUNC reducer)->
+          ThreadContextPtr<std::map<decltype(mappedKeyOf(mapper)), decltype(reducedTypeOf(reducer))>>;
   
     /// @brief Same as mapReduce() but takes a length as second argument in case INPUT_IT
     ///        is not a random access iterator.
-    template <class KEY,
-              class MAPPED_TYPE,
-              class REDUCED_TYPE,
-              class INPUT_IT>
-    ThreadContextPtr<std::map<KEY, REDUCED_TYPE>>
-    mapReduce(INPUT_IT first,
-              size_t num,
-              Functions::MapFunc<KEY, MAPPED_TYPE, INPUT_IT> mapper,
-              Functions::ReduceFunc<KEY, MAPPED_TYPE, REDUCED_TYPE> reducer);
+    template <class KEY = Deprecated,
+              class MAPPED_TYPE = Deprecated,
+              class REDUCED_TYPE = Deprecated,
+              class MAPPER_FUNC,
+              class REDUCER_FUNC,
+              class INPUT_IT,
+              class = Traits::IsInputIterator<INPUT_IT>>
+    auto mapReduce(INPUT_IT first,
+                   size_t num,
+                   MAPPER_FUNC mapper,
+                   REDUCER_FUNC reducer)->
+          ThreadContextPtr<std::map<decltype(mappedKeyOf(mapper)), decltype(reducedTypeOf(reducer))>>;
     
     /// @brief This version of mapReduce() runs both the mapper and the reducer functions in batches
     ///        for improved performance. This should be used in the case where the functions are
     ///        more CPU intensive with little or no IO.
     /// @note Use this function if InputIt meets the requirement of a RandomAccessIterator.
-    template <class KEY,
-              class MAPPED_TYPE,
-              class REDUCED_TYPE,
+    template <class KEY = Deprecated,
+              class MAPPED_TYPE = Deprecated,
+              class REDUCED_TYPE = Deprecated,
+              class MAPPER_FUNC,
+              class REDUCER_FUNC,
               class INPUT_IT,
               class = Traits::IsInputIterator<INPUT_IT>>
-    ThreadContextPtr<std::map<KEY, REDUCED_TYPE>>
-    mapReduceBatch(INPUT_IT first,
-                   INPUT_IT last,
-                   Functions::MapFunc<KEY, MAPPED_TYPE, INPUT_IT> mapper,
-                   Functions::ReduceFunc<KEY, MAPPED_TYPE, REDUCED_TYPE> reducer);
+    auto mapReduceBatch(INPUT_IT first,
+                        INPUT_IT last,
+                        MAPPER_FUNC mapper,
+                        REDUCER_FUNC reducer)->
+          ThreadContextPtr<std::map<decltype(mappedKeyOf(mapper)), decltype(reducedTypeOf(reducer))>>;
     
     /// @brief Same as mapReduceBatch() but takes a length as second argument in case INPUT_IT
     ///        is not a random access iterator.
-    template <class KEY,
-              class MAPPED_TYPE,
-              class REDUCED_TYPE,
-              class INPUT_IT>
-    ThreadContextPtr<std::map<KEY, REDUCED_TYPE>>
-    mapReduceBatch(INPUT_IT first,
-                   size_t num,
-                   Functions::MapFunc<KEY, MAPPED_TYPE, INPUT_IT> mapper,
-                   Functions::ReduceFunc<KEY, MAPPED_TYPE, REDUCED_TYPE> reducer);
+    template <class KEY = Deprecated,
+              class MAPPED_TYPE = Deprecated,
+              class REDUCED_TYPE = Deprecated,
+              class MAPPER_FUNC,
+              class REDUCER_FUNC,
+              class INPUT_IT,
+              class = Traits::IsInputIterator<INPUT_IT>>
+    auto mapReduceBatch(INPUT_IT first,
+                        size_t num,
+                        MAPPER_FUNC mapper,
+                        REDUCER_FUNC reducer)->
+          ThreadContextPtr<std::map<decltype(mappedKeyOf(mapper)), decltype(reducedTypeOf(reducer))>>;
 
     /// @brief Signal all threads to immediately terminate and exit. All other pending coroutines and IO tasks will not complete.
     ///        Call this function for a fast shutdown of the dispatcher.
@@ -325,9 +328,11 @@ public:
     
     /// @brief Drains all queues on this dispatcher object.
     /// @param[in] timeout Maximum time for this function to wait. Set to 0 to wait indefinitely until all queues drain.
+    /// @param[in] isFinal If set to true, the dispatcher will not allow any more processing after the drain completes.
     /// @note This function blocks until all coroutines and IO tasks have completed. During this time, posting
     ///       of new tasks is disabled unless they are posted from within an already executing coroutine.
-    void drain(std::chrono::milliseconds timeout = std::chrono::milliseconds::zero());
+    void drain(std::chrono::milliseconds timeout = std::chrono::milliseconds::zero(),
+               bool isFinal = false);
     
     /// @brief Returns the number of underlying coroutine threads as specified in the constructor. If -1 was passed
     ///        than this number essentially indicates the number of cores.
@@ -379,9 +384,22 @@ private:
     
     struct DrainGuard
     {
-        DrainGuard(std::atomic_bool& drain) : _drain(drain) { _drain = true; }
-        ~DrainGuard() { _drain = false; }
+        DrainGuard(std::atomic_bool& drain,
+                   bool reactivate = true) :
+            _drain(drain),
+            _reactivate(reactivate)
+        {
+            _drain = true;
+        }
+        ~DrainGuard()
+        {
+            if (_reactivate)
+            {
+                _drain = false;
+            }
+        }
         std::atomic_bool& _drain;
+        bool              _reactivate;
     };
     
     //Members

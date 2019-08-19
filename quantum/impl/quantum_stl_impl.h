@@ -78,19 +78,46 @@ namespace std {
 namespace Bloomberg {
 namespace quantum {
 
-#if (__cplusplus <= 201402L)
-    template <typename FUNC, typename...ARGS>
-    struct ReturnOf
-    {
-        using Type = typename std::result_of<FUNC(ARGS...)>::type;
-    };
-#else
-    template <typename FUNC, typename...ARGS>
-    struct ReturnOf
-    {
-        using Type = std::invoke_result_t<FUNC, ARGS...>;
-    };
-#endif
+template <typename T = void, typename ... Args>
+struct ExtractFirst { using Type = T; };
+
+template <typename ... Args>
+struct FirstArg
+{
+    using Type = typename ExtractFirst<Args...>::Type;
+};
+
+template <typename RET, typename = void>
+struct FunctionArguments;
+
+template <typename RET, typename...ARGS>
+struct FunctionArguments<RET(*)(ARGS...)>
+{
+    using FirstType = typename FirstArg<ARGS...>::Type;
+    using RetType = RET;
+};
+
+template <typename RET, typename OBJ, typename...ARGS>
+struct FunctionArguments<RET(OBJ::*)(ARGS...)> : FunctionArguments<RET(*)(ARGS...)>
+{};
+
+template <typename RET, typename OBJ, typename...ARGS>
+struct FunctionArguments<RET(OBJ::*)(ARGS...)const> : FunctionArguments<RET(*)(ARGS...)>
+{};
+
+template <typename FUNC>
+struct FunctionArguments<FUNC, typename std::conditional<false, decltype(&FUNC::operator()), void>::type> :
+    FunctionArguments<decltype(&FUNC::operator())>
+{};
+
+struct Callable
+{
+    template <typename FUNC>
+    static auto ref(FUNC&&) -> typename std::remove_reference<FUNC>::type;
+    
+    template <typename RET, typename...ARGS>
+    static auto ref(RET(*func)(ARGS...)) -> decltype(func);
+};
 
 template <typename RET, typename FUNC, typename... ARGS, size_t...I, typename...T>
 RET apply_impl(FUNC&& func, std::tuple<ARGS...>&& tuple, std::index_sequence<I...>, T&&...t)
