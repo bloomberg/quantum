@@ -84,7 +84,7 @@ using BufferRetType = std::enable_if_t<Traits::IsBuffer<T>::value, typename Trai
 template <class T>
 using NonBufferRetType = std::enable_if_t<!Traits::IsBuffer<T>::value, typename Traits::IsBuffer<T>::Type>;
 template <typename FUNC>
-auto resultOf(FUNC&& func)->typename Traits::InnerType<typename FunctionArguments<decltype(Callable::ref(func))>::FirstType>::Type;
+auto resultOf(FUNC&& func)->typename Traits::InnerType<typename FunctionArguments<decltype(Callable::ref(func))>::template ArgType<0>>::Type;
 template <typename FUNC>
 auto resultOf2(FUNC&& func)->typename FunctionArguments<decltype(Callable::ref(func))>::RetType;
 template <class T>
