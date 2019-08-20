@@ -20,6 +20,8 @@
 #include <iterator>
 #include <type_traits>
 #include <vector>
+#include <tuple>
+#include <memory>
 
 namespace Bloomberg {
 namespace quantum {
