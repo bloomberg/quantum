@@ -78,22 +78,14 @@ namespace std {
 namespace Bloomberg {
 namespace quantum {
 
-template <typename T = void, typename ... Args>
-struct ExtractFirst { using Type = T; };
-
-template <typename ... Args>
-struct FirstArg
-{
-    using Type = typename ExtractFirst<Args...>::Type;
-};
-
 template <typename RET, typename = void>
 struct FunctionArguments;
 
 template <typename RET, typename...ARGS>
 struct FunctionArguments<RET(*)(ARGS...)>
 {
-    using FirstType = typename FirstArg<ARGS...>::Type;
+    template <size_t N>
+    using ArgType = typename std::tuple_element<N, std::tuple<ARGS...>>::type;
     using RetType = RET;
 };
 
