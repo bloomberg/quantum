@@ -19,6 +19,7 @@
 #include <quantum/quantum_allocator.h>
 #include <iterator>
 #include <type_traits>
+#include <vector>
 
 namespace Bloomberg {
 namespace quantum {
