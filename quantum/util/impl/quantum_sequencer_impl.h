@@ -19,6 +19,8 @@
 //#################################### IMPLEMENTATIONS #########################################
 //##############################################################################################
 
+#include <quantum/util/quantum_drain_guard.h>
+#include <quantum/quantum_promise.h>
 #include <stdexcept>
 
 namespace Bloomberg {
@@ -28,6 +30,7 @@ template <class SequenceKey, class Hash, class KeyEqual, class Allocator>
 Sequencer<SequenceKey, Hash, KeyEqual, Allocator>::Sequencer(Dispatcher& dispatcher,
     const typename Sequencer<SequenceKey, Hash, KeyEqual, Allocator>::Configuration& configuration) :
     _dispatcher(dispatcher),
+    _drain(false),
     _controllerQueueId(configuration.getControlQueueId()),
     _universalContext(),
     _contexts(configuration.getBucketCount(),
@@ -51,6 +54,10 @@ Sequencer<SequenceKey, Hash, KeyEqual, Allocator>::enqueue(
     FUNC&& func,
     ARGS&&... args)
 {
+    if (_drain)
+    {
+        throw std::runtime_error("Sequencer is disabled");
+    }
     _dispatcher.post2(_controllerQueueId,
                       false,
                       singleSequenceKeyTaskScheduler<FUNC, ARGS...>,
@@ -74,11 +81,14 @@ Sequencer<SequenceKey, Hash, KeyEqual, Allocator>::enqueue(
     FUNC&& func,
     ARGS&&... args)
 {
+    if (_drain)
+    {
+        throw std::runtime_error("Sequencer is disabled");
+    }
     if (queueId < (int)IQueue::QueueId::Any)
     {
         throw std::runtime_error("Invalid IO queue id");
     }
-
     _dispatcher.post2(_controllerQueueId,
                       false,
                       singleSequenceKeyTaskScheduler<FUNC, ARGS...>,
@@ -99,6 +109,10 @@ Sequencer<SequenceKey, Hash, KeyEqual, Allocator>::enqueue(
     FUNC&& func,
     ARGS&&... args)
 {
+    if (_drain)
+    {
+        throw std::runtime_error("Sequencer is disabled");
+    }
     _dispatcher.post2(_controllerQueueId,
                       false,
                       multiSequenceKeyTaskScheduler<FUNC, ARGS...>,
@@ -122,6 +136,10 @@ Sequencer<SequenceKey, Hash, KeyEqual, Allocator>::enqueue(
     FUNC&& func,
     ARGS&&... args)
 {
+    if (_drain)
+    {
+        throw std::runtime_error("Sequencer is disabled");
+    }
     if (queueId < (int)IQueue::QueueId::Any)
     {
         throw std::runtime_error("Invalid IO queue id");
@@ -143,6 +161,10 @@ template <class FUNC, class ... ARGS>
 void
 Sequencer<SequenceKey, Hash, KeyEqual, Allocator>::enqueueAll(FUNC&& func, ARGS&&... args)
 {
+    if (_drain)
+    {
+        throw std::runtime_error("Sequencer is disabled");
+    }
     _dispatcher.post2(_controllerQueueId,
                       false,
                       universalTaskScheduler<FUNC, ARGS...>,
@@ -164,6 +186,10 @@ Sequencer<SequenceKey, Hash, KeyEqual, Allocator>::enqueueAll(
     FUNC&& func,
     ARGS&&... args)
 {
+    if (_drain)
+    {
+        throw std::runtime_error("Sequencer is disabled");
+    }
     if (queueId < (int)IQueue::QueueId::Any)
     {
         throw std::runtime_error("Invalid IO queue id");
@@ -260,11 +286,11 @@ Sequencer<SequenceKey, Hash, KeyEqual, Allocator>::waitForTwoDependents(
     {
         universalDependent._context->wait(ctx);
     }
+    int rc = callPosted(ctx, opaque, sequencer, std::forward<FUNC>(func), std::forward<ARGS>(args)...);
     // update task stats
     dependent._stats->decrementPendingTaskCount();
     sequencer._taskStats->decrementPendingTaskCount();
-    callPosted(ctx, opaque, sequencer, std::forward<FUNC>(func), std::forward<ARGS>(args)...);
-    return 0;
+    return rc;
 }
 
 template <class SequenceKey, class Hash, class KeyEqual, class Allocator>
@@ -292,14 +318,14 @@ Sequencer<SequenceKey, Hash, KeyEqual, Allocator>::waitForDependents(
     {
         universalDependent._context->wait(ctx);
     }
-    //update stats
+    int rc = callPosted(ctx, opaque, sequencer, std::forward<FUNC>(func), std::forward<ARGS>(args)...);
+    // update task stats
     for (const auto& dependent : dependents)
     {
         dependent._stats->decrementPendingTaskCount();
     }
-    // update task stats
     sequencer._taskStats->decrementPendingTaskCount();
-    return callPosted(ctx, opaque, sequencer, std::forward<FUNC>(func), std::forward<ARGS>(args)...);
+    return rc;
 }
 
 template <class SequenceKey, class Hash, class KeyEqual, class Allocator>
@@ -327,10 +353,11 @@ Sequencer<SequenceKey, Hash, KeyEqual, Allocator>::waitForUniversalDependent(
     {
         universalDependent._context->wait(ctx);
     }
-    universalDependent._stats->decrementPendingTaskCount();
+    int rc = callPosted(ctx, opaque, sequencer, std::forward<FUNC>(func), std::forward<ARGS>(args)...);
     // update task stats
+    universalDependent._stats->decrementPendingTaskCount();
     sequencer._taskStats->decrementPendingTaskCount();
-    return callPosted(ctx, opaque, sequencer, std::forward<FUNC>(func), std::forward<ARGS>(args)...);
+    return rc;
 }
 
 template <class SequenceKey, class Hash, class KeyEqual, class Allocator>
@@ -518,6 +545,30 @@ Sequencer<SequenceKey, Hash, KeyEqual, Allocator>::isPendingContext(const ICoroC
 {
     return ctxToValidate && ctxToValidate->valid() &&
            ctxToValidate->waitFor(ctx, std::chrono::milliseconds(0)) == std::future_status::timeout;
+}
+
+template <class SequenceKey, class Hash, class KeyEqual, class Allocator>
+void
+Sequencer<SequenceKey, Hash, KeyEqual, Allocator>::drain(std::chrono::milliseconds timeout,
+                                                         bool isFinal)
+{
+    std::shared_ptr<Promise<int>> promise = std::make_shared<Promise<int>>();
+    ThreadFuturePtr<int> future = promise->getIThreadFuture();
+    
+    //enqueue a universal task and wait
+    enqueueAll([promise](VoidContextPtr)->int{
+        return promise->set(0);
+    });
+    
+    DrainGuard guard(_drain, !isFinal);
+    if (timeout == std::chrono::milliseconds::zero())
+    {
+        future->wait();
+    }
+    else
+    {
+        future->waitFor(timeout);
+    }
 }
 
 
