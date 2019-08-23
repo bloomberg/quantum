@@ -148,7 +148,7 @@ TEST_P(SequencerTest, BasicTaskOrder)
         sequenceKeys[sequenceKey].push_back(id);
         sequencer.enqueue(sequenceKey, testData.makeTask(id));
     }
-    getDispatcher().drain();
+    sequencer.drain();
 
     EXPECT_EQ(testData.results().size(), (size_t)taskCount);
 
@@ -178,7 +178,7 @@ TEST_P(SequencerTest, TrimKeys)
         SequencerTestData::SequenceKey sequenceKey = id % sequenceKeyCount;
         sequencer.enqueue(sequenceKey, testData.makeTask(id));
     }
-    getDispatcher().drain();
+    sequencer.drain();
 
     EXPECT_EQ(sequencer.getSequenceKeyCount(), (size_t)sequenceKeyCount);
     EXPECT_EQ(sequencer.trimSequenceKeys(), 0u);
@@ -250,7 +250,7 @@ TEST_P(SequencerTest, ExceptionHandler)
             sequencer.enqueue(&sequenceKeys[id], (int)IQueue::QueueId::Any, false, sequenceKey, testData.makeTask(id));
         }
     }
-    getDispatcher().drain();
+    sequencer.drain();
 
     EXPECT_EQ(generatedExceptionCount, exceptionCallbackCallCount);
 }
@@ -328,7 +328,7 @@ TEST_P(SequencerTest, SequenceKeyStats)
         }
     }
 
-    getDispatcher().drain();
+    sequencer.drain();
 
     // check the final stats
     postedCount = 0;
@@ -344,9 +344,9 @@ TEST_P(SequencerTest, SequenceKeyStats)
     pendingCount += universalStatsAfter.getPendingTaskCount();
 
     EXPECT_EQ(sequenceKeyCount, (int)sequencer.getSequenceKeyCount());
-    EXPECT_EQ((unsigned int)taskCount, postedCount);
+    EXPECT_EQ((unsigned int)taskCount, postedCount-1); //-1 for drain()
     EXPECT_EQ(0u, pendingCount);
-    EXPECT_EQ(taskCount, (int)sequencer.getTaskStatistics().getPostedTaskCount());
+    EXPECT_EQ(taskCount, (int)sequencer.getTaskStatistics().getPostedTaskCount()-1); //-1 for drain()
     EXPECT_EQ(0u, sequencer.getTaskStatistics().getPendingTaskCount());
 }
 
@@ -379,7 +379,7 @@ TEST_P(SequencerTest, TaskOrderWithUniversal)
             sequencer.enqueue(sequenceKey, testData.makeTask(id));
         }
     }
-    getDispatcher().drain();
+    sequencer.drain();
 
     EXPECT_EQ((int)testData.results().size(), taskCount);
     EXPECT_EQ((int)sequencer.getSequenceKeyCount(), sequenceKeyCount);
@@ -441,7 +441,7 @@ TEST_P(SequencerTest, MultiSequenceKeyTasks)
         // save the task id for this sequenceKey
         sequencer.enqueue(sequenceKeys, testData.makeTask(id));
     }
-    getDispatcher().drain();
+    sequencer.drain();
 
     EXPECT_EQ((int)testData.results().size(), taskCount);
     EXPECT_EQ((int)sequencer.getSequenceKeyCount(), sequenceKeyCount);
@@ -514,7 +514,7 @@ TEST_P(SequencerTest, CustomHashFunction)
         // enqueue the task with the real sequenceKey id
         sequencer.enqueue(std::move(sequenceKey), testData.makeTask(id));
     }
-    getDispatcher().drain();
+    sequencer.drain();
 
     EXPECT_EQ((int)testData.results().size(), taskCount);
     EXPECT_EQ((int)sequencer.getSequenceKeyCount(), restrictedSequenceKeyCount);

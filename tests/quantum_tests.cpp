@@ -22,6 +22,7 @@
 #include <unordered_map>
 #include <list>
 #include <memory>
+#include <functional>
 
 using namespace quantum;
 using ms = std::chrono::milliseconds;
@@ -150,6 +151,14 @@ int DummyIoTask(ThreadPromise<int>::Ptr promise)
     std::this_thread::sleep_for(ms(10));
     return 0;
 }
+
+struct Dummy
+{
+    int MemberCoro(CoroContext<std::string>::Ptr ctx)
+    {
+        return ctx->set("test");
+    }
+};
 
 #ifdef BOOST_USE_VALGRIND
     int fibInput = 10;

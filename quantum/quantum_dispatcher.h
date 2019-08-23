@@ -19,6 +19,7 @@
 #include <quantum/quantum_context.h>
 #include <quantum/quantum_configuration.h>
 #include <quantum/quantum_macros.h>
+#include <quantum/util/quantum_drain_guard.h>
 #include <iterator>
 #include <chrono>
 
@@ -381,26 +382,6 @@ private:
     template <class RET, class FUNC, class ... ARGS>
     ThreadFuturePtr<RET>
     postAsyncIoImpl2(int queueId, bool isHighPriority, FUNC&& func, ARGS&&... args);
-    
-    struct DrainGuard
-    {
-        DrainGuard(std::atomic_bool& drain,
-                   bool reactivate = true) :
-            _drain(drain),
-            _reactivate(reactivate)
-        {
-            _drain = true;
-        }
-        ~DrainGuard()
-        {
-            if (_reactivate)
-            {
-                _drain = false;
-            }
-        }
-        std::atomic_bool& _drain;
-        bool              _reactivate;
-    };
     
     //Members
     DispatcherCore              _dispatcher;
