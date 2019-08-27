@@ -106,14 +106,13 @@ public:
     void SetUp()
     {
         _dispatcher = &DispatcherSingleton::instance(GetParam());
+        _dispatcher->drain();
         _dispatcher->resetStats();
     }
     
     void TearDown()
     {
-        _dispatcher->drain();
         _dispatcher = nullptr;
-        //DispatcherSingleton::deleteInstances();
     }
 
     quantum::Dispatcher& getDispatcher()

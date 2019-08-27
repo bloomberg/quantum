@@ -82,6 +82,9 @@ void ContiguousPoolManager<T>::setBuffer(aligned_type *buffer, index_type size)
     }
     _control->_size = size;
     _control->_buffer = buffer;
+    if (_control->_freeBlocks) {
+        delete[] _control->_freeBlocks;
+    }
     _control->_freeBlocks = new index_type[size];
     if (!_control->_freeBlocks) {
         throw std::bad_alloc();
@@ -232,7 +235,7 @@ typename ContiguousPoolManager<T>::pointer ContiguousPoolManager<T>::bufferEnd()
 template <typename T>
 bool ContiguousPoolManager<T>::isManaged(pointer p)
 {
-    return (bufferStart() <= p) && (p < bufferEnd());
+    return !bufferStart() || (bufferStart() && (bufferStart() <= p) && (p < bufferEnd()));
 }
 
 template <typename T>
