@@ -29,6 +29,7 @@
 #include <quantum/interface/quantum_iterminate.h>
 #include <quantum/interface/quantum_iqueue.h>
 #include <quantum/quantum_spinlock.h>
+#include <quantum/quantum_task.h>
 #include <quantum/quantum_yielding_thread.h>
 #include <quantum/quantum_queue_statistics.h>
 #include <quantum/quantum_configuration.h>
@@ -87,6 +88,10 @@ public:
     
     const std::shared_ptr<std::thread>& getThread() const final;
 
+    static Task* getCurrentTask();
+
+    static void setCurrentTask(Task* task);
+
 private:
     struct WorkItem
     {
@@ -107,6 +112,13 @@ private:
             
         bool _isBlocked;                 // true if the entire queue is blocked
         unsigned int _blockedQueueRound; // blocked queue round id
+    };
+    struct CurrentTaskSetter
+    {
+        CurrentTaskSetter(TaskQueue& taskQueue, const TaskPtr & task);
+        ~CurrentTaskSetter();
+
+        TaskQueue& _taskQueue;
     };
     //Coroutine result handlers
     bool handleNotCallable(const WorkItem& entry);

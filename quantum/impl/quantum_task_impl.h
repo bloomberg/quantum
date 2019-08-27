@@ -48,7 +48,8 @@ Task::Task(std::shared_ptr<Context<RET>> ctx,
     _isHighPriority(isHighPriority),
     _type(type),
     _terminated(false),
-    _suspendedState((int)State::Suspended)
+    _suspendedState((int)State::Suspended),
+    _coroLocalStorage()
 {}
 
 template <class RET, class FUNC, class ... ARGS>
@@ -66,7 +67,8 @@ Task::Task(Void,
     _isHighPriority(isHighPriority),
     _type(type),
     _terminated(false),
-    _suspendedState((int)State::Suspended)
+    _suspendedState((int)State::Suspended),
+    _coroLocalStorage()
 {}
 
 inline
@@ -191,7 +193,13 @@ bool Task::isSuspended() const
 {
     return _suspendedState == (int)State::Suspended;
 }
-    
+
+inline
+Task::CoroLocalStorage& Task::getCoroLocalStorage()
+{
+    return _coroLocalStorage;
+}
+
 inline
 void* Task::operator new(size_t)
 {
