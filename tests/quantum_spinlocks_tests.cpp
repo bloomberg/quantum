@@ -14,7 +14,6 @@
 ** limitations under the License.
 */
 #include <gtest/gtest.h>
-#include <gmock/gmock.h>
 #include <quantum/quantum.h>
 
 using namespace Bloomberg::quantum;
