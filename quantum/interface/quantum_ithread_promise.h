@@ -82,7 +82,9 @@ template <class T>
 using ThreadPromisePtr = typename IThreadPromise<Promise,T>::Ptr;
 
 template <class T>
-struct Traits::InnerType<std::shared_ptr<IThreadPromise<Promise, T>>> { using Type = T;};
+struct Traits::InnerType<std::shared_ptr<IThreadPromise<Promise,T>>> { using Type = T;};
+template <class T>
+struct Traits::IsThreadPromise<std::shared_ptr<IThreadPromise<Promise,T>>> : std::true_type {};
 
 }}
 

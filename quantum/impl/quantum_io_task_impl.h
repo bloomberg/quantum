@@ -34,7 +34,8 @@ namespace quantum {
 #endif
 
 template <class RET, class FUNC, class ... ARGS>
-IoTask::IoTask(std::shared_ptr<Promise<RET>> promise,
+IoTask::IoTask(std::true_type,
+               std::shared_ptr<Promise<RET>> promise,
                int queueId,
                bool isHighPriority,
                FUNC&& func,
@@ -47,7 +48,7 @@ IoTask::IoTask(std::shared_ptr<Promise<RET>> promise,
 }
 
 template <class RET, class FUNC, class ... ARGS>
-IoTask::IoTask(Void,
+IoTask::IoTask(std::false_type,
                std::shared_ptr<Promise<RET>> promise,
                int queueId,
                bool isHighPriority,

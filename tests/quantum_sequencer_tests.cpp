@@ -290,7 +290,7 @@ TEST_P(SequencerTest, SequenceKeyStats)
     };
     // this task will be done when all the tasks posted above
     // are scheduled because it's posted to the same controlQueueId
-    getDispatcher().post2(controlQueueId, false, halfWayDoneJob)->wait();
+    getDispatcher().post(controlQueueId, false, halfWayDoneJob)->wait();
 
     // make sure all the enqueued tasks are pending
     size_t postedCount = 0;

@@ -182,7 +182,7 @@ struct ICoroContext : ICoroContextBase
     /// @note This function is non-blocking and returns immediately. The returned context cannot be used to chain
     ///       further coroutines.
     template <class OTHER_RET = Deprecated, class FUNC, class ... ARGS>
-    auto post(FUNC&& func, ARGS&&... args)->typename ICoroContext<decltype(resultOf(func))>::Ptr;
+    auto post(FUNC&& func, ARGS&&... args)->typename ICoroContext<decltype(coroResult(func))>::Ptr;
     
     /// @brief Version 2 of the API which supports a simpler coroutine signature (see documentation).
     template <class OTHER_RET = Deprecated, class FUNC, class ... ARGS>
@@ -209,7 +209,7 @@ struct ICoroContext : ICoroContextBase
     ///       further coroutines.
     template <class OTHER_RET = Deprecated, class FUNC, class ... ARGS>
     auto post(int queueId, bool isHighPriority, FUNC&& func, ARGS&&... args)
-        ->typename ICoroContext<decltype(resultOf(func))>::Ptr;
+        ->typename ICoroContext<decltype(coroResult(func))>::Ptr;
     
     /// @brief Version 2 of the API which supports a simpler coroutine signature (see documentation).
     template <class OTHER_RET = Deprecated, class FUNC, class ... ARGS>
@@ -229,7 +229,7 @@ struct ICoroContext : ICoroContextBase
     /// @note This function is non-blocking and returns immediately. The returned context can be used to chain
     ///       further coroutines. Possible method calls following this are then(), onError(), finally() and end().
     template <class OTHER_RET = Deprecated, class FUNC, class ... ARGS>
-    auto postFirst(FUNC&& func, ARGS&&... args)->typename ICoroContext<decltype(resultOf(func))>::Ptr;
+    auto postFirst(FUNC&& func, ARGS&&... args)->typename ICoroContext<decltype(coroResult(func))>::Ptr;
     
     /// @brief Version 2 of the API which supports a simpler coroutine signature (see documentation).
     template <class OTHER_RET = Deprecated, class FUNC, class ... ARGS>
@@ -256,7 +256,7 @@ struct ICoroContext : ICoroContextBase
     ///       further coroutines. Possible method calls following this are then(), onError(), finally() and end().
     template <class OTHER_RET = Deprecated, class FUNC, class ... ARGS>
     auto postFirst(int queueId, bool isHighPriority, FUNC&& func, ARGS&&... args)
-        ->typename ICoroContext<decltype(resultOf(func))>::Ptr;
+        ->typename ICoroContext<decltype(coroResult(func))>::Ptr;
     
     /// @brief Version 2 of the API which supports a simpler coroutine signature (see documentation).
     template <class OTHER_RET = Deprecated, class FUNC, class ... ARGS>
@@ -278,7 +278,7 @@ struct ICoroContext : ICoroContextBase
     ///       The returned context can be used to chain further coroutines. Possible method calls following this
     ///       are then(), onError(), finally() and end().
     template <class OTHER_RET = Deprecated, class FUNC, class ... ARGS>
-    auto then(FUNC&& func, ARGS&&... args)->typename ICoroContext<decltype(resultOf(func))>::Ptr;
+    auto then(FUNC&& func, ARGS&&... args)->typename ICoroContext<decltype(coroResult(func))>::Ptr;
     
     /// @brief Version 2 of the API which supports a simpler coroutine signature (see documentation).
     template <class OTHER_RET = Deprecated, class FUNC, class ... ARGS>
@@ -302,7 +302,7 @@ struct ICoroContext : ICoroContextBase
     /// @note The function is non-blocking. The returned context can be used to chain further coroutines.
     ///       Possible method calls following this are finally() and end().
     template <class OTHER_RET = Deprecated, class FUNC, class ... ARGS>
-    auto onError(FUNC&& func, ARGS&&... args)->typename ICoroContext<decltype(resultOf(func))>::Ptr;
+    auto onError(FUNC&& func, ARGS&&... args)->typename ICoroContext<decltype(coroResult(func))>::Ptr;
     
     /// @brief Version 2 of the API which supports a simpler coroutine signature (see documentation).
     template <class OTHER_RET = Deprecated, class FUNC, class ... ARGS>
@@ -322,7 +322,7 @@ struct ICoroContext : ICoroContextBase
     /// @return A pointer to a coroutine context object.
     /// @note This function is non-blocking and returns immediately. After this coroutine, the end() method must be called.
     template <class OTHER_RET = Deprecated, class FUNC, class ... ARGS>
-    auto finally(FUNC&& func, ARGS&&... args)->typename ICoroContext<decltype(resultOf(func))>::Ptr;
+    auto finally(FUNC&& func, ARGS&&... args)->typename ICoroContext<decltype(coroResult(func))>::Ptr;
     
     /// @brief Version 2 of the API which supports a simpler coroutine signature (see documentation).
     template <class OTHER_RET = Deprecated, class FUNC, class ... ARGS>
@@ -346,7 +346,7 @@ struct ICoroContext : ICoroContextBase
     /// @return A pointer to a coroutine future object which may be used to retrieve the result of the IO operation.
     /// @note This method does not block. The passed function will not be wrapped in a coroutine.
     template <class OTHER_RET = Deprecated, class FUNC, class ... ARGS>
-    auto postAsyncIo(FUNC&& func, ARGS&&... args)->CoroFuturePtr<decltype(resultOf(func))>;
+    auto postAsyncIo(FUNC&& func, ARGS&&... args)->CoroFuturePtr<decltype(ioResult(func))>;
     
     /// @brief Version 2 of the API which supports a simpler IO task signature (see documentation).
     template <class OTHER_RET = Deprecated, class FUNC, class ... ARGS>
@@ -370,7 +370,7 @@ struct ICoroContext : ICoroContextBase
     /// @note This method does not block. The passed function will not be wrapped in a coroutine.
     template <class OTHER_RET = Deprecated, class FUNC, class ... ARGS>
     auto postAsyncIo(int queueId, bool isHighPriority, FUNC&& func, ARGS&&... args)
-        ->CoroFuturePtr<decltype(resultOf(func))>;
+        ->CoroFuturePtr<decltype(ioResult(func))>;
     
     /// @brief Version 2 of the API which supports a simpler IO task signature (see documentation).
     template <class OTHER_RET = Deprecated, class FUNC, class ... ARGS>
@@ -396,7 +396,7 @@ struct ICoroContext : ICoroContextBase
               class FUNC,
               class = Traits::IsInputIterator<INPUT_IT>>
     auto forEach(INPUT_IT first, INPUT_IT last, FUNC&& func)
-        ->typename ICoroContext<std::vector<decltype(resultOf2(func))>>::Ptr;
+        ->typename ICoroContext<std::vector<decltype(coroResult(func))>>::Ptr;
     
     /// @brief Same as forEach() but takes a length as second argument in case INPUT_IT
     ///        is not a random access iterator.
@@ -404,7 +404,7 @@ struct ICoroContext : ICoroContextBase
               class INPUT_IT,
               class FUNC>
     auto forEach(INPUT_IT first, size_t num, FUNC&& func)
-        ->typename ICoroContext<std::vector<decltype(resultOf2(func))>>::Ptr;
+        ->typename ICoroContext<std::vector<decltype(coroResult(func))>>::Ptr;
     
     /// @brief The batched version of forEach(). This function applies the given unary function
     ///        to all the elements in the range [first,last). This function runs serially with respect
@@ -418,7 +418,7 @@ struct ICoroContext : ICoroContextBase
               class FUNC,
               class = Traits::IsInputIterator<INPUT_IT>>
     auto forEachBatch(INPUT_IT first, INPUT_IT last, FUNC&& func)
-        ->typename ICoroContext<std::vector<std::vector<decltype(resultOf2(func))>>>::Ptr;
+        ->typename ICoroContext<std::vector<std::vector<decltype(coroResult(func))>>>::Ptr;
     
     /// @brief Same as forEachBatch() but takes a length as second argument in case INPUT_IT
     ///        is not a random access iterator.
@@ -426,7 +426,7 @@ struct ICoroContext : ICoroContextBase
               class INPUT_IT,
               class FUNC>
     auto forEachBatch(INPUT_IT first, size_t num, FUNC&& func)
-        ->typename ICoroContext<std::vector<std::vector<decltype(resultOf2(func))>>>::Ptr;
+        ->typename ICoroContext<std::vector<std::vector<decltype(coroResult(func))>>>::Ptr;
     
     /// @brief Implementation of map-reduce functionality.
     /// @tparam KEY The KEY type used for mapping and reducing.
@@ -516,6 +516,8 @@ using VoidContextPtr = VoidCoroContextPtr; //shorthand version
 
 template <class RET>
 struct Traits::InnerType<std::shared_ptr<ICoroContext<RET>>> { using Type = RET;};
+template <>
+struct Traits::IsVoidContext<std::shared_ptr<ICoroContext<Void>>> : std::true_type {};
 
 }}
 

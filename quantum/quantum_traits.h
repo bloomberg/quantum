@@ -74,8 +74,18 @@ struct Traits
     {
         using Type = T;
     };
+    
+    template <typename T>
+    struct IsVoidContext : std::false_type
+    {};
+    
+    template <typename T>
+    struct IsThreadPromise : std::false_type
+    {};
 };
 
+template <class T>
+struct Traits::InnerType<std::vector<T>> { using Type = T; };
 template <class T, class V>
 using BufferType = std::enable_if_t<Traits::IsBuffer<T>::value &&
                                     !std::is_same<std::decay_t<V>,T>::value &&
@@ -87,11 +97,17 @@ using BufferRetType = std::enable_if_t<Traits::IsBuffer<T>::value, typename Trai
 template <class T>
 using NonBufferRetType = std::enable_if_t<!Traits::IsBuffer<T>::value, typename Traits::IsBuffer<T>::Type>;
 template <typename FUNC>
-auto resultOf(FUNC&& func)->typename Traits::InnerType<typename FunctionArguments<decltype(Callable::ref(func))>::template ArgType<0>>::Type;
+auto firstArgOf(FUNC&& func)->typename FunctionArguments<decltype(Callable::ref(func))>::template ArgType<0>;
+template <typename FUNC>
+auto resultOf(FUNC&& func)->typename Traits::InnerType<decltype(firstArgOf(func))>::Type;
 template <typename FUNC>
 auto resultOf2(FUNC&& func)->typename FunctionArguments<decltype(Callable::ref(func))>::RetType;
-template <class T>
-struct Traits::InnerType<std::vector<T>> { using Type = T; };
+template <typename FUNC>
+auto coroResult(FUNC&& func)->typename std::conditional<Traits::IsVoidContext<decltype(firstArgOf(func))>::value,
+                              decltype(resultOf2(func)), decltype(resultOf(func))>::type;
+template <typename FUNC>
+auto ioResult(FUNC&& func)->typename std::conditional<Traits::IsThreadPromise<decltype(firstArgOf(func))>::value,
+                            decltype(resultOf(func)), decltype(resultOf2(func))>::type;
 template <typename FUNC>
 auto mappedKeyOf(FUNC&& func)->typename std::tuple_element<0, typename Traits::InnerType<decltype(resultOf2(func))>::Type>::type;
 template <typename FUNC>

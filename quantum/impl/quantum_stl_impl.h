@@ -78,6 +78,18 @@ namespace std {
 namespace Bloomberg {
 namespace quantum {
 
+template <size_t N, typename T, size_t S>
+struct TupleElement
+{
+    using Type = typename std::tuple_element<N, T>::type;
+};
+
+template <size_t N, typename T>
+struct TupleElement<N,T,0>
+{
+    using Type = void;
+};
+
 template <typename RET, typename = void>
 struct FunctionArguments;
 
@@ -85,7 +97,7 @@ template <typename RET, typename...ARGS>
 struct FunctionArguments<RET(*)(ARGS...)>
 {
     template <size_t N>
-    using ArgType = typename std::tuple_element<N, std::tuple<ARGS...>>::type;
+    using ArgType = typename TupleElement<N, std::tuple<ARGS...>, sizeof...(ARGS)>::Type;
     using RetType = RET;
 };
 

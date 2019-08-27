@@ -312,26 +312,14 @@ private:
     template <class OTHER_RET, class FUNC, class ... ARGS>
     typename Context<OTHER_RET>::Ptr
     thenImpl(ITask::Type type, FUNC&& func, ARGS&&... args);
-    
-    template <class OTHER_RET, class FUNC, class ... ARGS>
-    typename Context<OTHER_RET>::Ptr
-    thenImpl2(ITask::Type type, FUNC&& func, ARGS&&... args);
 
     template <class OTHER_RET, class FUNC, class ... ARGS>
     typename Context<OTHER_RET>::Ptr
     postImpl(int queueId, bool isHighPriority, ITask::Type type, FUNC&& func, ARGS&&... args);
     
     template <class OTHER_RET, class FUNC, class ... ARGS>
-    typename Context<OTHER_RET>::Ptr
-    postImpl2(int queueId, bool isHighPriority, ITask::Type type, FUNC&& func, ARGS&&... args);
-    
-    template <class OTHER_RET, class FUNC, class ... ARGS>
     CoroFuturePtr<OTHER_RET>
     postAsyncIoImpl(int queueId, bool isHighPriority, FUNC&& func, ARGS&&... args);
-    
-    template <class OTHER_RET, class FUNC, class ... ARGS>
-    CoroFuturePtr<OTHER_RET>
-    postAsyncIoImpl2(int queueId, bool isHighPriority, FUNC&& func, ARGS&&... args);
     
     int index(int num) const;
     
