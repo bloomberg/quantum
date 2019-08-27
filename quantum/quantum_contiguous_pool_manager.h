@@ -131,10 +131,10 @@ private:
     std::shared_ptr<Control>  _control;
 };
 
-template <typename T, typename U>
+template <typename U, typename T>
 size_t resize(size_t t_size)
 {
-    return (t_size*sizeof(T))/sizeof(U);
+    return (t_size*sizeof(U))/sizeof(T);
 }
 
 }} //namespaces

@@ -83,10 +83,10 @@ struct HeapAllocator : public ContiguousPoolManager<T>
     {}
     template <typename U>
     HeapAllocator(HeapAllocator<U>&& other) :
-        _size(std::min(_size, (index_type)resize<U,T>(other._size))),
+        ContiguousPoolManager<T>(std::move(other)),
+        _size((index_type)resize<U,T>(other._size)),
         _buffer(other._buffer)
     {
-        this->setBuffer(_buffer, _size);
         other._size = 0;
         other._buffer = nullptr;
     }
