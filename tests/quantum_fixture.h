@@ -111,6 +111,7 @@ public:
     
     void TearDown()
     {
+        _dispatcher->drain();
         _dispatcher = nullptr;
         //DispatcherSingleton::deleteInstances();
     }

@@ -14,7 +14,6 @@
 ** limitations under the License.
 */
 #include <gtest/gtest.h>
-#include <gmock/gmock.h>
 #include <quantum_fixture.h>
 #include <vector>
 #include <set>
