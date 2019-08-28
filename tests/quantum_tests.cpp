@@ -1488,7 +1488,7 @@ TEST(SharedQueueTest, PerformanceTest1)
     {
         const TestConfiguration noCoroSharingConfig(false, false);
         quantum::Dispatcher& dispatcher = DispatcherSingleton::instance(noCoroSharingConfig);
-        
+        dispatcher.drain();
         auto start = std::chrono::steady_clock::now();
         enqueue_sleep_tasks(dispatcher, sleepTimes);
         dispatcher.drain();
@@ -1499,7 +1499,7 @@ TEST(SharedQueueTest, PerformanceTest1)
     {
         const TestConfiguration coroSharingConfig(false, true);
         quantum::Dispatcher& dispatcher = DispatcherSingleton::instance(coroSharingConfig);
-
+        dispatcher.drain();
         auto start = std::chrono::steady_clock::now();
         enqueue_sleep_tasks(dispatcher, sleepTimes);
         dispatcher.drain();

@@ -134,6 +134,7 @@ template <typename T>
 typename ContiguousPoolManager<T>::pointer
 ContiguousPoolManager<T>::allocate(size_type n, const_pointer)
 {
+    assert(bufferStart());
     {
         SpinLock::Guard lock(_control->_spinlock);
         if (findContiguous(static_cast<index_type>(n)))
@@ -153,6 +154,7 @@ void ContiguousPoolManager<T>::deallocate(pointer p, size_type n)
     if (p == nullptr) {
         return;
     }
+    assert(bufferStart());
     if (isManaged(p)) {
         //find index of the block and return the individual blocks to the free pool
         SpinLock::Guard lock(_control->_spinlock);
@@ -235,7 +237,7 @@ typename ContiguousPoolManager<T>::pointer ContiguousPoolManager<T>::bufferEnd()
 template <typename T>
 bool ContiguousPoolManager<T>::isManaged(pointer p)
 {
-    return !bufferStart() || (bufferStart() && (bufferStart() <= p) && (p < bufferEnd()));
+    return (bufferStart() <= p) && (p < bufferEnd());
 }
 
 template <typename T>
