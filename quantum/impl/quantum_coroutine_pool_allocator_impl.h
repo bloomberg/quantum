@@ -127,10 +127,12 @@ void CoroutinePoolAllocator<STACK_TRAITS>::deallocate(const boost::context::stac
 #if defined(BOOST_USE_VALGRIND)
     VALGRIND_STACK_DEREGISTER(ctx.valgrind_stack_id);
 #endif
+    int bi = blockIndex(ctx);
+    assert(bi >= -1 && bi < _size); //guard against coroutine stack overflow or corruption
     if (isManaged(ctx)) {
         //find index of the block
         SpinLock::Guard lock(_spinlock);
-        _freeBlocks[++_freeBlockIndex] = blockIndex(ctx);
+        _freeBlocks[++_freeBlockIndex] = bi;
     }
     else {
         delete[] (char*)getHeader(ctx);

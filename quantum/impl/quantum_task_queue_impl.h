@@ -263,6 +263,8 @@ inline
 void TaskQueue::doEnqueue(ITask::Ptr task)
 {
     //NOTE: _queueIt remains unchanged following this operation
+    _stats.incPostedCount();
+    _stats.incNumElements();
     bool isEmpty = _waitQueue.empty();
     if (task->isHighPriority())
     {
@@ -280,8 +282,6 @@ void TaskQueue::doEnqueue(ITask::Ptr task)
     {
         _stats.incHighPriorityCount();
     }
-    _stats.incPostedCount();
-    _stats.incNumElements();
     if (isEmpty)
     {
         //signal on transition from 0 to 1 element only
@@ -302,12 +302,11 @@ ITask::Ptr TaskQueue::tryDequeue(std::atomic_bool& hint)
 }
 
 inline
-ITask::Ptr TaskQueue::doDequeue(std::atomic_bool& hint, TaskListIter iter)
+ITask::Ptr TaskQueue::doDequeue(std::atomic_bool&, TaskListIter iter)
 {
     //========================= LOCKED SCOPE =========================
     SpinLock::Guard lock(_runQueueLock);
-    hint = (iter == _runQueue.end());
-    if (hint)
+    if (iter == _runQueue.end())
     {
         return nullptr;
     }
@@ -335,13 +334,13 @@ ITask::Ptr TaskQueue::doDequeue(std::atomic_bool& hint, TaskListIter iter)
 inline
 size_t TaskQueue::size() const
 {
-    return _stats.numElements();
+    return _isIdle ? _stats.numElements() : _stats.numElements() + 1;
 }
 
 inline
 bool TaskQueue::empty() const
 {
-    return _stats.numElements() == 0;
+    return size() == 0;
 }
 
 inline
@@ -464,9 +463,6 @@ inline
 bool TaskQueue::handleSuccess(const WorkItem& workItem)
 {
     ITaskContinuation::Ptr nextTask;
-    //Coroutine ended normally with "return 0" statement
-    _stats.incCompletedCount();
-
     //check if there's another task scheduled to run after this one
     nextTask = workItem._task->getNextTask();
     if (nextTask && (nextTask->getType() == ITask::Type::ErrorHandler))
@@ -478,6 +474,8 @@ bool TaskQueue::handleSuccess(const WorkItem& workItem)
     //queue next task and de-queue current one
     enqueue(nextTask);
     doDequeue(_isIdle, workItem._iter);
+    //Coroutine ended normally with "return 0" statement
+    _stats.incCompletedCount();
     return true;
 }
 
@@ -485,13 +483,13 @@ inline
 bool TaskQueue::handleError(const WorkItem& workItem)
 {
     ITaskContinuation::Ptr nextTask;
-    //Coroutine ended with explicit user error
-    _stats.incErrorCount();
     //Check if we have a final task to run
     nextTask = workItem._task->getErrorHandlerOrFinalTask();
     //queue next task and de-queue current one
     enqueue(nextTask);
     doDequeue(_isIdle, workItem._iter);
+    //Coroutine ended with explicit user error
+    _stats.incErrorCount();
 #ifdef __QUANTUM_PRINT_DEBUG
     std::lock_guard<std::mutex> guard(Util::LogMutex());
     if (rc == (int)ITask::RetCode::Exception)
@@ -547,11 +545,11 @@ TaskQueue::grabWorkItem()
         acquireWaiting();
     }
     _isAdvanced = false; //reset flag
+    _isIdle = _runQueue.empty();
     if (_runQueue.empty())
     {
         return WorkItem(nullptr, _runQueue.end(), _isBlocked, _queueRound);
     }
-
     return WorkItem((*_queueIt), _queueIt, false, 0);
 }
 

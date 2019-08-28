@@ -80,7 +80,7 @@ struct ContiguousPoolManager
     
     static ContiguousPoolManager
     select_on_container_copy_construction(const ContiguousPoolManager& other) {
-        return ContiguousPoolManager(other.size());
+        return ContiguousPoolManager(other);
     }
     bool operator==(const this_type& other) const {
         return _control && other._control && (_control->_buffer == other._control->_buffer);

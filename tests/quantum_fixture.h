@@ -106,6 +106,7 @@ public:
     void SetUp()
     {
         _dispatcher = &DispatcherSingleton::instance(GetParam());
+        //Don't drain in the TearDown() because of the final CleanupTest::DeleteDispatcherInstance()
         _dispatcher->drain();
         _dispatcher->resetStats();
     }
