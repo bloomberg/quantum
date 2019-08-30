@@ -188,7 +188,7 @@ struct IThreadContext : public IThreadContextBase
     ///       The returned context can be used to chain further functions. Possible method calls following this
     ///       are then(), onError(), finally() and end().
     template <class OTHER_RET = Deprecated, class FUNC, class ... ARGS>
-    auto then(FUNC&& func, ARGS&&... args)->typename IThreadContext<decltype(resultOf(func))>::Ptr;
+    auto then(FUNC&& func, ARGS&&... args)->typename IThreadContext<decltype(coroResult(func))>::Ptr;
     
     /// @brief Version 2 of the API which supports a simpler coroutine signature (see documentation).
     template <class OTHER_RET = Deprecated, class FUNC, class ... ARGS>
@@ -211,7 +211,7 @@ struct IThreadContext : public IThreadContextBase
     /// @note The function is non-blocking. The returned context can be used to chain further functions.
     ///       Possible method calls following this are finally() and end().
     template <class OTHER_RET = Deprecated, class FUNC, class ... ARGS>
-    auto onError(FUNC&& func, ARGS&&... args)->typename IThreadContext<decltype(resultOf(func))>::Ptr;
+    auto onError(FUNC&& func, ARGS&&... args)->typename IThreadContext<decltype(coroResult(func))>::Ptr;
     
     /// @brief Version 2 of the API which supports a simpler coroutine signature (see documentation).
     template <class OTHER_RET = Deprecated, class FUNC, class ... ARGS>
@@ -230,7 +230,7 @@ struct IThreadContext : public IThreadContextBase
     /// @param[in] args Variable list of arguments passed to the callable object.
     /// @note This function is non-blocking and returns immediately. After this function, the end() method must be called.
     template <class OTHER_RET = Deprecated, class FUNC, class ... ARGS>
-    auto finally(FUNC&& func, ARGS&&... args)->typename IThreadContext<decltype(resultOf(func))>::Ptr;
+    auto finally(FUNC&& func, ARGS&&... args)->typename IThreadContext<decltype(coroResult(func))>::Ptr;
     
     /// @brief Version 2 of the API which supports a simpler coroutine signature (see documentation).
     template <class OTHER_RET = Deprecated, class FUNC, class ... ARGS>

@@ -35,7 +35,8 @@ namespace quantum {
 #endif
 
 template <class RET, class FUNC, class ... ARGS>
-Task::Task(std::shared_ptr<Context<RET>> ctx,
+Task::Task(std::false_type,
+           std::shared_ptr<Context<RET>> ctx,
            int queueId,
            bool isHighPriority,
            ITask::Type type,
@@ -53,7 +54,7 @@ Task::Task(std::shared_ptr<Context<RET>> ctx,
 {}
 
 template <class RET, class FUNC, class ... ARGS>
-Task::Task(Void,
+Task::Task(std::true_type,
            std::shared_ptr<Context<RET>> ctx,
            int queueId,
            bool isHighPriority,

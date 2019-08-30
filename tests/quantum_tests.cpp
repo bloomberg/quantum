@@ -266,7 +266,7 @@ TEST_P(CoreTest, Constructor)
 
 TEST_P(CoreTest, CheckReturnValue)
 {
-    IThreadContext<std::string>::Ptr tctx = getDispatcher().post2(DummyCoro2);
+    IThreadContext<std::string>::Ptr tctx = getDispatcher().post(DummyCoro2);
     std::string s = tctx->get();
     EXPECT_STREQ("test", s.c_str());
 }
@@ -436,7 +436,7 @@ TEST_P(CoreTest, CheckCoroutineErrors)
         return 0;
     }, s);
     
-    getDispatcher().post2([](VoidContextPtr ctx, std::string& str)->std::string {
+    getDispatcher().post([](VoidContextPtr ctx, std::string& str)->std::string {
         ctx->yield(); //test yield via the VoidContext
         throw std::exception(); //error! coroutine must stop here
         str = "changed";
@@ -457,7 +457,7 @@ TEST_P(CoreTest, CheckCoroutineErrors)
         return 0;
     }, s);
     
-    getDispatcher().postAsyncIo2([](std::string& str)->std::string {
+    getDispatcher().postAsyncIo([](std::string& str)->std::string {
         std::this_thread::sleep_for(ms(10));
         throw std::exception(); //error! coroutine must stop here
         str = "changed";
@@ -638,16 +638,16 @@ TEST_P(ExecutionTest, ChainCoroutinesFromCoroutineContext2)
     
     auto func = [&](VoidContextPtr ctx, std::vector<int>& v, int& i)->std::vector<int>
     {
-        return ctx->postFirst2(func2, v, i)->
-                    then2(func2, v, i)->
-                    then2(func2, v, i)->
-                    then2(func2, v, i)->
-                    onError2(func2, v, err)->
-                    finally2(func2, v, final)->
+        return ctx->postFirst(func2, v, i)->
+                    then(func2, v, i)->
+                    then(func2, v, i)->
+                    then(func2, v, i)->
+                    onError(func2, v, err)->
+                    finally(func2, v, final)->
                     end()->get(ctx); //OnError *should not* run
     };
     
-    dispatcher.post2(func, v, i);
+    dispatcher.post(func, v, i);
     dispatcher.drain();
     
     //Validate values
@@ -753,9 +753,9 @@ TEST_P(PromiseTest, GetFutureFromIoTask)
 TEST_P(PromiseTest, GetFutureFromIoTask2)
 {
     Dispatcher& dispatcher = getDispatcher();
-    ThreadContext<int>::Ptr ctx = dispatcher.post2([](VoidContextPtr ctx)->int{
+    ThreadContext<int>::Ptr ctx = dispatcher.post([](VoidContextPtr ctx)->int{
         //post an IO task and get future from there
-        CoroFuture<double>::Ptr fut = ctx->postAsyncIo2([]()->double{
+        CoroFuture<double>::Ptr fut = ctx->postAsyncIo([]()->double{
             return 33.22;
         });
         return (int)fut->get(ctx); //forward the promise
@@ -881,13 +881,13 @@ TEST_P(PromiseTest, GetIntermediateFutures)
 TEST_P(PromiseTest, GetIntermediateFutures2)
 {
     Dispatcher& dispatcher = getDispatcher();
-    auto ctx = dispatcher.postFirst2([](VoidContextPtr)->int {
+    auto ctx = dispatcher.postFirst([](VoidContextPtr)->int {
         return 55; //Set the promise
     })->then([](CoroContext<double>::Ptr ctx)->int { //mix with V1 API
         return ctx->set(22.33); //Set the promise
-    })->then2([](VoidContextPtr)->std::string {
+    })->then([](VoidContextPtr)->std::string {
         return "future"; //Set the promise
-    })->then2([](VoidContextPtr)->std::list<int> {
+    })->then([](VoidContextPtr)->std::list<int> {
         return {1,2,3}; //Set the promise
     })->end();
     

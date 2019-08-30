@@ -103,9 +103,9 @@ const std::pair<int, int>& IThreadContext<RET>::getCoroQueueIdRangeForAny() cons
 template <class RET>
 template <class OTHER_RET, class FUNC, class ... ARGS>
 auto
-IThreadContext<RET>::then(FUNC&& func, ARGS&&... args)->ThreadContextPtr<decltype(resultOf(func))>
+IThreadContext<RET>::then(FUNC&& func, ARGS&&... args)->ThreadContextPtr<decltype(coroResult(func))>
 {
-    using Ret = decltype(resultOf(func));
+    using Ret = decltype(coroResult(func));
     return static_cast<Impl*>(this)->template then<Ret>(std::forward<FUNC>(func), std::forward<ARGS>(args)...);
 }
 
@@ -121,9 +121,9 @@ IThreadContext<RET>::then2(FUNC&& func, ARGS&&... args)->ThreadContextPtr<declty
 template <class RET>
 template <class OTHER_RET, class FUNC, class ... ARGS>
 auto
-IThreadContext<RET>::onError(FUNC&& func, ARGS&&... args)->ThreadContextPtr<decltype(resultOf(func))>
+IThreadContext<RET>::onError(FUNC&& func, ARGS&&... args)->ThreadContextPtr<decltype(coroResult(func))>
 {
-    using Ret = decltype(resultOf(func));
+    using Ret = decltype(coroResult(func));
     return static_cast<Impl*>(this)->template onError<Ret>(std::forward<FUNC>(func), std::forward<ARGS>(args)...);
 }
 
@@ -139,9 +139,9 @@ IThreadContext<RET>::onError2(FUNC&& func, ARGS&&... args)->ThreadContextPtr<dec
 template <class RET>
 template <class OTHER_RET, class FUNC, class ... ARGS>
 auto
-IThreadContext<RET>::finally(FUNC&& func, ARGS&&... args)->ThreadContextPtr<decltype(resultOf(func))>
+IThreadContext<RET>::finally(FUNC&& func, ARGS&&... args)->ThreadContextPtr<decltype(coroResult(func))>
 {
-    using Ret = decltype(resultOf(func));
+    using Ret = decltype(coroResult(func));
     return static_cast<Impl*>(this)->template finally<Ret>(
         std::forward<FUNC>(func),
         std::forward<ARGS>(args)...);
@@ -263,9 +263,9 @@ const std::pair<int, int>& ICoroContext<RET>::getCoroQueueIdRangeForAny() const
 template <class RET>
 template <class OTHER_RET, class FUNC, class ... ARGS>
 auto
-ICoroContext<RET>::post(FUNC&& func, ARGS&&... args)->CoroContextPtr<decltype(resultOf(func))>
+ICoroContext<RET>::post(FUNC&& func, ARGS&&... args)->CoroContextPtr<decltype(coroResult(func))>
 {
-    using Ret = decltype(resultOf(func));
+    using Ret = decltype(coroResult(func));
     return static_cast<Impl*>(this)->template post<Ret>(
         std::forward<FUNC>(func),
         std::forward<ARGS>(args)...);
@@ -284,9 +284,9 @@ ICoroContext<RET>::post2(FUNC&& func, ARGS&&... args)->CoroContextPtr<decltype(r
 template <class RET>
 template <class OTHER_RET, class FUNC, class ... ARGS>
 auto
-ICoroContext<RET>::post(int queueId, bool isHighPriority, FUNC&& func, ARGS&&... args)->CoroContextPtr<decltype(resultOf(func))>
+ICoroContext<RET>::post(int queueId, bool isHighPriority, FUNC&& func, ARGS&&... args)->CoroContextPtr<decltype(coroResult(func))>
 {
-    using Ret = decltype(resultOf(func));
+    using Ret = decltype(coroResult(func));
     return static_cast<Impl*>(this)->template post<Ret>(
         queueId,
         isHighPriority,
@@ -310,9 +310,9 @@ ICoroContext<RET>::post2(int queueId, bool isHighPriority, FUNC&& func, ARGS&&..
 template <class RET>
 template <class OTHER_RET, class FUNC, class ... ARGS>
 auto
-ICoroContext<RET>::postFirst(FUNC&& func, ARGS&&... args)->CoroContextPtr<decltype(resultOf(func))>
+ICoroContext<RET>::postFirst(FUNC&& func, ARGS&&... args)->CoroContextPtr<decltype(coroResult(func))>
 {
-    using Ret = decltype(resultOf(func));
+    using Ret = decltype(coroResult(func));
     return static_cast<Impl*>(this)->template postFirst<Ret>(
         std::forward<FUNC>(func),
         std::forward<ARGS>(args)...);
@@ -332,9 +332,9 @@ ICoroContext<RET>::postFirst2(FUNC&& func, ARGS&&... args)->CoroContextPtr<declt
 template <class RET>
 template <class OTHER_RET, class FUNC, class ... ARGS>
 auto
-ICoroContext<RET>::postFirst(int queueId, bool isHighPriority, FUNC&& func, ARGS&&... args)->CoroContextPtr<decltype(resultOf(func))>
+ICoroContext<RET>::postFirst(int queueId, bool isHighPriority, FUNC&& func, ARGS&&... args)->CoroContextPtr<decltype(coroResult(func))>
 {
-    using Ret = decltype(resultOf(func));
+    using Ret = decltype(coroResult(func));
     return static_cast<Impl*>(this)->template postFirst<Ret>(
         queueId,
         isHighPriority,
@@ -358,9 +358,9 @@ ICoroContext<RET>::postFirst2(int queueId, bool isHighPriority, FUNC&& func, ARG
 template <class RET>
 template <class OTHER_RET, class FUNC, class ... ARGS>
 auto
-ICoroContext<RET>::then(FUNC&& func, ARGS&&... args)->CoroContextPtr<decltype(resultOf(func))>
+ICoroContext<RET>::then(FUNC&& func, ARGS&&... args)->CoroContextPtr<decltype(coroResult(func))>
 {
-    using Ret = decltype(resultOf(func));
+    using Ret = decltype(coroResult(func));
     return static_cast<Impl*>(this)->template then<Ret>(
         std::forward<FUNC>(func),
         std::forward<ARGS>(args)...);
@@ -380,9 +380,9 @@ ICoroContext<RET>::then2(FUNC&& func, ARGS&&... args)->CoroContextPtr<decltype(r
 template <class RET>
 template <class OTHER_RET, class FUNC, class ... ARGS>
 auto
-ICoroContext<RET>::onError(FUNC&& func, ARGS&&... args)->CoroContextPtr<decltype(resultOf(func))>
+ICoroContext<RET>::onError(FUNC&& func, ARGS&&... args)->CoroContextPtr<decltype(coroResult(func))>
 {
-    using Ret = decltype(resultOf(func));
+    using Ret = decltype(coroResult(func));
     return static_cast<Impl*>(this)->template onError<Ret>(
         std::forward<FUNC>(func),
         std::forward<ARGS>(args)...);
@@ -402,9 +402,9 @@ ICoroContext<RET>::onError2(FUNC&& func, ARGS&&... args)->CoroContextPtr<decltyp
 template <class RET>
 template <class OTHER_RET, class FUNC, class ... ARGS>
 auto
-ICoroContext<RET>::finally(FUNC&& func, ARGS&&... args)->CoroContextPtr<decltype(resultOf(func))>
+ICoroContext<RET>::finally(FUNC&& func, ARGS&&... args)->CoroContextPtr<decltype(coroResult(func))>
 {
-    using Ret = decltype(resultOf(func));
+    using Ret = decltype(coroResult(func));
     return static_cast<Impl*>(this)->template finally<Ret>(
         std::forward<FUNC>(func),
         std::forward<ARGS>(args)...);
@@ -432,9 +432,9 @@ ICoroContext<RET>::end()
 template <class RET>
 template <class OTHER_RET, class FUNC, class ... ARGS>
 auto
-ICoroContext<RET>::postAsyncIo(FUNC&& func, ARGS&&... args)->CoroFuturePtr<decltype(resultOf(func))>
+ICoroContext<RET>::postAsyncIo(FUNC&& func, ARGS&&... args)->CoroFuturePtr<decltype(ioResult(func))>
 {
-    using Ret = decltype(resultOf(func));
+    using Ret = decltype(ioResult(func));
     return static_cast<Impl*>(this)->template postAsyncIo<Ret>(
         std::forward<FUNC>(func),
         std::forward<ARGS>(args)...);
@@ -454,9 +454,9 @@ ICoroContext<RET>::postAsyncIo2(FUNC&& func, ARGS&&... args)->CoroFuturePtr<decl
 template <class RET>
 template <class OTHER_RET, class FUNC, class ... ARGS>
 auto
-ICoroContext<RET>::postAsyncIo(int queueId, bool isHighPriority, FUNC&& func, ARGS&&... args)->CoroFuturePtr<decltype(resultOf(func))>
+ICoroContext<RET>::postAsyncIo(int queueId, bool isHighPriority, FUNC&& func, ARGS&&... args)->CoroFuturePtr<decltype(ioResult(func))>
 {
-    using Ret = decltype(resultOf(func));
+    using Ret = decltype(ioResult(func));
     return static_cast<Impl*>(this)->template postAsyncIo<Ret>(
         queueId,
         isHighPriority,
@@ -482,9 +482,9 @@ template <class OTHER_RET, class INPUT_IT, class FUNC, class>
 auto
 ICoroContext<RET>::forEach(INPUT_IT first,
                            INPUT_IT last,
-                           FUNC&& func)->CoroContextPtr<std::vector<decltype(resultOf2(func))>>
+                           FUNC&& func)->CoroContextPtr<std::vector<decltype(coroResult(func))>>
 {
-    using Ret = decltype(resultOf2(func));
+    using Ret = decltype(coroResult(func));
     return static_cast<Impl*>(this)->template forEach<Ret>(first, last, std::forward<FUNC>(func));
 }
 
@@ -493,9 +493,9 @@ template <class OTHER_RET, class INPUT_IT, class FUNC>
 auto
 ICoroContext<RET>::forEach(INPUT_IT first,
                            size_t num,
-                           FUNC&& func)->CoroContextPtr<std::vector<decltype(resultOf2(func))>>
+                           FUNC&& func)->CoroContextPtr<std::vector<decltype(coroResult(func))>>
 {
-    using Ret = decltype(resultOf2(func));
+    using Ret = decltype(coroResult(func));
     return static_cast<Impl*>(this)->template forEach<Ret>(first, num, std::forward<FUNC>(func));
 }
 
@@ -504,9 +504,9 @@ template <class OTHER_RET, class INPUT_IT, class FUNC, class>
 auto
 ICoroContext<RET>::forEachBatch(INPUT_IT first,
                                 INPUT_IT last,
-                                FUNC&& func)->CoroContextPtr<std::vector<std::vector<decltype(resultOf2(func))>>>
+                                FUNC&& func)->CoroContextPtr<std::vector<std::vector<decltype(coroResult(func))>>>
 {
-    using Ret = decltype(resultOf2(func));
+    using Ret = decltype(coroResult(func));
     return static_cast<Impl*>(this)->template forEachBatch<Ret>(first, last, std::forward<FUNC>(func));
 }
 
@@ -515,9 +515,9 @@ template <class OTHER_RET, class INPUT_IT, class FUNC>
 auto
 ICoroContext<RET>::forEachBatch(INPUT_IT first,
                                 size_t num,
-                                FUNC&& func)->CoroContextPtr<std::vector<std::vector<decltype(resultOf2(func))>>>
+                                FUNC&& func)->CoroContextPtr<std::vector<std::vector<decltype(coroResult(func))>>>
 {
-    using Ret = decltype(resultOf2(func));
+    using Ret = decltype(coroResult(func));
     return static_cast<Impl*>(this)->template forEachBatch<Ret>(first, num, std::forward<FUNC>(func));
 }
 
@@ -830,31 +830,10 @@ template <class OTHER_RET, class FUNC, class ... ARGS>
 ContextPtr<OTHER_RET>
 Context<RET>::thenImpl(ITask::Type type, FUNC&& func, ARGS&&... args)
 {
+    using FirstArg = decltype(firstArgOf(func));
     auto ctx = ContextPtr<OTHER_RET>(new Context<OTHER_RET>(*this),
                                      Context<OTHER_RET>::deleter);
-    auto task = Task::Ptr(new Task(ctx,
-                                   _task->getQueueId(),      //keep current queueId
-                                   _task->isHighPriority(),  //keep current priority
-                                   type,
-                                   std::forward<FUNC>(func),
-                                   std::forward<ARGS>(args)...),
-                          Task::deleter);
-    ctx->setTask(task);
-    
-    //Chain tasks
-    std::static_pointer_cast<ITaskContinuation>(_task)->setNextTask(task);
-    task->setPrevTask(std::static_pointer_cast<ITaskContinuation>(_task));
-    return ctx;
-}
-
-template <class RET>
-template <class OTHER_RET, class FUNC, class ... ARGS>
-ContextPtr<OTHER_RET>
-Context<RET>::thenImpl2(ITask::Type type, FUNC&& func, ARGS&&... args)
-{
-    auto ctx = ContextPtr<OTHER_RET>(new Context<OTHER_RET>(*this),
-                                     Context<OTHER_RET>::deleter);
-    auto task = Task::Ptr(new Task(Void{},
+    auto task = Task::Ptr(new Task(Traits::IsVoidContext<FirstArg>{},
                                    ctx,
                                    _task->getQueueId(),      //keep current queueId
                                    _task->isHighPriority(),  //keep current priority
@@ -889,7 +868,7 @@ Context<RET>::then2(FUNC&& func, ARGS&&... args)
 {
     //Previous task must either be First or Continuation types
     validateTaskType(ITask::Type::Continuation);
-    return thenImpl2<OTHER_RET, FUNC, ARGS...>(ITask::Type::Continuation,
+    return thenImpl<OTHER_RET, FUNC, ARGS...>(ITask::Type::Continuation,
                                                std::forward<FUNC>(func),
                                                std::forward<ARGS>(args)...);
 }
@@ -911,7 +890,7 @@ ContextPtr<OTHER_RET>
 Context<RET>::onError2(FUNC&& func, ARGS&&... args)
 {
     validateTaskType(ITask::Type::ErrorHandler);
-    return thenImpl2<OTHER_RET, FUNC, ARGS...>(ITask::Type::ErrorHandler,
+    return thenImpl<OTHER_RET, FUNC, ARGS...>(ITask::Type::ErrorHandler,
                                                std::forward<FUNC>(func),
                                                std::forward<ARGS>(args)...);
 }
@@ -933,7 +912,7 @@ ContextPtr<OTHER_RET>
 Context<RET>::finally2(FUNC&& func, ARGS&&... args)
 {
     validateTaskType(ITask::Type::Final);
-    return thenImpl2<OTHER_RET, FUNC, ARGS...>(ITask::Type::Final,
+    return thenImpl<OTHER_RET, FUNC, ARGS...>(ITask::Type::Final,
                                                std::forward<FUNC>(func),
                                                std::forward<ARGS>(args)...);
 }
@@ -965,7 +944,7 @@ template <class OTHER_RET, class FUNC, class ... ARGS>
 CoroFuturePtr<OTHER_RET>
 Context<RET>::postAsyncIo2(FUNC&& func, ARGS&&... args)
 {
-    return postAsyncIoImpl2<OTHER_RET>((int)IQueue::QueueId::Any,
+    return postAsyncIoImpl<OTHER_RET>((int)IQueue::QueueId::Any,
                                        false,
                                        std::forward<FUNC>(func),
                                        std::forward<ARGS>(args)...);
@@ -987,7 +966,7 @@ template <class OTHER_RET, class FUNC, class ... ARGS>
 CoroFuturePtr<OTHER_RET>
 Context<RET>::postAsyncIo2(int queueId, bool isHighPriority, FUNC&& func, ARGS&&... args)
 {
-    return postAsyncIoImpl2<OTHER_RET>(queueId,
+    return postAsyncIoImpl<OTHER_RET>(queueId,
                                        isHighPriority,
                                        std::forward<FUNC>(func),
                                        std::forward<ARGS>(args)...);
@@ -998,32 +977,13 @@ template <class OTHER_RET, class FUNC, class ... ARGS>
 CoroFuturePtr<OTHER_RET>
 Context<RET>::postAsyncIoImpl(int queueId, bool isHighPriority, FUNC&& func, ARGS&&... args)
 {
+    using FirstArg = decltype(firstArgOf(func));
     if (queueId < (int)IQueue::QueueId::Any)
     {
         throw std::runtime_error("Invalid coroutine queue id");
     }
     auto promise = PromisePtr<OTHER_RET>(new Promise<OTHER_RET>(), Promise<OTHER_RET>::deleter);
-    auto task = IoTask::Ptr(new IoTask(promise,
-                                       queueId,
-                                       isHighPriority,
-                                       std::forward<FUNC>(func),
-                                       std::forward<ARGS>(args)...),
-                            IoTask::deleter);
-    _dispatcher->postAsyncIo(task);
-    return promise->getICoroFuture();
-}
-
-template <class RET>
-template <class OTHER_RET, class FUNC, class ... ARGS>
-CoroFuturePtr<OTHER_RET>
-Context<RET>::postAsyncIoImpl2(int queueId, bool isHighPriority, FUNC&& func, ARGS&&... args)
-{
-    if (queueId < (int)IQueue::QueueId::Any)
-    {
-        throw std::runtime_error("Invalid coroutine queue id");
-    }
-    auto promise = PromisePtr<OTHER_RET>(new Promise<OTHER_RET>(), Promise<OTHER_RET>::deleter);
-    auto task = IoTask::Ptr(new IoTask(Void{},
+    auto task = IoTask::Ptr(new IoTask(Traits::IsThreadPromise<FirstArg>{},
                                        promise,
                                        queueId,
                                        isHighPriority,
@@ -1397,7 +1357,7 @@ template <class OTHER_RET, class FUNC, class ... ARGS>
 ContextPtr<OTHER_RET>
 Context<RET>::post2(FUNC&& func, ARGS&&... args)
 {
-    return postImpl2<OTHER_RET>((int)IQueue::QueueId::Any,
+    return postImpl<OTHER_RET>((int)IQueue::QueueId::Any,
                                 false,
                                 ITask::Type::Standalone,
                                 std::forward<FUNC>(func),
@@ -1421,7 +1381,7 @@ template <class OTHER_RET, class FUNC, class ... ARGS>
 ContextPtr<OTHER_RET>
 Context<RET>::post2(int queueId, bool isHighPriority, FUNC&& func, ARGS&&... args)
 {
-    return postImpl2<OTHER_RET>(queueId,
+    return postImpl<OTHER_RET>(queueId,
                                 isHighPriority,
                                 ITask::Type::Standalone,
                                 std::forward<FUNC>(func),
@@ -1446,7 +1406,7 @@ template <class OTHER_RET, class FUNC, class ... ARGS>
 ContextPtr<OTHER_RET>
 Context<RET>::postFirst2(FUNC&& func, ARGS&&... args)
 {
-    return postImpl2<OTHER_RET>((int)IQueue::QueueId::Any,
+    return postImpl<OTHER_RET>((int)IQueue::QueueId::Any,
                                 false,
                                 ITask::Type::First,
                                 std::forward<FUNC>(func),
@@ -1470,7 +1430,7 @@ template <class OTHER_RET, class FUNC, class ... ARGS>
 ContextPtr<OTHER_RET>
 Context<RET>::postFirst2(int queueId, bool isHighPriority, FUNC&& func, ARGS&&... args)
 {
-    return postImpl2<OTHER_RET>(queueId,
+    return postImpl<OTHER_RET>(queueId,
                                 isHighPriority,
                                 ITask::Type::First,
                                 std::forward<FUNC>(func),
@@ -1482,39 +1442,14 @@ template <class OTHER_RET, class FUNC, class ... ARGS>
 ContextPtr<OTHER_RET>
 Context<RET>::postImpl(int queueId, bool isHighPriority, ITask::Type type, FUNC&& func, ARGS&&... args)
 {
+    using FirstArg = decltype(firstArgOf(func));
     if (queueId < (int)IQueue::QueueId::Same)
     {
         throw std::runtime_error("Invalid coroutine queue id");
     }
     auto ctx = ContextPtr<OTHER_RET>(new Context<OTHER_RET>(*_dispatcher),
                                      Context<OTHER_RET>::deleter);
-    auto task = Task::Ptr(new Task(ctx,
-                                   (queueId == (int)IQueue::QueueId::Same) ? _task->getQueueId() : queueId,
-                                   isHighPriority,
-                                   type,
-                                   std::forward<FUNC>(func),
-                                   std::forward<ARGS>(args)...),
-                          Task::deleter);
-    ctx->setTask(task);
-    if (type == ITask::Type::Standalone)
-    {
-        _dispatcher->post(task);
-    }
-    return ctx;
-}
-
-template <class RET>
-template <class OTHER_RET, class FUNC, class ... ARGS>
-ContextPtr<OTHER_RET>
-Context<RET>::postImpl2(int queueId, bool isHighPriority, ITask::Type type, FUNC&& func, ARGS&&... args)
-{
-    if (queueId < (int)IQueue::QueueId::Same)
-    {
-        throw std::runtime_error("Invalid coroutine queue id");
-    }
-    auto ctx = ContextPtr<OTHER_RET>(new Context<OTHER_RET>(*_dispatcher),
-                                     Context<OTHER_RET>::deleter);
-    auto task = Task::Ptr(new Task(Void{},
+    auto task = Task::Ptr(new Task(Traits::IsVoidContext<FirstArg>{},
                                    ctx,
                                    (queueId == (int)IQueue::QueueId::Same) ? _task->getQueueId() : queueId,
                                    isHighPriority,

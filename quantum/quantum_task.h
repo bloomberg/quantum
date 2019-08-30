@@ -50,7 +50,8 @@ public:
     using CoroLocalStorage = std::unordered_map<std::string, void*>;
     
     template <class RET, class FUNC, class ... ARGS>
-    Task(std::shared_ptr<Context<RET>> ctx,
+    Task(std::false_type t,
+         std::shared_ptr<Context<RET>> ctx,
          int queueId,
          bool isHighPriority,
          ITask::Type type,
@@ -58,7 +59,7 @@ public:
          ARGS&&... args);
     
     template <class RET, class FUNC, class ... ARGS>
-    Task(Void,
+    Task(std::true_type t,
          std::shared_ptr<Context<RET>> ctx,
          int queueId,
          bool isHighPriority,

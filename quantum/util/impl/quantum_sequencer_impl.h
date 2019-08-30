@@ -58,7 +58,7 @@ Sequencer<SequenceKey, Hash, KeyEqual, Allocator>::enqueue(
     {
         throw std::runtime_error("Sequencer is disabled");
     }
-    _dispatcher.post2(_controllerQueueId,
+    _dispatcher.post(_controllerQueueId,
                       false,
                       singleSequenceKeyTaskScheduler<FUNC, ARGS...>,
                       nullptr,
@@ -89,7 +89,7 @@ Sequencer<SequenceKey, Hash, KeyEqual, Allocator>::enqueue(
     {
         throw std::runtime_error("Invalid IO queue id");
     }
-    _dispatcher.post2(_controllerQueueId,
+    _dispatcher.post(_controllerQueueId,
                       false,
                       singleSequenceKeyTaskScheduler<FUNC, ARGS...>,
                       std::move(opaque),
@@ -113,7 +113,7 @@ Sequencer<SequenceKey, Hash, KeyEqual, Allocator>::enqueue(
     {
         throw std::runtime_error("Sequencer is disabled");
     }
-    _dispatcher.post2(_controllerQueueId,
+    _dispatcher.post(_controllerQueueId,
                       false,
                       multiSequenceKeyTaskScheduler<FUNC, ARGS...>,
                       nullptr,
@@ -144,7 +144,7 @@ Sequencer<SequenceKey, Hash, KeyEqual, Allocator>::enqueue(
     {
         throw std::runtime_error("Invalid IO queue id");
     }
-    _dispatcher.post2(_controllerQueueId,
+    _dispatcher.post(_controllerQueueId,
                       false,
                       multiSequenceKeyTaskScheduler<FUNC, ARGS...>,
                       std::move(opaque),
@@ -165,7 +165,7 @@ Sequencer<SequenceKey, Hash, KeyEqual, Allocator>::enqueueAll(FUNC&& func, ARGS&
     {
         throw std::runtime_error("Sequencer is disabled");
     }
-    _dispatcher.post2(_controllerQueueId,
+    _dispatcher.post(_controllerQueueId,
                       false,
                       universalTaskScheduler<FUNC, ARGS...>,
                       nullptr,
@@ -194,7 +194,7 @@ Sequencer<SequenceKey, Hash, KeyEqual, Allocator>::enqueueAll(
     {
         throw std::runtime_error("Invalid IO queue id");
     }
-    _dispatcher.post2(_controllerQueueId,
+    _dispatcher.post(_controllerQueueId,
                       false,
                       universalTaskScheduler<FUNC, ARGS...>,
                       std::move(opaque),
@@ -221,7 +221,7 @@ Sequencer<SequenceKey, Hash, KeyEqual, Allocator>::trimSequenceKeys()
         }
         return ctx->set(_contexts.size());
     };
-    return _dispatcher.post<size_t>(_controllerQueueId, true, std::move(trimFunc))->get();
+    return _dispatcher.post(_controllerQueueId, true, std::move(trimFunc))->get();
 }
 
 template <class SequenceKey, class Hash, class KeyEqual, class Allocator>
@@ -237,7 +237,7 @@ Sequencer<SequenceKey, Hash, KeyEqual, Allocator>::getStatistics(const SequenceK
         }
         return ctx->set(SequenceKeyStatistics(*ctxIt->second._stats));
     };
-    return _dispatcher.post<SequenceKeyStatistics>(_controllerQueueId, true, std::move(statsFunc))->get();
+    return _dispatcher.post(_controllerQueueId, true, std::move(statsFunc))->get();
 }
 
 template <class SequenceKey, class Hash, class KeyEqual, class Allocator>
@@ -262,7 +262,7 @@ Sequencer<SequenceKey, Hash, KeyEqual, Allocator>::getSequenceKeyCount()
     {
         return ctx->set(_contexts.size());
     };
-    return _dispatcher.post<size_t>(_controllerQueueId, true, std::move(statsFunc))->get();
+    return _dispatcher.post(_controllerQueueId, true, std::move(statsFunc))->get();
 }
 
 template <class SequenceKey, class Hash, class KeyEqual, class Allocator>
@@ -387,7 +387,7 @@ Sequencer<SequenceKey, Hash, KeyEqual, Allocator>::singleSequenceKeyTaskSchedule
     sequencer._taskStats->incrementPendingTaskCount();
     
     // save the context as the last for this sequenceKey
-    contextIt->second._context = ctx->post<Void>(
+    contextIt->second._context = ctx->post(
             std::move(queueId),
             std::move(isHighPriority),
             waitForTwoDependents<FUNC, ARGS...>,
@@ -432,7 +432,7 @@ Sequencer<SequenceKey, Hash, KeyEqual, Allocator>::multiSequenceKeyTaskScheduler
     sequencer._taskStats->incrementPostedTaskCount();
     sequencer._taskStats->incrementPendingTaskCount();
     
-    ICoroContextBasePtr newCtx = ctx->post<Void>(
+    ICoroContextBasePtr newCtx = ctx->post(
             std::move(queueId),
             std::move(isHighPriority),
             waitForDependents<FUNC, ARGS...>,
@@ -483,7 +483,7 @@ Sequencer<SequenceKey, Hash, KeyEqual, Allocator>::universalTaskScheduler(
     sequencer._taskStats->incrementPendingTaskCount();
 
     // post the task and save the context as the last for the universal sequenceKey
-    sequencer._universalContext._context = ctx->post<Void>(
+    sequencer._universalContext._context = ctx->post(
             std::move(queueId),
             std::move(isHighPriority),
             waitForUniversalDependent<FUNC, ARGS...>,

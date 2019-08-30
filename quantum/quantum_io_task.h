@@ -38,14 +38,15 @@ public:
     using WeakPtr = std::weak_ptr<IoTask>;
     
     template <class RET, class FUNC, class ... ARGS>
-    IoTask(std::shared_ptr<Promise<RET>> promise,
+    IoTask(std::true_type,
+           std::shared_ptr<Promise<RET>> promise,
            int queueId,
            bool isHighPriority,
            FUNC&& func,
            ARGS&&... args);
     
     template <class RET, class FUNC, class ... ARGS>
-    IoTask(Void,
+    IoTask(std::false_type,
            std::shared_ptr<Promise<RET>> promise,
            int queueId,
            bool isHighPriority,
