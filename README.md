@@ -31,7 +31,7 @@
 using namespace Bloomberg::quantum;
 
 // Define a coroutine
-int getDummyValue(CoroContext<int>::Ptr ctx)
+int getDummyValue(CoroContextPtr<int> ctx)
 {
     int value;
     ...           //do some work
@@ -54,14 +54,14 @@ using namespace Bloomberg::quantum;
 // Create a dispatcher
 Dispatcher dispatcher;
 
-auto ctx = dispatcher.postFirst([](CoroContext<int>::Ptr ctx)->int {
+auto ctx = dispatcher.postFirst([](CoroContextPtr<int> ctx)->int {
     return ctx->set(55); //Set the 1st value
-})->then([](CoroContext<double>::Ptr ctx)->int {
+})->then([](CoroContextPtr<double> ctx)->int {
     // Get the first value and add something to it
     return ctx->set(ctx->getPrev<int>() + 22.33); //Set the 2nd value
-})->then([](CoroContext<std::string>::Ptr ctx)->int {
+})->then([](CoroContextPtr<std::string> ctx)->int {
     return ctx->set("Hello world!"); //Set the 3rd value
-})->finally([](CoroContext<std::list<int>>::Ptr ctx)->int {
+})->finally([](CoroContextPtr<std::list<int>> ctx)->int {
     return ctx->set(std::list<int>{1,2,3}); //Set 4th value
 })->end();
 
@@ -74,21 +74,21 @@ std::list<int>& listRef2 = ctx->getRef(); //get another list reference.
                                           //The 'At' overload is optional for last chain future
 std::list<int> listValue = ctx->get(); //get list value
 ```
-Chaining with the **new** V2 api and using 'auto':
+Chaining with the **new** V2 api:
 ```c++
 using namespace Bloomberg::quantum;
 
 // Create a dispatcher
 Dispatcher dispatcher;
 
-auto ctx = dispatcher.postFirst2([](auto ctx)->int {
+auto ctx = dispatcher.postFirst([](VoidContextPtr ctx)->int {
     return 55; //Set the 1st value
-})->then2([](auto ctx)->double {
+})->then([](VoidContextPtr ctx)->double {
     // Get the first value and add something to it
     return ctx->getPrev<int>() + 22.33; //Set the 2nd value
-})->then2([](auto ctx)->std::string {
+})->then([](VoidContextPtr ctx)->std::string {
     return "Hello world!"; //Set the 3rd value
-})->finally2([](auto ctx)->std::list<int> {
+})->finally([](VoidContextPtr ctx)->std::list<int> {
     return {1,2,3}; //Set 4th value
 })->end();
 ```
