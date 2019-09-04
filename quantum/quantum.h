@@ -70,6 +70,7 @@
 #include <quantum/quantum_thread_traits.h>
 #include <quantum/quantum_traits.h>
 #include <quantum/quantum_yielding_thread.h>
+#include <quantum/util/quantum_cls_guard.h>
 #include <quantum/util/quantum_drain_guard.h>
 #include <quantum/util/quantum_future_joiner.h>
 #include <quantum/util/quantum_sequence_key_statistics.h>

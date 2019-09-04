@@ -1552,6 +1552,33 @@ TEST_P(CoroLocalStorageTest, AccessTest)
     getDispatcher().drain();
 }
 
+TEST_P(CoroLocalStorageTest, GuardTest)
+{
+    getDispatcher().post([](CoroContext<int>::Ptr ctx)->int
+    {
+        const std::string name = "v";
+        int v = 1;
+        cls::Guard<int> guard1(name, &v);
+        for(int i = 0; i < 10; ++i)
+        {
+            EXPECT_EQ(&v, cls::variable<int>(name));
+            cls::Guard<int> guard2(name, &i);
+
+            for(int j = 0; j < 10; ++j)
+            {
+                EXPECT_EQ(&i, cls::variable<int>(name));
+                cls::Guard<int> guard3(name, &j);
+                EXPECT_EQ(&j, cls::variable<int>(name));
+            }
+            EXPECT_EQ(&i, cls::variable<int>(name));
+        }
+        EXPECT_EQ(&v, cls::variable<int>(name));
+        return ctx->set(0);
+    });
+
+    getDispatcher().drain();
+}
+
 //This test **must** come last to make Valgrind happy.
 TEST_P(CleanupTest, DeleteDispatcherInstance)
 {

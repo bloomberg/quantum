@@ -29,11 +29,13 @@ namespace cls {
 ///       coroutine, a pointer to it will be allocated, set to nullptr, and a reference to the
 ///       pointer will be returned here for reading/writing. 
 ///       If the variable with the name @see key has already been created within the current
-///       coroutine, then a reference to the previously set pointer will be returned. 
+///       coroutine, then a reference to the previously set pointer will be returned.
+/// @note If the function is called outside of a coroutine, then the thread-local storage is
+///       used with the semantics described above.
 /// @note Upon the termination of the coroutine, the storage occupied by the coro-local-variable
 ///       pointers will be freed. It is up to the user of the API to free the actual variable
 ///       storage.
-    
+
 template <typename T>
 T*& variable(const std::string& key);
 
