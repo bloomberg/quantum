@@ -13,14 +13,15 @@
 ** See the License for the specific language governing permissions and
 ** limitations under the License.
 */
-#ifndef BLOOMBERG_QUANTUM_CLS_H
-#define BLOOMBERG_QUANTUM_CLS_H
+#ifndef BLOOMBERG_QUANTUM_LOCAL_H
+#define BLOOMBERG_QUANTUM_LOCAL_H
 
+#include <quantum/quantum_traits.h>
 #include <string>
 
 namespace Bloomberg {
 namespace quantum {
-namespace cls {
+namespace local {
 
 /// @brief Accesses the pointer to a coro-local-variable
 /// @param[in] key the variable name
@@ -35,12 +36,15 @@ namespace cls {
 /// @note Upon the termination of the coroutine, the storage occupied by the coro-local-variable
 ///       pointers will be freed. It is up to the user of the API to free the actual variable
 ///       storage.
-
 template <typename T>
 T*& variable(const std::string& key);
 
+/// @brief Get the current coroutine context
+/// @return The coroutine context if this function is called inside a coroutine or null otherwise
+VoidContextPtr context();
+
 }}}
 
-#include <quantum/impl/quantum_cls_impl.h>
+#include <quantum/impl/quantum_local_impl.h>
 
-#endif //BLOOMBERG_QUANTUM_CLS_H
+#endif //BLOOMBERG_QUANTUM_LOCAL_H

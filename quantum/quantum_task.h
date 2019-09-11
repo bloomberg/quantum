@@ -100,6 +100,7 @@ public:
 
     //Local storage accessors
     CoroLocalStorage& getCoroLocalStorage();
+    ITaskAccessor::Ptr getTaskAccessor() const;
 
     //===================================
     //           NEW / DELETE
@@ -142,7 +143,7 @@ private:
         std::atomic_int& _suspendedState;
     };
     
-    ITaskAccessor::Ptr          _ctx; //holds execution context
+    ITaskAccessor::Ptr          _coroContext; //holds execution context
     Traits::Coroutine           _coro; //the current runnable coroutine
     int                         _queueId;
     bool                        _isHighPriority;

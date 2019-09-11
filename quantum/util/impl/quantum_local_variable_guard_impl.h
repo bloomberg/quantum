@@ -18,24 +18,25 @@
 //##############################################################################################
 //#################################### IMPLEMENTATIONS #########################################
 //##############################################################################################
-#include <quantum/quantum_task_queue.h>
-#include <stdexcept>
+
+#include <quantum/util/quantum_local_variable_guard.h>
 
 namespace Bloomberg {
 namespace quantum {
-namespace cls {
+namespace local {
 
-template <typename T>
-T*& variable(const std::string& key)
+template<typename T>
+VariableGuard<T>::VariableGuard(const std::string& key, T* value) :
+    _storage(variable<T>(key)), 
+    _prev(_storage)
 {
-    // default thread local map to be used outside of coroutines
-    thread_local Task::CoroLocalStorage defaultStorage;
-    
-    Task* task = TaskQueue::getCurrentTask();
-    Task::CoroLocalStorage& storage = task ? task->getCoroLocalStorage() : defaultStorage;
-    
-    void** r = &storage.emplace(key, nullptr).first->second;
-    return *reinterpret_cast<T**>(r);
+    _storage = value;
 }
 
+template<typename T>
+VariableGuard<T>::~VariableGuard()
+{
+    _storage = _prev;
+}
+    
 }}}
