@@ -18,25 +18,37 @@
 //##############################################################################################
 //#################################### IMPLEMENTATIONS #########################################
 //##############################################################################################
-
-#include <quantum/quantum_cls.h>
+#include <quantum/quantum_task_queue.h>
+#include <quantum/quantum_context.h>
+#include <stdexcept>
+#include <memory>
 
 namespace Bloomberg {
 namespace quantum {
-namespace cls {
+namespace local {
 
-template<typename T>
-Guard<T>::Guard(const std::string& key, T* value) :
-    _storage(variable<T>(key)), 
-    _prev(_storage)
+template <typename T>
+T*& variable(const std::string& key)
 {
-    _storage = value;
-}
-
-template<typename T>
-Guard<T>::~Guard()
-{
-    _storage = _prev;
-}
+    // default thread local map to be used outside of coroutines
+    thread_local Task::CoroLocalStorage defaultStorage;
     
+    Task* task = TaskQueue::getCurrentTask();
+    Task::CoroLocalStorage& storage = task ? task->getCoroLocalStorage() : defaultStorage;
+    
+    void** r = &storage.emplace(key, nullptr).first->second;
+    return *reinterpret_cast<T**>(r);
+}
+
+inline
+VoidContextPtr context()
+{
+    Task* task = TaskQueue::getCurrentTask();
+    if (!task)
+    {
+        return nullptr;
+    }
+    return std::static_pointer_cast<Context<Void>, ITaskAccessor>(task->getTaskAccessor());
+}
+
 }}}

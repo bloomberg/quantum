@@ -16,18 +16,13 @@
 #ifndef BLOOMBERG_QUANTUM_FUNCTIONS_H
 #define BLOOMBERG_QUANTUM_FUNCTIONS_H
 
+#include <quantum/quantum_traits.h>
 #include <functional>
 #include <vector>
 #include <iterator>
 
 namespace Bloomberg {
 namespace quantum {
-
-struct Void{};
-template <typename T>
-struct ICoroContext;
-using VoidCoroContextPtr = std::shared_ptr<ICoroContext<Void>>;
-using VoidContextPtr = VoidCoroContextPtr; //shorthand version
 
 //==============================================================================================
 //                                    struct Functions

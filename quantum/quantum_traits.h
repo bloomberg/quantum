@@ -32,6 +32,11 @@ namespace quantum {
 template <class T, class ALLOCATOR = std::allocator<T>>
 class Buffer;
 class Deprecated;
+struct Void{};
+template <typename T>
+struct ICoroContext;
+using VoidCoroContextPtr = std::shared_ptr<ICoroContext<Void>>;
+using VoidContextPtr = VoidCoroContextPtr; //shorthand version
 
 //==============================================================================================
 //                                    struct Traits

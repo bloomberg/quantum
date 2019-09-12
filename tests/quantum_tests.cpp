@@ -742,7 +742,7 @@ TEST_P(PromiseTest, GetFutureFromIoTask)
     Dispatcher& dispatcher = getDispatcher();
     ThreadContext<int>::Ptr ctx = dispatcher.post([](CoroContext<int>::Ptr ctx)->int{
         //post an IO task and get future from there
-        CoroFuture<double>::Ptr fut = ctx->postAsyncIo<double>([](ThreadPromise<double>::Ptr promise)->int{
+        CoroFuture<double>::Ptr fut = ctx->postAsyncIo([](ThreadPromise<double>::Ptr promise)->int{
             return promise->set(33.22);
         });
         return ctx->set((int)fut->get(ctx)); //forward the promise
@@ -761,6 +761,19 @@ TEST_P(PromiseTest, GetFutureFromIoTask2)
         return (int)fut->get(ctx); //forward the promise
     });
     EXPECT_EQ(33, ctx->get()); //block until value is available
+}
+
+TEST_P(PromiseTest, GetGenericFutureFromIoTask)
+{
+    Dispatcher& dispatcher = getDispatcher();
+    GenericFuture<int> genFuture = dispatcher.post([](CoroContext<int>::Ptr ctx)->int{
+        //post an IO task and get future from there
+        GenericFuture<double> genFuture(ctx->postAsyncIo([](ThreadPromise<double>::Ptr promise)->int{
+            return promise->set(33.22);
+        }), ctx);
+        return ctx->set((int)genFuture.get()); //forward the promise
+    });
+    EXPECT_EQ(33, genFuture.get()); //block until value is available
 }
 
 TEST_P(PromiseTest, GetFutureFromExternalSource)
@@ -927,7 +940,7 @@ TEST_P(PromiseTest, BrokenPromiseInAsyncIo)
     Dispatcher& dispatcher = getDispatcher();
     ThreadContext<int>::Ptr ctx = dispatcher.post([](CoroContext<int>::Ptr ctx)->int{
         //post an IO task and get future from there
-        CoroFuture<double>::Ptr fut = ctx->postAsyncIo<double>([](ThreadPromise<double>::Ptr)->int{
+        CoroFuture<double>::Ptr fut = ctx->postAsyncIo([](ThreadPromise<double>::Ptr)->int{
             //Do not set the promise so that we break it
             return 0;
         });
@@ -1165,7 +1178,7 @@ TEST_P(StressTest, AsyncIo)
     v.reserve(ioLoops);
     for (int i = 0; i < ioLoops; ++i) {
         int queueId = i % getDispatcher().getNumIoThreads();
-        getDispatcher().postAsyncIo<int>(queueId, false, [&m,&v,&s,queueId,i](ThreadPromise<int>::Ptr promise){
+        getDispatcher().postAsyncIo(queueId, false, [&m,&v,&s,queueId,i](ThreadPromise<int>::Ptr promise){
             {
             std::lock_guard<std::mutex> lock(m);
             s.insert(std::make_pair(queueId, i));
@@ -1187,7 +1200,7 @@ TEST_P(StressTest, AsyncIoAnyQueue)
     v.reserve(ioLoops);
     for (int i = 0; i < ioLoops; ++i) {
         int queueId = i % getDispatcher().getNumIoThreads();
-        getDispatcher().postAsyncIo<int>([&m,&v,&s,queueId,i](ThreadPromise<int>::Ptr promise){
+        getDispatcher().postAsyncIo([&m,&v,&s,queueId,i](ThreadPromise<int>::Ptr promise){
             {
             std::lock_guard<std::mutex> lock(m);
             s.insert(std::make_pair(queueId, i));
@@ -1209,7 +1222,7 @@ TEST_P(StressTestBalanced, AsyncIoAnyQueueLoadBalance)
     v.reserve(ioLoops);
     for (int i = 0; i < ioLoops; ++i) {
         int queueId = i % getDispatcher().getNumIoThreads();
-        getDispatcher().postAsyncIo<int>([&m,&v,&s,queueId,i](ThreadPromise<int>::Ptr promise){
+        getDispatcher().postAsyncIo([&m,&v,&s,queueId,i](ThreadPromise<int>::Ptr promise){
             {
             std::lock_guard<std::mutex> lock(m);
             s.insert(std::make_pair(queueId, i));
@@ -1240,7 +1253,7 @@ TEST_P(ForEachTest, SimpleNonConst)
     std::vector<char> end{'b','c','d','e','f','g','h','i','j','k'};
     std::vector<char> results = getDispatcher().forEach(start.begin(), start.size(),
         [](VoidContextPtr ctx, int& val)->char {
-        val = ctx->postAsyncIo<int>([&](ThreadPromisePtr<int> p){
+        val = ctx->postAsyncIo([&](ThreadPromisePtr<int> p){
             return p->set(++val);
         })->get(ctx);
         return 'a'+ val;
@@ -1518,25 +1531,25 @@ TEST_P(CoroLocalStorageTest, AccessTest)
             static const std::string globalCounterName = "globalCounter";            
             static const std::string localCounterName = "localCounter";
             // make sure nothing is inherited from the previous tasks
-            EXPECT_EQ(nullptr, cls::variable<int>(globalCounterName));
-            EXPECT_EQ(nullptr, cls::variable<int>(localCounterName));
+            EXPECT_EQ(nullptr, local::variable<int>(globalCounterName));
+            EXPECT_EQ(nullptr, local::variable<int>(localCounterName));
 
             // set the local variable that remains constant
             int globalCounterCopy = globalCounter;
-            cls::variable<int>(globalCounterName) = &globalCounterCopy;
+            local::variable<int>(globalCounterName) = &globalCounterCopy;
 
             int i = 0;
             // set the local variable that is changed in every iteration
-            cls::variable<int>(localCounterName) = &i;
+            local::variable<int>(localCounterName) = &i;
 
             for(i = 0; i < 10; ++i)
             {
                 ctx->sleep(ms(10));
 
-                int* localCounterValue = cls::variable<int>(localCounterName);
+                int* localCounterValue = local::variable<int>(localCounterName);
                 EXPECT_EQ(&i, localCounterValue);
 
-                int* globalCounterValue = cls::variable<int>(globalCounterName);
+                int* globalCounterValue = local::variable<int>(globalCounterName);
                 EXPECT_EQ(&globalCounterCopy, globalCounterValue);
             }
 
@@ -1558,25 +1571,35 @@ TEST_P(CoroLocalStorageTest, GuardTest)
     {
         const std::string name = "v";
         int v = 1;
-        cls::Guard<int> guard1(name, &v);
+        local::VariableGuard<int> guard1(name, &v);
         for(int i = 0; i < 10; ++i)
         {
-            EXPECT_EQ(&v, cls::variable<int>(name));
-            cls::Guard<int> guard2(name, &i);
+            EXPECT_EQ(&v, local::variable<int>(name));
+            local::VariableGuard<int> guard2(name, &i);
 
             for(int j = 0; j < 10; ++j)
             {
-                EXPECT_EQ(&i, cls::variable<int>(name));
-                cls::Guard<int> guard3(name, &j);
-                EXPECT_EQ(&j, cls::variable<int>(name));
+                EXPECT_EQ(&i, local::variable<int>(name));
+                local::VariableGuard<int> guard3(name, &j);
+                EXPECT_EQ(&j, local::variable<int>(name));
             }
-            EXPECT_EQ(&i, cls::variable<int>(name));
+            EXPECT_EQ(&i, local::variable<int>(name));
         }
-        EXPECT_EQ(&v, cls::variable<int>(name));
+        EXPECT_EQ(&v, local::variable<int>(name));
         return ctx->set(0);
-    });
+    })->get();
+}
 
-    getDispatcher().drain();
+TEST_P(CoroLocalStorageTest, GetContext)
+{
+    EXPECT_EQ(nullptr, local::context());
+    
+    getDispatcher().post([](CoroContext<int>::Ptr ctx)->int
+    {
+        EXPECT_NE(nullptr, local::context());
+        EXPECT_EQ((CoroContext<Void>*)ctx.get(), local::context().get());
+        return ctx->set(0);
+    })->get();
 }
 
 //This test **must** come last to make Valgrind happy.

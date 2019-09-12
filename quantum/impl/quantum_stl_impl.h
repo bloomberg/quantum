@@ -66,11 +66,11 @@ namespace std {
     using index_sequence_for = make_index_sequence<sizeof...(_Types)>;
 #endif
 #if (__cplusplus < 201703L)
-    template<class T, class U>
-    std::shared_ptr<T> reinterpret_pointer_cast(const std::shared_ptr<U>& r) noexcept
+    template<class TO, class FROM>
+    std::shared_ptr<TO> reinterpret_pointer_cast(const std::shared_ptr<FROM>& from) noexcept
     {
-        auto p = reinterpret_cast<typename std::shared_ptr<T>::element_type*>(r.get());
-        return std::shared_ptr<T>(r, p);
+        auto to = reinterpret_cast<typename std::shared_ptr<TO>::element_type*>(from.get());
+        return std::shared_ptr<TO>(from, to);
     }
 #endif
 } //std

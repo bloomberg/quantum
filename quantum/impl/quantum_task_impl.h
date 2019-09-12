@@ -42,7 +42,7 @@ Task::Task(std::false_type,
            ITask::Type type,
            FUNC&& func,
            ARGS&&... args) :
-    _ctx(ctx),
+    _coroContext(ctx),
     _coro(Allocator<CoroStackAllocator>::instance(AllocatorTraits::defaultCoroPoolAllocSize()),
           Util::bindCaller(ctx, std::forward<FUNC>(func), std::forward<ARGS>(args)...)),
     _queueId(queueId),
@@ -61,7 +61,7 @@ Task::Task(std::true_type,
            ITask::Type type,
            FUNC&& func,
            ARGS&&... args) :
-    _ctx(ctx),
+    _coroContext(ctx),
     _coro(Allocator<CoroStackAllocator>::instance(AllocatorTraits::defaultCoroPoolAllocSize()),
           Util::bindCaller2(ctx, std::forward<FUNC>(func), std::forward<ARGS>(args)...)),
     _queueId(queueId),
@@ -84,7 +84,7 @@ void Task::terminate()
     bool value{false};
     if (_terminated.compare_exchange_strong(value, true))
     {
-        if (_ctx) _ctx->terminate();
+        if (_coroContext) _coroContext->terminate();
     }
 }
 
@@ -174,13 +174,13 @@ ITaskContinuation::Ptr Task::getErrorHandlerOrFinalTask()
 inline
 bool Task::isBlocked() const
 {
-    return _ctx ? _ctx->isBlocked() : false; //coroutine is waiting on some signal
+    return _coroContext ? _coroContext->isBlocked() : false; //coroutine is waiting on some signal
 }
 
 inline
 bool Task::isSleeping(bool updateTimer)
 {
-    return _ctx ? _ctx->isSleeping(updateTimer) : false; //coroutine is sleeping
+    return _coroContext ? _coroContext->isSleeping(updateTimer) : false; //coroutine is sleeping
 }
 
 inline
@@ -199,6 +199,12 @@ inline
 Task::CoroLocalStorage& Task::getCoroLocalStorage()
 {
     return _coroLocalStorage;
+}
+
+inline
+ITaskAccessor::Ptr Task::getTaskAccessor() const
+{
+    return _coroContext;
 }
 
 inline
