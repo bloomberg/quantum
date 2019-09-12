@@ -742,7 +742,7 @@ TEST_P(PromiseTest, GetFutureFromIoTask)
     Dispatcher& dispatcher = getDispatcher();
     ThreadContext<int>::Ptr ctx = dispatcher.post([](CoroContext<int>::Ptr ctx)->int{
         //post an IO task and get future from there
-        CoroFuture<double>::Ptr fut = ctx->postAsyncIo<double>([](ThreadPromise<double>::Ptr promise)->int{
+        CoroFuture<double>::Ptr fut = ctx->postAsyncIo([](ThreadPromise<double>::Ptr promise)->int{
             return promise->set(33.22);
         });
         return ctx->set((int)fut->get(ctx)); //forward the promise
@@ -761,6 +761,19 @@ TEST_P(PromiseTest, GetFutureFromIoTask2)
         return (int)fut->get(ctx); //forward the promise
     });
     EXPECT_EQ(33, ctx->get()); //block until value is available
+}
+
+TEST_P(PromiseTest, GetGenericFutureFromIoTask)
+{
+    Dispatcher& dispatcher = getDispatcher();
+    GenericFuture<int> genFuture = dispatcher.post([](CoroContext<int>::Ptr ctx)->int{
+        //post an IO task and get future from there
+        GenericFuture<double> genFuture(ctx->postAsyncIo([](ThreadPromise<double>::Ptr promise)->int{
+            return promise->set(33.22);
+        }), ctx);
+        return ctx->set((int)genFuture.get()); //forward the promise
+    });
+    EXPECT_EQ(33, genFuture.get()); //block until value is available
 }
 
 TEST_P(PromiseTest, GetFutureFromExternalSource)
@@ -927,7 +940,7 @@ TEST_P(PromiseTest, BrokenPromiseInAsyncIo)
     Dispatcher& dispatcher = getDispatcher();
     ThreadContext<int>::Ptr ctx = dispatcher.post([](CoroContext<int>::Ptr ctx)->int{
         //post an IO task and get future from there
-        CoroFuture<double>::Ptr fut = ctx->postAsyncIo<double>([](ThreadPromise<double>::Ptr)->int{
+        CoroFuture<double>::Ptr fut = ctx->postAsyncIo([](ThreadPromise<double>::Ptr)->int{
             //Do not set the promise so that we break it
             return 0;
         });
@@ -1165,7 +1178,7 @@ TEST_P(StressTest, AsyncIo)
     v.reserve(ioLoops);
     for (int i = 0; i < ioLoops; ++i) {
         int queueId = i % getDispatcher().getNumIoThreads();
-        getDispatcher().postAsyncIo<int>(queueId, false, [&m,&v,&s,queueId,i](ThreadPromise<int>::Ptr promise){
+        getDispatcher().postAsyncIo(queueId, false, [&m,&v,&s,queueId,i](ThreadPromise<int>::Ptr promise){
             {
             std::lock_guard<std::mutex> lock(m);
             s.insert(std::make_pair(queueId, i));
@@ -1187,7 +1200,7 @@ TEST_P(StressTest, AsyncIoAnyQueue)
     v.reserve(ioLoops);
     for (int i = 0; i < ioLoops; ++i) {
         int queueId = i % getDispatcher().getNumIoThreads();
-        getDispatcher().postAsyncIo<int>([&m,&v,&s,queueId,i](ThreadPromise<int>::Ptr promise){
+        getDispatcher().postAsyncIo([&m,&v,&s,queueId,i](ThreadPromise<int>::Ptr promise){
             {
             std::lock_guard<std::mutex> lock(m);
             s.insert(std::make_pair(queueId, i));
@@ -1209,7 +1222,7 @@ TEST_P(StressTestBalanced, AsyncIoAnyQueueLoadBalance)
     v.reserve(ioLoops);
     for (int i = 0; i < ioLoops; ++i) {
         int queueId = i % getDispatcher().getNumIoThreads();
-        getDispatcher().postAsyncIo<int>([&m,&v,&s,queueId,i](ThreadPromise<int>::Ptr promise){
+        getDispatcher().postAsyncIo([&m,&v,&s,queueId,i](ThreadPromise<int>::Ptr promise){
             {
             std::lock_guard<std::mutex> lock(m);
             s.insert(std::make_pair(queueId, i));
@@ -1240,7 +1253,7 @@ TEST_P(ForEachTest, SimpleNonConst)
     std::vector<char> end{'b','c','d','e','f','g','h','i','j','k'};
     std::vector<char> results = getDispatcher().forEach(start.begin(), start.size(),
         [](VoidContextPtr ctx, int& val)->char {
-        val = ctx->postAsyncIo<int>([&](ThreadPromisePtr<int> p){
+        val = ctx->postAsyncIo([&](ThreadPromisePtr<int> p){
             return p->set(++val);
         })->get(ctx);
         return 'a'+ val;

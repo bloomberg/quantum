@@ -43,7 +43,6 @@
 #include <quantum/quantum_allocator_traits.h>
 #include <quantum/quantum_buffer.h>
 #include <quantum/quantum_capture.h>
-#include <quantum/quantum_local.h>
 #include <quantum/quantum_condition_variable.h>
 #include <quantum/quantum_configuration.h>
 #include <quantum/quantum_context.h>
@@ -56,6 +55,7 @@
 #include <quantum/quantum_future_state.h>
 #include <quantum/quantum_io_queue.h>
 #include <quantum/quantum_io_task.h>
+#include <quantum/quantum_local.h>
 #include <quantum/quantum_macros.h>
 #include <quantum/quantum_mutex.h>
 #include <quantum/quantum_promise.h>
@@ -70,9 +70,10 @@
 #include <quantum/quantum_thread_traits.h>
 #include <quantum/quantum_traits.h>
 #include <quantum/quantum_yielding_thread.h>
-#include <quantum/util/quantum_local_variable_guard.h>
 #include <quantum/util/quantum_drain_guard.h>
 #include <quantum/util/quantum_future_joiner.h>
+#include <quantum/util/quantum_generic_future.h>
+#include <quantum/util/quantum_local_variable_guard.h>
 #include <quantum/util/quantum_sequence_key_statistics.h>
 #include <quantum/util/quantum_sequencer.h>
 #include <quantum/util/quantum_sequencer_configuration.h>
