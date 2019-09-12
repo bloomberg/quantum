@@ -40,6 +40,24 @@ public:
     //Constructor
     Promise();
     
+    //Move constructor
+    Promise(Promise<T>&& other) :
+        IThreadPromise<Promise, T>(this),
+        ICoroPromise<Promise, T>(this),
+        _sharedState(std::move(other._sharedState)),
+        _terminated(other._terminated.load()){
+    }
+    
+    //Move assignment
+    Promise& operator=(Promise<T>&& other)
+    {
+        if (this != &other) {
+            _sharedState = std::move(other._sharedState);
+            _terminated = other._terminated.load();
+        }
+        return *this;
+    }
+    
     //Destructor
     ~Promise();
     
