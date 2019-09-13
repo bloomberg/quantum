@@ -22,18 +22,31 @@ namespace Bloomberg {
 namespace quantum {
 
 template <typename T>
+GenericFuture<T>::GenericFuture() :
+    _type(Type::Invalid)
+{}
+
+template <typename T>
 GenericFuture<T>::GenericFuture(ThreadContextPtr<T> f) :
     _type(Type::ThreadContext),
     _threadContext(f),
     _sync(nullptr)
-{}
+{
+    if (!f) {
+        throw std::runtime_error("Future pointer is null");
+    }
+}
 
 template <typename T>
 GenericFuture<T>::GenericFuture(ThreadFuturePtr<T> f) :
     _type(Type::ThreadFuture),
     _threadFuture(f),
     _sync(nullptr)
-{}
+{
+    if (!f) {
+        throw std::runtime_error("Future pointer is null");
+    }
+}
 
 template <typename T>
 GenericFuture<T>::GenericFuture(CoroContextPtr<T> f, ICoroSyncPtr sync) :
@@ -41,6 +54,9 @@ GenericFuture<T>::GenericFuture(CoroContextPtr<T> f, ICoroSyncPtr sync) :
     _coroContext(f),
     _sync(sync)
 {
+    if (!f) {
+        throw std::runtime_error("Future pointer is null");
+    }
     if (!_sync) {
         throw std::runtime_error("Sync context is null");
     }
@@ -52,6 +68,9 @@ GenericFuture<T>::GenericFuture(CoroFuturePtr<T> f, ICoroSyncPtr sync) :
     _coroFuture(f),
     _sync(sync)
 {
+    if (!f) {
+        throw std::runtime_error("Future pointer is null");
+    }
     if (!_sync) {
         throw std::runtime_error("Sync context is null");
     }
@@ -92,6 +111,8 @@ GenericFuture<T>::~GenericFuture()
         case Type::CoroFuture:
             _coroFuture.reset();
             break;
+        default:
+            break;
     }
 }
 
@@ -108,7 +129,7 @@ bool GenericFuture<T>::valid() const
         case Type::CoroFuture:
             return _coroFuture->valid();
         default:
-            throw std::runtime_error("Invalid future type");
+            return false;
     }
 }
 
@@ -129,7 +150,7 @@ void GenericFuture<T>::wait() const
             _coroFuture->wait(_sync);
             break;
         default:
-            throw std::runtime_error("Invalid future type");
+            throw FutureException(FutureState::NoState);
     }
 }
 
@@ -146,7 +167,7 @@ std::future_status GenericFuture<T>::waitFor(std::chrono::milliseconds timeMs) c
         case Type::CoroFuture:
             return _coroFuture->waitFor(_sync, timeMs);
         default:
-            throw std::runtime_error("Invalid future type");
+            throw FutureException(FutureState::NoState);
     }
 }
 
@@ -164,7 +185,7 @@ NonBufferRetType<V> GenericFuture<T>::get()
         case Type::CoroFuture:
             return _coroFuture->get(_sync);
         default:
-            throw std::runtime_error("Invalid future type");
+            throw FutureException(FutureState::NoState);
     }
 }
 
@@ -182,7 +203,7 @@ const NonBufferRetType<V>& GenericFuture<T>::getRef() const
         case Type::CoroFuture:
             return _coroFuture->getRef(_sync);
         default:
-            throw std::runtime_error("Invalid future type");
+            throw FutureException(FutureState::NoState);
     }
 }
 
@@ -192,15 +213,15 @@ BufferRetType<V> GenericFuture<T>::pull(bool& isBufferClosed)
 {
     switch (_type) {
         case Type::ThreadContext:
-            return _threadContext->pull();
+            return _threadContext->pull(isBufferClosed);
         case Type::ThreadFuture:
-            return _threadFuture->pull();
+            return _threadFuture->pull(isBufferClosed);
         case Type::CoroContext:
-            return _coroContext->pull(_sync);
+            return _coroContext->pull(_sync, isBufferClosed);
         case Type::CoroFuture:
-            return _coroFuture->pull(_sync);
+            return _coroFuture->pull(_sync, isBufferClosed);
         default:
-            throw std::runtime_error("Invalid future type");
+            throw FutureException(FutureState::NoState);
     }
 }
     
