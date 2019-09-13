@@ -34,9 +34,10 @@ template <typename T>
 class GenericFuture : public IThreadFutureBase
 {
 public:
-    enum class Type : int { ThreadContext, ThreadFuture, CoroContext, CoroFuture };
+    enum class Type : int { ThreadContext, ThreadFuture, CoroContext, CoroFuture, Invalid };
     
     /// @brief Constructors/Destructor
+    GenericFuture();
     GenericFuture(ThreadContextPtr<T> f);
     GenericFuture(ThreadFuturePtr<T> f);
     GenericFuture(CoroContextPtr<T> f, ICoroSyncPtr sync);

@@ -1526,7 +1526,7 @@ TEST_P(CoroLocalStorageTest, AccessTest)
 {
     for(int globalCounter = 0; globalCounter < 100; ++globalCounter)
     {
-        getDispatcher().post([this, globalCounter](CoroContext<int>::Ptr ctx)->int
+        getDispatcher().post([globalCounter](CoroContext<int>::Ptr ctx)->int
         {
             static const std::string globalCounterName = "globalCounter";            
             static const std::string localCounterName = "localCounter";
