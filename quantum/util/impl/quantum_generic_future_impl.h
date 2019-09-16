@@ -23,7 +23,8 @@ namespace quantum {
 
 template <typename T>
 GenericFuture<T>::GenericFuture() :
-    _type(Type::Invalid)
+    _type(Type::Invalid),
+    _threadContext()
 {}
 
 template <typename T>
