@@ -6,21 +6,20 @@ compiler:
 
 os: linux
 
-dist: xenial
+dist: bionic
 
 addons:
   apt:
     update: true
     sources:
-      # Remove when 'bionic' or 'cosmic' dists are available
       - sourceline: 'ppa:mhier/libboost-latest'
     packages:
-      # Change to libboost-coroutine-dev when 'bionic' or 'cosmic' dists are available
-      - libboost1.68-dev
+      - libboost1.70-dev
       - valgrind
 env:
   - CXXSTANDARD=11
   - CXXSTANDARD=14
+  - CXXSTANDARD=17
 
 before_script:
   - git clone https://github.com/google/googletest.git
