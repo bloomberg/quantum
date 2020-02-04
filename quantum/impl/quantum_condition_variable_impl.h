@@ -117,7 +117,8 @@ template <class REP, class PERIOD>
 bool ConditionVariable::waitFor(Mutex& mutex,
                                 const std::chrono::duration<REP, PERIOD>& time)
 {
-    return waitForImpl(nullptr, mutex, time);
+    auto duration = time;
+    return waitForImpl(nullptr, mutex, duration);
 }
 
 template <class REP, class PERIOD>
@@ -125,7 +126,8 @@ bool ConditionVariable::waitFor(ICoroSync::Ptr sync,
                                 Mutex& mutex,
                                 const std::chrono::duration<REP, PERIOD>& time)
 {
-    return waitForImpl(sync, mutex, time);
+    auto duration = time;
+    return waitForImpl(sync, mutex, duration);
 }
 
 template <class REP, class PERIOD, class PREDICATE>
