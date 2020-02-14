@@ -38,7 +38,8 @@ public:
     using Ptr = std::shared_ptr<Promise<T>>;
     
     //Constructor
-    Promise();
+    template <class...ARGS>
+    Promise(ARGS&&...args);
     
     //Move constructor
     Promise(Promise<T>&& other) :

@@ -26,9 +26,10 @@ namespace quantum {
 //                                     class SharedState
 //==============================================================================================
 template <class T>
-SharedState<T>::SharedState() :
+template <class...ARGS>
+SharedState<T>::SharedState(ARGS&&...args) :
     _state(FutureState::PromiseNotSatisfied),
-    _value(T())
+    _value(T(std::forward<ARGS>(args)...))
 {
 }
 
