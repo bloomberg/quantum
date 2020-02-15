@@ -85,10 +85,11 @@ int ICoroPromise<PROMISE, T>::closeBuffer()
 #endif
 
 template <class T>
-Promise<T>::Promise() :
+template <class...ARGS>
+Promise<T>::Promise(ARGS&&...args) :
     IThreadPromise<Promise, T>(this),
     ICoroPromise<Promise, T>(this),
-    _sharedState(new SharedState<T>()),
+    _sharedState(new SharedState<T>(std::forward<ARGS>(args)...)),
     _terminated(false)
 {}
 

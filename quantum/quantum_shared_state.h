@@ -73,7 +73,8 @@ public:
     int setException(ICoroSync::Ptr sync,
                      std::exception_ptr ex);
 private:
-    SharedState();
+    template <class...ARGS>
+    SharedState(ARGS&&...args);
     
     void conditionWait() const;
     
