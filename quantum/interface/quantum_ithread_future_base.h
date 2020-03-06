@@ -46,6 +46,7 @@ struct IThreadFutureBase
     
     /// @brief Waits for the future value up to a maximum 'timeMs' milliseconds.
     /// @param[in] timeMs The maximum amount of milliseconds to wait until the future value becomes ready.
+    ///                   Using -1 is equivalent to calling wait(). Other negative values will throw.
     /// @return 'ready' if value was posted before duration expired or 'timeout' otherwise.
     /// @note Blocks until the value is ready, until 'timeMs' duration expires or until an exception is thrown.
     virtual std::future_status waitFor(std::chrono::milliseconds timeMs) const = 0;

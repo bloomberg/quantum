@@ -102,7 +102,7 @@ template <class PREDICATE>
 void ConditionVariable::wait(Mutex& mutex,
                              PREDICATE predicate)
 {
-    waitImpl(nullptr, mutex, predicate);
+    waitImpl(nullptr, mutex, std::move(predicate));
 }
 
 template <class PREDICATE>
@@ -110,15 +110,19 @@ void ConditionVariable::wait(ICoroSync::Ptr sync,
                              Mutex& mutex,
                              PREDICATE predicate)
 {
-    waitImpl(sync, mutex, predicate);
+    waitImpl(sync, mutex, std::move(predicate));
 }
 
 template <class REP, class PERIOD>
 bool ConditionVariable::waitFor(Mutex& mutex,
                                 const std::chrono::duration<REP, PERIOD>& time)
 {
-    auto duration = time;
-    return waitForImpl(nullptr, mutex, duration);
+    if (time == std::chrono::milliseconds(-1))
+    {
+        waitImpl(nullptr, mutex);
+        return true;
+    }
+    return waitForImpl(nullptr, mutex, time);
 }
 
 template <class REP, class PERIOD>
@@ -126,8 +130,12 @@ bool ConditionVariable::waitFor(ICoroSync::Ptr sync,
                                 Mutex& mutex,
                                 const std::chrono::duration<REP, PERIOD>& time)
 {
-    auto duration = time;
-    return waitForImpl(sync, mutex, duration);
+    if (time == std::chrono::milliseconds(-1))
+    {
+        waitImpl(sync, mutex);
+        return true;
+    }
+    return waitForImpl(sync, mutex, time);
 }
 
 template <class REP, class PERIOD, class PREDICATE>
@@ -135,7 +143,12 @@ bool ConditionVariable::waitFor(Mutex& mutex,
                                 const std::chrono::duration<REP, PERIOD>& time,
                                 PREDICATE predicate)
 {
-    return waitForImpl(nullptr, mutex, time, predicate);
+    if (time == std::chrono::milliseconds(-1))
+    {
+        waitImpl(nullptr, mutex, std::move(predicate));
+        return true;
+    }
+    return waitForImpl(nullptr, mutex, time, std::move(predicate));
 }
 
 template <class REP, class PERIOD, class PREDICATE>
@@ -144,7 +157,7 @@ bool ConditionVariable::waitFor(ICoroSync::Ptr sync,
                                 const std::chrono::duration<REP, PERIOD>& time,
                                 PREDICATE predicate)
 {
-    return waitForImpl(sync, mutex, time, predicate);
+    return waitForImpl(sync, mutex, time, std::move(predicate));
 }
 
 inline
@@ -156,7 +169,8 @@ void ConditionVariable::waitImpl(ICoroSync::Ptr sync,
         Mutex::Guard lock(sync, _thisLock);
         if (_destroyed)
         {
-            return; //don't release the mutex
+            //don't release 'mutex' which is locked at this point
+            return;
         }
         signal = 0; //clear signal flag
         _waiters.push_back(&signal);
@@ -165,6 +179,7 @@ void ConditionVariable::waitImpl(ICoroSync::Ptr sync,
     Mutex::ReverseGuard unlock(sync, mutex);
     while ((signal == 0) && !_destroyed)
     {
+        //wait for signal
         yield(sync);
     }
     signal = -1; //reset
@@ -175,6 +190,7 @@ void ConditionVariable::waitImpl(ICoroSync::Ptr sync,
                                  Mutex& mutex,
                                  PREDICATE predicate)
 {
+    //see: https://en.cppreference.com/w/cpp/thread/condition_variable/wait
     while (!predicate() && !_destroyed)
     {
         waitImpl(sync, mutex);
@@ -184,18 +200,28 @@ void ConditionVariable::waitImpl(ICoroSync::Ptr sync,
 template <class REP, class PERIOD>
 bool ConditionVariable::waitForImpl(ICoroSync::Ptr sync,
                                     Mutex& mutex,
-                                    std::chrono::duration<REP, PERIOD>& time)
+                                    const std::chrono::duration<REP, PERIOD>& time)
 {
+    if (time < std::chrono::milliseconds::zero())
+    {
+        //invalid time setting
+        throw std::invalid_argument("Timeout cannot be negative");
+    }
     std::atomic_int& signal = sync ? sync->signal() : s_threadSignal;
     {//========= LOCKED SCOPE =========
         Mutex::Guard lock(sync, _thisLock);
         if (_destroyed)
         {
-            return true; //don't release the mutex
+            //don't release 'mutex' which is locked at this point
+            return true;
         }
         if (time == std::chrono::duration<REP, PERIOD>::zero())
         {
-            return false; //timeout
+            //immediate timeout.
+            //reset flag if necessary and return w/o releasing mutex.
+            int expected = 1;
+            signal.compare_exchange_strong(expected, -1);
+            return (expected==1);
         }
         signal = 0; //clear signal flag
         _waiters.push_back(&signal);
@@ -204,26 +230,22 @@ bool ConditionVariable::waitForImpl(ICoroSync::Ptr sync,
     Mutex::ReverseGuard unlock(sync, mutex);
     auto start = std::chrono::steady_clock::now();
     auto elapsed = std::chrono::duration<REP, PERIOD>::zero();
-    bool timeout = false;
     
     //wait until signalled or times out
     while ((signal == 0) && !_destroyed)
     {
+        //wait for signal
         yield(sync);
         elapsed = std::chrono::duration_cast<std::chrono::duration<REP, PERIOD>>
                   (std::chrono::steady_clock::now() - start);
         if (elapsed >= time)
         {
-            timeout = true;
-            break; //expired time
+            break; //expired
         }
     }
-    
+    bool rc = (signal == 1);
     signal = -1; //reset signal flag
-    
-    //adjust duration or set to zero if nothing remains
-    time = timeout ? std::chrono::duration<REP, PERIOD>::zero() : time - elapsed;
-    return !timeout;
+    return rc;
 }
 
 template <class REP, class PERIOD, class PREDICATE>
@@ -232,18 +254,16 @@ bool ConditionVariable::waitForImpl(ICoroSync::Ptr sync,
                                     const std::chrono::duration<REP, PERIOD>& time,
                                     PREDICATE predicate)
 {
-    if (time > std::chrono::duration<REP, PERIOD>(0)) {
-        auto duration = time;
-        while (!predicate() && !_destroyed)
+    //see: https://en.cppreference.com/w/cpp/thread/condition_variable/wait_until
+    while (!predicate() && !_destroyed)
+    {
+        if (!waitForImpl(sync, mutex, time))
         {
-            if (!waitForImpl(sync, mutex, duration))
-            {
-                //timeout
-                return predicate();
-            }
+            //timeout
+            return predicate();
         }
     }
-    return true; //duration has not yet expired
+    return true;
 }
 
 }}

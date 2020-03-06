@@ -535,7 +535,7 @@ Sequencer<SequenceKey, Hash, KeyEqual, Allocator>::canTrimContext(const ICoroCon
                                                                   const ICoroContextBasePtr& ctxToValidate)
 {
     return !ctxToValidate || !ctxToValidate->valid() ||
-           ctxToValidate->waitFor(ctx, std::chrono::milliseconds(0)) == std::future_status::ready;
+           ctxToValidate->waitFor(ctx, std::chrono::milliseconds::zero()) == std::future_status::ready;
 }
 
 template <class SequenceKey, class Hash, class KeyEqual, class Allocator>
@@ -544,7 +544,7 @@ Sequencer<SequenceKey, Hash, KeyEqual, Allocator>::isPendingContext(const ICoroC
                                                                     const ICoroContextBasePtr& ctxToValidate)
 {
     return ctxToValidate && ctxToValidate->valid() &&
-           ctxToValidate->waitFor(ctx, std::chrono::milliseconds(0)) == std::future_status::timeout;
+           ctxToValidate->waitFor(ctx, std::chrono::milliseconds::zero()) == std::future_status::timeout;
 }
 
 template <class SequenceKey, class Hash, class KeyEqual, class Allocator>
@@ -561,14 +561,7 @@ Sequencer<SequenceKey, Hash, KeyEqual, Allocator>::drain(std::chrono::millisecon
     });
     
     DrainGuard guard(_drain, !isFinal);
-    if (timeout == std::chrono::milliseconds::zero())
-    {
-        future->wait();
-    }
-    else
-    {
-        future->waitFor(timeout);
-    }
+    future->waitFor(timeout);
 }
 
 
