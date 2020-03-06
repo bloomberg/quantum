@@ -34,7 +34,7 @@ Dispatcher::Dispatcher(const Configuration& config) :
 inline
 Dispatcher::~Dispatcher()
 {
-    drain(std::chrono::milliseconds::zero(), true);
+    drain(std::chrono::milliseconds(-1), true);
     terminate();
 }
 
@@ -356,6 +356,16 @@ void Dispatcher::drain(std::chrono::milliseconds timeout,
                        bool isFinal)
 {
     DrainGuard guard(_drain, !isFinal);
+    if ((timeout < std::chrono::milliseconds::zero()) &&
+        (timeout != std::chrono::milliseconds(-1)))
+    {
+        throw std::invalid_argument("Timeout cannot be negative");
+    }
+
+    if (timeout == std::chrono::milliseconds::zero())
+    {
+        return; //skip draining
+    }
     
     auto start = std::chrono::steady_clock::now();
     
@@ -366,7 +376,7 @@ void Dispatcher::drain(std::chrono::milliseconds timeout,
         yield();
         
         //check remaining time
-        if (timeout != std::chrono::milliseconds::zero())
+        if (timeout != std::chrono::milliseconds(-1))
         {
             auto present = std::chrono::steady_clock::now();
             if (std::chrono::duration_cast<std::chrono::milliseconds>(present-start) > timeout)

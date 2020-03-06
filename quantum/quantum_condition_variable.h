@@ -131,6 +131,7 @@ public:
     /// @tparam PERIOD A std::ratio representing the tick period such as ticks per second.
     /// @param[in] mutex Mutex object which is locked by the current coroutine.
     /// @param[in] time Maximum duration for which to wait on this condition.
+    ///                 Using -1 is equivalent to calling wait(). Other negative values will throw.
     /// @return True if the mutex was acquired before 'time' expired or false otherwise.
     /// @note This function should be called from a regular thread not from a coroutine.
     template <class REP, class PERIOD>
@@ -145,6 +146,7 @@ public:
     /// @param[in] sync Pointer to a coroutine synchronization object.
     /// @param[in] mutex Mutex object which is locked by the current coroutine.
     /// @param[in] time Maximum duration for which to wait on this condition.
+    ///                 Using -1 is equivalent to calling wait(). Other negative values will throw.
     /// @return True if the mutex was acquired before 'time' expired or false otherwise.
     /// @note This function should be called from a coroutine.
     template <class REP, class PERIOD>
@@ -160,14 +162,19 @@ public:
     /// @code
     ///     while(!predicate())
     ///     {
-    ///         waitFor(mutex, time);
+    ///         if (!waitFor(mutex, time))
+    ///         {
+    ///             return predicate();
+    ///         }
     ///     }
+    ///     return true;
     /// @endcode
     /// @tparam REP An arithmetic type such as int or double representing the number of ticks.
     /// @tparam PERIOD A std::ratio representing the tick period such as ticks per second.
     /// @tparam PREDICATE Callable function type having the following signature 'bool f()'.
     /// @param[in] mutex Mutex object which is locked by the current coroutine.
     /// @param[in] time Maximum duration for which to wait on this condition.
+    ///                 Using -1 is equivalent to calling wait(). Other negative values will throw.
     /// @param[in] predicate Function or functor to be tested as exit condition of the endless while loop.
     /// @return True if the mutex was acquired before 'time' expired, otherwise the predicate result after timeout.
     /// @note This function should be called from a regular thread not from a coroutine.
@@ -184,8 +191,12 @@ public:
     /// @code
     ///     while(!predicate())
     ///     {
-    ///         waitFor(mutex, time);
+    ///         if (!waitFor(mutex, time))
+    ///         {
+    ///             return predicate();
+    ///         }
     ///     }
+    ///     return true;
     /// @endcode
     /// @tparam REP An arithmetic type such as int or double representing the number of ticks.
     /// @tparam PERIOD A std::ratio representing the tick period such as ticks per second.
@@ -193,6 +204,7 @@ public:
     /// @param[in] sync Pointer to a coroutine synchronization object.
     /// @param[in] mutex Mutex object which is locked by the current coroutine.
     /// @param[in] time Maximum duration for which to wait on this condition.
+    ///                 Using -1 is equivalent to calling wait(). Other negative values will throw.
     /// @param[in] predicate Function or functor to be tested as exit condition of the endless while loop.
     /// @return True if the mutex was acquired before 'time' expired, otherwise the predicate result after timeout.
     /// @note This function should be called from a coroutine.
@@ -218,7 +230,7 @@ private:
     template <class REP, class PERIOD>
     bool waitForImpl(ICoroSync::Ptr sync,
                      Mutex& mutex,
-                     std::chrono::duration<REP, PERIOD>& time);
+                     const std::chrono::duration<REP, PERIOD>& time);
     
     template <class REP, class PERIOD, class PREDICATE = bool()>
     bool waitForImpl(ICoroSync::Ptr sync,
