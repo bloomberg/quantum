@@ -19,22 +19,22 @@
 //#################################### IMPLEMENTATIONS #########################################
 //##############################################################################################
 #include <quantum/quantum_task_queue.h>
-#include <quantum/quantum_context.h>
 #include <stdexcept>
 #include <memory>
 
 namespace Bloomberg {
 namespace quantum {
+
 namespace local {
 
 template <typename T>
 T*& variable(const std::string& key)
 {
     // default thread local map to be used outside of coroutines
-    thread_local Task::CoroLocalStorage defaultStorage;
+    thread_local ITask::LocalStorage defaultStorage;
     
-    Task* task = TaskQueue::getCurrentTask();
-    Task::CoroLocalStorage& storage = task ? task->getCoroLocalStorage() : defaultStorage;
+    ITask::Ptr task = IQueue::getCurrentTask();
+    ITask::LocalStorage& storage = task ? task->getLocalStorage() : defaultStorage;
     
     void** r = &storage.emplace(key, nullptr).first->second;
     return *reinterpret_cast<T**>(r);
@@ -43,12 +43,20 @@ T*& variable(const std::string& key)
 inline
 VoidContextPtr context()
 {
-    Task* task = TaskQueue::getCurrentTask();
-    if (!task)
+    ITask::Ptr task = IQueue::getCurrentTask();
+    if (!task || (task->getType() == ITask::Type::IO))
     {
         return nullptr;
     }
-    return std::static_pointer_cast<Context<Void>, ITaskAccessor>(task->getTaskAccessor());
+    return std::static_pointer_cast<Context<Void>, ITaskAccessor>
+        (std::static_pointer_cast<Task>(task)->getTaskAccessor());
+}
+
+inline
+TaskId taskId()
+{
+    ITask::Ptr task = IQueue::getCurrentTask();
+    return task ? task->getTaskId() : TaskId(TaskId::ThisThreadTag{});
 }
 
 }}}

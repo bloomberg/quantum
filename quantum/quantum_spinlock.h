@@ -32,9 +32,10 @@ class SpinLock
 {
 public:
     using TryToLock = std::try_to_lock_t;
+    using AdoptLock = std::adopt_lock_t;
     
-    /// @brief Constructor. The object is in the unlocked state.
-    SpinLock();
+    /// @brief Spinlock is in unlocked state
+    SpinLock() = default;
     
     /// @brief Copy constructor.
     SpinLock(const SpinLock&) = delete;
@@ -78,8 +79,18 @@ public:
         
         /// @brief Construct this object and tries to lock the passed-in spinlock.
         /// @param[in] lock Spinlock which protects a scope during the lifetime of the Guard.
+        /// @param[in] tryLock Tag. Not used.
         /// @note Attempts to lock the spinlock. Does not block.
-        Guard(SpinLock& lock, SpinLock::TryToLock);
+        Guard(SpinLock& lock,
+              SpinLock::TryToLock tryLock);
+        
+        /// @brief Construct this object and don't lock the spinlock. It is assumed that the
+        ///        application already owns the lock.
+        /// @param[in] lock Spinlock which protects a scope during the lifetime of the Guard.
+        /// @param[in] adoptLock Tag. Not used.
+        /// @note ownsLock() will always return true.
+        Guard(SpinLock& lock,
+              SpinLock::AdoptLock adoptLock);
         
         /// @brief Destroy this object and unlock the underlying spinlock.
         ~Guard();
@@ -96,6 +107,9 @@ public:
         /// @brief Indicates if this object owns the underlying spinlock.
         /// @return True if ownership is acquired.
         bool ownsLock() const;
+        
+        /// @brief Unlocks the underlying spinlock
+        void unlock();
     private:
         SpinLock&	_spinlock;
         bool        _ownsLock;
@@ -122,7 +136,7 @@ public:
     };
     
 private:
-    std::atomic_flag 	_flag;
+    alignas(128) std::atomic_int _flag{0};
 };
 
 }}

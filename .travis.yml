@@ -16,17 +16,30 @@ addons:
     packages:
       - libboost1.70-dev
       - valgrind
+      - gdb
 env:
   - CXXSTANDARD=11
   - CXXSTANDARD=14
   - CXXSTANDARD=17
 
+after_failure:
+  - COREFILE=$(find $TRAVIS_BUILD_DIR/cores -maxdepth 1 -name "core.*" -print | head -1)
+  - echo $COREFILE
+  - if [[ -f "$COREFILE" ]]; then gdb -c "$COREFILE" $EXEC -ex "thread apply all bt" -ex "set pagination 0" -batch; fi
+
 before_script:
+  - ulimit -c
+  - ulimit -a -S
+  - ulimit -a -H
+  - mkdir -p -m 0777 $TRAVIS_BUILD_DIR/cores
+  - sudo sysctl -w kernel.core_pattern=$TRAVIS_BUILD_DIR/cores/core.%e.%p
+  - cat /proc/sys/kernel/core_pattern
   - git clone https://github.com/google/googletest.git
   - cd googletest && cmake -DCMAKE_INSTALL_PREFIX=install .
   - make install
   - cd ..
 
 script:
-  - cmake -DQUANTUM_ENABLE_TESTS=ON -DQUANTUM_BOOST_USE_VALGRIND=ON -DCMAKE_INSTALL_PREFIX=tests -DGTEST_ROOT=googletest/install .
+  - ulimit -c unlimited -S #enable core dumps
+  - cmake -DCMAKE-BUILD_TYPE=Debug -DQUANTUM_ENABLE_TESTS=ON -DQUANTUM_BOOST_USE_VALGRIND=ON -DCMAKE_INSTALL_PREFIX=tests -DGTEST_ROOT=googletest/install .
   - make QuantumTests && ./tests/QuantumTests.Linux64

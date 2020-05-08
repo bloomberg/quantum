@@ -19,35 +19,21 @@
 //#################################### IMPLEMENTATIONS #########################################
 //##############################################################################################
 
+#include <quantum/util/quantum_spinlock_util.h>
+
 namespace Bloomberg {
 namespace quantum {
 
 inline
 void ReadWriteSpinLock::lockRead()
 {
-    int oldValue = 0;
-    int newValue = 1;
-    while(!_count.compare_exchange_weak(oldValue, newValue, std::memory_order_acq_rel))
-    {
-        if (oldValue == -1)
-        {
-            oldValue = 0;
-            newValue = 1;
-        }
-        else
-        {
-            newValue = oldValue + 1;
-        }
-    }
+    SpinLockUtil::lockShared(_count, -1, 0, 1);
 }
 
 inline
 void ReadWriteSpinLock::lockWrite()
 {
-    int i{0};
-    while (!_count.compare_exchange_weak(i, -1, std::memory_order_acq_rel)) {
-        i = 0;
-    }
+    SpinLockUtil::lockExclusive(_count, -1, 0);
 }
 
 inline
@@ -55,16 +41,17 @@ bool ReadWriteSpinLock::tryLockRead()
 {
     int oldValue = 0;
     int newValue = 1;
-    while(!_count.compare_exchange_weak(oldValue, newValue, std::memory_order_acq_rel))
+    while (!_count.compare_exchange_weak(oldValue, newValue, std::memory_order_acq_rel))
     {
         if (oldValue == -1)
         {
-            return false;
+            return false; //write-locked
         }
         else
         {
             newValue = oldValue + 1;
         }
+        SpinLockUtil::pauseCPU();
     }
     return true;
 }
@@ -72,20 +59,35 @@ bool ReadWriteSpinLock::tryLockRead()
 inline
 bool ReadWriteSpinLock::tryLockWrite()
 {
-    int i{0};
+    int i = 0;
     return _count.compare_exchange_strong(i, -1, std::memory_order_acq_rel);
 }
 
 inline
-void ReadWriteSpinLock::unlockRead()
+bool ReadWriteSpinLock::unlockRead()
 {
-    _count.fetch_sub(1, std::memory_order_acq_rel);
+    int oldValue = 1;
+    int newValue = 0;
+    while (!_count.compare_exchange_weak(oldValue, newValue, std::memory_order_acq_rel))
+    {
+        if (oldValue <= 0)
+        {
+            return false; //unlocked or write-locked
+        }
+        else
+        {
+            newValue = oldValue - 1;
+        }
+        SpinLockUtil::pauseCPU();
+    }
+    return true;
 }
 
 inline
-void ReadWriteSpinLock::unlockWrite()
+bool ReadWriteSpinLock::unlockWrite()
 {
-    _count.fetch_add(1, std::memory_order_acq_rel);
+    int i = -1;
+    return _count.compare_exchange_strong(i, 0, std::memory_order_acq_rel);
 }
 
 inline
@@ -161,6 +163,14 @@ bool ReadWriteSpinLock::ReadGuard::ownsLock() const
 }
 
 inline
+void ReadWriteSpinLock::ReadGuard::unlock()
+{
+    if (_ownsLock) {
+        _spinlock.unlockRead();
+    }
+}
+
+inline
 ReadWriteSpinLock::WriteGuard::WriteGuard(ReadWriteSpinLock& lock) :
     _spinlock(lock),
     _ownsLock(true)
@@ -207,6 +217,13 @@ bool ReadWriteSpinLock::WriteGuard::ownsLock() const
     return _ownsLock;
 }
 
+inline
+void ReadWriteSpinLock::WriteGuard::unlock()
+{
+    if (_ownsLock) {
+        _spinlock.unlockWrite();
+    }
+}
 
     
 }

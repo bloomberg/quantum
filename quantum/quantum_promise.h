@@ -74,6 +74,7 @@ public:
     //IPromiseBase
     bool valid() const final;
     int setException(std::exception_ptr ex) final;
+    int setException(ICoroSync::Ptr sync, std::exception_ptr ex) final;
     
     //IThreadPromise
     template <class V, class = NonBufferType<T,V>>
@@ -91,6 +92,9 @@ public:
     
     template <class V = T, class = BufferRetType<V>>
     int closeBuffer();
+    
+    template <class V = T, class = BufferRetType<V>>
+    int closeBuffer(ICoroSync::Ptr sync);
     
     //===================================
     //           NEW / DELETE

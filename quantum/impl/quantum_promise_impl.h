@@ -105,7 +105,7 @@ void Promise<T>::terminate()
     bool value{false};
     if (_terminated.compare_exchange_strong(value, true))
     {
-        if (_sharedState) _sharedState->breakPromise();
+        if (_sharedState) _sharedState->breakPromise(local::context());
     }
 }
 
@@ -118,8 +118,14 @@ bool Promise<T>::valid() const
 template <class T>
 int Promise<T>::setException(std::exception_ptr ex)
 {
+    return setException(nullptr, ex);
+}
+
+template <class T>
+int Promise<T>::setException(ICoroSync::Ptr sync, std::exception_ptr ex)
+{
     if (!_sharedState) ThrowFutureException(FutureState::NoState);
-    return _sharedState->setException(ex);
+    return _sharedState->setException(sync, ex);
 }
 
 template <class T>
@@ -140,8 +146,7 @@ template <class T>
 template <class V, class>
 int Promise<T>::set(V&& value)
 {
-    if (!_sharedState) ThrowFutureException(FutureState::NoState);
-    return _sharedState->set(std::forward<V>(value));
+    return set(nullptr, std::forward<V>(value));
 }
 
 template <class T>
@@ -170,8 +175,7 @@ template <class T>
 template <class V, class>
 void Promise<T>::push(V&& value)
 {
-    if (!_sharedState) ThrowFutureException(FutureState::NoState);
-    _sharedState->push(std::forward<V>(value));
+    push(nullptr, std::forward<V>(value));
 }
 
 template <class T>
@@ -186,8 +190,15 @@ template <class T>
 template <class V, class>
 int Promise<T>::closeBuffer()
 {
+    return closeBuffer(nullptr);
+}
+
+template <class T>
+template <class V, class>
+int Promise<T>::closeBuffer(ICoroSync::Ptr sync)
+{
     if (!_sharedState) ThrowFutureException(FutureState::NoState);
-    return _sharedState->closeBuffer();
+    return _sharedState->closeBuffer(sync);
 }
 
 template <class T>

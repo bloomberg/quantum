@@ -99,30 +99,26 @@ template <class T>
 template <class V>
 NonBufferRetType<V> Future<T>::get()
 {
-    if (!_sharedState) ThrowFutureException(FutureState::NoState);
-    return _sharedState->get();
+    return get(nullptr);
 }
 
 template <class T>
 template <class V>
 const NonBufferRetType<V>& Future<T>::getRef() const
 {
-    if (!_sharedState) ThrowFutureException(FutureState::NoState);
-    return _sharedState->getRef();
+    return getRef(nullptr);
 }
 
 template <class T>
 void Future<T>::wait() const
 {
-    if (!_sharedState) ThrowFutureException(FutureState::NoState);
-    return _sharedState->wait();
+    return wait(nullptr);
 }
 
 template <class T>
 std::future_status Future<T>::waitFor(std::chrono::milliseconds timeMs) const
 {
-    if (!_sharedState) ThrowFutureException(FutureState::NoState);
-    return _sharedState->waitFor(timeMs);
+    return waitFor(nullptr, timeMs);
 }
 
 template <class T>
@@ -160,8 +156,7 @@ template <class T>
 template <class V>
 BufferRetType<V> Future<T>::pull(bool& isBufferClosed)
 {
-    if (!_sharedState) ThrowFutureException(FutureState::NoState);
-    return _sharedState->pull(isBufferClosed);
+    return pull(nullptr, isBufferClosed);
 }
 
 template <class T>

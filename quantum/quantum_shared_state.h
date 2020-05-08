@@ -57,6 +57,8 @@ public:
     
     void breakPromise();
     
+    void breakPromise(ICoroSync::Ptr sync);
+    
     void wait() const;
     
     void wait(ICoroSync::Ptr sync) const;
@@ -113,6 +115,8 @@ public:
     
     void breakPromise();
     
+    void breakPromise(ICoroSync::Ptr sync);
+    
     void wait() const;
     
     void wait(ICoroSync::Ptr sync) const;
@@ -130,6 +134,8 @@ public:
                      std::exception_ptr ex);
     
     int closeBuffer();
+    
+    int closeBuffer(ICoroSync::Ptr sync);
 private:
     SharedState();
     

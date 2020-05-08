@@ -17,6 +17,7 @@
 #define BLOOMBERG_QUANTUM_CONFIGURATION_H
 
 #include <quantum/quantum_thread_traits.h>
+#include <quantum/quantum_macros.h>
 #include <chrono>
 #include <utility>
 
@@ -31,9 +32,10 @@ namespace quantum {
 class Configuration
 {
 public:
-     enum class BackoffPolicy : int { Linear,        ///< Linear backoff
-                                      Exponential }; ///< Exponential backoff (doubles every time)
-                           
+    enum class BackoffPolicy : int {
+        Linear = QUANTUM_BACKOFF_LINEAR,          ///< Linear backoff
+        Exponential = QUANTUM_BACKOFF_EXPONENTIAL ///< Exponential backoff (doubles every time)
+    };
     /// @brief Get the JSON schema corresponding to this configuration object.
     /// @return The draft-04 compatible schema.
     static const std::string& getJsonSchema();

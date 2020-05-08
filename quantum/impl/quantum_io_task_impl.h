@@ -43,7 +43,8 @@ IoTask::IoTask(std::true_type,
     _func(Util::bindIoCaller(promise, std::forward<FUNC>(func), std::forward<ARGS>(args)...)),
     _terminated(false),
     _queueId(queueId),
-    _isHighPriority(isHighPriority)
+    _isHighPriority(isHighPriority),
+    _taskId(ThreadContextTag{})
 {
 }
 
@@ -57,7 +58,8 @@ IoTask::IoTask(std::false_type,
     _func(Util::bindIoCaller2(promise, std::forward<FUNC>(func), std::forward<ARGS>(args)...)),
     _terminated(false),
     _queueId(queueId),
-    _isHighPriority(isHighPriority)
+    _isHighPriority(isHighPriority),
+    _taskId(ThreadContextTag{})
 {
 }
 
@@ -80,7 +82,11 @@ void IoTask::terminate()
 inline
 int IoTask::run()
 {
-    return _func ? _func() : (int)ITask::RetCode::NotCallable;
+    if (_func) {
+        _taskId.assignCurrentThread();
+        return _func();
+    }
+    return (int)ITask::RetCode::NotCallable;
 }
 
 inline
@@ -90,7 +96,7 @@ void IoTask::setQueueId(int queueId)
 }
 
 inline
-int IoTask::getQueueId()
+int IoTask::getQueueId() const
 {
     return _queueId;
 }
@@ -99,6 +105,12 @@ inline
 ITask::Type IoTask::getType() const
 {
     return ITask::Type::IO;
+}
+
+inline
+TaskId IoTask::getTaskId() const
+{
+    return _taskId;
 }
 
 inline
@@ -123,6 +135,12 @@ inline
 bool IoTask::isSuspended() const
 {
     return false;
+}
+
+inline
+ITask::LocalStorage& IoTask::getLocalStorage()
+{
+    return _localStorage;
 }
 
 inline

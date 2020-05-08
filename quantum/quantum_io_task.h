@@ -66,12 +66,14 @@ public:
     //ITask
     int run() final;
     void setQueueId(int queueId) final;
-    int getQueueId() final;
+    int getQueueId() const final;
     Type getType() const final;
+    TaskId getTaskId() const final;
     bool isBlocked() const final;
     bool isSleeping(bool updateTimer = false) final;
     bool isHighPriority() const final;
     bool isSuspended() const final;
+    ITask::LocalStorage& getLocalStorage() final;
     
     //===================================
     //           NEW / DELETE
@@ -85,6 +87,8 @@ private:
     std::atomic_bool        _terminated;
     int                     _queueId;
     bool                    _isHighPriority;
+    TaskId                  _taskId;
+    ITask::LocalStorage     _localStorage; // local storage of the IO task
 };
 
 using IoTaskPtr = IoTask::Ptr;
