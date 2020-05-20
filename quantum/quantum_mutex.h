@@ -21,6 +21,7 @@
 #include <quantum/quantum_spinlock.h>
 #include <quantum/interface/quantum_icontext.h>
 #include <quantum/quantum_yielding_thread.h>
+#include <quantum/quantum_task_id.h>
 
 namespace Bloomberg {
 namespace quantum {
@@ -36,9 +37,11 @@ namespace quantum {
 class Mutex
 {
 public:
-    /// @brief Default constructor.
-    /// @note Mutex object is in unlocked state.
-    Mutex();
+    using TryToLock = std::try_to_lock_t;
+    using AdoptLock = std::adopt_lock_t;
+    
+    /// @brief Constructor. The object is in the unlocked state.
+    Mutex() = default;
     
     Mutex(const Mutex& other) = delete;
     Mutex& operator=(const Mutex& other) = delete;
@@ -75,26 +78,34 @@ public:
     public:
         /// @brief Construct this object and lock the passed-in mutex.
         /// @param[in] mutex Mutex which protects a scope during the lifetime of the Guard.
-        /// @param[in] tryLock If set to true, tries to lock the mutex instead of unconditionally locking it.
-        /// @note If tryLock is set to true, ownership of the mutex may fail in which case it can be verified
-        ///       with ownsLock(). This constructor must be used in a non-coroutine context.
-        /// @warning Wrongfully calling this method from a coroutine will block all coroutines running in the
-        ///          same queue and thus result in noticeable performance degradation.
-        explicit Guard(Mutex& mutex,
-                       bool tryLock = false);
+        /// @param[in] TryToLock If supplied, tries to lock the mutex instead of unconditionally locking it.
+        /// @param[in] AdoptLock If supplied, assumes the lock is already taken by the application.
+        explicit Guard(Mutex& mutex);
+        Guard(Mutex& mutex,
+              Mutex::TryToLock);
+        Guard(Mutex& mutex,
+              Mutex::AdoptLock);
     
-        /// @brief Construct this object and lock the passed-in mutex.
-        /// @param[in] sync Pointer to a coroutine synchronization object.
-        /// @param[in] mutex Mutex which protects a scope during the lifetime of the Guard.
-        /// @param[in] tryLock If set to true, tries to lock the mutex instead of unconditionally locking it.
-        /// @note If tryLock is set to true, ownership of the mutex may fail in which case it can be verified
-        ///       with ownsLock(). This constructor must be used in a coroutine context.
+        /// @brief Construct this object and lock the passed-in mutex. Same as above but using a coroutine
+        ///        synchronization context.
         Guard(ICoroSync::Ptr sync,
-              Mutex& mutex,
-              bool tryLock = false);
+              Mutex& mutex);
         
         /// @brief Destructor. This will unlock the underlying mutex.
         ~Guard();
+        
+        /// @brief see Mutex::lock()
+        void lock();
+        void lock(ICoroSync::Ptr sync);
+        
+        /// @brief see Mutex::tryLock()
+        bool tryLock();
+        
+        /// @brief see Mutex::unlock()
+        void unlock();
+        
+        /// @brief Releases the associated mutex without unlocking it
+        void release();
         
         /// @brief Determines if this object owns the underlying mutex.
         /// @return True if mutex is locked, false otherwise.
@@ -102,8 +113,8 @@ public:
         
     private:
         //Members
-        Mutex&          _mutex;
-        bool            _ownsLock;
+        Mutex*          _mutex{nullptr};
+        bool            _ownsLock{false};
     };
     
     //==============================================================================================
@@ -134,15 +145,14 @@ public:
         
     private:
         //Members
-        Mutex&              _mutex;
+        Mutex*              _mutex;
         ICoroSync::Ptr      _sync;
     };
     
 private:
-    void lockImpl(ICoroSync::Ptr sync);
-    
     //Members
     mutable SpinLock  _spinlock;
+    mutable TaskId    _taskId;
 };
 
 }}

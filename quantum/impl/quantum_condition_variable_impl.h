@@ -32,24 +32,18 @@ ConditionVariable::ConditionVariable() :
 inline
 ConditionVariable::~ConditionVariable()
 {
-    Mutex::Guard lock(_thisLock);
+    Mutex::Guard lock(local::context(), _thisLock);
     _destroyed = true;
 }
 
 inline
 void ConditionVariable::notifyOne()
 {
-    notifyOneImpl(nullptr);
+    notifyOne(nullptr);
 }
 
 inline
 void ConditionVariable::notifyOne(ICoroSync::Ptr sync)
-{
-    notifyOneImpl(sync);
-}
-
-inline
-void ConditionVariable::notifyOneImpl(ICoroSync::Ptr sync)
 {
     //LOCKED OR UNLOCKED SCOPE
     Mutex::Guard lock(sync, _thisLock);
@@ -64,17 +58,11 @@ void ConditionVariable::notifyOneImpl(ICoroSync::Ptr sync)
 inline
 void ConditionVariable::notifyAll()
 {
-    notifyAllImpl(nullptr);
+    notifyAll(nullptr);
 }
 
 inline
 void ConditionVariable::notifyAll(ICoroSync::Ptr sync)
-{
-    notifyAllImpl(sync);
-}
-
-inline
-void ConditionVariable::notifyAllImpl(ICoroSync::Ptr sync)
 {
     //LOCKED OR UNLOCKED SCOPE
     Mutex::Guard lock(sync, _thisLock);
@@ -88,7 +76,7 @@ void ConditionVariable::notifyAllImpl(ICoroSync::Ptr sync)
 inline
 void ConditionVariable::wait(Mutex& mutex)
 {
-    waitImpl(nullptr, mutex);
+    wait(nullptr, mutex);
 }
 
 inline
@@ -102,7 +90,7 @@ template <class PREDICATE>
 void ConditionVariable::wait(Mutex& mutex,
                              PREDICATE predicate)
 {
-    waitImpl(nullptr, mutex, std::move(predicate));
+    wait(nullptr, mutex, std::move(predicate));
 }
 
 template <class PREDICATE>
@@ -117,12 +105,7 @@ template <class REP, class PERIOD>
 bool ConditionVariable::waitFor(Mutex& mutex,
                                 const std::chrono::duration<REP, PERIOD>& time)
 {
-    if (time == std::chrono::milliseconds(-1))
-    {
-        waitImpl(nullptr, mutex);
-        return true;
-    }
-    return waitForImpl(nullptr, mutex, time);
+    return waitFor(nullptr, mutex, time);
 }
 
 template <class REP, class PERIOD>
@@ -143,12 +126,7 @@ bool ConditionVariable::waitFor(Mutex& mutex,
                                 const std::chrono::duration<REP, PERIOD>& time,
                                 PREDICATE predicate)
 {
-    if (time == std::chrono::milliseconds(-1))
-    {
-        waitImpl(nullptr, mutex, std::move(predicate));
-        return true;
-    }
-    return waitForImpl(nullptr, mutex, time, std::move(predicate));
+    return waitFor(nullptr, mutex, time, predicate);
 }
 
 template <class REP, class PERIOD, class PREDICATE>
@@ -157,6 +135,11 @@ bool ConditionVariable::waitFor(ICoroSync::Ptr sync,
                                 const std::chrono::duration<REP, PERIOD>& time,
                                 PREDICATE predicate)
 {
+    if (time == std::chrono::milliseconds(-1))
+    {
+        waitImpl(sync, mutex, predicate);
+        return true;
+    }
     return waitForImpl(sync, mutex, time, std::move(predicate));
 }
 

@@ -556,8 +556,8 @@ Sequencer<SequenceKey, Hash, KeyEqual, Allocator>::drain(std::chrono::millisecon
     ThreadFuturePtr<int> future = promise->getIThreadFuture();
     
     //enqueue a universal task and wait
-    enqueueAll([promise](VoidContextPtr)->int{
-        return promise->set(0);
+    enqueueAll([promise](VoidContextPtr ctx)->int{
+        return promise->set(ctx, 0);
     });
     
     DrainGuard guard(_drain, !isFinal);

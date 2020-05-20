@@ -18,12 +18,10 @@
 
 #include <exception>
 #include <memory>
+#include <quantum/quantum_task_id.h>
 
 namespace Bloomberg {
 namespace quantum {
-
-struct CoroContextTag{};
-struct ThreadContextTag{};
 
 //==============================================================================================
 //                                  interface IContextBase
@@ -36,6 +34,10 @@ struct IContextBase
     
     /// @brief Virtual destructor.
     virtual ~IContextBase() = default;
+    
+    /// @brief Returns the id of the currently executing coroutine or IO task
+    /// @return The task id
+    virtual TaskId taskId() const = 0;
     
     /// @brief Determines if the future object associated with this context has a valid shared state with the
     ///        corresponding promise.

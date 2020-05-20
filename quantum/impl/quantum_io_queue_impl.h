@@ -126,6 +126,8 @@ void IoQueue::run()
                 }
             }
             
+            // set the current task
+            IQueue::TaskSetterGuard taskSetter(*this, task);
             //========================= START TASK =========================
             int rc = task->run();
             //========================== END TASK ==========================

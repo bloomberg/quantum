@@ -31,9 +31,10 @@ struct ThreadTraits
 {
     /// @brief Dictates how long any thread should sleep on blocking calls when interacting
     ///        with coroutines (e.g. mutexes, condition variables, etc).
-    /// @return The modifiable sleep interval in microseconds.
+    /// @return The modifiable sleep interval in microseconds or milliseconds.
     /// @note: When set to 0, threads will yield() instead of sleeping which results in
-    ///        increased performance at the detriment of higher CPU load. Default is 0ms.
+    ///        increased performance at the detriment of higher CPU load. Default is to sleep for 10us.
+    /// @note: These two intervals are added together when sleeping.
     static std::chrono::milliseconds& yieldSleepIntervalMs()
     {
         static std::chrono::milliseconds value(0);

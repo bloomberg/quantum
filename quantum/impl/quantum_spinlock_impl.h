@@ -18,31 +18,34 @@
 //##############################################################################################
 //#################################### IMPLEMENTATIONS #########################################
 //##############################################################################################
+#include <quantum/util/quantum_spinlock_util.h>
+#include <chrono>
+#include <random>
 
 namespace Bloomberg {
 namespace quantum {
 
-inline
-SpinLock::SpinLock() :
-    _flag ATOMIC_FLAG_INIT
-{}
-
+//==============================================================================
+//                                   SpinLock
+//==============================================================================
 inline
 void SpinLock::lock()
 {
-    while (_flag.test_and_set(std::memory_order_acquire)); //spin
+    SpinLockUtil::lockExclusive(_flag, 1, 0);
 }
 
 inline
 bool SpinLock::tryLock()
 {
-    return !_flag.test_and_set(std::memory_order_acquire);
+    int i = 0;
+    return _flag.compare_exchange_strong(i, 1, std::memory_order_acquire);
 }
 
 inline
 void SpinLock::unlock()
 {
-    _flag.clear(std::memory_order_release);
+    int i = 1;
+    _flag.compare_exchange_strong(i, 0, std::memory_order_release);
 }
 
 inline
@@ -58,6 +61,15 @@ SpinLock::Guard::Guard(SpinLock& lock, SpinLock::TryToLock) :
     _spinlock(lock),
     _ownsLock(_spinlock.tryLock())
 {
+}
+
+inline
+SpinLock::Guard::Guard(SpinLock& lock, SpinLock::AdoptLock) :
+    _spinlock(lock),
+    _ownsLock(true)
+{
+    //Make sure the lock is already taken
+    assert(!_spinlock.tryLock());
 }
 
 inline
@@ -89,6 +101,13 @@ void SpinLock::Guard::lock()
 inline
 bool SpinLock::Guard::ownsLock() const {
     return _ownsLock;
+}
+
+inline
+void SpinLock::Guard::unlock() {
+    if (_ownsLock) {
+        _spinlock.unlock();
+    }
 }
 
 inline

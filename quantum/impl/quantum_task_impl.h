@@ -48,9 +48,9 @@ Task::Task(std::false_type,
     _queueId(queueId),
     _isHighPriority(isHighPriority),
     _type(type),
+    _taskId(CoroContextTag{}),
     _terminated(false),
-    _suspendedState((int)State::Suspended),
-    _coroLocalStorage()
+    _suspendedState((int)State::Suspended)
 {}
 
 template <class RET, class FUNC, class ... ARGS>
@@ -67,9 +67,9 @@ Task::Task(std::true_type,
     _queueId(queueId),
     _isHighPriority(isHighPriority),
     _type(type),
+    _taskId(CoroContextTag{}),
     _terminated(false),
-    _suspendedState((int)State::Suspended),
-    _coroLocalStorage()
+    _suspendedState((int)State::Suspended)
 {}
 
 inline
@@ -106,8 +106,8 @@ int Task::run()
         {
             return (int)ITask::RetCode::Sleeping;
         }
-        
         int rc = (int)ITask::RetCode::Running;
+        _taskId.assignCurrentThread();
         _coro(rc);
         if (!_coro)
         {
@@ -125,13 +125,16 @@ void Task::setQueueId(int queueId)
 }
 
 inline
-int Task::getQueueId()
+int Task::getQueueId() const
 {
     return _queueId;
 }
 
 inline
 ITask::Type Task::getType() const { return _type; }
+
+inline
+TaskId Task::getTaskId() const { return _taskId; }
 
 inline
 ITaskContinuation::Ptr Task::getNextTask() { return _next; }
@@ -196,9 +199,9 @@ bool Task::isSuspended() const
 }
 
 inline
-Task::CoroLocalStorage& Task::getCoroLocalStorage()
+ITask::LocalStorage& Task::getLocalStorage()
 {
-    return _coroLocalStorage;
+    return _localStorage;
 }
 
 inline

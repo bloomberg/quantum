@@ -215,10 +215,6 @@ public:
                  PREDICATE predicate);
     
 private:
-    void notifyOneImpl(ICoroSync::Ptr sync);
-    
-    void notifyAllImpl(ICoroSync::Ptr sync);
-    
     void waitImpl(ICoroSync::Ptr sync,
                   Mutex& mutex);
     

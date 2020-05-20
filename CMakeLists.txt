@@ -53,7 +53,7 @@ if (NOT CMAKE_CXX_STANDARD)
 endif()
 #Set compile flags if CXXFLAGS environment variable is not set
 if (NOT CMAKE_CXX_FLAGS)
-    set(CMAKE_CXX_FLAGS "-Wall -Wextra -O0 -m${MODE} -std=c++${CMAKE_CXX_STANDARD} -ftemplate-backtrace-limit=0")
+    set(CMAKE_CXX_FLAGS "-Wall -Wextra -O0 -m${MODE} -std=c++${CMAKE_CXX_STANDARD} -ftemplate-backtrace-limit=0 -faligned-new")
 endif()
 if (QUANTUM_VERBOSE_MAKEFILE)
     message(STATUS "CMAKE_CXX_FLAGS = ${CMAKE_CXX_FLAGS}")

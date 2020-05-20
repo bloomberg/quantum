@@ -239,7 +239,8 @@ template <class RET>
 template <class V, class>
 int ICoroContext<RET>::closeBuffer()
 {
-    return static_cast<Impl*>(this)->closeBuffer();
+    std::shared_ptr<Impl> ctx = static_cast<Impl*>(this)->shared_from_this();
+    return ctx->closeBuffer(ctx);
 }
 
 template <class RET>
@@ -665,6 +666,12 @@ void Context<RET>::terminate()
 }
 
 template <class RET>
+TaskId Context<RET>::taskId() const
+{
+    return _task->getTaskId();
+}
+
+template <class RET>
 bool Context<RET>::validAt(int num) const
 {
     return _promises[index(num)]->valid();
@@ -679,7 +686,7 @@ bool Context<RET>::valid() const
 template <class RET>
 int Context<RET>::setException(std::exception_ptr ex)
 {
-    return _promises.back()->setException(ex);
+    return _promises.back()->setException(this->shared_from_this(), ex);
 }
 
 template <class RET>
@@ -1111,16 +1118,9 @@ Context<RET>::mapReduceBatch(INPUT_IT first,
 
 template <class RET>
 template <class V, class>
-int Context<RET>::set(V&& value)
-{
-    return std::static_pointer_cast<Promise<RET>>(_promises.back())->set(std::forward<V>(value));
-}
-
-template <class RET>
-template <class V, class>
 void Context<RET>::push(V&& value)
 {
-    std::static_pointer_cast<Promise<RET>>(_promises.back())->push(std::forward<V>(value));
+    push(nullptr, std::forward<V>(value));
 }
 
 template <class RET>
@@ -1134,7 +1134,7 @@ template <class RET>
 template <class V>
 BufferRetType<V> Context<RET>::pull(bool& isBufferClosed)
 {
-    return std::static_pointer_cast<Promise<RET>>(_promises.back())->getIThreadFuture()->pull(isBufferClosed);
+    return pull(nullptr, isBufferClosed);
 }
 
 template <class RET>
@@ -1148,73 +1148,79 @@ template <class RET>
 template <class V, class>
 int Context<RET>::closeBuffer()
 {
-    return std::static_pointer_cast<Promise<RET>>(_promises.back())->closeBuffer();
+    return closeBuffer(nullptr);
+}
+
+template <class RET>
+template <class V, class>
+int Context<RET>::closeBuffer(ICoroSync::Ptr sync)
+{
+    return std::static_pointer_cast<Promise<RET>>(_promises.back())->closeBuffer(sync);
 }
 
 template <class RET>
 template <class OTHER_RET>
 NonBufferRetType<OTHER_RET> Context<RET>::getAt(int num)
 {
-    return std::static_pointer_cast<Promise<OTHER_RET>>(_promises[index(num)])->getIThreadFuture()->get();
+    return getAt<OTHER_RET>(num, nullptr);
 }
 
 template <class RET>
 template <class OTHER_RET>
 const NonBufferRetType<OTHER_RET>& Context<RET>::getRefAt(int num) const
 {
-    return std::static_pointer_cast<Promise<OTHER_RET>>(_promises[index(num)])->getIThreadFuture()->getRef();
+    return getRefAt<OTHER_RET>(num, nullptr);
 }
 
 template <class RET>
 template <class V>
 NonBufferRetType<V> Context<RET>::get()
 {
-    return getAt<RET>(-1);
+    return get(nullptr);
 }
 
 template <class RET>
 template <class V>
 const NonBufferRetType<V>& Context<RET>::getRef() const
 {
-    return getRefAt<RET>(-1);
+    return getRef(nullptr);
 }
 
 template <class RET>
 void Context<RET>::waitAt(int num) const
 {
-    _promises[index(num)]->getIThreadFutureBase()->wait();
+    waitAt(num, nullptr);
 }
 
 template <class RET>
 std::future_status Context<RET>::waitForAt(int num, std::chrono::milliseconds timeMs) const
 {
-    return _promises[index(num)]->getIThreadFutureBase()->waitFor(timeMs);
+    return waitForAt(num, nullptr, timeMs);
 }
 
 template <class RET>
 void Context<RET>::wait() const
 {
-    waitAt(-1);
+    wait(nullptr);
 }
 
 template <class RET>
 std::future_status Context<RET>::waitFor(std::chrono::milliseconds timeMs) const
 {
-    return waitForAt(-1, timeMs);
+    return waitFor(nullptr, timeMs);
 }
 
 template <class RET>
 void Context<RET>::waitAll() const
 {
-    for (auto&& promise : _promises)
-    {
-        try
-        {
-            promise->getIThreadFutureBase()->wait();
-        }
-        catch(...) //catch all broken promises or any other exception
-        {}
-    }
+    waitAll(nullptr);
+}
+
+template <class RET>
+template <class V, class>
+int Context<RET>::set(V&& value)
+{
+    return set(nullptr, std::forward<V>(value));
 }
 
 template <class RET>
@@ -1227,7 +1233,7 @@ int Context<RET>::set(ICoroSync::Ptr sync, V&& value)
 template <class RET>
 template <class OTHER_RET>
 NonBufferRetType<OTHER_RET> Context<RET>::getAt(int num,
-                                        ICoroSync::Ptr sync)
+                                                ICoroSync::Ptr sync)
 {
     validateContext(sync);
     return std::static_pointer_cast<Promise<OTHER_RET>>(_promises[index(num)])->getICoroFuture()->get(sync);
@@ -1236,7 +1242,7 @@ NonBufferRetType<OTHER_RET> Context<RET>::getAt(int num,
 template <class RET>
 template <class OTHER_RET>
 const NonBufferRetType<OTHER_RET>& Context<RET>::getRefAt(int num,
-                                                  ICoroSync::Ptr sync) const
+                                                          ICoroSync::Ptr sync) const
 {
     validateContext(sync);
     return std::static_pointer_cast<Promise<OTHER_RET>>(_promises[index(num)])->getICoroFuture()->getRef(sync);

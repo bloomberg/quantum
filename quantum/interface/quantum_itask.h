@@ -18,8 +18,10 @@
 
 #include <memory>
 #include <limits>
+#include <unordered_map>
 #include <quantum/quantum_traits.h>
 #include <quantum/interface/quantum_iterminate.h>
+#include <quantum/quantum_task_id.h>
 
 namespace Bloomberg {
 namespace quantum {
@@ -33,6 +35,7 @@ struct ITask : public ITerminate
 {
     using Ptr = std::shared_ptr<ITask>;
     using WeakPtr = std::weak_ptr<ITask>;
+    using LocalStorage = std::unordered_map<std::string, void*>;
     
     enum class Type : int
     {
@@ -57,17 +60,21 @@ struct ITask : public ITerminate
     
     virtual void setQueueId(int queueId) = 0;
     
-    virtual int getQueueId() = 0;
+    virtual int getQueueId() const = 0;
+    
+    virtual TaskId getTaskId() const = 0;
     
     virtual Type getType() const = 0;
     
     virtual bool isBlocked() const = 0;
     
-    virtual bool isSleeping(bool updateTimer = false) = 0;
+    virtual bool isSleeping(bool updateTimer) = 0;
     
     virtual bool isHighPriority() const = 0;
     
     virtual bool isSuspended() const = 0;
+    
+    virtual LocalStorage& getLocalStorage() = 0;
 };
 
 using ITaskPtr = ITask::Ptr;

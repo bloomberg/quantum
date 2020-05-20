@@ -43,19 +43,6 @@ TaskQueue::ProcessTaskResult::ProcessTaskResult(bool isBlocked,
     _blockedQueueRound(blockedQueueRound)
 {
 }
-
-inline
-TaskQueue::CurrentTaskSetter::CurrentTaskSetter(TaskQueue& taskQueue, const TaskPtr & task) :
-    _taskQueue(taskQueue)
-{
-    _taskQueue.setCurrentTask(task.get());
-}
-
-inline
-TaskQueue::CurrentTaskSetter::~CurrentTaskSetter()
-{
-    _taskQueue.setCurrentTask(nullptr);
-}
     
 inline
 TaskQueue::TaskQueue() :
@@ -189,7 +176,7 @@ TaskQueue::ProcessTaskResult TaskQueue::processTask()
         int rc;
         {
             // set the current task for local-storage queries
-            CurrentTaskSetter taskSetter(*this, task);
+            IQueue::TaskSetterGuard taskSetter(*this, task);
             //========================= START/RESUME COROUTINE =========================
             rc = task->run();
             //=========================== END/YIELD COROUTINE ==========================
@@ -625,24 +612,6 @@ void TaskQueue::acquireWaiting()
         _queueIt = _runQueue.begin();
         ++_queueRound;
     }
-}
-
-inline
-Task*& getCurrentTaskImpl()
-{
-    static thread_local Task* currentTask = nullptr;
-    return currentTask;
-}
-
-inline
-Task* TaskQueue::getCurrentTask()
-{
-    return getCurrentTaskImpl();
-}
-
-inline void TaskQueue::setCurrentTask(Task* task)
-{
-    getCurrentTaskImpl() = task;
 }
 
 }}

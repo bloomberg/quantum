@@ -88,10 +88,6 @@ public:
     
     const std::shared_ptr<std::thread>& getThread() const final;
 
-    static Task* getCurrentTask();
-
-    static void setCurrentTask(Task* task);
-
 private:
     struct WorkItem
     {
@@ -100,25 +96,18 @@ private:
                  bool isBlocked,
                  unsigned int blockedQueueRound);
         
-        TaskPtr _task;                   // task pointer
-        TaskListIter _iter;              // task iterator
-        bool _isBlocked;                 // true if the entire queue is blocked
-        unsigned int _blockedQueueRound; // blocked queue round id
+        TaskPtr         _task;              // task pointer
+        TaskListIter    _iter;              // task iterator
+        bool            _isBlocked;         // true if the entire queue is blocked
+        unsigned int    _blockedQueueRound; // blocked queue round id
     };
     struct ProcessTaskResult
     {
         ProcessTaskResult(bool isBlocked,
                           unsigned int blockedQueueRound);
             
-        bool _isBlocked;                 // true if the entire queue is blocked
-        unsigned int _blockedQueueRound; // blocked queue round id
-    };
-    struct CurrentTaskSetter
-    {
-        CurrentTaskSetter(TaskQueue& taskQueue, const TaskPtr & task);
-        ~CurrentTaskSetter();
-
-        TaskQueue& _taskQueue;
+        bool            _isBlocked;         // true if the entire queue is blocked
+        unsigned int    _blockedQueueRound; // blocked queue round id
     };
     //Coroutine result handlers
     bool handleNotCallable(const WorkItem& entry);

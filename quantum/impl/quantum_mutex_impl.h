@@ -18,9 +18,16 @@
 //##############################################################################################
 //#################################### IMPLEMENTATIONS #########################################
 //##############################################################################################
+#include <quantum/interface/quantum_icoro_context.h>
 
 namespace Bloomberg {
 namespace quantum {
+
+//fwd declarations
+namespace local {
+    VoidContextPtr context();
+    TaskId taskId();
+}
 
 inline
 void yield(ICoroSync::Ptr sync)
@@ -38,23 +45,15 @@ void yield(ICoroSync::Ptr sync)
 //                                class Mutex
 //==============================================================================================
 inline
-Mutex::Mutex()
-{}
-
-inline
 void Mutex::lock()
 {
-    lockImpl(nullptr);
+    //Application must use the other lock() overload if we are running inside a coroutine
+    assert(!local::context());
+    lock(nullptr);
 }
 
 inline
 void Mutex::lock(ICoroSync::Ptr sync)
-{
-    lockImpl(sync);
-}
-
-inline
-void Mutex::lockImpl(ICoroSync::Ptr sync)
 {
     while (!tryLock())
     {
@@ -65,12 +64,24 @@ void Mutex::lockImpl(ICoroSync::Ptr sync)
 inline
 bool Mutex::tryLock()
 {
-    return _spinlock.tryLock();
+    bool rc = _spinlock.tryLock();
+    if (rc) {
+        //mutex is locked
+        _taskId = local::taskId();
+        //task id must be valid
+        assert(_taskId != TaskId{});
+    }
+    return rc;
 }
 
 inline
 void Mutex::unlock()
 {
+    if (_taskId != local::taskId()) {
+        //invalid operation
+        assert(false);
+    }
+    _taskId = TaskId{}; //reset the task id
     _spinlock.unlock();
 }
 
@@ -78,36 +89,35 @@ void Mutex::unlock()
 //                                class Mutex::Guard
 //==============================================================================================
 inline
-Mutex::Guard::Guard(Mutex& mutex,
-                    bool tryLock) :
-    _mutex(mutex)
+Mutex::Guard::Guard(Mutex& mutex) :
+    Mutex::Guard::Guard(nullptr, mutex)
 {
-    if (tryLock)
-    {
-        _ownsLock = _mutex.tryLock();
-    }
-    else
-    {
-        _mutex.lock();
-        _ownsLock = true;
-    }
 }
 
 inline
 Mutex::Guard::Guard(ICoroSync::Ptr sync,
-                    Mutex& mutex,
-                    bool tryLock) :
-    _mutex(mutex)
+                    Mutex& mutex) :
+    _mutex(&mutex),
+    _ownsLock(true)
 {
-    if (tryLock)
-    {
-        _ownsLock = _mutex.tryLock();
-    }
-    else
-    {
-        _mutex.lock(sync);
-        _ownsLock = true;
-    }
+    _mutex->lock(std::move(sync));
+}
+
+inline
+Mutex::Guard::Guard(Mutex& mutex,
+                    Mutex::TryToLock) :
+    _mutex(&mutex),
+    _ownsLock(_mutex->tryLock())
+{
+}
+
+inline
+Mutex::Guard::Guard(Mutex& mutex,
+                    Mutex::AdoptLock) :
+    _mutex(&mutex),
+    _ownsLock(true)
+{
+    assert(!_mutex->tryLock());
 }
 
 inline
@@ -119,7 +129,46 @@ bool Mutex::Guard::ownsLock() const
 inline
 Mutex::Guard::~Guard()
 {
-    _mutex.unlock();
+    unlock();
+}
+
+inline
+void Mutex::Guard::lock()
+{
+    lock(nullptr);
+}
+
+inline
+void Mutex::Guard::lock(ICoroSync::Ptr sync)
+{
+    if (_ownsLock) return;
+    assert(_mutex);
+    _mutex->lock(std::move(sync));
+    _ownsLock = true;
+}
+
+inline
+bool Mutex::Guard::tryLock()
+{
+    if (_ownsLock) return true;
+    assert(_mutex);
+    _ownsLock = _mutex->tryLock();
+    return _ownsLock;
+}
+
+inline
+void Mutex::Guard::unlock()
+{
+    if (!_ownsLock) return;
+    _mutex->unlock();
+    _ownsLock = false;
+}
+
+inline
+void Mutex::Guard::release()
+{
+    _ownsLock = false;
+    _mutex = nullptr;
 }
 
 //==============================================================================================
@@ -127,24 +176,23 @@ Mutex::Guard::~Guard()
 //==============================================================================================
 inline
 Mutex::ReverseGuard::ReverseGuard(Mutex& mutex) :
-    _mutex(mutex)
+    Mutex::ReverseGuard::ReverseGuard(nullptr, mutex)
 {
-    _mutex.unlock();
 }
 
 inline
 Mutex::ReverseGuard::ReverseGuard(ICoroSync::Ptr sync,
                                   Mutex& mutex) :
-    _mutex(mutex),
+    _mutex(&mutex),
     _sync(sync)
 {
-    _mutex.unlock();
+    _mutex->unlock();
 }
 
 inline
 Mutex::ReverseGuard::~ReverseGuard()
 {
-    _mutex.lock(_sync);
+    _mutex->lock(_sync);
 }
 
 }}

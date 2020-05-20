@@ -69,6 +69,7 @@ public:
     //===================================
     //         ICONTEXTBASE
     //===================================
+    TaskId taskId() const final;
     bool valid() const final;
     bool validAt(int num) const final;
     int setException(std::exception_ptr ex) final;
@@ -146,6 +147,8 @@ public:
     //===================================
     template <class V = RET, class = BufferRetType<V>>
     int closeBuffer();
+    template <class V = RET, class = BufferRetType<V>>
+    int closeBuffer(ICoroSync::Ptr sync);
     int getNumCoroutineThreads() const;
     int getNumIoThreads() const;
     const std::pair<int, int>& getCoroQueueIdRangeForAny() const;
@@ -328,14 +331,14 @@ private:
     void validateContext(ICoroSync::Ptr sync) const; //throws
     
     //Members
-    ITask::Ptr                          _task;
-    std::vector<IPromiseBase::Ptr>      _promises;
-    DispatcherCore*                     _dispatcher;
-    std::atomic_bool                    _terminated;
-    std::atomic_int                     _signal;
-    Traits::Yield*                      _yield;
-    std::chrono::microseconds           _sleepDuration;
-    std::chrono::steady_clock::time_point  _sleepTimestamp;
+    ITask::Ptr                              _task;
+    std::vector<IPromiseBase::Ptr>          _promises;
+    DispatcherCore*                         _dispatcher;
+    std::atomic_bool                        _terminated;
+    std::atomic_int                         _signal;
+    Traits::Yield*                          _yield;
+    std::chrono::microseconds               _sleepDuration;
+    std::chrono::steady_clock::time_point   _sleepTimestamp;
 };
 
 template <class RET>

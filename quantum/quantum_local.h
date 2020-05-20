@@ -23,25 +23,29 @@ namespace Bloomberg {
 namespace quantum {
 namespace local {
 
-/// @brief Accesses the pointer to a coro-local-variable
-/// @param[in] key the variable name
-/// @return the pointer to the coro-local-variable with the name @see key
-/// @note If the variable with the name @see key has not been created within the current
-///       coroutine, a pointer to it will be allocated, set to nullptr, and a reference to the
-///       pointer will be returned here for reading/writing. 
-///       If the variable with the name @see key has already been created within the current
-///       coroutine, then a reference to the previously set pointer will be returned.
-/// @note If the function is called outside of a coroutine, then the thread-local storage is
-///       used with the semantics described above.
-/// @note Upon the termination of the coroutine, the storage occupied by the coro-local-variable
-///       pointers will be freed. It is up to the user of the API to free the actual variable
-///       storage.
-template <typename T>
-T*& variable(const std::string& key);
-
-/// @brief Get the current coroutine context
-/// @return The coroutine context if this function is called inside a coroutine or null otherwise
-VoidContextPtr context();
+    /// @brief Accesses the pointer to a coroutine or IO task local variable
+    /// @param[in] key The variable name
+    /// @return the pointer to the local variable with the same name
+    /// @note If the variable with the 'key' name has not been created within the current
+    ///       coroutine or IO task, a pointer to it will be allocated, set to null, and a reference to the
+    ///       pointer will be returned for reading/writing.
+    ///       If the variable with the 'key' name has already been created,
+    ///       then a reference to the previously set pointer will be returned.
+    /// @note If the function is called outside of a coroutine or IO task, then a default thread-local
+    ///       storage will be used with the semantics described above.
+    /// @note Upon the termination of the coroutine, the storage occupied by the coro-local-variable
+    ///       pointers will be freed. It is up to the user of the API to free the actual variable
+    ///       storage.
+    template <typename T>
+    T*& variable(const std::string& key);
+    
+    /// @brief Get the current coroutine context
+    /// @return The coroutine context if this function is called inside a coroutine or null otherwise
+    VoidContextPtr context();
+    
+    /// @brief Returns the task id of the currently executing coroutine or IO task
+    /// @return The task id
+    TaskId taskId();
 
 }}}
 

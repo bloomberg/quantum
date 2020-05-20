@@ -17,6 +17,7 @@
 #define BLOOMBERG_QUANTUM_ITERMINATE_H
 
 #include <atomic>
+#include <quantum/interface/quantum_icoro_sync.h>
 
 namespace Bloomberg {
 namespace quantum {

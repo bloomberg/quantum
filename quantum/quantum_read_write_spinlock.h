@@ -26,8 +26,9 @@ class ReadWriteSpinLock
 {
 public:
     using TryToLock = std::try_to_lock_t;
+    using AdoptLock = std::adopt_lock_t;
     
-    /// @brief Constructor. The object is in the unlocked state.
+    /// @brief Spinlock is in unlocked state
     ReadWriteSpinLock() = default;
     
     /// @brief Copy constructor.
@@ -57,12 +58,14 @@ public:
     bool tryLockWrite();
     
     /// @brief Unlocks the reader lock.
+    /// @return True if succeeded
     /// @warning Locking this object as a writer and incorrectly unlocking it as a reader results in undefined behavior.
-    void unlockRead();
+    bool unlockRead();
     
     /// @brief Unlocks the writer lock.
+    /// @return True if succeeded
     /// @warning Locking this object as a reader and incorrectly unlocking it as a writer results in undefined behavior.
-    void unlockWrite();
+    bool unlockWrite();
     
     /// @bried Determines if this object is either read or write locked.
     /// @return True if locked, false otherwise.
@@ -108,6 +111,9 @@ public:
         /// @brief Indicates if this object owns the underlying spinlock.
         /// @return True if ownership is acquired.
         bool ownsLock() const;
+        
+        /// @brief Unlocks the underlying spinlock
+        void unlock();
     private:
         ReadWriteSpinLock&	_spinlock;
         bool                _ownsLock;
@@ -141,13 +147,16 @@ public:
         /// @brief Indicates if this object owns the underlying spinlock.
         /// @return True if ownership is acquired.
         bool ownsLock() const;
+        
+        /// @brief Unlocks the underlying spinlock
+        void unlock();
     private:
         ReadWriteSpinLock&	_spinlock;
         bool                _ownsLock;
     };
     
 private:
-    std::atomic_int     _count{0};
+    alignas(128) std::atomic_int _count{0};
 };
 
 }

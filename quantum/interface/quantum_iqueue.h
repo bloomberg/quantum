@@ -74,6 +74,22 @@ struct IQueue : public ITerminate
                               int queueId,
                               bool shared,
                               bool any);
+    
+    static ITask::Ptr getCurrentTask();
+
+    static void setCurrentTask(ITask::Ptr task);
+    
+protected:
+    struct TaskSetterGuard
+    {
+        TaskSetterGuard(IQueue& taskQueue,
+                        ITask::Ptr task);
+        ~TaskSetterGuard();
+        IQueue& _taskQueue;
+    };
+    
+private:
+    static ITask::Ptr& currentTask();
 };
 
 using IQueuePtr = IQueue::Ptr;
@@ -121,6 +137,39 @@ void IQueue::setThreadName(QueueType type,
     using QueueListAllocator = StlAllocator<ITask::Ptr>;
     using IoQueueListAllocator = StlAllocator<ITask::Ptr>;
 #endif
+
+inline
+ITask::Ptr& IQueue::currentTask()
+{
+    static thread_local ITask::Ptr currentTask;
+    return currentTask;
+}
+
+inline
+ITask::Ptr IQueue::getCurrentTask()
+{
+    return currentTask();
+}
+
+inline
+void IQueue::setCurrentTask(ITask::Ptr task)
+{
+    currentTask() = std::move(task);
+}
+
+inline
+IQueue::TaskSetterGuard::TaskSetterGuard(IQueue& taskQueue,
+                                         ITask::Ptr task) :
+    _taskQueue(taskQueue)
+{
+    _taskQueue.setCurrentTask(std::move(task));
+}
+
+inline
+IQueue::TaskSetterGuard::~TaskSetterGuard()
+{
+    _taskQueue.setCurrentTask(nullptr);
+}
 
 }}
 

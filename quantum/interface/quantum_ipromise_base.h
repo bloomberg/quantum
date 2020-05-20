@@ -44,6 +44,8 @@ struct IPromiseBase : public ITerminate
     /// @param[in] ex An exception pointer which has been caught via std::current_exception.
     /// @return 0 on success
     virtual int setException(std::exception_ptr ex) = 0;
+    virtual int setException(ICoroSync::Ptr sync,
+                             std::exception_ptr ex) = 0;
     
     /// @brief Get a thread-compatible interface used to access the associated future.
     /// @return An interface to the associated future.
