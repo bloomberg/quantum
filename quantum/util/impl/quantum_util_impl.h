@@ -41,10 +41,11 @@ int bindCoro(Traits::Yield& yield,
         yield.get() = rc;
         return 0;
     }
-    catch(const boost::coroutines2::detail::forced_unwind&) {
+    catch (const boost::context::detail::forced_unwind&)
+    {
         throw;
     }
-    catch(std::exception& ex)
+    catch(const std::exception& ex)
     {
         UNUSED(ex);
 #ifdef __QUANTUM_PRINT_DEBUG
@@ -80,10 +81,11 @@ int bindCoro2(Traits::Yield& yield,
         yield.get() = rc;
         return 0;
     }
-    catch(const boost::coroutines2::detail::forced_unwind&) {
+    catch (const boost::context::detail::forced_unwind&)
+    {
         throw;
     }
-    catch(std::exception& ex)
+    catch(const std::exception& ex)
     {
         UNUSED(ex);
 #ifdef __QUANTUM_PRINT_DEBUG
@@ -112,7 +114,7 @@ int bindIo(std::shared_ptr<Promise<RET>> promise,
     {
         return std::forward<CAPTURE>(capture)();
     }
-    catch(std::exception& ex)
+    catch(const std::exception& ex)
     {
         UNUSED(ex);
 #ifdef __QUANTUM_PRINT_DEBUG
@@ -141,7 +143,7 @@ int bindIo2(std::shared_ptr<Promise<RET>> promise,
         promise->set(std::forward<CAPTURE>(capture)());
         return 0;
     }
-    catch(std::exception& ex)
+    catch(const std::exception& ex)
     {
         UNUSED(ex);
 #ifdef __QUANTUM_PRINT_DEBUG

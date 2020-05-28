@@ -60,9 +60,11 @@
 #include <quantum/quantum_mutex.h>
 #include <quantum/quantum_promise.h>
 #include <quantum/quantum_queue_statistics.h>
+#include <quantum/quantum_read_write_mutex.h>
 #include <quantum/quantum_read_write_spinlock.h>
 #include <quantum/quantum_shared_state.h>
 #include <quantum/quantum_spinlock.h>
+#include <quantum/quantum_spinlock_traits.h>
 #include <quantum/quantum_stack_allocator.h>
 #include <quantum/quantum_stack_traits.h>
 #include <quantum/quantum_task.h>
@@ -78,6 +80,7 @@
 #include <quantum/util/quantum_sequence_key_statistics.h>
 #include <quantum/util/quantum_sequencer.h>
 #include <quantum/util/quantum_sequencer_configuration.h>
+#include <quantum/util/quantum_spinlock_util.h>
 #include <quantum/util/quantum_util.h>
 
 #endif //BLOOMBERG_QUANTUM_H
