@@ -123,6 +123,22 @@ void TaskQueue::run()
             sleepOnBlockedQueue(result);
         }
     }
+    //Clear remaining tasks
+    while (!_runQueue.empty())
+    {
+        _runQueue.front()->terminate();
+        _runQueue.pop_front();
+        _stats.decNumElements();
+    }
+    //========================= LOCKED SCOPE =========================
+    SpinLock::Guard lock(_waitQueueLock);
+    while (!_waitQueue.empty())
+    {
+        _waitQueue.front()->terminate();
+        _waitQueue.pop_front();
+        _stats.decNumElements();
+    }
+    _isIdle = true;
 }
 
 inline
@@ -342,20 +358,6 @@ void TaskQueue::terminate()
         }
         _notEmptyCond.notify_all();
         _thread->join();
-        
-        //clear the queues
-        while (!_runQueue.empty())
-        {
-            _runQueue.front()->terminate();
-            _runQueue.pop_front();
-        }
-        //========================= LOCKED SCOPE =========================
-        SpinLock::Guard lock(_waitQueueLock);
-        while (!_waitQueue.empty())
-        {
-            _waitQueue.front()->terminate();
-            _waitQueue.pop_front();
-        }
     }
 }
 

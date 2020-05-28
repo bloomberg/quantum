@@ -240,14 +240,16 @@ void enqueue_sleep_tasks(quantum::Dispatcher& dispatcher,
 /*
 TEST_P(CoreTest, ResumeFromTwoThreads)
 {
-    int end{0};
-    std::mutex m;
-    Traits::Coroutine coro([&end](Traits::Yield& yield){
-        while (1) {
-            std::cout << "Running on thread: " << std::this_thread::get_id() << " value: " << yield.get()++ << " iteration: " << end++ << std::endl;
-            yield();
-        }
-    });
+        int end{0};
+        std::mutex m;
+        Traits::Coroutine coro([&end](Traits::Yield &yield) {
+            while (1) {
+            std::cout << "Running on thread: " << std::this_thread::get_id()
+                      << " value: " << yield.get()++ << " iteration: " << end++
+                      << std::endl;
+                yield();
+            }
+        });
     std::thread t1(run_coro, std::ref(coro), std::ref(m), std::ref(end), 0);
     std::thread t2(run_coro, std::ref(coro), std::ref(m), std::ref(end), 100);
     t1.join();
@@ -1601,6 +1603,20 @@ TEST_P(CoroLocalStorageTest, GetContext)
         return ctx->set(0);
     })->get();
 }
+
+TEST_P(CleanupTest, CoroutineUnwind)
+ {
+     for(int i = 0; i < 10; ++i)
+     {
+         getDispatcher().post([i](CoroContext<int>::Ptr ctx)->int
+         {
+              ctx->sleep(ms(100));
+              return 0;
+          });
+     }
+     std::this_thread::sleep_for(ms(10));
+     getDispatcher().terminate();
+ }
 
 //This test **must** come last to make Valgrind happy.
 TEST_P(CleanupTest, DeleteDispatcherInstance)
