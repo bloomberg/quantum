@@ -64,12 +64,11 @@ void Mutex::lock(ICoroSync::Ptr sync)
 inline
 bool Mutex::tryLock()
 {
+    assert(_taskId != local::taskId());
     bool rc = _spinlock.tryLock();
     if (rc) {
         //mutex is locked
         _taskId = local::taskId();
-        //task id must be valid
-        assert(_taskId != TaskId{});
     }
     return rc;
 }
@@ -77,12 +76,15 @@ bool Mutex::tryLock()
 inline
 void Mutex::unlock()
 {
-    if (_taskId != local::taskId()) {
-        //invalid operation
-        assert(false);
-    }
+    assert(_taskId == local::taskId());
     _taskId = TaskId{}; //reset the task id
     _spinlock.unlock();
+}
+
+inline
+bool Mutex::isLocked() const
+{
+    return _spinlock.isLocked();
 }
 
 //==============================================================================================
@@ -92,6 +94,8 @@ inline
 Mutex::Guard::Guard(Mutex& mutex) :
     Mutex::Guard::Guard(nullptr, mutex)
 {
+    //Application must use the other constructor overload if we are running inside a coroutine
+    assert(!local::context());
 }
 
 inline
@@ -115,9 +119,8 @@ inline
 Mutex::Guard::Guard(Mutex& mutex,
                     Mutex::AdoptLock) :
     _mutex(&mutex),
-    _ownsLock(true)
+    _ownsLock(mutex.isLocked())
 {
-    assert(!_mutex->tryLock());
 }
 
 inline
@@ -129,20 +132,23 @@ bool Mutex::Guard::ownsLock() const
 inline
 Mutex::Guard::~Guard()
 {
-    unlock();
+    if (ownsLock()) {
+        unlock();
+    }
 }
 
 inline
 void Mutex::Guard::lock()
 {
+    //Application must use the other lock() overload if we are running inside a coroutine
+    assert(!local::context());
     lock(nullptr);
 }
 
 inline
 void Mutex::Guard::lock(ICoroSync::Ptr sync)
 {
-    if (_ownsLock) return;
-    assert(_mutex);
+    assert(_mutex && !ownsLock());
     _mutex->lock(std::move(sync));
     _ownsLock = true;
 }
@@ -150,8 +156,7 @@ void Mutex::Guard::lock(ICoroSync::Ptr sync)
 inline
 bool Mutex::Guard::tryLock()
 {
-    if (_ownsLock) return true;
-    assert(_mutex);
+    assert(_mutex && !ownsLock());
     _ownsLock = _mutex->tryLock();
     return _ownsLock;
 }
@@ -159,7 +164,7 @@ bool Mutex::Guard::tryLock()
 inline
 void Mutex::Guard::unlock()
 {
-    if (!_ownsLock) return;
+    assert(_mutex && ownsLock());
     _mutex->unlock();
     _ownsLock = false;
 }
@@ -178,6 +183,8 @@ inline
 Mutex::ReverseGuard::ReverseGuard(Mutex& mutex) :
     Mutex::ReverseGuard::ReverseGuard(nullptr, mutex)
 {
+    //Application must use the other constructor overload if we are running inside a coroutine
+    assert(!local::context());
 }
 
 inline

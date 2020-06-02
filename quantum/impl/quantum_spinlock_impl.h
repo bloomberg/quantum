@@ -31,23 +31,30 @@ namespace quantum {
 inline
 void SpinLock::lock()
 {
-    SpinLockUtil::lockExclusive(_flag, 1, 0);
+    SpinLockUtil::lockWrite(_flag);
 }
 
 inline
 bool SpinLock::tryLock()
 {
-    int i = 0;
-    return _flag.compare_exchange_strong(i, 1, std::memory_order_acquire);
+    return SpinLockUtil::lockWrite(_flag, true);
 }
 
 inline
 void SpinLock::unlock()
 {
-    int i = 1;
-    _flag.compare_exchange_strong(i, 0, std::memory_order_release);
+    return SpinLockUtil::unlockWrite(_flag);
 }
 
+inline
+bool SpinLock::isLocked() const
+{
+    return SpinLockUtil::isLocked(_flag);
+}
+
+//==============================================================================
+//                            SpinLock::Guard
+//==============================================================================
 inline
 SpinLock::Guard::Guard(SpinLock& lock) :
     _spinlock(lock),
@@ -66,10 +73,8 @@ SpinLock::Guard::Guard(SpinLock& lock, SpinLock::TryToLock) :
 inline
 SpinLock::Guard::Guard(SpinLock& lock, SpinLock::AdoptLock) :
     _spinlock(lock),
-    _ownsLock(true)
+    _ownsLock(lock.isLocked())
 {
-    //Make sure the lock is already taken
-    assert(!_spinlock.tryLock());
 }
 
 inline
@@ -83,19 +88,17 @@ SpinLock::Guard::~Guard()
 inline
 bool SpinLock::Guard::tryLock()
 {
-    if (!_ownsLock) {
-        _ownsLock = _spinlock.tryLock();
-    }
+    assert(!_ownsLock);
+    _ownsLock = _spinlock.tryLock();
     return _ownsLock;
 }
 
 inline
 void SpinLock::Guard::lock()
 {
-    if (!_ownsLock) {
-        _spinlock.lock();
-        _ownsLock = true;
-    }
+    assert(!_spinlock.isLocked());
+    _spinlock.lock();
+    _ownsLock = true;
 }
 
 inline
@@ -105,21 +108,23 @@ bool SpinLock::Guard::ownsLock() const {
 
 inline
 void SpinLock::Guard::unlock() {
-    if (_ownsLock) {
-        _spinlock.unlock();
-    }
+    assert(_ownsLock);
+    _spinlock.unlock();
+    _ownsLock = false;
 }
 
 inline
 SpinLock::ReverseGuard::ReverseGuard(SpinLock& lock) :
     _spinlock(lock)
 {
+    assert(_spinlock.isLocked());
     _spinlock.unlock();
 }
 
 inline
 SpinLock::ReverseGuard::~ReverseGuard()
 {
+    assert(!_spinlock.isLocked());
     _spinlock.lock();
 }
 

@@ -18,6 +18,47 @@
 //##############################################################################################
 //#################################### IMPLEMENTATIONS #########################################
 //##############################################################################################
+/*
+The atomic 32-bit counter is divided into two halves, the high 16 bits representing the number of pending
+writer upgrades and the low 16 bit representing the lock state as following:
+   0 (unlocked)
+   -1 (write-locked)
+   >0 (read-locked and the number represents the number of readers)
+   
+When a reader is upgraded to a writer, the number of readers is decremented by 1 and the number
+of pending writers is incremented by 1 if the upgrade can't happen immediately. If however there's only a
+single reader, the upgrade occurs immediately and the the number of readers (i.e. 1) gets converted
+directly to a writer (i.e. -1).
+
+H|L represent the high (pending upgrades) and low (reader/writer owners) portions of the 32-bit counter.
+
+State transitions:
+
+Reader Lock
+1) 0|L -> 0|L+1 where L>=0
+
+Reader Unlock
+1) H|L -> H|L-1
+
+Reader Upgrade
+1) H|1 -> H|-1 (direct upgrade)
+2) H|L -> H+1|L-1 then goto Writer (2)
+
+Reader blocks when
+1) H|-1
+2) H|L -> where H>0
+
+Writer Lock
+1) H|0 -> H|-1 where H>=0 (regular writer)
+2) H|0 -> H-1|-1 where H>0 (upgraded writer)
+
+Writer Unlock
+1) H|-1 -> H|0
+
+Writer blocks when
+1) H|-1
+2) H|L where L>0
+*/
 
 #include <quantum/util/quantum_spinlock_util.h>
 
@@ -27,133 +68,146 @@ namespace quantum {
 inline
 void ReadWriteSpinLock::lockRead()
 {
-    SpinLockUtil::lockShared(_count, -1, 0, 1);
+    SpinLockUtil::lockRead(_count);
 }
 
 inline
 void ReadWriteSpinLock::lockWrite()
 {
-    SpinLockUtil::lockExclusive(_count, -1, 0);
+    SpinLockUtil::lockWrite(_count);
 }
 
 inline
 bool ReadWriteSpinLock::tryLockRead()
 {
-    int oldValue = 0;
-    int newValue = 1;
-    while (!_count.compare_exchange_weak(oldValue, newValue, std::memory_order_acq_rel))
-    {
-        if (oldValue == -1)
-        {
-            return false; //write-locked
-        }
-        else
-        {
-            newValue = oldValue + 1;
-        }
-        SpinLockUtil::pauseCPU();
-    }
-    return true;
+    return SpinLockUtil::lockRead(_count, true);
 }
 
 inline
 bool ReadWriteSpinLock::tryLockWrite()
 {
-    int i = 0;
-    return _count.compare_exchange_strong(i, -1, std::memory_order_acq_rel);
+    return SpinLockUtil::lockWrite(_count, true);
 }
 
 inline
-bool ReadWriteSpinLock::unlockRead()
+void ReadWriteSpinLock::unlockRead()
 {
-    int oldValue = 1;
-    int newValue = 0;
-    while (!_count.compare_exchange_weak(oldValue, newValue, std::memory_order_acq_rel))
-    {
-        if (oldValue <= 0)
-        {
-            return false; //unlocked or write-locked
-        }
-        else
-        {
-            newValue = oldValue - 1;
-        }
-        SpinLockUtil::pauseCPU();
-    }
-    return true;
+    SpinLockUtil::unlockRead(_count);
 }
 
 inline
-bool ReadWriteSpinLock::unlockWrite()
+void ReadWriteSpinLock::unlockWrite()
 {
-    int i = -1;
-    return _count.compare_exchange_strong(i, 0, std::memory_order_acq_rel);
+    SpinLockUtil::unlockWrite(_count);
 }
 
 inline
-bool ReadWriteSpinLock::isLocked()
+void ReadWriteSpinLock::upgradeToWrite()
 {
-    return _count.load(std::memory_order_acquire) != 0;
+    SpinLockUtil::upgradeToWrite(_count);
 }
 
 inline
-bool ReadWriteSpinLock::isReadLocked()
+bool ReadWriteSpinLock::tryUpgradeToWrite()
 {
-    return _count.load(std::memory_order_acquire) > 0;
+    return SpinLockUtil::upgradeToWrite(_count, true);
 }
 
 inline
-bool ReadWriteSpinLock::isWriteLocked()
+bool ReadWriteSpinLock::isLocked() const
 {
-    return _count.load(std::memory_order_acquire) == -1;
+    return SpinLockUtil::isLocked(_count);
+}
+
+inline
+bool ReadWriteSpinLock::isReadLocked() const
+{
+    return isLocked() && !isWriteLocked();
+}
+
+inline
+bool ReadWriteSpinLock::isWriteLocked() const
+{
+    return SpinLockUtil::isWriteLocked(_count);
 }
 
 inline
 int ReadWriteSpinLock::numReaders() const
 {
-    int num = _count.load(std::memory_order_acquire);
-    return num == -1 ? 0 : num;
+    return SpinLockUtil::numReaders(_count);
+}
+
+inline
+int ReadWriteSpinLock::numPendingWriters() const
+{
+    return SpinLockUtil::numPendingWriters(_count);
 }
 
 inline
 ReadWriteSpinLock::ReadGuard::ReadGuard(ReadWriteSpinLock& lock) :
     _spinlock(lock),
-    _ownsLock(true)
+    _ownsLock(true),
+    _isUpgraded(false)
 {
     _spinlock.lockRead();
 }
 
 inline
-ReadWriteSpinLock::ReadGuard::ReadGuard(ReadWriteSpinLock& lock, ReadWriteSpinLock::TryToLock) :
+ReadWriteSpinLock::ReadGuard::ReadGuard(ReadWriteSpinLock& lock,
+                                        ReadWriteSpinLock::TryToLock) :
     _spinlock(lock),
-    _ownsLock(_spinlock.tryLockRead())
+    _ownsLock(_spinlock.tryLockRead()),
+    _isUpgraded(false)
+{
+}
+
+inline
+ReadWriteSpinLock::ReadGuard::ReadGuard(ReadWriteSpinLock& lock,
+                                        ReadWriteSpinLock::AdoptLock) :
+    _spinlock(lock),
+    _ownsLock(lock.isLocked()),
+    _isUpgraded(lock.isWriteLocked())
 {
 }
 
 inline
 ReadWriteSpinLock::ReadGuard::~ReadGuard()
 {
-    if (_ownsLock) {
-        _spinlock.unlockRead();
+    if (ownsLock()) {
+        unlock();
     }
 }
 
 inline
 void ReadWriteSpinLock::ReadGuard::lock()
 {
-    if (!_ownsLock) {
-        _spinlock.lockRead();
-        _ownsLock = true;
-    }
+    assert (!ownsLock());
+    _spinlock.lockRead();
+    _ownsLock = true;
 }
 
 inline
 bool ReadWriteSpinLock::ReadGuard::tryLock()
 {
-    if (!_ownsLock) {
-        _ownsLock = _spinlock.tryLockRead();
-    }
+    assert (!ownsLock());
+    _ownsLock = _spinlock.tryLockRead();
     return _ownsLock;
+}
+
+inline
+void ReadWriteSpinLock::ReadGuard::upgradeToWrite()
+{
+    assert (ownsLock());
+    _spinlock.upgradeToWrite();
+    _isUpgraded = true;
+}
+
+inline
+bool ReadWriteSpinLock::ReadGuard::tryUpgradeToWrite()
+{
+    assert (ownsLock());
+    _isUpgraded = _spinlock.tryUpgradeToWrite();
+    return _isUpgraded;
 }
 
 inline
@@ -163,11 +217,29 @@ bool ReadWriteSpinLock::ReadGuard::ownsLock() const
 }
 
 inline
+bool ReadWriteSpinLock::ReadGuard::ownsReadLock() const
+{
+    return _ownsLock && !_isUpgraded;
+}
+
+inline
+bool ReadWriteSpinLock::ReadGuard::ownsWriteLock() const
+{
+    return _ownsLock && _isUpgraded;
+}
+
+inline
 void ReadWriteSpinLock::ReadGuard::unlock()
 {
-    if (_ownsLock) {
+    assert(ownsLock());
+    if (ownsReadLock()) {
         _spinlock.unlockRead();
     }
+    else {
+        _spinlock.unlockWrite();
+    }
+    _ownsLock = false;
+    _isUpgraded = false;
 }
 
 inline
@@ -179,9 +251,18 @@ ReadWriteSpinLock::WriteGuard::WriteGuard(ReadWriteSpinLock& lock) :
 }
 
 inline
-ReadWriteSpinLock::WriteGuard::WriteGuard(ReadWriteSpinLock& lock, ReadWriteSpinLock::TryToLock) :
+ReadWriteSpinLock::WriteGuard::WriteGuard(ReadWriteSpinLock& lock,
+                                          ReadWriteSpinLock::TryToLock) :
     _spinlock(lock),
     _ownsLock(_spinlock.tryLockWrite())
+{
+}
+
+inline
+ReadWriteSpinLock::WriteGuard::WriteGuard(ReadWriteSpinLock& lock,
+                                          ReadWriteSpinLock::AdoptLock) :
+    _spinlock(lock),
+    _ownsLock(lock.isWriteLocked())
 {
 }
 
@@ -196,18 +277,16 @@ ReadWriteSpinLock::WriteGuard::~WriteGuard()
 inline
 void ReadWriteSpinLock::WriteGuard::lock()
 {
-    if (!_ownsLock) {
-        _spinlock.lockWrite();
-        _ownsLock = true;
-    }
+    assert(!_ownsLock);
+    _spinlock.lockWrite();
+    _ownsLock = true;
 }
 
 inline
 bool ReadWriteSpinLock::WriteGuard::tryLock()
 {
-    if (!_ownsLock) {
-        _ownsLock = _spinlock.tryLockWrite();
-    }
+    assert(!_ownsLock);
+    _ownsLock = _spinlock.tryLockWrite();
     return _ownsLock;
 }
 
@@ -220,9 +299,8 @@ bool ReadWriteSpinLock::WriteGuard::ownsLock() const
 inline
 void ReadWriteSpinLock::WriteGuard::unlock()
 {
-    if (_ownsLock) {
-        _spinlock.unlockWrite();
-    }
+    assert(_ownsLock);
+    _spinlock.unlockWrite();
 }
 
     

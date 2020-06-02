@@ -49,39 +49,50 @@ public:
     /// @brief Lock this object as a writer (exclusive)
     void lockWrite();
     
-    /// @brief Attempts to lock this object as a reader (shared with other readers)
+    /// @brief Attempts to lock this object as a reader (shared with other readers). This operation never blocks.
     /// @return True if the lock operation succeeded, false otherwise.
     bool tryLockRead();
     
-    /// @brief Attempts to lock this object as a writer (exclusive)
+    /// @brief Attempts to lock this object as a writer (exclusive). This operation never blocks.
     /// @return True if the lock operation succeeded, false otherwise.
     bool tryLockWrite();
     
     /// @brief Unlocks the reader lock.
-    /// @return True if succeeded
     /// @warning Locking this object as a writer and incorrectly unlocking it as a reader results in undefined behavior.
-    bool unlockRead();
+    void unlockRead();
     
     /// @brief Unlocks the writer lock.
-    /// @return True if succeeded
     /// @warning Locking this object as a reader and incorrectly unlocking it as a writer results in undefined behavior.
-    bool unlockWrite();
+    void unlockWrite();
+    
+    /// @brief Atomically upgrades a Reader to a Writer.
+    /// @warning Calling then while not owning the read lock results in undefined behavior.
+    void upgradeToWrite();
+    
+    /// @brief Attempts to upgrade a reader lock to a writer lock. This operation never blocks.
+    /// @return True if the lock operation succeeded, false otherwise.
+    bool tryUpgradeToWrite();
     
     /// @bried Determines if this object is either read or write locked.
     /// @return True if locked, false otherwise.
-    bool isLocked();
+    bool isLocked() const;
     
     /// @bried Determines if this object is read locked.
     /// @return True if locked, false otherwise.
-    bool isReadLocked();
+    bool isReadLocked() const;
     
     /// @bried Determines if this object is write locked.
     /// @return True if locked, false otherwise.
-    bool isWriteLocked();
+    bool isWriteLocked() const;
     
     /// @brief Returns the number of readers holding the lock.
     /// @return The number of readers.
+    /// @note: This is not an atomic operation
     int numReaders() const;
+    
+    /// @brief Returns the number of pending upgraded writers.
+    /// @return The number of writers.
+    int numPendingWriters() const;
     
     class ReadGuard
     {
@@ -94,7 +105,13 @@ public:
         /// @brief Construct this object and tries to lock the passed-in spinlock as a reader.
         /// @param[in] lock ReadWriteSpinLock which protects a scope during the lifetime of the Guard.
         /// @note Attempts to lock the spinlock. Does not block.
-        ReadGuard(ReadWriteSpinLock& lock, ReadWriteSpinLock::TryToLock);
+        ReadGuard(ReadWriteSpinLock& lock,
+                  ReadWriteSpinLock::TryToLock);
+        
+        /// @brief Construct this object and assumes the current state of the lock w/o modifying it.
+        /// @param[in] lock ReadWriteSpinLock which protects a scope during the lifetime of the Guard.
+        ReadGuard(ReadWriteSpinLock& lock,
+                  ReadWriteSpinLock::AdoptLock);
         
         /// @brief Destroy this object and unlock the underlying spinlock.
         ~ReadGuard();
@@ -108,15 +125,29 @@ public:
         /// @note Does not block.
         bool tryLock();
         
+        /// @brief Upgrade this reader to a writer atomically.
+        /// @note Blocks until upgrade is performed.
+        /// @note The lock must already be owned prior to invoking this function.
+        void upgradeToWrite();
+        
+        /// @brief Try to upgrade this reader to a writer.
+        /// @return True is succeeded.
+        /// @note Does not block.
+        /// @note The lock must already be owned prior to invoking this function.
+        bool tryUpgradeToWrite();
+        
         /// @brief Indicates if this object owns the underlying spinlock.
         /// @return True if ownership is acquired.
         bool ownsLock() const;
+        bool ownsReadLock() const;
+        bool ownsWriteLock() const;
         
         /// @brief Unlocks the underlying spinlock
         void unlock();
     private:
         ReadWriteSpinLock&	_spinlock;
-        bool                _ownsLock;
+        bool                _ownsLock{false};
+        bool                _isUpgraded{false};
     };
     
     class WriteGuard
@@ -130,7 +161,13 @@ public:
         /// @brief Construct this object and tries to lock the passed-in spinlock as a writer.
         /// @param[in] lock ReadWriteSpinLock which protects a scope during the lifetime of the Guard.
         /// @note Attempts to lock the spinlock. Does not block.
-        WriteGuard(ReadWriteSpinLock& lock, ReadWriteSpinLock::TryToLock);
+        WriteGuard(ReadWriteSpinLock& lock,
+                   ReadWriteSpinLock::TryToLock);
+        
+        /// @brief Construct this object and assumes the current state of the lock w/o modifying it.
+        /// @param[in] lock ReadWriteSpinLock which protects a scope during the lifetime of the Guard.
+        WriteGuard(ReadWriteSpinLock& lock,
+                   ReadWriteSpinLock::AdoptLock);
         
         /// @brief Destroy this object and unlock the underlying spinlock.
         ~WriteGuard();
@@ -152,11 +189,11 @@ public:
         void unlock();
     private:
         ReadWriteSpinLock&	_spinlock;
-        bool                _ownsLock;
+        bool                _ownsLock{false};
     };
     
 private:
-    alignas(128) std::atomic_int _count{0};
+    alignas(128) std::atomic_uint32_t _count{0};
 };
 
 }

@@ -63,6 +63,10 @@ public:
     /// @note Never blocks.
     void unlock();
     
+    /// @brief Checks if this spinlock is locked
+    /// @return True if locked
+    bool isLocked() const;
+    
     //==============================================================================================
     //                                      class SpinLock::Guard
     //==============================================================================================
@@ -84,8 +88,7 @@ public:
         Guard(SpinLock& lock,
               SpinLock::TryToLock tryLock);
         
-        /// @brief Construct this object and don't lock the spinlock. It is assumed that the
-        ///        application already owns the lock.
+        /// @brief Construct this object and assumes the current state of the lock w/o modifying it.
         /// @param[in] lock Spinlock which protects a scope during the lifetime of the Guard.
         /// @param[in] adoptLock Tag. Not used.
         /// @note ownsLock() will always return true.
@@ -112,7 +115,7 @@ public:
         void unlock();
     private:
         SpinLock&	_spinlock;
-        bool        _ownsLock;
+        bool        _ownsLock{false};
     };
     
     //==============================================================================================
@@ -136,7 +139,7 @@ public:
     };
     
 private:
-    alignas(128) std::atomic_int _flag{0};
+    alignas(128) std::atomic_uint32_t _flag{0};
 };
 
 }}

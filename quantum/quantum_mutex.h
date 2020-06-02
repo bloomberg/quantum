@@ -67,6 +67,10 @@ public:
     /// @brief Unlock this mutex.
     void unlock();
     
+    /// @brief Indicates if this mutex is locked or not
+    /// @return True if locked.
+    bool isLocked() const;
+    
     //==============================================================================================
     //                                      class Mutex::Guard
     //==============================================================================================
@@ -79,7 +83,7 @@ public:
         /// @brief Construct this object and lock the passed-in mutex.
         /// @param[in] mutex Mutex which protects a scope during the lifetime of the Guard.
         /// @param[in] TryToLock If supplied, tries to lock the mutex instead of unconditionally locking it.
-        /// @param[in] AdoptLock If supplied, assumes the lock is already taken by the application.
+        /// @param[in] AdoptLock If supplied, assumes the current state of the lock.
         explicit Guard(Mutex& mutex);
         Guard(Mutex& mutex,
               Mutex::TryToLock);

@@ -70,6 +70,18 @@ public:
     /// @return True if the lock operation succeeded, false otherwise.
     bool tryLockWrite();
     
+    /// @brief Upgrade this reader to a writer
+    /// @note Blocks until upgrade is performed.
+    /// @note The lock must already be owned prior to invoking this function.
+    void upgradeToWrite();
+    void upgradeToWrite(ICoroSync::Ptr sync);
+    
+    /// @brief Try to upgrade this reader to a writer.
+    /// @return True is succeeded.
+    /// @note Does not block.
+    /// @note The lock must already be owned prior to invoking this function.
+    bool tryUpgradeToWrite();
+    
     /// @brief Unlocks the reader lock.
     /// @warning Locking this object as a writer and incorrectly unlocking it as a reader results in undefined behavior.
     void unlockRead();
@@ -93,6 +105,10 @@ public:
     /// @brief Returns the number of readers holding the lock.
     /// @return The number of readers.
     int numReaders() const;
+    
+    /// @brief Returns the number of pending upgraded writers.
+    /// @return The number of writers.
+    int numPendingWriters() const;
 
     class ReadGuard
     {
@@ -110,10 +126,9 @@ public:
         ReadGuard(ReadWriteMutex& lock,
                   ReadWriteMutex::TryToLock);
         
-        /// @brief Construct this object and does not lock the mutex. Assumes the application already
-        ///        owns the read lock.
+        /// @brief Construct this object and assumes the current state of the lock w/o modifying it.
         /// @param[in] lock ReadWriteMutex which protects a scope during the lifetime of the Guard.
-        /// @note Attempts to lock the mutex. Does not block.
+        /// @note Does not block.
         ReadGuard(ReadWriteMutex& lock,
                   ReadWriteMutex::AdoptLock);
         
@@ -129,6 +144,18 @@ public:
         /// @return True if mutex is locked, false otherwise.
         /// @note Does not block.
         bool tryLock();
+        
+        /// @brief Upgrade this reader to a writer.
+        /// @note Blocks until upgrade is performed.
+        /// @note The lock must already be owned prior to invoking this function.
+        void upgradeToWrite();
+        void upgradeToWrite(ICoroSync::Ptr sync);
+        
+        /// @brief Try to upgrade this reader to a writer.
+        /// @return True is succeeded.
+        /// @note Does not block.
+        /// @note The lock must already be owned prior to invoking this function.
+        bool tryUpgradeToWrite();
 
         /// @brief Releases the read lock on the underlying mutex.
         /// @note Also releases ownership of the underlying mutex.
@@ -140,9 +167,13 @@ public:
         /// @brief Indicates if this object owns the underlying mutex.
         /// @return True if ownership is acquired.
         bool ownsLock() const;
+        bool ownsReadLock() const;
+        bool ownsWriteLock() const;
+        
     private:
         ReadWriteMutex* _mutex{nullptr};
         bool            _ownsLock{false};
+        bool            _isUpgraded{false};
     };
     
     class WriteGuard
@@ -161,8 +192,7 @@ public:
         WriteGuard(ReadWriteMutex& lock,
                    ReadWriteMutex::TryToLock);
         
-        /// @brief Construct this object and does not lock the mutex. Assumes the application
-        ///        already owns the write lock.
+        /// @brief Construct this object and assumes the current state of the lock w/o modifying it.
         /// @param[in] lock ReadWriteMutex which protects a scope during the lifetime of the Guard.
         /// @note: Does no block.
         WriteGuard(ReadWriteMutex& lock,

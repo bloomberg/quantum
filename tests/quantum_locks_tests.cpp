@@ -25,7 +25,7 @@ using namespace Bloomberg::quantum;
 #ifdef BOOST_USE_VALGRIND
     int spins = 100;
 #else
-    int spins = 1000000;
+    int spins = 100000;
 #endif
     int val = 0;
     int numThreads = 20;
@@ -83,18 +83,21 @@ void spinlockSettings(
 
 TEST(Spinlock, Spinlock)
 {
-    int num = spins;
     val = 0;
     SpinLock spin;
-    std::thread t1([&, num]() mutable {
-        while (num--) {
+    std::thread t1([&]() mutable {
+        int num = spins;
+        while (num-- > 0) {
             SpinLock::Guard guard(spin);
+            //std::this_thread::yield();
             ++val;
         }
     });
-    std::thread t2([&, num]() mutable {
-        while (num--) {
+    std::thread t2([&]() mutable {
+        int num = spins;
+        while (num-- > 0) {
             SpinLock::Guard guard(spin);
+            //std::this_thread::yield();
             --val;
         }
     });
@@ -348,7 +351,166 @@ TEST(ReadWriteSpinLock, Guards)
         writeGuard.unlock();
         EXPECT_FALSE(lock.isLocked());
     }
+    
+    // ReadGuard upgrade to Write
+    {
+        ReadWriteSpinLock::ReadGuard guard(lock);
+        EXPECT_TRUE(lock.isReadLocked());
+        EXPECT_TRUE(guard.ownsReadLock());
+        EXPECT_FALSE(guard.ownsWriteLock());
+        EXPECT_TRUE(guard.ownsLock());
+        guard.upgradeToWrite();
+        EXPECT_TRUE(lock.isWriteLocked());
+        EXPECT_FALSE(guard.ownsReadLock());
+        EXPECT_TRUE(guard.ownsWriteLock());
+        EXPECT_TRUE(guard.ownsLock());
+        guard.unlock();
+    }
     EXPECT_FALSE(lock.isLocked());
+}
+
+TEST(ReadWriteSpinLock, UpgradeLock)
+{
+    ReadWriteSpinLock lock;
+    lock.lockRead();
+    lock.lockRead();
+    lock.lockRead();
+    EXPECT_TRUE(lock.isLocked());
+    EXPECT_TRUE(lock.isReadLocked());
+    EXPECT_FALSE(lock.isWriteLocked());
+    EXPECT_EQ(3, lock.numReaders());
+    EXPECT_EQ(0, lock.numPendingWriters());
+    std::thread t([&lock]() {
+        std::this_thread::sleep_for(std::chrono::milliseconds(100));
+        EXPECT_EQ(2, lock.numReaders());
+        lock.unlockRead();
+        lock.unlockRead();
+    });
+    lock.upgradeToWrite();
+    EXPECT_EQ(0, lock.numPendingWriters()); //no other pending writers
+    EXPECT_TRUE(lock.isWriteLocked());
+    lock.unlockWrite();
+    EXPECT_FALSE(lock.isLocked());
+    EXPECT_FALSE(lock.isReadLocked());
+    EXPECT_FALSE(lock.isWriteLocked());
+    EXPECT_EQ(0, lock.numReaders());
+    t.join();
+}
+
+TEST(ReadWriteSpinLock, UpgradeSingleReader)
+{
+    ReadWriteSpinLock lock;
+    lock.lockRead();
+    lock.unlockWrite(); //no-op
+    EXPECT_TRUE(lock.isReadLocked());
+    lock.upgradeToWrite();
+    EXPECT_EQ(0, lock.numPendingWriters()); //upgrade was direct to write (no pending)
+    EXPECT_TRUE(lock.isWriteLocked());
+    lock.unlockRead(); //no-op
+    EXPECT_TRUE(lock.isWriteLocked());
+    lock.unlockWrite();
+    EXPECT_FALSE(lock.isLocked());
+    EXPECT_FALSE(lock.isReadLocked());
+    EXPECT_FALSE(lock.isWriteLocked());
+    EXPECT_EQ(0, lock.numReaders());
+}
+
+TEST(ReadWriteSpinLock, TryUpgradeSingleReader)
+{
+    ReadWriteSpinLock lock;
+    lock.lockRead();
+    lock.unlockWrite(); //no-op
+    EXPECT_TRUE(lock.isReadLocked());
+    EXPECT_TRUE(lock.tryUpgradeToWrite());
+    EXPECT_TRUE(lock.isWriteLocked());
+    lock.unlockWrite();
+    EXPECT_FALSE(lock.isLocked());
+}
+
+TEST(ReadWriteSpinLock, UpgradeMultipleReaders)
+{
+    ReadWriteSpinLock lock;
+    lock.lockRead();
+    lock.lockRead();
+    EXPECT_TRUE(lock.isReadLocked());
+    EXPECT_FALSE(lock.tryUpgradeToWrite()); //2 readers is impossible
+    EXPECT_FALSE(lock.isWriteLocked());
+    lock.unlockRead(); //only a single reader left
+    EXPECT_EQ(1, lock.numReaders());
+    
+    //start a bunch of parallel readers which will then upgrade to writers
+    std::vector<std::thread> threads;
+    auto timeToWake = std::chrono::system_clock::now() + std::chrono::milliseconds(10);
+    std::atomic_int count{0};
+    for (int i = 0; i < 10; ++i) {
+        threads.emplace_back([&lock, &timeToWake, &count]() {
+            lock.lockRead();
+            ++count;
+            std::this_thread::sleep_until(timeToWake);
+            lock.upgradeToWrite();
+            std::this_thread::sleep_for(std::chrono::milliseconds(10));
+            EXPECT_GE(lock.numPendingWriters(), 0);
+            EXPECT_TRUE(lock.isWriteLocked());
+            lock.unlockWrite();
+        });
+    }
+    while (count < 10) {
+        //wait for threads to lock read
+        std::this_thread::sleep_for(std::chrono::milliseconds(10));
+    }
+    lock.upgradeToWrite(); //this will block waiting for the other threads to finish
+    EXPECT_TRUE(lock.isWriteLocked());
+    lock.unlockWrite();
+    for (auto&& t : threads) {
+        t.join();
+    }
+    EXPECT_EQ(0, lock.numReaders());
+    EXPECT_EQ(0, lock.numPendingWriters());
+    EXPECT_FALSE(lock.isLocked());
+}
+
+TEST(ReadWriteSpinLock, UpgradingBlockedMultipleReaders)
+{
+    std::vector<int> values;
+    ReadWriteSpinLock lock;
+    lock.lockRead();
+    lock.lockRead();
+    
+    //start a bunch of parallel readers which will then upgrade to writers
+    std::vector<std::thread> threads;
+    auto timeToWake = std::chrono::system_clock::now() + std::chrono::milliseconds(10);
+    std::atomic_int count{0};
+    for (int i = 0; i < 10; ++i) {
+        threads.emplace_back([&lock, &timeToWake, &values, &count, i]() {
+            if (i == 9) {
+                while (count < 9) {
+                    //make sure all other readers are blocked
+                    std::this_thread::sleep_for(std::chrono::milliseconds(10));
+                }
+                lock.unlockRead(); //unblock the pending writer
+            }
+            else {
+                std::this_thread::sleep_until(timeToWake);
+                ++count;
+                lock.lockRead(); //this will block until the writer upgrades
+                lock.upgradeToWrite();
+                values.push_back(i);
+                lock.unlockWrite();
+            }
+        });
+    }
+    //this will block waiting for the other threads to finish
+    lock.upgradeToWrite();
+    EXPECT_TRUE(lock.isWriteLocked());
+    values.push_back(-1);
+    lock.unlockWrite();
+    for (auto&& t : threads) {
+        t.join();
+    }
+    EXPECT_EQ(0, lock.numReaders());
+    EXPECT_EQ(0, lock.numPendingWriters());
+    EXPECT_FALSE(lock.isLocked());
+    EXPECT_EQ(-1, values.front());
 }
 
 //==============================================================================

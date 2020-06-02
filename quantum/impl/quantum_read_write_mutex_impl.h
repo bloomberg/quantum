@@ -81,6 +81,29 @@ bool ReadWriteMutex::tryLockWrite()
 }
 
 inline
+void ReadWriteMutex::upgradeToWrite()
+{
+    //Application must use the other upgradeToWrite() overload if we are running inside a coroutine
+    assert(!local::context());
+    upgradeToWrite(nullptr);
+}
+
+inline
+void ReadWriteMutex::upgradeToWrite(ICoroSync::Ptr sync)
+{
+    while (!tryUpgradeToWrite())
+    {
+        yield(sync);
+    }
+}
+
+inline
+bool ReadWriteMutex::tryUpgradeToWrite()
+{
+    return _spinlock.tryUpgradeToWrite();
+}
+
+inline
 void ReadWriteMutex::unlockRead()
 {
     _spinlock.unlockRead();
@@ -121,6 +144,12 @@ int ReadWriteMutex::numReaders() const
     return _spinlock.numReaders();
 }
 
+inline
+int ReadWriteMutex::numPendingWriters() const
+{
+    return _spinlock.numPendingWriters();
+}
+
 //==============================================================================================
 //                                class ReadGuard
 //==============================================================================================
@@ -128,13 +157,16 @@ inline
 ReadWriteMutex::ReadGuard::ReadGuard(ReadWriteMutex& lock) :
     ReadWriteMutex::ReadGuard::ReadGuard(nullptr, lock)
 {
+    //Application must use the other constructor overload if we are running inside a coroutine
+    assert(!local::context());
 }
 
 inline
 ReadWriteMutex::ReadGuard::ReadGuard(ICoroSync::Ptr sync,
                                      ReadWriteMutex& lock) :
     _mutex(&lock),
-    _ownsLock(true)
+    _ownsLock(true),
+    _isUpgraded(false)
 {
     _mutex->lockRead(sync);
 }
@@ -143,7 +175,8 @@ inline
 ReadWriteMutex::ReadGuard::ReadGuard(ReadWriteMutex& lock,
                                      ReadWriteMutex::TryToLock) :
     _mutex(&lock),
-    _ownsLock(_mutex->tryLockRead())
+    _ownsLock(_mutex->tryLockRead()),
+    _isUpgraded(false)
 {
 }
 
@@ -151,27 +184,31 @@ inline
 ReadWriteMutex::ReadGuard::ReadGuard(ReadWriteMutex& lock,
                                      ReadWriteMutex::AdoptLock) :
     _mutex(&lock),
-    _ownsLock(true)
+    _ownsLock(lock.isLocked()),
+    _isUpgraded(lock.isWriteLocked())
 {
 }
 
 inline
 ReadWriteMutex::ReadGuard::~ReadGuard()
 {
-    unlock();
+    if (ownsLock()) {
+        unlock();
+    }
 }
 
 inline
 void ReadWriteMutex::ReadGuard::lock()
 {
+    //Application must use the other lock() overload if we are running inside a coroutine
+    assert(!local::context());
     lock(nullptr);
 }
 
 inline
 void ReadWriteMutex::ReadGuard::lock(ICoroSync::Ptr sync)
 {
-    if (_ownsLock) return;
-    assert(_mutex);
+    assert(_mutex && !ownsLock());
     _mutex->lockRead(sync);
     _ownsLock = true;
 }
@@ -180,24 +217,54 @@ inline
 bool ReadWriteMutex::ReadGuard::tryLock()
 {
     
-    if (_ownsLock) return true;
-    assert(_mutex);
+    assert(_mutex && !ownsLock());
     _ownsLock = _mutex->tryLockRead();
     return _ownsLock;
 }
 
 inline
+void ReadWriteMutex::ReadGuard::upgradeToWrite()
+{
+    //Application must use the other upgradeToWrite() overload if we are running inside a coroutine
+    assert(!local::context());
+    upgradeToWrite(nullptr);
+}
+
+inline
+void ReadWriteMutex::ReadGuard::upgradeToWrite(ICoroSync::Ptr sync)
+{
+    assert(_mutex && ownsReadLock());
+    _mutex->upgradeToWrite(sync);
+    _isUpgraded = true;
+}
+
+inline
+bool ReadWriteMutex::ReadGuard::tryUpgradeToWrite()
+{
+    assert(_mutex && ownsReadLock());
+    _isUpgraded = _mutex->tryUpgradeToWrite();
+    return _isUpgraded;
+}
+
+inline
 void ReadWriteMutex::ReadGuard::unlock()
 {
-    if (!_ownsLock) return;
-    _mutex->unlockRead();
+    assert(_mutex && ownsLock());
+    if (ownsReadLock()) {
+        _mutex->unlockRead();
+    }
+    else {
+        _mutex->unlockWrite();
+    }
     _ownsLock = false;
+    _isUpgraded = false;
 }
 
 inline
 void ReadWriteMutex::ReadGuard::release()
 {
     _ownsLock = false;
+    _isUpgraded = false;
     _mutex = nullptr;
 }
 
@@ -207,6 +274,18 @@ bool ReadWriteMutex::ReadGuard::ownsLock() const
     return _ownsLock;
 }
 
+inline
+bool ReadWriteMutex::ReadGuard::ownsReadLock() const
+{
+    return _ownsLock && !_isUpgraded;
+}
+
+inline
+bool ReadWriteMutex::ReadGuard::ownsWriteLock() const
+{
+    return _ownsLock && _isUpgraded;
+}
+
 //==============================================================================================
 //                                class WriteGuard
 //==============================================================================================
@@ -214,6 +293,8 @@ inline
 ReadWriteMutex::WriteGuard::WriteGuard(ReadWriteMutex& lock) :
     ReadWriteMutex::WriteGuard::WriteGuard(nullptr, lock)
 {
+    //Application must use the other constructor overload if we are running inside a coroutine
+    assert(!local::context());
 }
 
 inline
@@ -237,28 +318,30 @@ inline
 ReadWriteMutex::WriteGuard::WriteGuard(ReadWriteMutex& lock,
                                        ReadWriteMutex::AdoptLock) :
     _mutex(&lock),
-    _ownsLock(true)
+    _ownsLock(lock.isWriteLocked())
 {
-    assert(!_mutex->tryLockWrite());
 }
 
 inline
 ReadWriteMutex::WriteGuard::~WriteGuard()
 {
-    unlock();
+    if (ownsLock()) {
+        unlock();
+    }
 }
 
 inline
 void ReadWriteMutex::WriteGuard::lock()
 {
+    //Application must use the other lock() overload if we are running inside a coroutine
+    assert(!local::context());
     lock(nullptr);
 }
 
 inline
 void ReadWriteMutex::WriteGuard::lock(ICoroSync::Ptr sync)
 {
-    if (_ownsLock) return;
-    assert(_mutex);
+    assert(_mutex && !ownsLock());
     _mutex->lockWrite(sync);
     _ownsLock = true;
 }
@@ -266,9 +349,7 @@ void ReadWriteMutex::WriteGuard::lock(ICoroSync::Ptr sync)
 inline
 bool ReadWriteMutex::WriteGuard::tryLock()
 {
-    
-    if (_ownsLock) return true;
-    assert(_mutex);
+    assert(_mutex && !ownsLock());
     _ownsLock = _mutex->tryLockWrite();
     return _ownsLock;
 }
@@ -276,7 +357,7 @@ bool ReadWriteMutex::WriteGuard::tryLock()
 inline
 void ReadWriteMutex::WriteGuard::unlock()
 {
-    if (!_ownsLock) return;
+    assert(_mutex && ownsLock());
     _mutex->unlockWrite();
     _ownsLock = false;
 }
