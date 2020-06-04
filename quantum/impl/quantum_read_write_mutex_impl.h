@@ -25,7 +25,7 @@ namespace quantum {
 void yield(ICoroSync::Ptr sync);
 
 //==============================================================================================
-//                                class ReadWriteMutex
+//                                 ReadWriteMutex
 //==============================================================================================
 inline
 void ReadWriteMutex::lockRead()
@@ -151,19 +151,30 @@ int ReadWriteMutex::numPendingWriters() const
 }
 
 //==============================================================================================
-//                                class ReadGuard
+//                                 ReadWriteMutex::Guard
 //==============================================================================================
 inline
-ReadWriteMutex::ReadGuard::ReadGuard(ReadWriteMutex& lock) :
-    ReadWriteMutex::ReadGuard::ReadGuard(nullptr, lock)
+ReadWriteMutex::Guard::Guard(ReadWriteMutex& lock,
+                             LockTraits::AcquireRead acquire) :
+    ReadWriteMutex::Guard::Guard(nullptr, lock, acquire)
 {
     //Application must use the other constructor overload if we are running inside a coroutine
     assert(!local::context());
 }
 
 inline
-ReadWriteMutex::ReadGuard::ReadGuard(ICoroSync::Ptr sync,
-                                     ReadWriteMutex& lock) :
+ReadWriteMutex::Guard::Guard(ReadWriteMutex& lock,
+                             LockTraits::AcquireWrite acquire) :
+    ReadWriteMutex::Guard::Guard(nullptr, lock, acquire)
+{
+    //Application must use the other constructor overload if we are running inside a coroutine
+    assert(!local::context());
+}
+
+inline
+ReadWriteMutex::Guard::Guard(ICoroSync::Ptr sync,
+                             ReadWriteMutex& lock,
+                             LockTraits::AcquireRead) :
     _mutex(&lock),
     _ownsLock(true),
     _isUpgraded(false)
@@ -172,8 +183,20 @@ ReadWriteMutex::ReadGuard::ReadGuard(ICoroSync::Ptr sync,
 }
 
 inline
-ReadWriteMutex::ReadGuard::ReadGuard(ReadWriteMutex& lock,
-                                     ReadWriteMutex::TryToLock) :
+ReadWriteMutex::Guard::Guard(ICoroSync::Ptr sync,
+                             ReadWriteMutex& lock,
+                             LockTraits::AcquireWrite) :
+    _mutex(&lock),
+    _ownsLock(true),
+    _isUpgraded(true)
+{
+    _mutex->lockWrite(sync);
+}
+
+inline
+ReadWriteMutex::Guard::Guard(ReadWriteMutex& lock,
+                             LockTraits::AcquireRead,
+                             LockTraits::TryToLock) :
     _mutex(&lock),
     _ownsLock(_mutex->tryLockRead()),
     _isUpgraded(false)
@@ -181,8 +204,18 @@ ReadWriteMutex::ReadGuard::ReadGuard(ReadWriteMutex& lock,
 }
 
 inline
-ReadWriteMutex::ReadGuard::ReadGuard(ReadWriteMutex& lock,
-                                     ReadWriteMutex::AdoptLock) :
+ReadWriteMutex::Guard::Guard(ReadWriteMutex& lock,
+                             LockTraits::AcquireWrite,
+                             LockTraits::TryToLock) :
+    _mutex(&lock),
+    _ownsLock(_mutex->tryLockWrite()),
+    _isUpgraded(_ownsLock)
+{
+}
+
+inline
+ReadWriteMutex::Guard::Guard(ReadWriteMutex& lock,
+                             LockTraits::AdoptLock) :
     _mutex(&lock),
     _ownsLock(lock.isLocked()),
     _isUpgraded(lock.isWriteLocked())
@@ -190,7 +223,7 @@ ReadWriteMutex::ReadGuard::ReadGuard(ReadWriteMutex& lock,
 }
 
 inline
-ReadWriteMutex::ReadGuard::~ReadGuard()
+ReadWriteMutex::Guard::~Guard()
 {
     if (ownsLock()) {
         unlock();
@@ -198,23 +231,40 @@ ReadWriteMutex::ReadGuard::~ReadGuard()
 }
 
 inline
-void ReadWriteMutex::ReadGuard::lock()
+void ReadWriteMutex::Guard::lockRead()
 {
     //Application must use the other lock() overload if we are running inside a coroutine
     assert(!local::context());
-    lock(nullptr);
+    lockRead(nullptr);
 }
 
 inline
-void ReadWriteMutex::ReadGuard::lock(ICoroSync::Ptr sync)
+void ReadWriteMutex::Guard::lockWrite()
+{
+    //Application must use the other lock() overload if we are running inside a coroutine
+    assert(!local::context());
+    lockWrite(nullptr);
+}
+
+inline
+void ReadWriteMutex::Guard::lockRead(ICoroSync::Ptr sync)
 {
     assert(_mutex && !ownsLock());
     _mutex->lockRead(sync);
     _ownsLock = true;
+    _isUpgraded = false;
 }
 
 inline
-bool ReadWriteMutex::ReadGuard::tryLock()
+void ReadWriteMutex::Guard::lockWrite(ICoroSync::Ptr sync)
+{
+    assert(_mutex && !ownsLock());
+    _mutex->lockWrite(sync);
+    _ownsLock = _isUpgraded = true;
+}
+
+inline
+bool ReadWriteMutex::Guard::tryLockRead()
 {
     
     assert(_mutex && !ownsLock());
@@ -223,7 +273,16 @@ bool ReadWriteMutex::ReadGuard::tryLock()
 }
 
 inline
-void ReadWriteMutex::ReadGuard::upgradeToWrite()
+bool ReadWriteMutex::Guard::tryLockWrite()
+{
+    
+    assert(_mutex && !ownsLock());
+    _ownsLock = _isUpgraded = _mutex->tryLockWrite();
+    return _ownsLock;
+}
+
+inline
+void ReadWriteMutex::Guard::upgradeToWrite()
 {
     //Application must use the other upgradeToWrite() overload if we are running inside a coroutine
     assert(!local::context());
@@ -231,7 +290,7 @@ void ReadWriteMutex::ReadGuard::upgradeToWrite()
 }
 
 inline
-void ReadWriteMutex::ReadGuard::upgradeToWrite(ICoroSync::Ptr sync)
+void ReadWriteMutex::Guard::upgradeToWrite(ICoroSync::Ptr sync)
 {
     assert(_mutex && ownsReadLock());
     _mutex->upgradeToWrite(sync);
@@ -239,7 +298,7 @@ void ReadWriteMutex::ReadGuard::upgradeToWrite(ICoroSync::Ptr sync)
 }
 
 inline
-bool ReadWriteMutex::ReadGuard::tryUpgradeToWrite()
+bool ReadWriteMutex::Guard::tryUpgradeToWrite()
 {
     assert(_mutex && ownsReadLock());
     _isUpgraded = _mutex->tryUpgradeToWrite();
@@ -247,7 +306,7 @@ bool ReadWriteMutex::ReadGuard::tryUpgradeToWrite()
 }
 
 inline
-void ReadWriteMutex::ReadGuard::unlock()
+void ReadWriteMutex::Guard::unlock()
 {
     assert(_mutex && ownsLock());
     if (ownsReadLock()) {
@@ -256,123 +315,32 @@ void ReadWriteMutex::ReadGuard::unlock()
     else {
         _mutex->unlockWrite();
     }
-    _ownsLock = false;
-    _isUpgraded = false;
+    _ownsLock = _isUpgraded = false;
 }
 
 inline
-void ReadWriteMutex::ReadGuard::release()
+void ReadWriteMutex::Guard::release()
 {
-    _ownsLock = false;
-    _isUpgraded = false;
+    _ownsLock = _isUpgraded = false;
     _mutex = nullptr;
 }
 
 inline
-bool ReadWriteMutex::ReadGuard::ownsLock() const
+bool ReadWriteMutex::Guard::ownsLock() const
 {
     return _ownsLock;
 }
 
 inline
-bool ReadWriteMutex::ReadGuard::ownsReadLock() const
+bool ReadWriteMutex::Guard::ownsReadLock() const
 {
     return _ownsLock && !_isUpgraded;
 }
 
 inline
-bool ReadWriteMutex::ReadGuard::ownsWriteLock() const
+bool ReadWriteMutex::Guard::ownsWriteLock() const
 {
     return _ownsLock && _isUpgraded;
-}
-
-//==============================================================================================
-//                                class WriteGuard
-//==============================================================================================
-inline
-ReadWriteMutex::WriteGuard::WriteGuard(ReadWriteMutex& lock) :
-    ReadWriteMutex::WriteGuard::WriteGuard(nullptr, lock)
-{
-    //Application must use the other constructor overload if we are running inside a coroutine
-    assert(!local::context());
-}
-
-inline
-ReadWriteMutex::WriteGuard::WriteGuard(ICoroSync::Ptr sync,
-                                       ReadWriteMutex& lock) :
-    _mutex(&lock),
-    _ownsLock(true)
-{
-    _mutex->lockWrite(sync);
-}
-
-inline
-ReadWriteMutex::WriteGuard::WriteGuard(ReadWriteMutex& lock,
-                                       ReadWriteMutex::TryToLock) :
-    _mutex(&lock),
-    _ownsLock(_mutex->tryLockWrite())
-{
-}
-
-inline
-ReadWriteMutex::WriteGuard::WriteGuard(ReadWriteMutex& lock,
-                                       ReadWriteMutex::AdoptLock) :
-    _mutex(&lock),
-    _ownsLock(lock.isWriteLocked())
-{
-}
-
-inline
-ReadWriteMutex::WriteGuard::~WriteGuard()
-{
-    if (ownsLock()) {
-        unlock();
-    }
-}
-
-inline
-void ReadWriteMutex::WriteGuard::lock()
-{
-    //Application must use the other lock() overload if we are running inside a coroutine
-    assert(!local::context());
-    lock(nullptr);
-}
-
-inline
-void ReadWriteMutex::WriteGuard::lock(ICoroSync::Ptr sync)
-{
-    assert(_mutex && !ownsLock());
-    _mutex->lockWrite(sync);
-    _ownsLock = true;
-}
-
-inline
-bool ReadWriteMutex::WriteGuard::tryLock()
-{
-    assert(_mutex && !ownsLock());
-    _ownsLock = _mutex->tryLockWrite();
-    return _ownsLock;
-}
-
-inline
-void ReadWriteMutex::WriteGuard::unlock()
-{
-    assert(_mutex && ownsLock());
-    _mutex->unlockWrite();
-    _ownsLock = false;
-}
-
-inline
-void ReadWriteMutex::WriteGuard::release()
-{
-    _ownsLock = false;
-    _mutex = nullptr;
-}
-
-inline
-bool ReadWriteMutex::WriteGuard::ownsLock() const
-{
-    return _ownsLock;
 }
 
 }}

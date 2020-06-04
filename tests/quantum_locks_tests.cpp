@@ -144,28 +144,28 @@ TEST(ReadWriteSpinLock, LockReadAndWrite)
     ReadWriteSpinLock spin;
     std::thread t1([&, num]() mutable {
         while (num--) {
-            ReadWriteSpinLock::ReadGuard guard(spin);
+            ReadWriteSpinLock::Guard guard(spin, lock::acquireRead);
         }
     });
     std::thread t2([&, num]() mutable {
         while (num--) {
-            ReadWriteSpinLock::ReadGuard guard(spin);
+            ReadWriteSpinLock::Guard guard(spin, lock::acquireRead);
         }
     });
     std::thread t3([&, num]() mutable {
         while (num--) {
-            ReadWriteSpinLock::ReadGuard guard(spin);
+            ReadWriteSpinLock::Guard guard(spin, lock::acquireRead);
         }
     });
     std::thread t4([&, num]() mutable {
         while (num--) {
-            ReadWriteSpinLock::WriteGuard guard(spin);
+            ReadWriteSpinLock::Guard guard(spin, lock::acquireWrite);
             ++val;
         }
     });
     std::thread t5([&, num]() mutable {
         while (num--) {
-            ReadWriteSpinLock::WriteGuard guard(spin);
+            ReadWriteSpinLock::Guard guard(spin, lock::acquireWrite);
             --val;
         }
     });
@@ -185,34 +185,34 @@ TEST(ReadWriteSpinLock, LockReadAndWriteList)
     bool exit = false;
     std::thread t1([&]() mutable {
         while (!exit) {
-            ReadWriteSpinLock::ReadGuard guard(spin);
+            ReadWriteSpinLock::Guard guard(spin, lock::acquireRead);
             auto it = val.rbegin();
             if (it != val.rend()) --it;
         }
     });
     std::thread t2([&]() mutable {
         while (!exit) {
-            ReadWriteSpinLock::ReadGuard guard(spin);
+            ReadWriteSpinLock::Guard guard(spin, lock::acquireRead);
             auto it = val.rbegin();
             if (it != val.rend()) --it;
         }
     });
     std::thread t3([&]() mutable {
         while (!exit) {
-            ReadWriteSpinLock::ReadGuard guard(spin);
+            ReadWriteSpinLock::Guard guard(spin, lock::acquireRead);
             auto it = val.rbegin();
             if (it != val.rend()) --it;
         }
     });
     std::thread t4([&, num]() mutable {
         while (num--) {
-            ReadWriteSpinLock::WriteGuard guard(spin);
+            ReadWriteSpinLock::Guard guard(spin, lock::acquireWrite);
             val.push_back(1);
         }
     });
     std::thread t5([&, num]() mutable {
         while (num) {
-            ReadWriteSpinLock::WriteGuard guard(spin);
+            ReadWriteSpinLock::Guard guard(spin, lock::acquireWrite);
             if (!val.empty()) {
                 val.pop_back();
                 --num;
@@ -292,69 +292,69 @@ TEST(ReadWriteSpinLock, Guards)
 
     ASSERT_FALSE(lock.isLocked());
 
-    // ReadGuard
+    // Guard
     {
-        ReadWriteSpinLock::ReadGuard guard(lock);
+        ReadWriteSpinLock::Guard guard(lock, lock::acquireRead);
         EXPECT_TRUE(lock.isReadLocked());
     }
     EXPECT_FALSE(lock.isLocked());
 
-    // ReadGuard, TryLock
+    // Guard, TryLock
     {
-        ReadWriteSpinLock::ReadGuard guard(lock, ReadWriteSpinLock::TryToLock());
+        ReadWriteSpinLock::Guard guard(lock, lock::acquireRead, lock::tryToLock);
         EXPECT_TRUE(lock.isReadLocked());
     }
     EXPECT_FALSE(lock.isLocked());
 
     // WriteGuard
     {
-        ReadWriteSpinLock::WriteGuard guard(lock);
+        ReadWriteSpinLock::Guard guard(lock, lock::acquireWrite);
         EXPECT_TRUE(lock.isWriteLocked());
     }
     EXPECT_FALSE(lock.isLocked());
 
     // WriteGuard, TryLock
     {
-        ReadWriteSpinLock::WriteGuard guard(lock, ReadWriteSpinLock::TryToLock());
+        ReadWriteSpinLock::Guard guard(lock, lock::acquireWrite, lock::tryToLock);
         EXPECT_TRUE(lock.isWriteLocked());
     }
     EXPECT_FALSE(lock.isLocked());
 
-    // ReadGuard, WriteGuard, TryLock (fails)
+    // Guard, WriteGuard, TryLock (fails)
     {
-        ReadWriteSpinLock::ReadGuard guard(lock);
+        ReadWriteSpinLock::Guard guard(lock, lock::acquireRead);
         EXPECT_TRUE(lock.isReadLocked());
-        ReadWriteSpinLock::WriteGuard writeGuard(lock, ReadWriteSpinLock::TryToLock());
+        ReadWriteSpinLock::Guard writeGuard(lock, lock::acquireWrite, lock::tryToLock);
         EXPECT_FALSE(lock.isWriteLocked());
     }
     EXPECT_FALSE(lock.isLocked());
 
-    // ReadGuard, unlock, WriteGuard
+    // Guard, unlock, WriteGuard
     {
-        ReadWriteSpinLock::ReadGuard guard(lock);
+        ReadWriteSpinLock::Guard guard(lock, lock::acquireRead);
         EXPECT_TRUE(lock.isReadLocked());
         guard.unlock();
         EXPECT_FALSE(lock.isLocked());
-        ReadWriteSpinLock::WriteGuard writeGuard(lock, ReadWriteSpinLock::TryToLock());
+        ReadWriteSpinLock::Guard writeGuard(lock, lock::acquireWrite, lock::tryToLock);
         EXPECT_TRUE(lock.isWriteLocked());
     }
     EXPECT_FALSE(lock.isLocked());
 
-    // ReadGuard, unlock, WriteGuard, unlock
+    // Guard, unlock, WriteGuard, unlock
     {
-        ReadWriteSpinLock::ReadGuard guard(lock);
+        ReadWriteSpinLock::Guard guard(lock, lock::acquireRead);
         EXPECT_TRUE(lock.isReadLocked());
         guard.unlock();
         EXPECT_FALSE(lock.isLocked());
-        ReadWriteSpinLock::WriteGuard writeGuard(lock, ReadWriteSpinLock::TryToLock());
+        ReadWriteSpinLock::Guard writeGuard(lock, lock::acquireWrite, lock::tryToLock);
         EXPECT_TRUE(lock.isWriteLocked());
         writeGuard.unlock();
         EXPECT_FALSE(lock.isLocked());
     }
     
-    // ReadGuard upgrade to Write
+    // Guard upgrade to Write
     {
-        ReadWriteSpinLock::ReadGuard guard(lock);
+        ReadWriteSpinLock::Guard guard(lock, lock::acquireRead);
         EXPECT_TRUE(lock.isReadLocked());
         EXPECT_TRUE(guard.ownsReadLock());
         EXPECT_FALSE(guard.ownsWriteLock());
@@ -570,61 +570,61 @@ TEST(ReadWriteMutex, Guards)
 
     ASSERT_FALSE(mutex.isLocked());
 
-    // ReadGuard
+    // Guard
     {
-        ReadWriteMutex::ReadGuard guard(mutex);
+        ReadWriteMutex::Guard guard(mutex, lock::acquireRead);
         EXPECT_TRUE(mutex.isReadLocked());
     }
     EXPECT_FALSE(mutex.isLocked());
 
-    // ReadGuard, TryLock
+    // Guard, TryLock
     {
-        ReadWriteMutex::ReadGuard guard(mutex, ReadWriteMutex::TryToLock());
+        ReadWriteMutex::Guard guard(mutex, lock::acquireRead, lock::tryToLock);
         EXPECT_TRUE(mutex.isReadLocked());
     }
     EXPECT_FALSE(mutex.isLocked());
 
     // WriteGuard
     {
-        ReadWriteMutex::WriteGuard guard(mutex);
+        ReadWriteMutex::Guard guard(mutex, lock::acquireWrite);
         EXPECT_TRUE(mutex.isWriteLocked());
     }
     EXPECT_FALSE(mutex.isLocked());
 
     // WriteGuard, TryLock
     {
-        ReadWriteMutex::WriteGuard guard(mutex, ReadWriteMutex::TryToLock());
+        ReadWriteMutex::Guard writeGuard(mutex, lock::acquireWrite, lock::tryToLock);
         EXPECT_TRUE(mutex.isWriteLocked());
     }
     EXPECT_FALSE(mutex.isLocked());
 
-    // ReadGuard, WriteGuard, TryLock (fails)
+    // Guard, WriteGuard, TryLock (fails)
     {
-        ReadWriteMutex::ReadGuard guard(mutex);
+        ReadWriteMutex::Guard guard(mutex, lock::acquireRead);
         EXPECT_TRUE(mutex.isReadLocked());
-        ReadWriteMutex::WriteGuard writeGuard(mutex, ReadWriteMutex::TryToLock());
+        ReadWriteMutex::Guard writeGuard(mutex, lock::acquireWrite, lock::tryToLock);
         EXPECT_FALSE(mutex.isWriteLocked());
     }
     EXPECT_FALSE(mutex.isLocked());
 
-    // ReadGuard, unlock, WriteGuard
+    // Guard, unlock, WriteGuard
     {
-        ReadWriteMutex::ReadGuard guard(mutex);
+        ReadWriteMutex::Guard guard(mutex, lock::acquireRead);
         EXPECT_TRUE(mutex.isReadLocked());
         guard.unlock();
         EXPECT_FALSE(mutex.isLocked());
-        ReadWriteMutex::WriteGuard writeGuard(mutex, ReadWriteMutex::TryToLock());
+        ReadWriteMutex::Guard writeGuard(mutex, lock::acquireWrite, lock::tryToLock);
         EXPECT_TRUE(mutex.isWriteLocked());
     }
     EXPECT_FALSE(mutex.isLocked());
 
-    // ReadGuard, unlock, WriteGuard, unlock
+    // Guard, unlock, WriteGuard, unlock
     {
-        ReadWriteMutex::ReadGuard guard(mutex);
+        ReadWriteMutex::Guard guard(mutex, lock::acquireRead);
         EXPECT_TRUE(mutex.isReadLocked());
         guard.unlock();
         EXPECT_FALSE(mutex.isLocked());
-        ReadWriteMutex::WriteGuard writeGuard(mutex, ReadWriteMutex::TryToLock());
+        ReadWriteMutex::Guard writeGuard(mutex, lock::acquireWrite, lock::tryToLock);
         EXPECT_TRUE(mutex.isWriteLocked());
         writeGuard.unlock();
         EXPECT_FALSE(mutex.isLocked());
@@ -639,7 +639,7 @@ TEST(ReadWriteMutex, MultipleReadLocks) {
     ASSERT_FALSE(mutex.isLocked());
     
     auto getReadLock = [&]() {
-        ReadWriteMutex::ReadGuard guard(mutex);
+        ReadWriteMutex::Guard guard(mutex, lock::acquireRead);
         while (run) {}
     };
     

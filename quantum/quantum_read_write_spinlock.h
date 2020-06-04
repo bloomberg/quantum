@@ -25,9 +25,6 @@ namespace quantum {
 class ReadWriteSpinLock
 {
 public:
-    using TryToLock = std::try_to_lock_t;
-    using AdoptLock = std::adopt_lock_t;
-    
     /// @brief Spinlock is in unlocked state
     ReadWriteSpinLock() = default;
     
@@ -94,36 +91,47 @@ public:
     /// @return The number of writers.
     int numPendingWriters() const;
     
-    class ReadGuard
+    class Guard
     {
     public:
         /// @brief Construct this object and lock the passed-in spinlock as a reader.
         /// @param[in] lock ReadWriteSpinLock which protects a scope during the lifetime of the Guard.
+        /// @param[in] acquire Determines the type of ownership.
         /// @note Blocks the current thread until the spinlock is acquired.
-        explicit ReadGuard(ReadWriteSpinLock& lock);
+        Guard(ReadWriteSpinLock& lock,
+              LockTraits::AcquireRead acquire);
+        Guard(ReadWriteSpinLock& lock,
+              LockTraits::AcquireWrite acquire);
         
         /// @brief Construct this object and tries to lock the passed-in spinlock as a reader.
         /// @param[in] lock ReadWriteSpinLock which protects a scope during the lifetime of the Guard.
+        /// @param[in] acquire Determines the type of ownership.
         /// @note Attempts to lock the spinlock. Does not block.
-        ReadGuard(ReadWriteSpinLock& lock,
-                  ReadWriteSpinLock::TryToLock);
+        Guard(ReadWriteSpinLock& lock,
+              LockTraits::AcquireRead acquire,
+              LockTraits::TryToLock);
+        Guard(ReadWriteSpinLock& lock,
+              LockTraits::AcquireWrite acquire,
+              LockTraits::TryToLock);
         
         /// @brief Construct this object and assumes the current state of the lock w/o modifying it.
         /// @param[in] lock ReadWriteSpinLock which protects a scope during the lifetime of the Guard.
-        ReadGuard(ReadWriteSpinLock& lock,
-                  ReadWriteSpinLock::AdoptLock);
+        Guard(ReadWriteSpinLock& lock,
+              LockTraits::AdoptLock);
         
         /// @brief Destroy this object and unlock the underlying spinlock.
-        ~ReadGuard();
+        ~Guard();
         
         /// @brief Acquire the underlying spinlock.
         /// @note Blocks.
-        void lock();
+        void lockRead();
+        void lockWrite();
         
         /// @brief Try to acquire the underlying spinlock.
         /// @return True if spinlock is locked, false otherwise.
         /// @note Does not block.
-        bool tryLock();
+        bool tryLockRead();
+        bool tryLockWrite();
         
         /// @brief Upgrade this reader to a writer atomically.
         /// @note Blocks until upgrade is performed.
@@ -148,48 +156,6 @@ public:
         ReadWriteSpinLock&	_spinlock;
         bool                _ownsLock{false};
         bool                _isUpgraded{false};
-    };
-    
-    class WriteGuard
-    {
-    public:
-        /// @brief Construct this object and lock the passed-in spinlock as a writer.
-        /// @param[in] lock ReadWriteSpinLock which protects a scope during the lifetime of the Guard.
-        /// @note Blocks the current thread until the spinlock is acquired.
-        explicit WriteGuard(ReadWriteSpinLock& lock);
-        
-        /// @brief Construct this object and tries to lock the passed-in spinlock as a writer.
-        /// @param[in] lock ReadWriteSpinLock which protects a scope during the lifetime of the Guard.
-        /// @note Attempts to lock the spinlock. Does not block.
-        WriteGuard(ReadWriteSpinLock& lock,
-                   ReadWriteSpinLock::TryToLock);
-        
-        /// @brief Construct this object and assumes the current state of the lock w/o modifying it.
-        /// @param[in] lock ReadWriteSpinLock which protects a scope during the lifetime of the Guard.
-        WriteGuard(ReadWriteSpinLock& lock,
-                   ReadWriteSpinLock::AdoptLock);
-        
-        /// @brief Destroy this object and unlock the underlying spinlock.
-        ~WriteGuard();
-        
-        /// @brief Acquire the underlying spinlock.
-        /// @note Blocks.
-        void lock();
-        
-        /// @brief Try to acquire the underlying spinlock.
-        /// @return True if spinlock is locked, false otherwise.
-        /// @note Does not block.
-        bool tryLock();
-        
-        /// @brief Indicates if this object owns the underlying spinlock.
-        /// @return True if ownership is acquired.
-        bool ownsLock() const;
-        
-        /// @brief Unlocks the underlying spinlock
-        void unlock();
-    private:
-        ReadWriteSpinLock&	_spinlock;
-        bool                _ownsLock{false};
     };
     
 private:

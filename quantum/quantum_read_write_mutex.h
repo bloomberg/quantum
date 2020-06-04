@@ -24,9 +24,6 @@ namespace quantum {
 class ReadWriteMutex
 {
 public:
-    using TryToLock = std::try_to_lock_t;
-    using AdoptLock = std::adopt_lock_t;
-
     /// @brief Constructor. The object is in the unlocked state.
     ReadWriteMutex() = default;
 
@@ -110,40 +107,56 @@ public:
     /// @return The number of writers.
     int numPendingWriters() const;
 
-    class ReadGuard
+    class Guard
     {
     public:
-        /// @brief Construct this object and lock the passed-in mutex as a reader.
+        /// @brief Construct this object and lock the passed-in mutex.
         /// @param[in] lock ReadWriteMutex which protects a scope during the lifetime of the Guard.
+        /// @param[in] acquire Determines the type of ownership.
         /// @note Blocks the current thread until the mutex is acquired.
-        explicit ReadGuard(ReadWriteMutex& lock);
-        ReadGuard(ICoroSync::Ptr sync,
-                  ReadWriteMutex& lock);
+        Guard(ReadWriteMutex& lock,
+              LockTraits::AcquireRead acquire);
+        Guard(ReadWriteMutex& lock,
+              LockTraits::AcquireWrite acquire);
+        Guard(ICoroSync::Ptr sync,
+              ReadWriteMutex& lock,
+              LockTraits::AcquireRead acquire);
+        Guard(ICoroSync::Ptr sync,
+              ReadWriteMutex& lock,
+              LockTraits::AcquireWrite acquire);
         
-        /// @brief Construct this object and tries to lock the passed-in mutex as a reader.
+        /// @brief Construct this object and try to lock the passed-in mutex.
         /// @param[in] lock ReadWriteMutex which protects a scope during the lifetime of the Guard.
+        /// @param[in] acquire Determines the type of ownership.
         /// @note Attempts to lock the mutex. Does not block.
-        ReadGuard(ReadWriteMutex& lock,
-                  ReadWriteMutex::TryToLock);
+        Guard(ReadWriteMutex& lock,
+              LockTraits::AcquireRead acquire,
+              LockTraits::TryToLock);
+        Guard(ReadWriteMutex& lock,
+              LockTraits::AcquireWrite acquire,
+              LockTraits::TryToLock);
         
         /// @brief Construct this object and assumes the current state of the lock w/o modifying it.
         /// @param[in] lock ReadWriteMutex which protects a scope during the lifetime of the Guard.
         /// @note Does not block.
-        ReadGuard(ReadWriteMutex& lock,
-                  ReadWriteMutex::AdoptLock);
+        Guard(ReadWriteMutex& lock,
+              LockTraits::AdoptLock);
         
-        /// @brief Destroy this object and unlock the underlying mutex if this object owns it.
-        ~ReadGuard();
+        /// @brief Destroy this object and unlocks the underlying mutex if it has ownership.
+        ~Guard();
         
-        /// @brief Acquire the underlying mutex as a reader.
+        /// @brief Acquire the underlying mutex as reader or writer.
         /// @note Blocks.
-        void lock();
-        void lock(ICoroSync::Ptr sync);
+        void lockRead();
+        void lockRead(ICoroSync::Ptr sync);
+        void lockWrite();
+        void lockWrite(ICoroSync::Ptr sync);
         
         /// @brief Try to acquire the underlying mutex.
         /// @return True if mutex is locked, false otherwise.
         /// @note Does not block.
-        bool tryLock();
+        bool tryLockRead();
+        bool tryLockWrite();
         
         /// @brief Upgrade this reader to a writer.
         /// @note Blocks until upgrade is performed.
@@ -157,8 +170,7 @@ public:
         /// @note The lock must already be owned prior to invoking this function.
         bool tryUpgradeToWrite();
 
-        /// @brief Releases the read lock on the underlying mutex.
-        /// @note Also releases ownership of the underlying mutex.
+        /// @brief Unlocks the underlying mutex if it has ownership.
         void unlock();
         
         /// @brief Release the associated mutex without unlocking it.
@@ -174,56 +186,6 @@ public:
         ReadWriteMutex* _mutex{nullptr};
         bool            _ownsLock{false};
         bool            _isUpgraded{false};
-    };
-    
-    class WriteGuard
-    {
-    public:
-        /// @brief Construct this object and lock the passed-in mutex as a writer.
-        /// @param[in] lock ReadWriteMutex which protects a scope during the lifetime of the Guard.
-        /// @note Blocks the current thread until the mutex is acquired.
-        explicit WriteGuard(ReadWriteMutex& lock);
-        WriteGuard(ICoroSync::Ptr sync,
-                   ReadWriteMutex& lock);
-        
-        /// @brief Construct this object and tries to lock the passed-in mutex as a writer.
-        /// @param[in] lock ReadWriteMutex which protects a scope during the lifetime of the Guard.
-        /// @note Attempts to lock the mutex. Does not block.
-        WriteGuard(ReadWriteMutex& lock,
-                   ReadWriteMutex::TryToLock);
-        
-        /// @brief Construct this object and assumes the current state of the lock w/o modifying it.
-        /// @param[in] lock ReadWriteMutex which protects a scope during the lifetime of the Guard.
-        /// @note: Does no block.
-        WriteGuard(ReadWriteMutex& lock,
-                   ReadWriteMutex::AdoptLock);
-        
-        /// @brief Destroy this object and unlock the underlying mutex if the object owns it.
-        ~WriteGuard();
-        
-        /// @brief Acquire the underlying mutex as a writer.
-        /// @note Blocks.
-        void lock();
-        void lock(ICoroSync::Ptr sync);
-        
-        /// @brief Try to acquire the underlying mutex as a writer.
-        /// @return True if mutex is locked, false otherwise.
-        /// @note Does not block.
-        bool tryLock();
-
-        /// @brief Releases the write lock on the underlying mutex.
-        /// @note Also releases ownership of the underlying mutex.
-        void unlock();
-        
-        /// @brief Release the associated mutex without unlocking it.
-        void release();
-        
-        /// @brief Indicates if this object owns the underlying mutex.
-        /// @return True if ownership is acquired.
-        bool ownsLock() const;
-    private:
-        ReadWriteMutex* _mutex{nullptr};
-        bool            _ownsLock{false};
     };
 
 private:

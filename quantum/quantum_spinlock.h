@@ -16,6 +16,7 @@
 #ifndef BLOOMBERG_QUANTUM_SPINLOCK_H
 #define BLOOMBERG_QUANTUM_SPINLOCK_H
 
+#include <quantum/quantum_spinlock_traits.h>
 #include <atomic>
 #include <mutex>
 
@@ -31,9 +32,6 @@ namespace quantum {
 class SpinLock
 {
 public:
-    using TryToLock = std::try_to_lock_t;
-    using AdoptLock = std::adopt_lock_t;
-    
     /// @brief Spinlock is in unlocked state
     SpinLock() = default;
     
@@ -86,14 +84,14 @@ public:
         /// @param[in] tryLock Tag. Not used.
         /// @note Attempts to lock the spinlock. Does not block.
         Guard(SpinLock& lock,
-              SpinLock::TryToLock tryLock);
+              LockTraits::TryToLock tryLock);
         
         /// @brief Construct this object and assumes the current state of the lock w/o modifying it.
         /// @param[in] lock Spinlock which protects a scope during the lifetime of the Guard.
         /// @param[in] adoptLock Tag. Not used.
         /// @note ownsLock() will always return true.
         Guard(SpinLock& lock,
-              SpinLock::AdoptLock adoptLock);
+              LockTraits::AdoptLock adoptLock);
         
         /// @brief Destroy this object and unlock the underlying spinlock.
         ~Guard();

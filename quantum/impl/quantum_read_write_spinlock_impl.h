@@ -19,20 +19,20 @@
 //#################################### IMPLEMENTATIONS #########################################
 //##############################################################################################
 /*
-The atomic 32-bit counter is divided into two halves, the high 16 bits representing the number of pending
-writer upgrades and the low 16 bit representing the lock state as following:
+The atomic 32-bit counter is divided into two halves, the high 16 bits representing the number
+of pending writer upgrades and the low 16 bit representing the lock state as following:
    0 (unlocked)
    -1 (write-locked)
    >0 (read-locked and the number represents the number of readers)
    
 When a reader is upgraded to a writer, the number of readers is decremented by 1 and the number
-of pending writers is incremented by 1 if the upgrade can't happen immediately. If however there's only a
-single reader, the upgrade occurs immediately and the the number of readers (i.e. 1) gets converted
-directly to a writer (i.e. -1).
-
-H|L represent the high (pending upgrades) and low (reader/writer owners) portions of the 32-bit counter.
+of pending writers is incremented by 1 if the upgrade can't happen immediately. If however
+there's only a single reader, the upgrade occurs immediately and the number of readers (i.e. 1)
+gets converted directly to a writer (i.e. -1).
 
 State transitions:
+H|L represent the high (pending upgrades) and low (reader/writer owners) portions of
+the 32-bit counter.
 
 Reader Lock
 1) 0|L -> 0|L+1 where L>=0
@@ -65,6 +65,9 @@ Writer blocks when
 namespace Bloomberg {
 namespace quantum {
 
+//==============================================================================================
+//                                ReadWriteSpinLock
+//==============================================================================================
 inline
 void ReadWriteSpinLock::lockRead()
 {
@@ -143,8 +146,12 @@ int ReadWriteSpinLock::numPendingWriters() const
     return SpinLockUtil::numPendingWriters(_count);
 }
 
+//==============================================================================================
+//                                ReadWriteSpinLock::Guard
+//==============================================================================================
 inline
-ReadWriteSpinLock::ReadGuard::ReadGuard(ReadWriteSpinLock& lock) :
+ReadWriteSpinLock::Guard::Guard(ReadWriteSpinLock& lock,
+                                LockTraits::AcquireRead) :
     _spinlock(lock),
     _ownsLock(true),
     _isUpgraded(false)
@@ -153,8 +160,19 @@ ReadWriteSpinLock::ReadGuard::ReadGuard(ReadWriteSpinLock& lock) :
 }
 
 inline
-ReadWriteSpinLock::ReadGuard::ReadGuard(ReadWriteSpinLock& lock,
-                                        ReadWriteSpinLock::TryToLock) :
+ReadWriteSpinLock::Guard::Guard(ReadWriteSpinLock& lock,
+                                LockTraits::AcquireWrite) :
+    _spinlock(lock),
+    _ownsLock(true),
+    _isUpgraded(true)
+{
+    _spinlock.lockWrite();
+}
+
+inline
+ReadWriteSpinLock::Guard::Guard(ReadWriteSpinLock& lock,
+                                LockTraits::AcquireRead,
+                                LockTraits::TryToLock) :
     _spinlock(lock),
     _ownsLock(_spinlock.tryLockRead()),
     _isUpgraded(false)
@@ -162,8 +180,18 @@ ReadWriteSpinLock::ReadGuard::ReadGuard(ReadWriteSpinLock& lock,
 }
 
 inline
-ReadWriteSpinLock::ReadGuard::ReadGuard(ReadWriteSpinLock& lock,
-                                        ReadWriteSpinLock::AdoptLock) :
+ReadWriteSpinLock::Guard::Guard(ReadWriteSpinLock& lock,
+                                LockTraits::AcquireWrite,
+                                LockTraits::TryToLock) :
+    _spinlock(lock),
+    _ownsLock(_spinlock.tryLockWrite()),
+    _isUpgraded(_ownsLock)
+{
+}
+
+inline
+ReadWriteSpinLock::Guard::Guard(ReadWriteSpinLock& lock,
+                                LockTraits::AdoptLock) :
     _spinlock(lock),
     _ownsLock(lock.isLocked()),
     _isUpgraded(lock.isWriteLocked())
@@ -171,7 +199,7 @@ ReadWriteSpinLock::ReadGuard::ReadGuard(ReadWriteSpinLock& lock,
 }
 
 inline
-ReadWriteSpinLock::ReadGuard::~ReadGuard()
+ReadWriteSpinLock::Guard::~Guard()
 {
     if (ownsLock()) {
         unlock();
@@ -179,23 +207,41 @@ ReadWriteSpinLock::ReadGuard::~ReadGuard()
 }
 
 inline
-void ReadWriteSpinLock::ReadGuard::lock()
+void ReadWriteSpinLock::Guard::lockRead()
 {
     assert (!ownsLock());
     _spinlock.lockRead();
     _ownsLock = true;
+    _isUpgraded = false;
 }
 
 inline
-bool ReadWriteSpinLock::ReadGuard::tryLock()
+void ReadWriteSpinLock::Guard::lockWrite()
+{
+    assert (!ownsLock());
+    _spinlock.lockWrite();
+    _ownsLock = _isUpgraded = true;
+}
+
+inline
+bool ReadWriteSpinLock::Guard::tryLockRead()
 {
     assert (!ownsLock());
     _ownsLock = _spinlock.tryLockRead();
+    _isUpgraded = false;
     return _ownsLock;
 }
 
 inline
-void ReadWriteSpinLock::ReadGuard::upgradeToWrite()
+bool ReadWriteSpinLock::Guard::tryLockWrite()
+{
+    assert (!ownsLock());
+    _ownsLock = _isUpgraded = _spinlock.tryLockWrite();
+    return _ownsLock;
+}
+
+inline
+void ReadWriteSpinLock::Guard::upgradeToWrite()
 {
     assert (ownsLock());
     _spinlock.upgradeToWrite();
@@ -203,7 +249,7 @@ void ReadWriteSpinLock::ReadGuard::upgradeToWrite()
 }
 
 inline
-bool ReadWriteSpinLock::ReadGuard::tryUpgradeToWrite()
+bool ReadWriteSpinLock::Guard::tryUpgradeToWrite()
 {
     assert (ownsLock());
     _isUpgraded = _spinlock.tryUpgradeToWrite();
@@ -211,25 +257,25 @@ bool ReadWriteSpinLock::ReadGuard::tryUpgradeToWrite()
 }
 
 inline
-bool ReadWriteSpinLock::ReadGuard::ownsLock() const
+bool ReadWriteSpinLock::Guard::ownsLock() const
 {
     return _ownsLock;
 }
 
 inline
-bool ReadWriteSpinLock::ReadGuard::ownsReadLock() const
+bool ReadWriteSpinLock::Guard::ownsReadLock() const
 {
     return _ownsLock && !_isUpgraded;
 }
 
 inline
-bool ReadWriteSpinLock::ReadGuard::ownsWriteLock() const
+bool ReadWriteSpinLock::Guard::ownsWriteLock() const
 {
     return _ownsLock && _isUpgraded;
 }
 
 inline
-void ReadWriteSpinLock::ReadGuard::unlock()
+void ReadWriteSpinLock::Guard::unlock()
 {
     assert(ownsLock());
     if (ownsReadLock()) {
@@ -238,71 +284,8 @@ void ReadWriteSpinLock::ReadGuard::unlock()
     else {
         _spinlock.unlockWrite();
     }
-    _ownsLock = false;
-    _isUpgraded = false;
+    _ownsLock = _isUpgraded = false;
 }
-
-inline
-ReadWriteSpinLock::WriteGuard::WriteGuard(ReadWriteSpinLock& lock) :
-    _spinlock(lock),
-    _ownsLock(true)
-{
-    _spinlock.lockWrite();
-}
-
-inline
-ReadWriteSpinLock::WriteGuard::WriteGuard(ReadWriteSpinLock& lock,
-                                          ReadWriteSpinLock::TryToLock) :
-    _spinlock(lock),
-    _ownsLock(_spinlock.tryLockWrite())
-{
-}
-
-inline
-ReadWriteSpinLock::WriteGuard::WriteGuard(ReadWriteSpinLock& lock,
-                                          ReadWriteSpinLock::AdoptLock) :
-    _spinlock(lock),
-    _ownsLock(lock.isWriteLocked())
-{
-}
-
-inline
-ReadWriteSpinLock::WriteGuard::~WriteGuard()
-{
-    if (_ownsLock) {
-        _spinlock.unlockWrite();
-    }
-}
-
-inline
-void ReadWriteSpinLock::WriteGuard::lock()
-{
-    assert(!_ownsLock);
-    _spinlock.lockWrite();
-    _ownsLock = true;
-}
-
-inline
-bool ReadWriteSpinLock::WriteGuard::tryLock()
-{
-    assert(!_ownsLock);
-    _ownsLock = _spinlock.tryLockWrite();
-    return _ownsLock;
-}
-
-inline
-bool ReadWriteSpinLock::WriteGuard::ownsLock() const
-{
-    return _ownsLock;
-}
-
-inline
-void ReadWriteSpinLock::WriteGuard::unlock()
-{
-    assert(_ownsLock);
-    _spinlock.unlockWrite();
-}
-
     
 }
 }

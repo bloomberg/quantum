@@ -254,7 +254,7 @@ bool TaskQueue::tryEnqueue(ITask::Ptr task)
         return false; //nothing to do
     }
     //========================= LOCKED SCOPE =========================
-    SpinLock::Guard lock(_waitQueueLock, SpinLock::TryToLock{});
+    SpinLock::Guard lock(_waitQueueLock, lock::tryToLock);
     if (lock.ownsLock())
     {
         doEnqueue(task);

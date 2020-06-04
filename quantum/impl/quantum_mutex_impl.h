@@ -109,7 +109,7 @@ Mutex::Guard::Guard(ICoroSync::Ptr sync,
 
 inline
 Mutex::Guard::Guard(Mutex& mutex,
-                    Mutex::TryToLock) :
+                    LockTraits::TryToLock) :
     _mutex(&mutex),
     _ownsLock(_mutex->tryLock())
 {
@@ -117,7 +117,7 @@ Mutex::Guard::Guard(Mutex& mutex,
 
 inline
 Mutex::Guard::Guard(Mutex& mutex,
-                    Mutex::AdoptLock) :
+                    LockTraits::AdoptLock) :
     _mutex(&mutex),
     _ownsLock(mutex.isLocked())
 {

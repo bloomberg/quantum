@@ -64,14 +64,16 @@ SpinLock::Guard::Guard(SpinLock& lock) :
 }
 
 inline
-SpinLock::Guard::Guard(SpinLock& lock, SpinLock::TryToLock) :
+SpinLock::Guard::Guard(SpinLock& lock,
+                       LockTraits::TryToLock) :
     _spinlock(lock),
     _ownsLock(_spinlock.tryLock())
 {
 }
 
 inline
-SpinLock::Guard::Guard(SpinLock& lock, SpinLock::AdoptLock) :
+SpinLock::Guard::Guard(SpinLock& lock,
+                       LockTraits::AdoptLock) :
     _spinlock(lock),
     _ownsLock(lock.isLocked())
 {
