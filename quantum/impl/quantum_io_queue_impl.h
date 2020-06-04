@@ -206,7 +206,7 @@ bool IoQueue::tryEnqueue(ITask::Ptr task)
         return false; //nothing to do
     }
     //========================= LOCKED SCOPE =========================
-    SpinLock::Guard lock(_spinlock, SpinLock::TryToLock{});
+    SpinLock::Guard lock(_spinlock, lock::tryToLock);
     if (lock.ownsLock())
     {
         doEnqueue(task);
@@ -252,7 +252,7 @@ inline
 ITask::Ptr IoQueue::tryDequeue(std::atomic_bool& hint)
 {
     //========================= LOCKED SCOPE =========================
-    SpinLock::Guard lock(_spinlock, SpinLock::TryToLock{});
+    SpinLock::Guard lock(_spinlock, lock::tryToLock);
     if (lock.ownsLock())
     {
         return doDequeue(hint);

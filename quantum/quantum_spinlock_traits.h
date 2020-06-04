@@ -17,6 +17,7 @@
 #define QUANTUM_QUANTUM_SPINLOCK_TRAITS_H
 
 #include <quantum/quantum_macros.h>
+#include <mutex>
 
 namespace Bloomberg {
 namespace quantum {
@@ -68,6 +69,24 @@ struct SpinLockTraits {
     /// @brief Backoff policy while spinning
     static BackoffPolicy &backoffPolicy();
 };
+
+//==============================================================================
+//                                  LockTraits
+//==============================================================================
+struct LockTraits
+{
+    using TryToLock = std::try_to_lock_t;
+    using AdoptLock = std::adopt_lock_t;
+    struct AcquireRead{};
+    struct AcquireWrite{};
+};
+
+namespace lock {
+    static constexpr const LockTraits::TryToLock tryToLock;
+    static constexpr const LockTraits::AdoptLock adoptLock;
+    static constexpr const LockTraits::AcquireRead acquireRead;
+    static constexpr const LockTraits::AcquireWrite acquireWrite;
+}
 
 }}
 

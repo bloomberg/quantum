@@ -37,9 +37,6 @@ namespace quantum {
 class Mutex
 {
 public:
-    using TryToLock = std::try_to_lock_t;
-    using AdoptLock = std::adopt_lock_t;
-    
     /// @brief Constructor. The object is in the unlocked state.
     Mutex() = default;
     
@@ -67,6 +64,10 @@ public:
     /// @brief Unlock this mutex.
     void unlock();
     
+    /// @brief Indicates if this mutex is locked or not
+    /// @return True if locked.
+    bool isLocked() const;
+    
     //==============================================================================================
     //                                      class Mutex::Guard
     //==============================================================================================
@@ -79,19 +80,19 @@ public:
         /// @brief Construct this object and lock the passed-in mutex.
         /// @param[in] mutex Mutex which protects a scope during the lifetime of the Guard.
         /// @param[in] TryToLock If supplied, tries to lock the mutex instead of unconditionally locking it.
-        /// @param[in] AdoptLock If supplied, assumes the lock is already taken by the application.
+        /// @param[in] AdoptLock If supplied, assumes the current state of the lock.
         explicit Guard(Mutex& mutex);
         Guard(Mutex& mutex,
-              Mutex::TryToLock);
+              LockTraits::TryToLock);
         Guard(Mutex& mutex,
-              Mutex::AdoptLock);
+              LockTraits::AdoptLock);
     
         /// @brief Construct this object and lock the passed-in mutex. Same as above but using a coroutine
         ///        synchronization context.
         Guard(ICoroSync::Ptr sync,
               Mutex& mutex);
         
-        /// @brief Destructor. This will unlock the underlying mutex.
+        /// @brief Destructor. This will unlock the underlying mutex if it has ownership.
         ~Guard();
         
         /// @brief see Mutex::lock()
@@ -101,10 +102,10 @@ public:
         /// @brief see Mutex::tryLock()
         bool tryLock();
         
-        /// @brief see Mutex::unlock()
+        /// @brief Unlocks the underlying mutex if it has ownership.
         void unlock();
         
-        /// @brief Releases the associated mutex without unlocking it
+        /// @brief Releases the associated mutex without unlocking it.
         void release();
         
         /// @brief Determines if this object owns the underlying mutex.

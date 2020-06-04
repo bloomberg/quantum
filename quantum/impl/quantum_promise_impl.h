@@ -91,7 +91,9 @@ Promise<T>::Promise(ARGS&&...args) :
     ICoroPromise<Promise, T>(this),
     _sharedState(new SharedState<T>(std::forward<ARGS>(args)...)),
     _terminated(false)
-{}
+{
+
+}
 
 template <class T>
 Promise<T>::~Promise()
