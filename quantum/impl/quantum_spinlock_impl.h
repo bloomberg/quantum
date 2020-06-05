@@ -98,7 +98,7 @@ bool SpinLock::Guard::tryLock()
 inline
 void SpinLock::Guard::lock()
 {
-    assert(!_spinlock.isLocked());
+    assert(!_ownsLock);
     _spinlock.lock();
     _ownsLock = true;
 }
