@@ -100,7 +100,12 @@ void ReadWriteMutex::upgradeToWrite(ICoroSync::Ptr sync)
 inline
 bool ReadWriteMutex::tryUpgradeToWrite()
 {
-    return _spinlock.tryUpgradeToWrite();
+    bool rc = _spinlock.tryUpgradeToWrite();
+    if (rc)
+    {
+        _taskId = local::taskId();
+    }
+    return rc;
 }
 
 inline
@@ -112,11 +117,9 @@ void ReadWriteMutex::unlockRead()
 inline
 void ReadWriteMutex::unlockWrite()
 {
-    if (_taskId != local::taskId()) {
-        //invalid operation
-        assert(false);
-    }
+    assert(_taskId == local::taskId());
     _taskId = TaskId{}; //reset the task id
+    
     _spinlock.unlockWrite();
 }
 

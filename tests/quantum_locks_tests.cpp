@@ -543,6 +543,29 @@ TEST(ReadWriteMutex, SingleLocks)
     EXPECT_FALSE(mutex.isReadLocked());
     EXPECT_TRUE(mutex.isWriteLocked());
     EXPECT_EQ(0, mutex.numReaders());
+
+    mutex.unlockWrite();
+    EXPECT_FALSE(mutex.isLocked());
+    EXPECT_FALSE(mutex.isReadLocked());
+    EXPECT_FALSE(mutex.isWriteLocked());
+    EXPECT_EQ(0, mutex.numReaders());
+
+    mutex.lockRead();
+    EXPECT_TRUE(mutex.isLocked());
+    EXPECT_TRUE(mutex.isReadLocked());
+    EXPECT_FALSE(mutex.isWriteLocked());
+    EXPECT_EQ(1, mutex.numReaders());
+    mutex.upgradeToWrite();
+    EXPECT_TRUE(mutex.isLocked());
+    EXPECT_FALSE(mutex.isReadLocked());
+    EXPECT_TRUE(mutex.isWriteLocked());
+    EXPECT_EQ(0, mutex.numReaders());
+
+    mutex.unlockWrite();
+    EXPECT_FALSE(mutex.isLocked());
+    EXPECT_FALSE(mutex.isReadLocked());
+    EXPECT_FALSE(mutex.isWriteLocked());
+    EXPECT_EQ(0, mutex.numReaders());
 }
 
 TEST(ReadWriteMutex, TryLocks)
@@ -562,6 +585,18 @@ TEST(ReadWriteMutex, TryLocks)
     EXPECT_TRUE(mutex.isWriteLocked());
     EXPECT_FALSE(mutex.tryLockRead());
     EXPECT_FALSE(mutex.isReadLocked());
+
+    mutex.unlockWrite();
+
+    mutex.lockRead();
+    EXPECT_TRUE(mutex.isReadLocked());
+    EXPECT_FALSE(mutex.tryLockWrite());
+    EXPECT_TRUE(mutex.isReadLocked());
+    EXPECT_TRUE(mutex.tryUpgradeToWrite());
+    EXPECT_TRUE(mutex.isWriteLocked());
+    EXPECT_FALSE(mutex.tryLockRead());
+    EXPECT_FALSE(mutex.isReadLocked());
+
 }
 
 TEST(ReadWriteMutex, Guards)
@@ -574,6 +609,9 @@ TEST(ReadWriteMutex, Guards)
     {
         ReadWriteMutex::Guard guard(mutex, lock::acquireRead);
         EXPECT_TRUE(mutex.isReadLocked());
+        EXPECT_TRUE(guard.ownsLock());
+        EXPECT_TRUE(guard.ownsReadLock());
+        EXPECT_FALSE(guard.ownsWriteLock());
     }
     EXPECT_FALSE(mutex.isLocked());
 
@@ -581,6 +619,9 @@ TEST(ReadWriteMutex, Guards)
     {
         ReadWriteMutex::Guard guard(mutex, lock::acquireRead, lock::tryToLock);
         EXPECT_TRUE(mutex.isReadLocked());
+        EXPECT_TRUE(guard.ownsLock());
+        EXPECT_TRUE(guard.ownsReadLock());
+        EXPECT_FALSE(guard.ownsWriteLock());
     }
     EXPECT_FALSE(mutex.isLocked());
 
@@ -588,13 +629,19 @@ TEST(ReadWriteMutex, Guards)
     {
         ReadWriteMutex::Guard guard(mutex, lock::acquireWrite);
         EXPECT_TRUE(mutex.isWriteLocked());
+        EXPECT_TRUE(guard.ownsLock());
+        EXPECT_FALSE(guard.ownsReadLock());
+        EXPECT_TRUE(guard.ownsWriteLock());
     }
     EXPECT_FALSE(mutex.isLocked());
 
     // WriteGuard, TryLock
     {
-        ReadWriteMutex::Guard writeGuard(mutex, lock::acquireWrite, lock::tryToLock);
+        ReadWriteMutex::Guard guard(mutex, lock::acquireWrite, lock::tryToLock);
         EXPECT_TRUE(mutex.isWriteLocked());
+        EXPECT_TRUE(guard.ownsLock());
+        EXPECT_FALSE(guard.ownsReadLock());
+        EXPECT_TRUE(guard.ownsWriteLock());
     }
     EXPECT_FALSE(mutex.isLocked());
 
@@ -602,8 +649,90 @@ TEST(ReadWriteMutex, Guards)
     {
         ReadWriteMutex::Guard guard(mutex, lock::acquireRead);
         EXPECT_TRUE(mutex.isReadLocked());
+        EXPECT_TRUE(guard.ownsLock());
+        EXPECT_TRUE(guard.ownsReadLock());
+        EXPECT_FALSE(guard.ownsWriteLock());
         ReadWriteMutex::Guard writeGuard(mutex, lock::acquireWrite, lock::tryToLock);
         EXPECT_FALSE(mutex.isWriteLocked());
+        EXPECT_FALSE(writeGuard.ownsLock());
+        EXPECT_FALSE(writeGuard.ownsReadLock());
+        EXPECT_FALSE(writeGuard.ownsWriteLock());
+    }
+    EXPECT_FALSE(mutex.isLocked());
+
+    // Guard, adoptLock (read)
+    {
+        mutex.lockRead();
+        ReadWriteMutex::Guard guard(mutex, lock::adoptLock);
+        EXPECT_TRUE(guard.ownsLock());
+        EXPECT_TRUE(guard.ownsReadLock());
+        EXPECT_FALSE(guard.ownsWriteLock());
+    }
+    EXPECT_FALSE(mutex.isLocked());
+
+    // Guard, adoptLock (write)
+    {
+        mutex.lockWrite();
+        ReadWriteMutex::Guard guard(mutex, lock::adoptLock);
+        EXPECT_TRUE(guard.ownsLock());
+        EXPECT_FALSE(guard.ownsReadLock());
+        EXPECT_TRUE(guard.ownsWriteLock());
+    }
+    EXPECT_FALSE(mutex.isLocked());
+
+    // Guard, tryLockRead
+    {
+        mutex.lockWrite();
+        ReadWriteMutex::Guard guard(mutex, lock::acquireRead, lock::tryToLock);
+        EXPECT_FALSE(guard.ownsLock());
+        EXPECT_FALSE(guard.tryLockRead());
+        EXPECT_FALSE(guard.ownsLock());
+
+        mutex.unlockWrite();
+        mutex.lockRead();
+        EXPECT_FALSE(guard.tryLockWrite());
+        EXPECT_FALSE(guard.ownsLock());
+        mutex.unlockRead();
+    }
+
+    // Guard, upgrade
+    {
+        ReadWriteMutex::Guard guard(mutex, lock::acquireRead);
+        EXPECT_TRUE(mutex.isReadLocked());
+        EXPECT_TRUE(guard.ownsLock());
+        EXPECT_TRUE(guard.ownsReadLock());
+        EXPECT_FALSE(guard.ownsWriteLock());
+        guard.upgradeToWrite();
+        EXPECT_TRUE(mutex.isWriteLocked());
+        EXPECT_TRUE(guard.ownsLock());
+        EXPECT_FALSE(guard.ownsReadLock());
+        EXPECT_TRUE(guard.ownsWriteLock());
+    }
+    EXPECT_FALSE(mutex.isLocked());
+
+    // Guard, tryUpgrade (success)
+    {
+        ReadWriteMutex::Guard guard(mutex, lock::acquireRead);
+        EXPECT_TRUE(mutex.isReadLocked());
+        EXPECT_TRUE(guard.ownsLock());
+        EXPECT_TRUE(guard.tryUpgradeToWrite());
+        EXPECT_TRUE(mutex.isWriteLocked());
+        EXPECT_TRUE(guard.ownsLock());
+        EXPECT_FALSE(guard.ownsReadLock());
+        EXPECT_TRUE(guard.ownsWriteLock());
+    }
+
+    // Guard, tryUpgrade (failure)
+    {
+        ReadWriteMutex::Guard guard(mutex, lock::acquireRead);
+        EXPECT_TRUE(mutex.isReadLocked());
+        EXPECT_TRUE(guard.ownsLock());
+        mutex.lockRead();
+        EXPECT_FALSE(guard.tryUpgradeToWrite());
+        EXPECT_TRUE(guard.ownsLock());
+        EXPECT_TRUE(guard.ownsReadLock());
+        EXPECT_FALSE(guard.ownsWriteLock());
+        mutex.unlockRead();
     }
     EXPECT_FALSE(mutex.isLocked());
 
@@ -613,8 +742,14 @@ TEST(ReadWriteMutex, Guards)
         EXPECT_TRUE(mutex.isReadLocked());
         guard.unlock();
         EXPECT_FALSE(mutex.isLocked());
+        EXPECT_FALSE(guard.ownsLock());
+        EXPECT_FALSE(guard.ownsReadLock());
+        EXPECT_FALSE(guard.ownsWriteLock());
         ReadWriteMutex::Guard writeGuard(mutex, lock::acquireWrite, lock::tryToLock);
         EXPECT_TRUE(mutex.isWriteLocked());
+        EXPECT_TRUE(writeGuard.ownsLock());
+        EXPECT_FALSE(writeGuard.ownsReadLock());
+        EXPECT_TRUE(writeGuard.ownsWriteLock());
     }
     EXPECT_FALSE(mutex.isLocked());
 
@@ -624,12 +759,53 @@ TEST(ReadWriteMutex, Guards)
         EXPECT_TRUE(mutex.isReadLocked());
         guard.unlock();
         EXPECT_FALSE(mutex.isLocked());
+        EXPECT_FALSE(guard.ownsLock());
+        EXPECT_FALSE(guard.ownsReadLock());
+        EXPECT_FALSE(guard.ownsWriteLock());
         ReadWriteMutex::Guard writeGuard(mutex, lock::acquireWrite, lock::tryToLock);
         EXPECT_TRUE(mutex.isWriteLocked());
+        EXPECT_TRUE(writeGuard.ownsLock());
+        EXPECT_FALSE(writeGuard.ownsReadLock());
+        EXPECT_TRUE(writeGuard.ownsWriteLock());
         writeGuard.unlock();
         EXPECT_FALSE(mutex.isLocked());
+        EXPECT_FALSE(writeGuard.ownsLock());
+        EXPECT_FALSE(guard.ownsReadLock());
+        EXPECT_FALSE(guard.ownsWriteLock());
     }
     EXPECT_FALSE(mutex.isLocked());
+
+    // Guard (read), release
+    {
+        ReadWriteMutex::Guard guard(mutex, lock::acquireRead);
+        EXPECT_TRUE(mutex.isReadLocked());
+        EXPECT_TRUE(guard.ownsLock());
+        EXPECT_TRUE(guard.ownsReadLock());
+        EXPECT_FALSE(guard.ownsWriteLock());
+        guard.release();
+        EXPECT_TRUE(mutex.isReadLocked());
+        EXPECT_FALSE(guard.ownsLock());
+        EXPECT_FALSE(guard.ownsReadLock());
+        EXPECT_FALSE(guard.ownsWriteLock());
+    }
+    EXPECT_TRUE(mutex.isReadLocked());
+    mutex.unlockRead();
+
+    // Guard (write), release
+    {
+        ReadWriteMutex::Guard guard(mutex, lock::acquireWrite);
+        EXPECT_TRUE(mutex.isWriteLocked());
+        EXPECT_TRUE(guard.ownsLock());
+        EXPECT_FALSE(guard.ownsReadLock());
+        EXPECT_TRUE(guard.ownsWriteLock());
+        guard.release();
+        EXPECT_TRUE(mutex.isWriteLocked());
+        EXPECT_FALSE(guard.ownsLock());
+        EXPECT_FALSE(guard.ownsReadLock());
+        EXPECT_FALSE(guard.ownsWriteLock());
+    }
+    EXPECT_TRUE(mutex.isWriteLocked());
+    mutex.unlockWrite();
 }
 
 TEST(ReadWriteMutex, MultipleReadLocks) {
