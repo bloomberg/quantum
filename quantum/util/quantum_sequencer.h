@@ -230,11 +230,12 @@ public:
     /// @brief Drains all sequenced tasks.
     /// @param[in] timeout Maximum time for this function to wait. Set to -1 to wait indefinitely until all sequences drain.
     /// @param[in] isFinal If set to true, the sequencer will not allow any more processing after the drain completes.
+    /// @return True if everything drains before timeout, false otherwise.
     /// @note This function blocks until all sequences have completed. During this time, posting
     ///       of new tasks is disabled unless they are posted from within an already executing coroutine.
     ///       Since this function posts a task which will wait on all others, getStatistics().getPostedTaskCount()
     ///       will contain one extra count.
-    void drain(std::chrono::milliseconds timeout = std::chrono::milliseconds(-1),
+    bool drain(std::chrono::milliseconds timeout = std::chrono::milliseconds(-1),
                bool isFinal = false);
 
 private:
