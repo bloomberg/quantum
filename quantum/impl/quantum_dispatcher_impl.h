@@ -352,7 +352,7 @@ bool Dispatcher::empty(IQueue::QueueType type,
 }
 
 inline
-void Dispatcher::drain(std::chrono::milliseconds timeout,
+bool Dispatcher::drain(std::chrono::milliseconds timeout,
                        bool isFinal)
 {
     DrainGuard guard(_drain, !isFinal);
@@ -364,7 +364,7 @@ void Dispatcher::drain(std::chrono::milliseconds timeout,
 
     if (timeout == std::chrono::milliseconds::zero())
     {
-        return; //skip draining
+        return true; //skip draining
     }
     
     auto start = std::chrono::steady_clock::now();
@@ -382,7 +382,7 @@ void Dispatcher::drain(std::chrono::milliseconds timeout,
             if (std::chrono::duration_cast<std::chrono::milliseconds>(present-start) > timeout)
             {
                 //timeout reached
-                break;
+                return false;
             }
         }
     }
@@ -391,6 +391,7 @@ void Dispatcher::drain(std::chrono::milliseconds timeout,
     std::lock_guard<std::mutex> guard(Util::LogMutex());
     std::cout << "All queues have drained." << std::endl;
 #endif
+    return true;
 }
 
 inline

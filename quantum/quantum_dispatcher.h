@@ -330,9 +330,10 @@ public:
     /// @brief Drains all queues on this dispatcher object.
     /// @param[in] timeout Maximum time for this function to wait. Set to -1 to wait indefinitely until all queues drain.
     /// @param[in] isFinal If set to true, the dispatcher will not allow any more processing after the drain completes.
+    /// @return True if everything drains before timeout, false otherwise.
     /// @note This function blocks until all coroutines and IO tasks have completed. During this time, posting
     ///       of new tasks is disabled unless they are posted from within an already executing coroutine.
-    void drain(std::chrono::milliseconds timeout = std::chrono::milliseconds(-1),
+    bool drain(std::chrono::milliseconds timeout = std::chrono::milliseconds(-1),
                bool isFinal = false);
     
     /// @brief Returns the number of underlying coroutine threads as specified in the constructor. If -1 was passed

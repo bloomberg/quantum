@@ -548,7 +548,7 @@ Sequencer<SequenceKey, Hash, KeyEqual, Allocator>::isPendingContext(const ICoroC
 }
 
 template <class SequenceKey, class Hash, class KeyEqual, class Allocator>
-void
+bool
 Sequencer<SequenceKey, Hash, KeyEqual, Allocator>::drain(std::chrono::milliseconds timeout,
                                                          bool isFinal)
 {
@@ -561,7 +561,7 @@ Sequencer<SequenceKey, Hash, KeyEqual, Allocator>::drain(std::chrono::millisecon
     });
     
     DrainGuard guard(_drain, !isFinal);
-    future->waitFor(timeout);
+    return future->waitFor(timeout) == std::future_status::ready;
 }
 
 
