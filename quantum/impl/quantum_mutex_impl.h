@@ -124,6 +124,13 @@ Mutex::Guard::Guard(Mutex& mutex,
 }
 
 inline
+Mutex::Guard::Guard(Mutex& mutex,
+                    LockTraits::DeferLock) :
+    _mutex(&mutex)
+{
+}
+
+inline
 bool Mutex::Guard::ownsLock() const
 {
     return _ownsLock;

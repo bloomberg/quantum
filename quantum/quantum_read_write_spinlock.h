@@ -106,18 +106,23 @@ public:
         /// @brief Construct this object and tries to lock the passed-in spinlock as a reader.
         /// @param[in] lock ReadWriteSpinLock which protects a scope during the lifetime of the Guard.
         /// @param[in] acquire Determines the type of ownership.
+        /// @param[in] tryLock Tag. Not used.
         /// @note Attempts to lock the spinlock. Does not block.
         Guard(ReadWriteSpinLock& lock,
               LockTraits::AcquireRead acquire,
-              LockTraits::TryToLock);
+              LockTraits::TryToLock tryLock);
         Guard(ReadWriteSpinLock& lock,
               LockTraits::AcquireWrite acquire,
-              LockTraits::TryToLock);
+              LockTraits::TryToLock tryLock);
         
-        /// @brief Construct this object and assumes the current state of the lock w/o modifying it.
+        /// @brief Construct this object and depending on the flag may assume ownership.
         /// @param[in] lock ReadWriteSpinLock which protects a scope during the lifetime of the Guard.
+        /// @param[in] adoptLock If supplied, assumes the current 'locked' state of the lock.
+        /// @param[in] deferLock If supplied, assumes the lock is 'unlocked' and does not lock it.
         Guard(ReadWriteSpinLock& lock,
-              LockTraits::AdoptLock);
+              LockTraits::AdoptLock adoptLock);
+        Guard(ReadWriteSpinLock& lock,
+              LockTraits::DeferLock deferLock);
         
         /// @brief Destroy this object and unlock the underlying spinlock.
         ~Guard();

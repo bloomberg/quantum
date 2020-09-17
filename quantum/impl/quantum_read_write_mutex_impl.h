@@ -226,6 +226,13 @@ ReadWriteMutex::Guard::Guard(ReadWriteMutex& lock,
 }
 
 inline
+ReadWriteMutex::Guard::Guard(ReadWriteMutex& lock,
+                             LockTraits::DeferLock) :
+    _mutex(&lock)
+{
+}
+
+inline
 ReadWriteMutex::Guard::~Guard()
 {
     if (ownsLock()) {

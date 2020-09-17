@@ -128,19 +128,24 @@ public:
         /// @brief Construct this object and try to lock the passed-in mutex.
         /// @param[in] lock ReadWriteMutex which protects a scope during the lifetime of the Guard.
         /// @param[in] acquire Determines the type of ownership.
+        /// @param[in] tryLock Tag. Not used.
         /// @note Attempts to lock the mutex. Does not block.
         Guard(ReadWriteMutex& lock,
               LockTraits::AcquireRead acquire,
-              LockTraits::TryToLock);
+              LockTraits::TryToLock tryLock);
         Guard(ReadWriteMutex& lock,
               LockTraits::AcquireWrite acquire,
-              LockTraits::TryToLock);
+              LockTraits::TryToLock tryToLock);
         
-        /// @brief Construct this object and assumes the current state of the lock w/o modifying it.
+        /// @brief Construct this object and depending on the flag may assume ownership.
         /// @param[in] lock ReadWriteMutex which protects a scope during the lifetime of the Guard.
+        /// @param[in] adoptLock If supplied, assumes the current 'locked' state of the lock.
+        /// @param[in] deferLock If supplied, assumes the lock is 'unlocked' and does not lock it.
         /// @note Does not block.
         Guard(ReadWriteMutex& lock,
-              LockTraits::AdoptLock);
+              LockTraits::AdoptLock adoptLock);
+         Guard(ReadWriteMutex& lock,
+              LockTraits::DeferLock deferLock);
         
         /// @brief Destroy this object and unlocks the underlying mutex if it has ownership.
         ~Guard();
