@@ -80,6 +80,13 @@ SpinLock::Guard::Guard(SpinLock& lock,
 }
 
 inline
+SpinLock::Guard::Guard(SpinLock& lock,
+                       LockTraits::DeferLock) :
+    _spinlock(lock)
+{
+}
+
+inline
 SpinLock::Guard::~Guard()
 {
     if (_ownsLock) {

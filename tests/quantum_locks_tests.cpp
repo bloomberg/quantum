@@ -106,6 +106,53 @@ TEST(Spinlock, Spinlock)
     EXPECT_EQ(0, val);
 }
 
+TEST(Spinlock, Guards)
+{
+    SpinLock spin;
+    { //Basic
+        SpinLock::Guard guard(spin);
+        EXPECT_TRUE(guard.ownsLock());
+    }
+    EXPECT_FALSE(spin.isLocked());
+    
+    { //TryLock
+        spin.lock();
+        SpinLock::Guard guard(spin, lock::tryToLock);
+        EXPECT_FALSE(guard.ownsLock());
+        spin.unlock();
+    }
+    EXPECT_FALSE(spin.isLocked());
+    
+    { //AdoptLock
+        spin.lock();
+        SpinLock::Guard guard(spin, lock::adoptLock);
+        EXPECT_TRUE(guard.ownsLock());
+    }
+    EXPECT_FALSE(spin.isLocked());
+    
+    { //AdoptLock -- unlocked
+        SpinLock::Guard guard(spin, lock::adoptLock);
+        EXPECT_FALSE(guard.ownsLock());
+    }
+    EXPECT_FALSE(spin.isLocked());
+    
+    { //DeferLock
+        spin.lock();
+        SpinLock::Guard guard(spin, lock::deferLock);
+        EXPECT_FALSE(guard.ownsLock());
+        spin.unlock();
+        guard.lock();
+        EXPECT_TRUE(guard.ownsLock());
+    }
+    EXPECT_FALSE(spin.isLocked());
+    
+    { //DeferLock -- unlocked
+        SpinLock::Guard guard(spin, lock::deferLock);
+        EXPECT_FALSE(guard.ownsLock());
+    }
+    EXPECT_FALSE(spin.isLocked());
+}
+
 TEST(Spinlock, HighContention)
 {
     val = 0;
@@ -295,14 +342,74 @@ TEST(ReadWriteSpinLock, Guards)
     // Guard
     {
         ReadWriteSpinLock::Guard guard(lock, lock::acquireRead);
-        EXPECT_TRUE(lock.isReadLocked());
+        EXPECT_TRUE(guard.ownsReadLock());
+        EXPECT_FALSE(guard.ownsWriteLock());
     }
     EXPECT_FALSE(lock.isLocked());
 
     // Guard, TryLock
     {
         ReadWriteSpinLock::Guard guard(lock, lock::acquireRead, lock::tryToLock);
-        EXPECT_TRUE(lock.isReadLocked());
+        EXPECT_TRUE(guard.ownsReadLock());
+        EXPECT_FALSE(guard.ownsWriteLock());
+    }
+    EXPECT_FALSE(lock.isLocked());
+    
+    // Guard, AdoptLock - unlocked
+    {
+        ReadWriteSpinLock::Guard guard(lock, lock::adoptLock);
+        EXPECT_FALSE(guard.ownsReadLock());
+        EXPECT_FALSE(guard.ownsWriteLock());
+    }
+    EXPECT_FALSE(lock.isLocked());
+    
+    // Guard, AdoptLock - read locked
+    {
+        lock.lockRead();
+        ReadWriteSpinLock::Guard guard(lock, lock::adoptLock);
+        EXPECT_TRUE(guard.ownsReadLock());
+        EXPECT_FALSE(guard.ownsWriteLock());
+    }
+    EXPECT_FALSE(lock.isLocked());
+    
+    // Guard, AdoptLock - write locked
+    {
+        lock.lockWrite();
+        ReadWriteSpinLock::Guard guard(lock, lock::adoptLock);
+        EXPECT_FALSE(guard.ownsReadLock());
+        EXPECT_TRUE(guard.ownsWriteLock());
+    }
+    EXPECT_FALSE(lock.isLocked());
+    
+    // Guard, DeferLock - unlocked
+    {
+        ReadWriteSpinLock::Guard guard(lock, lock::deferLock);
+        EXPECT_FALSE(guard.ownsReadLock());
+        EXPECT_FALSE(guard.ownsWriteLock());
+    }
+    EXPECT_FALSE(lock.isLocked());
+    
+    // Guard, DeferLock - read locked
+    {
+        lock.lockRead();
+        ReadWriteSpinLock::Guard guard(lock, lock::deferLock);
+        EXPECT_FALSE(guard.ownsReadLock());
+        EXPECT_FALSE(guard.ownsWriteLock());
+        lock.unlockRead();
+        guard.lockRead();
+        EXPECT_TRUE(guard.ownsReadLock());
+    }
+    EXPECT_FALSE(lock.isLocked());
+    
+    // Guard, DeferLock - write locked
+    {
+        lock.lockWrite();
+        ReadWriteSpinLock::Guard guard(lock, lock::deferLock);
+        EXPECT_FALSE(guard.ownsReadLock());
+        EXPECT_FALSE(guard.ownsWriteLock());
+        lock.unlockWrite();
+        guard.lockWrite();
+        EXPECT_TRUE(guard.ownsWriteLock());
     }
     EXPECT_FALSE(lock.isLocked());
 
@@ -660,6 +767,21 @@ TEST(ReadWriteMutex, Guards)
     }
     EXPECT_FALSE(mutex.isLocked());
 
+    // Guard, tryLockRead
+    {
+        mutex.lockWrite();
+        ReadWriteMutex::Guard guard(mutex, lock::acquireRead, lock::tryToLock);
+        EXPECT_FALSE(guard.ownsLock());
+        EXPECT_FALSE(guard.tryLockRead());
+        EXPECT_FALSE(guard.ownsLock());
+
+        mutex.unlockWrite();
+        mutex.lockRead();
+        EXPECT_FALSE(guard.tryLockWrite());
+        EXPECT_FALSE(guard.ownsLock());
+        mutex.unlockRead();
+    }
+    
     // Guard, adoptLock (read)
     {
         mutex.lockRead();
@@ -679,21 +801,35 @@ TEST(ReadWriteMutex, Guards)
         EXPECT_TRUE(guard.ownsWriteLock());
     }
     EXPECT_FALSE(mutex.isLocked());
-
-    // Guard, tryLockRead
+    
+    // Guard, deferLock (read)
+    {
+        mutex.lockRead();
+        ReadWriteMutex::Guard guard(mutex, lock::deferLock);
+        EXPECT_FALSE(guard.ownsLock());
+        EXPECT_FALSE(guard.ownsReadLock());
+        EXPECT_FALSE(guard.ownsWriteLock());
+        mutex.unlockRead();
+        guard.lockRead();
+        EXPECT_TRUE(guard.ownsLock());
+        EXPECT_TRUE(guard.ownsReadLock());
+    }
+    EXPECT_FALSE(mutex.isLocked());
+    
+    // Guard, deferLock (write)
     {
         mutex.lockWrite();
-        ReadWriteMutex::Guard guard(mutex, lock::acquireRead, lock::tryToLock);
+        ReadWriteMutex::Guard guard(mutex, lock::deferLock);
         EXPECT_FALSE(guard.ownsLock());
-        EXPECT_FALSE(guard.tryLockRead());
-        EXPECT_FALSE(guard.ownsLock());
-
+        EXPECT_FALSE(guard.ownsReadLock());
+        EXPECT_FALSE(guard.ownsWriteLock());
         mutex.unlockWrite();
-        mutex.lockRead();
-        EXPECT_FALSE(guard.tryLockWrite());
-        EXPECT_FALSE(guard.ownsLock());
-        mutex.unlockRead();
+        guard.lockWrite();
+        EXPECT_TRUE(guard.ownsLock());
+        EXPECT_FALSE(guard.ownsReadLock());
+        EXPECT_TRUE(guard.ownsWriteLock());
     }
+    EXPECT_FALSE(mutex.isLocked());
 
     // Guard, upgrade
     {

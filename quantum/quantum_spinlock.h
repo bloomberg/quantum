@@ -89,9 +89,15 @@ public:
         /// @brief Construct this object and assumes the current state of the lock w/o modifying it.
         /// @param[in] lock Spinlock which protects a scope during the lifetime of the Guard.
         /// @param[in] adoptLock Tag. Not used.
-        /// @note ownsLock() will always return true.
         Guard(SpinLock& lock,
               LockTraits::AdoptLock adoptLock);
+        
+        /// @brief Construct this object and assumes the lock is 'unlocked'
+        /// @param[in] lock Spinlock which protects a scope during the lifetime of the Guard.
+        /// @param[in] deferLock Tag. Not used.
+        /// @note ownsLock() will always return false.
+        Guard(SpinLock& lock,
+              LockTraits::DeferLock deferLock);
         
         /// @brief Destroy this object and unlock the underlying spinlock.
         ~Guard();

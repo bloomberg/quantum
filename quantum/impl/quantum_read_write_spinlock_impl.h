@@ -199,6 +199,13 @@ ReadWriteSpinLock::Guard::Guard(ReadWriteSpinLock& lock,
 }
 
 inline
+ReadWriteSpinLock::Guard::Guard(ReadWriteSpinLock& lock,
+                                LockTraits::DeferLock) :
+    _spinlock(lock)
+{
+}
+
+inline
 ReadWriteSpinLock::Guard::~Guard()
 {
     if (ownsLock()) {

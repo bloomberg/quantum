@@ -79,13 +79,16 @@ public:
     public:
         /// @brief Construct this object and lock the passed-in mutex.
         /// @param[in] mutex Mutex which protects a scope during the lifetime of the Guard.
-        /// @param[in] TryToLock If supplied, tries to lock the mutex instead of unconditionally locking it.
-        /// @param[in] AdoptLock If supplied, assumes the current state of the lock.
+        /// @param[in] tryToLock If supplied, tries to lock the mutex instead of unconditionally locking it.
+        /// @param[in] adoptLock If supplied, assumes the current 'locked' state of the lock.
+        /// @param[in] deferLock If supplied, assumes the lock is 'unlocked' and does not lock it.
         explicit Guard(Mutex& mutex);
         Guard(Mutex& mutex,
-              LockTraits::TryToLock);
+              LockTraits::TryToLock tryLock);
         Guard(Mutex& mutex,
-              LockTraits::AdoptLock);
+              LockTraits::AdoptLock adoptLock);
+        Guard(Mutex& mutex,
+              LockTraits::DeferLock deferLock);
     
         /// @brief Construct this object and lock the passed-in mutex. Same as above but using a coroutine
         ///        synchronization context.
