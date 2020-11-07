@@ -373,12 +373,8 @@ Sequencer<SequenceKey, Hash, KeyEqual, Allocator>::singleSequenceKeyTaskSchedule
         FUNC&& func,
         ARGS&&... args)
 {
-    // find the dependent
-    typename ContextMap::iterator contextIt = sequencer._contexts.find(sequenceKey);
-    if (contextIt == sequencer._contexts.end())
-    {
-        contextIt = sequencer._contexts.emplace(sequenceKey, SequenceKeyData()).first;
-    }
+    // find the dependent or create a new element
+    typename ContextMap::iterator contextIt = sequencer._contexts.emplace(sequenceKey, SequenceKeyData()).first;
     // update stats
     contextIt->second._stats->incrementPostedTaskCount();
     contextIt->second._stats->incrementPendingTaskCount();

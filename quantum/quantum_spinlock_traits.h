@@ -75,6 +75,11 @@ struct SpinLockTraits {
 //==============================================================================
 struct LockTraits
 {
+    enum class Attempt : uint8_t {
+        Once,         ///> Try to obtain lock once and return success of failure
+        Unlimited,    ///> Try until lock is obtained
+        Reentrant     ///> Try continuously but return on each iteration w/o blocking
+    };
     using TryToLock = std::try_to_lock_t;
     using AdoptLock = std::adopt_lock_t;
     using DeferLock = std::defer_lock_t;

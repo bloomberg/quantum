@@ -91,7 +91,8 @@ void ReadWriteMutex::upgradeToWrite()
 inline
 void ReadWriteMutex::upgradeToWrite(ICoroSync::Ptr sync)
 {
-    while (!tryUpgradeToWrite())
+    bool pendingUpgrade = false;
+    while (!tryUpgradeToWriteImpl(&pendingUpgrade))
     {
         yield(sync);
     }
@@ -100,7 +101,19 @@ void ReadWriteMutex::upgradeToWrite(ICoroSync::Ptr sync)
 inline
 bool ReadWriteMutex::tryUpgradeToWrite()
 {
-    bool rc = _spinlock.tryUpgradeToWrite();
+    return tryUpgradeToWriteImpl(nullptr);
+}
+
+inline
+bool ReadWriteMutex::tryUpgradeToWriteImpl(bool* pendingUpgrade)
+{
+    bool rc;
+    if (pendingUpgrade) {
+        rc = _spinlock.tryUpgradeToWrite(*pendingUpgrade);
+    }
+    else {
+        rc = _spinlock.tryUpgradeToWrite();
+    }
     if (rc)
     {
         _taskId = local::taskId();
@@ -119,7 +132,6 @@ void ReadWriteMutex::unlockWrite()
 {
     assert(_taskId == local::taskId());
     _taskId = TaskId{}; //reset the task id
-    
     _spinlock.unlockWrite();
 }
 

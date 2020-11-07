@@ -67,8 +67,11 @@ public:
     void upgradeToWrite();
     
     /// @brief Attempts to upgrade a reader lock to a writer lock. This operation never blocks.
+    /// @param pendingUpdate Use this overload when calling this function in a loop.
+    ///                      PendingUpdate must be initialized to 'false'.
     /// @return True if the lock operation succeeded, false otherwise.
     bool tryUpgradeToWrite();
+    bool tryUpgradeToWrite(bool& pendingUpdate);
     
     /// @bried Determines if this object is either read or write locked.
     /// @return True if locked, false otherwise.

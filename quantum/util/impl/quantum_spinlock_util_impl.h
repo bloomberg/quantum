@@ -55,141 +55,155 @@ void SpinLockUtil::pauseCPU()
 
 inline
 bool SpinLockUtil::lockWrite(std::atomic_uint32_t &flag,
-                             bool tryOnce)
+                             LockTraits::Attempt attempt)
 {
-    while (true)
-    {
+    size_t numBackoffs = 0;
 spin:
-        if (!tryOnce) {
-            spinWaitWriter(flag);
-        }
-        //Try acquiring the lock
-        uint32_t oldValue = set(0, 0);
-        uint32_t newValue = set(0, -1);
-        while (!flag.compare_exchange_weak(oldValue, newValue, std::memory_order_acquire))
-        {
-            //lock is already taken
-            if (owners(oldValue) != 0)
-            {
-                if (tryOnce)
-                {
-                    return false;
-                }
-                backoff();
-                //spin wait again
-                goto spin;
-            }
-            //maintain the value for the pending writers
-            newValue = set(upgrades(oldValue), -1);
-            pauseCPU();
-        }
-        reset();
-        return true;
+    if (attempt != LockTraits::Attempt::Once) {
+        spinWaitWriter(flag);
     }
+    //Try acquiring the lock
+    uint32_t oldValue = set(0, 0);
+    uint32_t newValue = set(0, -1);
+    while (!flag.compare_exchange_weak(oldValue, newValue, std::memory_order_acquire))
+    {
+        //lock is already taken
+        if (owners(oldValue) != 0)
+        {
+            if (attempt == LockTraits::Attempt::Once)
+            {
+                return false;
+            }
+            backoff(numBackoffs);
+            //spin wait again
+            goto spin;
+        }
+        //maintain the value for the pending writers
+        newValue = set(upgrades(oldValue), -1);
+        pauseCPU();
+    }
+    return true;
 }
 
 inline
 bool SpinLockUtil::upgradeToWrite(std::atomic_uint32_t &flag,
-                                  bool tryOnce)
+                                  LockTraits::Attempt attempt)
 {
     bool pendingUpgrade = false;
-    while (true) {
+    return upgradeToWriteImpl(flag, pendingUpgrade, attempt);
+}
+
+inline
+bool SpinLockUtil::upgradeToWrite(std::atomic_uint32_t &flag,
+                                  bool& pendingUpgrade,
+                                  LockTraits::Attempt attempt)
+{
+    return upgradeToWriteImpl(flag, pendingUpgrade, attempt);
+}
+
+inline
+bool SpinLockUtil::upgradeToWriteImpl(std::atomic_uint32_t &flag,
+                                      bool& pendingUpgrade,
+                                      LockTraits::Attempt attempt)
+{
+    size_t numBackoffs = 0;
 spin:
-        if (pendingUpgrade && !tryOnce)
-        {
-            spinWaitUpgradedReader(flag);
-        }
-        //Try acquiring the lock
-        uint32_t oldValue = set(0, 1);
-        uint32_t newValue = set(0, -1);
-        while (!flag.compare_exchange_weak(oldValue, newValue, std::memory_order_acquire))
-        {
-            if (!pendingUpgrade)
-            {
-                //We are attempting to upgrade.
-                if (owners(oldValue) > 1)
-                {
-                    if (tryOnce)
-                    {
-                        return false; //cannot upgrade immediately
-                    }
-                    //Increment pending upgrades and decrement readers
-                    newValue = add(oldValue, 1, -1);
-                }
-                else //owners(oldValue) == 1
-                {
-                    //One reader left so upgrade to writer directly.
-                    //There are other pending writers so we must preserve the value
-                    newValue = set(upgrades(oldValue), -1);
-                }
-            }
-            else
-            {
-                //Upgrade pending. To acquire lock the low value must be 0.
-                if (owners(oldValue) != 0)
-                {
-                    //lock is already taken or there are still readers
-                    if (tryOnce)
-                    {
-                        return false;
-                    }
-                    backoff();
-                    //spin wait until we can upgrade again
-                    goto spin;
-                }
-                //We can upgrade. Decrement pending writers and upgrade to write
-                newValue = set(upgrades(oldValue)-1, -1);
-            }
-            pauseCPU();
-        }
-        if (owners(oldValue) > 1)
-        {
-            //We terminated the loop from H|L -> H+1|L-1 because there were multiple readers.
-            //Therefore we are still pending until all readers terminate.
-            pendingUpgrade = true;
-            goto spin;
-        }
-        //We terminated the loop either from H|0->H-1|-1 OR H|1->H|-1 and obtained the lock
-        assert((owners(oldValue) == 0) || (owners(oldValue) == 1));
-        reset();
-        return true;
+    if (pendingUpgrade && (attempt != LockTraits::Attempt::Once))
+    {
+        spinWaitUpgradedReader(flag);
     }
+    //Try acquiring the lock
+    uint32_t oldValue = set(0, 1);
+    uint32_t newValue = set(0, -1);
+    while (!flag.compare_exchange_weak(oldValue, newValue, std::memory_order_acquire))
+    {
+        if (!pendingUpgrade)
+        {
+            //We are attempting to upgrade.
+            if (owners(oldValue) > 1)
+            {
+                if (attempt == LockTraits::Attempt::Once)
+                {
+                    return false; //cannot upgrade immediately
+                }
+                //Increment pending upgrades and decrement readers
+                newValue = add(oldValue, 1, -1);
+            }
+            else //owners(oldValue) == 1
+            {
+                //One reader left so upgrade to writer directly.
+                //There are other pending writers so we must preserve the value
+                newValue = set(upgrades(oldValue), -1);
+            }
+        }
+        else
+        {
+            //Upgrade pending. To acquire lock the low value must be 0.
+            if (owners(oldValue) != 0)
+            {
+                //lock is already taken or there are still readers
+                if (attempt != LockTraits::Attempt::Unlimited)
+                {
+                    return false;
+                }
+                backoff(numBackoffs);
+                //spin wait until we can upgrade again
+                goto spin;
+            }
+            //We can upgrade. Decrement pending writers and upgrade to write
+            newValue = set(upgrades(oldValue)-1, -1);
+        }
+        pauseCPU();
+    }
+    if (owners(oldValue) > 1)
+    {
+        //We terminated the loop from H|L -> H+1|L-1 because there were multiple readers.
+        //Therefore we are still pending until all readers terminate.
+        pendingUpgrade = true;
+        if (attempt == LockTraits::Attempt::Reentrant)
+        {
+            return false; //we will get called again
+        }
+        backoff(numBackoffs);
+        //spin wait until we can upgrade again
+        goto spin;
+    }
+    //We terminated the loop either from H|0->H-1|-1 OR H|1->H|-1 and obtained the lock
+    assert((owners(oldValue) == 0) || (owners(oldValue) == 1));
+    return true;
 }
 
 inline
 bool SpinLockUtil::lockRead(std::atomic_uint32_t &flag,
-                            bool tryOnce)
+                            LockTraits::Attempt attempt)
 {
-    while (true)
-    {
+    size_t numBackoffs = 0;
 spin:
-        if (!tryOnce)
-        {
-            spinWaitReader(flag);
-        }
-        //Try acquiring the lock
-        uint32_t oldValue = set(0, 0);
-        uint32_t newValue = set(0, 1);
-        while (!flag.compare_exchange_weak(oldValue, newValue, std::memory_order_acquire))
-        {
-            if ((upgrades(oldValue) > 0) || (owners(oldValue) == -1))
-            {
-                //lock is already taken or we have pending write upgrades
-                if (tryOnce)
-                {
-                    return false;
-                }
-                backoff();
-                //spin wait again
-                goto spin;
-            }
-            newValue = add(oldValue, 0, 1);
-            pauseCPU();
-        }
-        //We obtained the lock so exit loop
-        reset();
-        return true;
+    if (attempt != LockTraits::Attempt::Once)
+    {
+        spinWaitReader(flag);
     }
+    //Try acquiring the lock
+    uint32_t oldValue = set(0, 0);
+    uint32_t newValue = set(0, 1);
+    while (!flag.compare_exchange_weak(oldValue, newValue, std::memory_order_acquire))
+    {
+        if ((upgrades(oldValue) > 0) || (owners(oldValue) == -1))
+        {
+            //lock is already taken or we have pending write upgrades
+            if (attempt == LockTraits::Attempt::Once)
+            {
+                return false;
+            }
+            backoff(numBackoffs);
+            //spin wait again
+            goto spin;
+        }
+        newValue = add(oldValue, 0, 1);
+        pauseCPU();
+    }
+    //We obtained the lock so exit loop
+    return true;
 }
 
 inline
@@ -233,18 +247,11 @@ void SpinLockUtil::unlockWrite(std::atomic_uint32_t &flag)
 }
 
 inline
-void SpinLockUtil::reset()
+void SpinLockUtil::yieldOrSleep(size_t& num)
 {
-    numYields() = 0;
-    numSpins() = 0;
-}
-
-inline
-void SpinLockUtil::yieldOrSleep()
-{
-    if (numYields() < SpinLockTraits::numYieldsBeforeSleep())
+    if (num < SpinLockTraits::numYieldsBeforeSleep())
     {
-        ++numYields();
+        ++num;
         std::this_thread::yield();
     }
     else
@@ -255,54 +262,60 @@ void SpinLockUtil::yieldOrSleep()
 }
 
 inline
-void SpinLockUtil::backoff()
+size_t SpinLockUtil::generateBackoff()
 {
     using Distribution = std::uniform_int_distribution<size_t>;
     static thread_local std::mt19937_64 gen(std::random_device{}());
     static thread_local Distribution distribution;
-    if (numSpins() == 0)
+
+    assert(SpinLockTraits::minSpins() <= SpinLockTraits::maxSpins());
+    if ((SpinLockTraits::backoffPolicy() == SpinLockTraits::BackoffPolicy::EqualStep) ||
+        (SpinLockTraits::backoffPolicy() == SpinLockTraits::BackoffPolicy::Random))
     {
-        //Initialize for the first time
-        assert(SpinLockTraits::minSpins() <= SpinLockTraits::maxSpins());
-        if ((SpinLockTraits::backoffPolicy() == SpinLockTraits::BackoffPolicy::EqualStep) ||
-            (SpinLockTraits::backoffPolicy() == SpinLockTraits::BackoffPolicy::Random))
-        {
-            //Generate a number from the entire range
-            numSpins() = distribution(gen, Distribution::param_type
-                    {SpinLockTraits::minSpins(), SpinLockTraits::maxSpins()});
-        }
-        else
-        {
-            //Generate a number below min and add it to the min.
-            numSpins() = SpinLockTraits::minSpins() +
-                    distribution(gen, Distribution::param_type
-                    {0, SpinLockTraits::minSpins()});
-        }
+        //Generate a number from the entire range
+        return distribution(gen, Distribution::param_type
+                {SpinLockTraits::minSpins(), SpinLockTraits::maxSpins()});
     }
-    else if (numSpins() < SpinLockTraits::maxSpins())
+    else
+    {
+        //Generate a number below min and add it to the min.
+        return SpinLockTraits::minSpins() +
+                distribution(gen, Distribution::param_type
+                {0, SpinLockTraits::minSpins()});
+    }
+}
+
+inline
+void SpinLockUtil::backoff(size_t& num)
+{
+    if (num == 0)
+    {
+        num = generateBackoff();
+    }
+    else if (num < SpinLockTraits::maxSpins())
     {
         if (SpinLockTraits::backoffPolicy() == SpinLockTraits::BackoffPolicy::Linear)
         {
-            numSpins() += numSpins();
+            num += SpinLockTraits::minSpins();
         }
         else if (SpinLockTraits::backoffPolicy() == SpinLockTraits::BackoffPolicy::Exponential)
         {
-            numSpins() *= 2;
+            num *= 2;
         }
         else if (SpinLockTraits::backoffPolicy() == SpinLockTraits::BackoffPolicy::Random)
         {
             //Generate a new value each time
-            numSpins() = distribution(gen, Distribution::param_type
-                    {SpinLockTraits::minSpins(), SpinLockTraits::maxSpins()});
+            num = generateBackoff();
         }
         //Check that we don't exceed max spins
-        if (numSpins() > SpinLockTraits::maxSpins())
+        if (num > SpinLockTraits::maxSpins())
         {
-            numSpins() = SpinLockTraits::maxSpins();
+            //Reset back to initial value
+            num = generateBackoff();
         }
     }
     //Spin
-    for (size_t i = 0; i < numSpins(); ++i)
+    for (size_t i = 0; i < num; ++i)
     {
         pauseCPU();
     }
@@ -312,6 +325,7 @@ inline
 void SpinLockUtil::spinWaitWriter(std::atomic_uint32_t& flag)
 {
     size_t numIters = 0;
+    size_t numYields = 0;
     while (owners(flag.load(std::memory_order_relaxed) != 0))
     {
         if (numIters < SpinLockTraits::maxSpins())
@@ -322,7 +336,7 @@ void SpinLockUtil::spinWaitWriter(std::atomic_uint32_t& flag)
         else
         {
             //Yield or sleep the thread instead of spinning
-            yieldOrSleep();
+            yieldOrSleep(numYields);
         }
     }
 }
@@ -331,6 +345,7 @@ inline
 void SpinLockUtil::spinWaitUpgradedReader(std::atomic_uint32_t& flag)
 {
     size_t numIters = 0;
+    size_t numYields = 0;
     while (true)
     {
         uint32_t v = flag.load(std::memory_order_relaxed);
@@ -344,7 +359,7 @@ void SpinLockUtil::spinWaitUpgradedReader(std::atomic_uint32_t& flag)
             else
             {
                 //Yield or sleep the thread instead of spinning
-                yieldOrSleep();
+                yieldOrSleep(numYields);
             }
         }
         else
@@ -358,6 +373,7 @@ inline
 void SpinLockUtil::spinWaitReader(std::atomic_uint32_t& flag)
 {
     size_t numIters = 0;
+    size_t numYields = 0;
     while (true)
     {
         uint32_t v = flag.load(std::memory_order_relaxed);
@@ -371,7 +387,7 @@ void SpinLockUtil::spinWaitReader(std::atomic_uint32_t& flag)
             else
             {
                 //Yield or sleep the thread instead of spinning
-                yieldOrSleep();
+                yieldOrSleep(numYields);
             }
         }
         else
@@ -404,20 +420,6 @@ inline
 uint16_t SpinLockUtil::numPendingWriters(const std::atomic_uint32_t &flag)
 {
     return upgrades(flag.load(std::memory_order_acquire));
-}
-
-inline
-size_t& SpinLockUtil::numYields()
-{
-    static thread_local size_t _numYields = 0;
-    return _numYields;
-}
-
-inline
-size_t& SpinLockUtil::numSpins()
-{
-    static thread_local size_t _numSpins = 0;
-    return _numSpins;
 }
 
 inline constexpr
