@@ -71,25 +71,25 @@ namespace quantum {
 inline
 void ReadWriteSpinLock::lockRead()
 {
-    SpinLockUtil::lockRead(_count);
+    SpinLockUtil::lockRead(_count, LockTraits::Attempt::Unlimited);
 }
 
 inline
 void ReadWriteSpinLock::lockWrite()
 {
-    SpinLockUtil::lockWrite(_count);
+    SpinLockUtil::lockWrite(_count, LockTraits::Attempt::Unlimited);
 }
 
 inline
 bool ReadWriteSpinLock::tryLockRead()
 {
-    return SpinLockUtil::lockRead(_count, true);
+    return SpinLockUtil::lockRead(_count, LockTraits::Attempt::Once);
 }
 
 inline
 bool ReadWriteSpinLock::tryLockWrite()
 {
-    return SpinLockUtil::lockWrite(_count, true);
+    return SpinLockUtil::lockWrite(_count, LockTraits::Attempt::Once);
 }
 
 inline
@@ -107,13 +107,19 @@ void ReadWriteSpinLock::unlockWrite()
 inline
 void ReadWriteSpinLock::upgradeToWrite()
 {
-    SpinLockUtil::upgradeToWrite(_count);
+    SpinLockUtil::upgradeToWrite(_count, LockTraits::Attempt::Unlimited);
 }
 
 inline
 bool ReadWriteSpinLock::tryUpgradeToWrite()
 {
-    return SpinLockUtil::upgradeToWrite(_count, true);
+    return SpinLockUtil::upgradeToWrite(_count, LockTraits::Attempt::Once);
+}
+
+inline
+bool ReadWriteSpinLock::tryUpgradeToWrite(bool& pendingUpgrade)
+{
+    return SpinLockUtil::upgradeToWrite(_count, pendingUpgrade, LockTraits::Attempt::Reentrant);
 }
 
 inline

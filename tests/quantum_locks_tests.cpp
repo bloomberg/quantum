@@ -21,6 +21,8 @@
 #include <memory>
 
 using namespace Bloomberg::quantum;
+using ms = std::chrono::milliseconds;
+using us = std::chrono::microseconds;
 
 #ifdef BOOST_USE_VALGRIND
     int spins = 100;
@@ -37,7 +39,7 @@ void runnable(SpinLock* exclusiveLock) {
         exclusiveLock->lock();
         locksTaken++;
         val++;
-        std::this_thread::sleep_for(std::chrono::microseconds(500));
+        std::this_thread::sleep_for(us(500));
         exclusiveLock->unlock();
     }
 }
@@ -58,14 +60,14 @@ void runThreads(int num)
     }
     auto end = std::chrono::high_resolution_clock::now();
     std::cout << "Total spin time " << num << ": "
-            << std::chrono::duration_cast<std::chrono::milliseconds>(end-start).count()
+            << std::chrono::duration_cast<ms>(end-start).count()
             << "ms" << std::endl;
 }
 
 void spinlockSettings(
         size_t min,
         size_t max,
-        std::chrono::microseconds sleepUs,
+        us sleepUs,
         size_t numYields,
         int num,
         int enable)
@@ -81,7 +83,7 @@ void spinlockSettings(
     }
 }
 
-TEST(Spinlock, Spinlock)
+TEST(Locks, Spinlock)
 {
     val = 0;
     SpinLock spin;
@@ -106,7 +108,7 @@ TEST(Spinlock, Spinlock)
     EXPECT_EQ(0, val);
 }
 
-TEST(Spinlock, Guards)
+TEST(Locks, Spinlock_Guards)
 {
     SpinLock spin;
     { //Basic
@@ -153,21 +155,21 @@ TEST(Spinlock, Guards)
     EXPECT_FALSE(spin.isLocked());
 }
 
-TEST(Spinlock, HighContention)
+TEST(Locks, Spinlock_HighContention)
 {
     val = 0;
     int enable = -1;
     int i = 0;
-    spinlockSettings(500, 10000, std::chrono::microseconds(100), 2, i++, enable); //0
-    spinlockSettings(0, 20000, std::chrono::microseconds(100), 3, i++, enable); //1
-    spinlockSettings(100, 5000, std::chrono::microseconds(200), 3, i++, enable); //2
-    spinlockSettings(500, 200000, std::chrono::microseconds(0), 5, i++, enable); //3
-    spinlockSettings(500, 20000, std::chrono::microseconds(1000), 0, i++, enable); //4
-    spinlockSettings(500, 2000, std::chrono::microseconds(0), 0, i++, enable); //5
-    spinlockSettings(0, 0, std::chrono::microseconds(10), 2000, i++, enable); //6
+    spinlockSettings(500, 10000, us(100), 2, i++, enable); //0
+    spinlockSettings(0, 20000, us(100), 3, i++, enable); //1
+    spinlockSettings(100, 5000, us(200), 3, i++, enable); //2
+    spinlockSettings(500, 200000, us(0), 5, i++, enable); //3
+    spinlockSettings(500, 20000, us(1000), 0, i++, enable); //4
+    spinlockSettings(500, 2000, us(0), 0, i++, enable); //5
+    spinlockSettings(0, 0, us(10), 2000, i++, enable); //6
 }
 
-TEST(ReadWriteSpinLock, LockReadMultipleTimes)
+TEST(Locks, ReadWriteSpinLock_LockReadMultipleTimes)
 {
     ReadWriteSpinLock spin;
     EXPECT_EQ(0, spin.numReaders());
@@ -184,7 +186,7 @@ TEST(ReadWriteSpinLock, LockReadMultipleTimes)
     EXPECT_FALSE(spin.isLocked());
 }
 
-TEST(ReadWriteSpinLock, LockReadAndWrite)
+TEST(Locks, ReadWriteSpinLock_LockReadAndWrite)
 {
     int num = spins;
     int val = 0;
@@ -224,7 +226,7 @@ TEST(ReadWriteSpinLock, LockReadAndWrite)
     EXPECT_EQ(0, val);
 }
 
-TEST(ReadWriteSpinLock, LockReadAndWriteList)
+TEST(Locks, ReadWriteSpinLock_LockReadAndWriteList)
 {
     int num = spins;
     std::list<int> val;
@@ -275,7 +277,7 @@ TEST(ReadWriteSpinLock, LockReadAndWriteList)
     EXPECT_EQ(0, val.size());
 }
 
-TEST(ReadWriteSpinLock, SingleLocks)
+TEST(Locks, ReadWriteSpinLock_SingleLocks)
 {
     ReadWriteSpinLock lock;
 
@@ -303,7 +305,7 @@ TEST(ReadWriteSpinLock, SingleLocks)
     EXPECT_EQ(0, lock.numReaders());
 }
 
-TEST(ReadWriteSpinLock, UnlockingUnlockedIsNoOp)
+TEST(Locks, ReadWriteSpinLock_UnlockingUnlockedIsNoOp)
 {
     ReadWriteSpinLock lock;
 
@@ -316,7 +318,7 @@ TEST(ReadWriteSpinLock, UnlockingUnlockedIsNoOp)
     EXPECT_FALSE(lock.isLocked());
 }
 
-TEST(ReadWriteSpinLock, TryLocks)
+TEST(Locks, ReadWriteSpinLock_TryLocks)
 {
     ReadWriteSpinLock lock;
 
@@ -333,7 +335,7 @@ TEST(ReadWriteSpinLock, TryLocks)
     EXPECT_FALSE(lock.tryLockRead());
 }
 
-TEST(ReadWriteSpinLock, Guards)
+TEST(Locks, ReadWriteSpinLock_Guards)
 {
     ReadWriteSpinLock lock;
 
@@ -476,7 +478,7 @@ TEST(ReadWriteSpinLock, Guards)
     EXPECT_FALSE(lock.isLocked());
 }
 
-TEST(ReadWriteSpinLock, UpgradeLock)
+TEST(Locks, ReadWriteSpinLock_UpgradeLock)
 {
     ReadWriteSpinLock lock;
     lock.lockRead();
@@ -488,7 +490,7 @@ TEST(ReadWriteSpinLock, UpgradeLock)
     EXPECT_EQ(3, lock.numReaders());
     EXPECT_EQ(0, lock.numPendingWriters());
     std::thread t([&lock]() {
-        std::this_thread::sleep_for(std::chrono::milliseconds(100));
+        std::this_thread::sleep_for(ms(100));
         EXPECT_EQ(2, lock.numReaders());
         lock.unlockRead();
         lock.unlockRead();
@@ -504,7 +506,7 @@ TEST(ReadWriteSpinLock, UpgradeLock)
     t.join();
 }
 
-TEST(ReadWriteSpinLock, UpgradeSingleReader)
+TEST(Locks, ReadWriteSpinLock_UpgradeSingleReader)
 {
     ReadWriteSpinLock lock;
     lock.lockRead();
@@ -522,7 +524,7 @@ TEST(ReadWriteSpinLock, UpgradeSingleReader)
     EXPECT_EQ(0, lock.numReaders());
 }
 
-TEST(ReadWriteSpinLock, TryUpgradeSingleReader)
+TEST(Locks, ReadWriteSpinLock_TryUpgradeSingleReader)
 {
     ReadWriteSpinLock lock;
     lock.lockRead();
@@ -534,7 +536,7 @@ TEST(ReadWriteSpinLock, TryUpgradeSingleReader)
     EXPECT_FALSE(lock.isLocked());
 }
 
-TEST(ReadWriteSpinLock, UpgradeMultipleReaders)
+TEST(Locks, ReadWriteSpinLock_UpgradeMultipleReaders)
 {
     ReadWriteSpinLock lock;
     lock.lockRead();
@@ -547,7 +549,7 @@ TEST(ReadWriteSpinLock, UpgradeMultipleReaders)
     
     //start a bunch of parallel readers which will then upgrade to writers
     std::vector<std::thread> threads;
-    auto timeToWake = std::chrono::system_clock::now() + std::chrono::milliseconds(10);
+    auto timeToWake = std::chrono::system_clock::now() + ms(10);
     std::atomic_int count{0};
     for (int i = 0; i < 10; ++i) {
         threads.emplace_back([&lock, &timeToWake, &count]() {
@@ -555,7 +557,7 @@ TEST(ReadWriteSpinLock, UpgradeMultipleReaders)
             ++count;
             std::this_thread::sleep_until(timeToWake);
             lock.upgradeToWrite();
-            std::this_thread::sleep_for(std::chrono::milliseconds(10));
+            std::this_thread::sleep_for(ms(10));
             EXPECT_GE(lock.numPendingWriters(), 0);
             EXPECT_TRUE(lock.isWriteLocked());
             lock.unlockWrite();
@@ -563,7 +565,7 @@ TEST(ReadWriteSpinLock, UpgradeMultipleReaders)
     }
     while (count < 10) {
         //wait for threads to lock read
-        std::this_thread::sleep_for(std::chrono::milliseconds(10));
+        std::this_thread::sleep_for(ms(10));
     }
     lock.upgradeToWrite(); //this will block waiting for the other threads to finish
     EXPECT_TRUE(lock.isWriteLocked());
@@ -576,7 +578,7 @@ TEST(ReadWriteSpinLock, UpgradeMultipleReaders)
     EXPECT_FALSE(lock.isLocked());
 }
 
-TEST(ReadWriteSpinLock, UpgradingBlockedMultipleReaders)
+TEST(Locks, ReadWriteSpinLock_UpgradingBlockedMultipleReaders)
 {
     std::vector<int> values;
     ReadWriteSpinLock lock;
@@ -585,14 +587,14 @@ TEST(ReadWriteSpinLock, UpgradingBlockedMultipleReaders)
     
     //start a bunch of parallel readers which will then upgrade to writers
     std::vector<std::thread> threads;
-    auto timeToWake = std::chrono::system_clock::now() + std::chrono::milliseconds(10);
+    auto timeToWake = std::chrono::system_clock::now() + ms(10);
     std::atomic_int count{0};
     for (int i = 0; i < 10; ++i) {
         threads.emplace_back([&lock, &timeToWake, &values, &count, i]() {
             if (i == 9) {
                 while (count < 9) {
                     //make sure all other readers are blocked
-                    std::this_thread::sleep_for(std::chrono::milliseconds(10));
+                    std::this_thread::sleep_for(ms(10));
                 }
                 lock.unlockRead(); //unblock the pending writer
             }
@@ -624,7 +626,7 @@ TEST(ReadWriteSpinLock, UpgradingBlockedMultipleReaders)
 //                         READWRITEMUTEX TESTS
 //==============================================================================
 
-TEST(ReadWriteMutex, SingleLocks)
+TEST(Locks, ReadWriteMutex_SingleLocks)
 {
     ReadWriteMutex mutex;
 
@@ -675,7 +677,7 @@ TEST(ReadWriteMutex, SingleLocks)
     EXPECT_EQ(0, mutex.numReaders());
 }
 
-TEST(ReadWriteMutex, TryLocks)
+TEST(Locks, ReadWriteMutex_TryLocks)
 {
     ReadWriteMutex mutex;
 
@@ -703,10 +705,51 @@ TEST(ReadWriteMutex, TryLocks)
     EXPECT_TRUE(mutex.isWriteLocked());
     EXPECT_FALSE(mutex.tryLockRead());
     EXPECT_FALSE(mutex.isReadLocked());
-
 }
 
-TEST(ReadWriteMutex, Guards)
+TEST(Locks, ReadWriteMutex_UpgradeToWrite)
+{
+    int numThreads = 2;
+    ReadWriteMutex rwMutex;
+    int locksAcquired = -1;
+    ConditionVariable cond;
+    Mutex mutex;
+    std::atomic<int> numReadLocks{0};
+    
+    auto job = [&]() mutable {
+        ReadWriteMutex::Guard rwGuard(rwMutex, lock::acquireRead);
+        numReadLocks++;
+        {
+            Mutex::Guard guard(mutex);
+            cond.wait(mutex, [&]() -> bool { return locksAcquired == 0; });
+        }
+        rwGuard.upgradeToWrite();
+        locksAcquired++;
+    };
+    
+    std::vector<std::thread> threads;
+    
+    for (int i = 0; i < numThreads; i++) {
+        threads.emplace_back(job);
+    }
+    
+    while (numReadLocks < numThreads) {
+        std::this_thread::sleep_for(ms(100));
+    }
+    {
+        Mutex::Guard guard(mutex);
+        locksAcquired=0;
+    }
+    cond.notifyAll();
+    
+    for (auto&& t : threads) {
+        t.join();
+    }
+    
+    EXPECT_EQ(numThreads, locksAcquired);
+}
+
+TEST(Locks, ReadWriteMutex_Guards)
 {
     ReadWriteMutex mutex;
 
@@ -944,7 +987,7 @@ TEST(ReadWriteMutex, Guards)
     mutex.unlockWrite();
 }
 
-TEST(ReadWriteMutex, MultipleReadLocks) {
+TEST(Locks, ReadWriteMutex_MultipleReadLocks) {
     ReadWriteMutex mutex;
     bool run = true;
     

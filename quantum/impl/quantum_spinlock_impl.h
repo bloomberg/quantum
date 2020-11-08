@@ -31,13 +31,13 @@ namespace quantum {
 inline
 void SpinLock::lock()
 {
-    SpinLockUtil::lockWrite(_flag);
+    SpinLockUtil::lockWrite(_flag, LockTraits::Attempt::Unlimited);
 }
 
 inline
 bool SpinLock::tryLock()
 {
-    return SpinLockUtil::lockWrite(_flag, true);
+    return SpinLockUtil::lockWrite(_flag, LockTraits::Attempt::Once);
 }
 
 inline

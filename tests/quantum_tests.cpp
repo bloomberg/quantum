@@ -1025,7 +1025,7 @@ TEST_P(PromiseTest, FutureTimeout)
     //check elapsed time
     size_t elapsed = std::chrono::duration_cast<std::chrono::milliseconds>(end-start).count();
     EXPECT_LT(elapsed, (size_t)300);
-    EXPECT_EQ(status, std::future_status::timeout);
+    EXPECT_EQ((int)status, (int)std::future_status::timeout);
 }
 
 TEST_P(PromiseTest, FutureWithoutTimeout)
@@ -1044,7 +1044,7 @@ TEST_P(PromiseTest, FutureWithoutTimeout)
     size_t elapsed = std::chrono::duration_cast<std::chrono::milliseconds>(end-start).count();
     EXPECT_GE(elapsed, (size_t)100);
     EXPECT_LT(elapsed, (size_t)300);
-    EXPECT_EQ(status, std::future_status::ready);
+    EXPECT_EQ((int)status, (int)std::future_status::ready);
 }
 
 TEST_P(PromiseTest, WaitForAllFutures)
@@ -1489,7 +1489,7 @@ TEST_P(FutureJoinerTest, JoinCoroFutures)
     EXPECT_EQ(output, std::vector<int>({0,1,2,3,4,5,6,7,8,9}));
 }
 
-TEST(SharedQueueTest, PerformanceTest1)
+TEST(SharedQueueTest, PerformanceTest)
 {
     // The code below enqueues 30 short tasks, then 1 large task, and then 30 short tasks.
     // The intuition is that in the shared-coro mode, while one thread is busy with the large task,

@@ -16,14 +16,22 @@
 #ifndef QUANTUM_QUANTUM_SPINLOCK_UTIL_H
 #define QUANTUM_QUANTUM_SPINLOCK_UTIL_H
 
+#include <quantum/quantum_spinlock_traits.h>
+
 namespace Bloomberg {
 namespace quantum {
 
 //Adapted from https://geidav.wordpress.com/tag/test-and-test-and-set/
 struct SpinLockUtil {
-    static bool lockWrite(std::atomic_uint32_t& flag, bool tryOnce = false);
-    static bool lockRead(std::atomic_uint32_t& flag, bool tryOnce = false);
-    static bool upgradeToWrite(std::atomic_uint32_t& flag, bool tryOnce = false);
+    static bool lockWrite(std::atomic_uint32_t& flag,
+                          LockTraits::Attempt);
+    static bool lockRead(std::atomic_uint32_t& flag,
+                         LockTraits::Attempt);
+    static bool upgradeToWrite(std::atomic_uint32_t& flag,
+                               LockTraits::Attempt);
+    static bool upgradeToWrite(std::atomic_uint32_t& flag,
+                               bool& pendingUpgrade,
+                               LockTraits::Attempt);
     static void unlockRead(std::atomic_uint32_t& flag);
     static void unlockWrite(std::atomic_uint32_t& flag);
     static bool isLocked(const std::atomic_uint32_t& flag);
@@ -31,14 +39,15 @@ struct SpinLockUtil {
     static uint16_t numReaders(const std::atomic_uint32_t& flag);
     static uint16_t numPendingWriters(const std::atomic_uint32_t& flag);
 private:
-    static void reset();
-    static void yieldOrSleep();
-    static void backoff();
+    static bool upgradeToWriteImpl(std::atomic_uint32_t& flag,
+                                   bool& pendingUpgrade,
+                                   LockTraits::Attempt);
+    static void yieldOrSleep(size_t& num);
+    static size_t generateBackoff();
+    static void backoff(size_t& num);
     static void spinWaitWriter(std::atomic_uint32_t& flag);
     static void spinWaitReader(std::atomic_uint32_t& flag);
     static void spinWaitUpgradedReader(std::atomic_uint32_t& flag);
-    static size_t& numYields();
-    static size_t& numSpins();
     static void pauseCPU();
     //Bit manipulations
     static constexpr uint32_t set(int16_t upgrades, int16_t owners);

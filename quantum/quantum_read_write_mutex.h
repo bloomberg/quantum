@@ -194,6 +194,8 @@ public:
     };
 
 private:
+    bool tryUpgradeToWriteImpl(bool* pendingUpgrade);
+    
     // Members
     mutable ReadWriteSpinLock   _spinlock;
     mutable TaskId              _taskId;
