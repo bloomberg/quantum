@@ -19,6 +19,7 @@
 //#################################### IMPLEMENTATIONS #########################################
 //##############################################################################################
 #include <quantum/quantum_allocator.h>
+#include <quantum/quantum_traits.h>
 
 namespace Bloomberg {
 namespace quantum {
@@ -1341,7 +1342,11 @@ void Context<RET>::waitAll(ICoroSync::Ptr sync) const
         {
             promise->getICoroFutureBase()->wait(sync);
         }
-        catch(...) //catch all broken promises or any other exception
+        catch (const Traits::CoroutineStackUnwind&) {
+            //allow coroutine stack to unwind properly
+            throw;
+        }
+        catch (...) //catch all broken promises or any other exception
         {
         }
     }

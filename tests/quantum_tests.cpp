@@ -829,9 +829,9 @@ TEST_P(PromiseTest, BufferedFutureException)
         }
         // Don't close the buffer but throw instead
         try {
-            throw 5;
+            throw std::runtime_error("42");
         }
-        catch (...)
+        catch (const std::exception&)
         {
             return ctx->setException(std::current_exception());
         }
@@ -847,7 +847,7 @@ TEST_P(PromiseTest, BufferedFutureException)
             if (isBufferClosed) break;
             v.push_back(value);
         }
-        catch (...) {
+        catch (const std::exception&) {
             wasCaught = true;
             break;
         }
@@ -1000,14 +1000,14 @@ TEST_P(PromiseTest, SetExceptionInPromise)
     Dispatcher& dispatcher = getDispatcher();
     IThreadContext<int>::Ptr ctx = dispatcher.post([](ICoroContext<int>::Ptr ctx)->int{
         try {
-            throw 5;
+            throw std::runtime_error("42");
         }
-        catch (...)
+        catch (const std::exception&)
         {
             return ctx->setException(std::current_exception());
         }
     });
-    EXPECT_THROW(ctx->get(), int);
+    EXPECT_THROW(ctx->get(), std::runtime_error);
 }
 
 TEST_P(PromiseTest, FutureTimeout)

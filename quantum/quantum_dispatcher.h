@@ -32,6 +32,7 @@ namespace quantum {
 /// @class Dispatcher.
 /// @brief Parallel execution engine used to run coroutines or IO tasks asynchronously.
 ///        This class is the main entry point into the library.
+/// @warning Please read the following for [exception safety](https://www.boost.org/doc/libs/1_68_0/libs/coroutine2/doc/html/coroutine2/coroutine/asymmetric.html#coroutine2.coroutine.asymmetric.exceptions)
 class Dispatcher : public ITerminate
 {
 public:
@@ -59,6 +60,8 @@ public:
     /// @return A pointer to a thread context object.
     /// @note This function is non-blocking and returns immediately. The returned thread context cannot be used to chain
     ///       further coroutines.
+    /// @warning User functions should *never* catch all exceptions with (...) as it may block coroutine stack
+    ///          unwind exceptions from propagating which are not derived from std::exception (see link at the top)
     template <class RET = Deprecated, class FUNC, class ... ARGS>
     auto post(FUNC&& func, ARGS&&... args)->ThreadContextPtr<decltype(coroResult(func))>;
     
@@ -82,6 +85,8 @@ public:
     /// @return A pointer to a thread context object.
     /// @note This function is non-blocking and returns immediately. The returned thread context cannot be used to chain
     ///       further coroutines.
+    /// @warning User functions should *never* catch all exceptions with (...) as it may block coroutine stack
+    ///          unwind exceptions from propagating which are not derived from std::exception (see link at the top).
     template <class RET = Deprecated, class FUNC, class ... ARGS>
     auto post(int queueId, bool isHighPriority, FUNC&& func, ARGS&&... args)
         ->ThreadContextPtr<decltype(coroResult(func))>;
@@ -102,6 +107,8 @@ public:
     /// @return A pointer to a thread context object.
     /// @note This function is non-blocking and returns immediately. The returned context can be used to chain other
     ///       coroutines which will run sequentially.
+    /// @warning User functions should *never* catch all exceptions with (...) as it may block coroutine stack
+    ///          unwind exceptions from propagating which are not derived from std::exception (see link at the top).
     template <class RET = Deprecated, class FUNC, class ... ARGS>
     auto postFirst(FUNC&& func, ARGS&&... args)->ThreadContextPtr<decltype(coroResult(func))>;
     
@@ -125,6 +132,8 @@ public:
     /// @return A pointer to a thread context object.
     /// @note This function is non-blocking and returns immediately. The returned context can be used to chain other
     ///       coroutines which will run sequentially.
+    /// @warning User functions should *never* catch all exceptions with (...) as it may block coroutine stack
+    ///          unwind exceptions from propagating which are not derived from std::exception (see link at the top).
     template <class RET = Deprecated, class FUNC, class ... ARGS>
     auto postFirst(int queueId, bool isHighPriority, FUNC&& func, ARGS&&... args)
         ->ThreadContextPtr<decltype(coroResult(func))>;

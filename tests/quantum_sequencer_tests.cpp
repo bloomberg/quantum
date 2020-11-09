@@ -217,14 +217,14 @@ TEST_P(SequencerTest, ExceptionHandler)
             // the exception above must be thrown
             ASSERT_TRUE(false);
         }
-        catch(const std::exception& e)
+        catch (const std::exception& e)
         {
             EXPECT_EQ(e.what(), errorText);
             ASSERT_NE(opaque, nullptr);
             SequencerTestData::TaskId taskId = *static_cast<SequencerTestData::TaskId*>(opaque);
             EXPECT_EQ(taskId % exceptionFrequency, 0);
         }
-        catch(...)
+        catch (...)
         {
             ASSERT_TRUE(false);
         }
