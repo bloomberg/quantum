@@ -48,6 +48,8 @@ struct Traits
     using BoostCoro = boost::coroutines2::coroutine<int&>;
     using Yield     = typename BoostCoro::pull_type;
     using Coroutine = typename BoostCoro::push_type;
+    //NOTE: 'boost::coroutines2::detail::forced_unwind' is deprecated
+    using CoroutineStackUnwind = boost::context::detail::forced_unwind;
     
     template <class IT>
     using IsInputIterator = std::enable_if_t<std::is_convertible<typename std::iterator_traits<IT>::iterator_category, std::input_iterator_tag>::value>;

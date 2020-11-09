@@ -21,6 +21,7 @@
 
 #include <quantum/util/quantum_drain_guard.h>
 #include <quantum/quantum_promise.h>
+#include <quantum/quantum_traits.h>
 #include <stdexcept>
 
 namespace Bloomberg {
@@ -508,14 +509,18 @@ Sequencer<SequenceKey, Hash, KeyEqual, Allocator>::callPosted(
         std::forward<FUNC>(func)(ctx, std::forward<ARGS>(args)...);
         return ctx->set(Void{});
     }
-    catch(std::exception& ex)
+    catch (const Traits::CoroutineStackUnwind&) {
+        //allow coroutine stack to unwind properly
+        throw;
+    }
+    catch (const std::exception& ex)
     {
         if (sequencer._exceptionCallback)
         {
             sequencer._exceptionCallback(std::current_exception(), opaque);
         }
     }
-    catch(...)
+    catch (...)
     {
         if (sequencer._exceptionCallback)
         {

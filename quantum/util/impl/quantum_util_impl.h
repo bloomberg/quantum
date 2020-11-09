@@ -19,6 +19,7 @@
 //#################################### IMPLEMENTATIONS #########################################
 //##############################################################################################
 #include <quantum/util/quantum_future_joiner.h>
+#include <quantum/quantum_traits.h>
 
 namespace Bloomberg {
 namespace quantum {
@@ -41,11 +42,11 @@ int bindCoro(Traits::Yield& yield,
         yield.get() = rc;
         return 0;
     }
-    catch (const boost::context::detail::forced_unwind&)
-    {
+    catch (const Traits::CoroutineStackUnwind&) {
+        //allow coroutine stack to unwind properly
         throw;
     }
-    catch(const std::exception& ex)
+    catch (const std::exception& ex)
     {
         UNUSED(ex);
 #ifdef __QUANTUM_PRINT_DEBUG
@@ -54,11 +55,11 @@ int bindCoro(Traits::Yield& yield,
 #endif
         ctx->setException(std::current_exception());
     }
-    catch(...)
+    catch (...)
     {
 #ifdef __QUANTUM_PRINT_DEBUG
         std::lock_guard<std::mutex> guard(Util::LogMutex());
-        std::cerr << "Caught unknown exception." << std::endl;
+        std::cerr << "Caught unknown exception in coroutine." << std::endl;
 #endif
         ctx->setException(std::current_exception());
     }
@@ -81,11 +82,11 @@ int bindCoro2(Traits::Yield& yield,
         yield.get() = rc;
         return 0;
     }
-    catch (const boost::context::detail::forced_unwind&)
-    {
+    catch (const Traits::CoroutineStackUnwind&) {
+        //allow coroutine stack to unwind properly
         throw;
     }
-    catch(const std::exception& ex)
+    catch (const std::exception& ex)
     {
         UNUSED(ex);
 #ifdef __QUANTUM_PRINT_DEBUG
@@ -94,11 +95,11 @@ int bindCoro2(Traits::Yield& yield,
 #endif
         ctx->setException(std::current_exception());
     }
-    catch(...)
+    catch (...)
     {
 #ifdef __QUANTUM_PRINT_DEBUG
         std::lock_guard<std::mutex> guard(Util::LogMutex());
-        std::cerr << "Caught unknown exception." << std::endl;
+        std::cerr << "Caught unknown exception in coroutine." << std::endl;
 #endif
         ctx->setException(std::current_exception());
     }
@@ -114,7 +115,7 @@ int bindIo(std::shared_ptr<Promise<RET>> promise,
     {
         return std::forward<CAPTURE>(capture)();
     }
-    catch(const std::exception& ex)
+    catch (const std::exception& ex)
     {
         UNUSED(ex);
 #ifdef __QUANTUM_PRINT_DEBUG
@@ -123,11 +124,11 @@ int bindIo(std::shared_ptr<Promise<RET>> promise,
 #endif
         promise->setException(std::current_exception());
     }
-    catch(...)
+    catch (...)
     {
 #ifdef __QUANTUM_PRINT_DEBUG
         std::lock_guard<std::mutex> guard(Util::LogMutex());
-        std::cerr << "Caught unknown exception." << std::endl;
+        std::cerr << "Caught unknown exception in IO task." << std::endl;
 #endif
         promise->setException(std::current_exception());
     }
@@ -143,7 +144,7 @@ int bindIo2(std::shared_ptr<Promise<RET>> promise,
         promise->set(std::forward<CAPTURE>(capture)());
         return 0;
     }
-    catch(const std::exception& ex)
+    catch (const std::exception& ex)
     {
         UNUSED(ex);
 #ifdef __QUANTUM_PRINT_DEBUG
@@ -152,11 +153,11 @@ int bindIo2(std::shared_ptr<Promise<RET>> promise,
 #endif
         promise->setException(std::current_exception());
     }
-    catch(...)
+    catch (...)
     {
 #ifdef __QUANTUM_PRINT_DEBUG
         std::lock_guard<std::mutex> guard(Util::LogMutex());
-        std::cerr << "Caught unknown exception." << std::endl;
+        std::cerr << "Caught unknown exception in IO task." << std::endl;
 #endif
         promise->setException(std::current_exception());
     }
