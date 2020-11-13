@@ -13,6 +13,7 @@
 ** See the License for the specific language governing permissions and
 ** limitations under the License.
 */
+#include <quantum_fixture.h>
 #include <gtest/gtest.h>
 #include <quantum/quantum.h>
 #include <chrono>
@@ -30,7 +31,7 @@ using us = std::chrono::microseconds;
     int spins = 100000;
 #endif
     int val = 0;
-    int numThreads = 20;
+    const int numThreads = 50;
     int numLockAcquires = 100;
 
 void runnable(SpinLock* exclusiveLock) {
@@ -51,7 +52,7 @@ void runThreads(int num)
     exclusiveLock.lock(); //lock it so that all threads block
     std::vector<std::shared_ptr<std::thread>> threads;
     auto start = std::chrono::high_resolution_clock::now();
-    for (int i = 0; i < numThreads; ++i) {
+    for (int i = 0; i < 20; ++i) {
         threads.push_back(std::make_shared<std::thread>(runnable, &exclusiveLock));
     }
     exclusiveLock.unlock(); //unlock to start contention
@@ -79,7 +80,7 @@ void spinlockSettings(
         SpinLockTraits::numYieldsBeforeSleep() = numYields;
         SpinLockTraits::sleepDuration() = sleepUs;
         runThreads(num);
-        EXPECT_EQ(numThreads*numLockAcquires, val);
+        EXPECT_EQ(20*numLockAcquires, val);
     }
 }
 
@@ -231,7 +232,7 @@ TEST(Locks, ReadWriteSpinLock_LockReadAndWriteList)
     int num = spins;
     std::list<int> val;
     ReadWriteSpinLock spin;
-    bool exit = false;
+    volatile bool exit = false;
     std::thread t1([&]() mutable {
         while (!exit) {
             ReadWriteSpinLock::Guard guard(spin, lock::acquireRead);
@@ -539,35 +540,30 @@ TEST(Locks, ReadWriteSpinLock_TryUpgradeSingleReader)
 TEST(Locks, ReadWriteSpinLock_UpgradeMultipleReaders)
 {
     ReadWriteSpinLock lock;
-    lock.lockRead();
-    lock.lockRead();
-    EXPECT_TRUE(lock.isReadLocked());
-    EXPECT_FALSE(lock.tryUpgradeToWrite()); //2 readers is impossible
-    EXPECT_FALSE(lock.isWriteLocked());
-    lock.unlockRead(); //only a single reader left
-    EXPECT_EQ(1, lock.numReaders());
     
-    //start a bunch of parallel readers which will then upgrade to writers
+    //start some parallel readers which will then upgrade to writers
     std::vector<std::thread> threads;
+    std::vector<int> data; //container to be modified under write lock
     auto timeToWake = std::chrono::system_clock::now() + ms(10);
     std::atomic_int count{0};
-    for (int i = 0; i < 10; ++i) {
-        threads.emplace_back([&lock, &timeToWake, &count]() {
+    for (int i = 0; i < numThreads; ++i) {
+        threads.emplace_back([&lock, &timeToWake, &count, &data, i]() {
             lock.lockRead();
             ++count;
             std::this_thread::sleep_until(timeToWake);
             lock.upgradeToWrite();
             std::this_thread::sleep_for(ms(10));
+            data.push_back(i);
             EXPECT_GE(lock.numPendingWriters(), 0);
             EXPECT_TRUE(lock.isWriteLocked());
             lock.unlockWrite();
         });
     }
-    while (count < 10) {
+    while (count < numThreads) {
         //wait for threads to lock read
         std::this_thread::sleep_for(ms(10));
     }
-    lock.upgradeToWrite(); //this will block waiting for the other threads to finish
+    lock.lockWrite(); //this will block waiting for the other threads to finish
     EXPECT_TRUE(lock.isWriteLocked());
     lock.unlockWrite();
     for (auto&& t : threads) {
@@ -576,50 +572,7 @@ TEST(Locks, ReadWriteSpinLock_UpgradeMultipleReaders)
     EXPECT_EQ(0, lock.numReaders());
     EXPECT_EQ(0, lock.numPendingWriters());
     EXPECT_FALSE(lock.isLocked());
-}
-
-TEST(Locks, ReadWriteSpinLock_UpgradingBlockedMultipleReaders)
-{
-    std::vector<int> values;
-    ReadWriteSpinLock lock;
-    lock.lockRead();
-    lock.lockRead();
-    
-    //start a bunch of parallel readers which will then upgrade to writers
-    std::vector<std::thread> threads;
-    auto timeToWake = std::chrono::system_clock::now() + ms(10);
-    std::atomic_int count{0};
-    for (int i = 0; i < 10; ++i) {
-        threads.emplace_back([&lock, &timeToWake, &values, &count, i]() {
-            if (i == 9) {
-                while (count < 9) {
-                    //make sure all other readers are blocked
-                    std::this_thread::sleep_for(ms(10));
-                }
-                lock.unlockRead(); //unblock the pending writer
-            }
-            else {
-                std::this_thread::sleep_until(timeToWake);
-                ++count;
-                lock.lockRead(); //this will block until the writer upgrades
-                lock.upgradeToWrite();
-                values.push_back(i);
-                lock.unlockWrite();
-            }
-        });
-    }
-    //this will block waiting for the other threads to finish
-    lock.upgradeToWrite();
-    EXPECT_TRUE(lock.isWriteLocked());
-    values.push_back(-1);
-    lock.unlockWrite();
-    for (auto&& t : threads) {
-        t.join();
-    }
-    EXPECT_EQ(0, lock.numReaders());
-    EXPECT_EQ(0, lock.numPendingWriters());
-    EXPECT_FALSE(lock.isLocked());
-    EXPECT_EQ(-1, values.front());
+    EXPECT_EQ(numThreads, data.size());
 }
 
 //==============================================================================
@@ -709,7 +662,6 @@ TEST(Locks, ReadWriteMutex_TryLocks)
 
 TEST(Locks, ReadWriteMutex_UpgradeToWrite)
 {
-    int numThreads = 2;
     ReadWriteMutex rwMutex;
     int locksAcquired = -1;
     ConditionVariable cond;
@@ -725,9 +677,12 @@ TEST(Locks, ReadWriteMutex_UpgradeToWrite)
         }
         rwGuard.upgradeToWrite();
         locksAcquired++;
+        //hold lock for a small period of time
+        std::this_thread::yield();
     };
     
     std::vector<std::thread> threads;
+    threads.reserve(numThreads);
     
     for (int i = 0; i < numThreads; i++) {
         threads.emplace_back(job);
@@ -747,6 +702,55 @@ TEST(Locks, ReadWriteMutex_UpgradeToWrite)
     }
     
     EXPECT_EQ(numThreads, locksAcquired);
+}
+
+TEST(Locks, ReadWriteMutex_CoroUpgradeToWrite)
+{
+    int numCoros = numThreads*10; //increase load
+    const TestConfiguration noCoroSharingConfig(false, false);
+    quantum::Dispatcher& dispatcher = DispatcherSingleton::instance(noCoroSharingConfig);
+    
+    ReadWriteMutex rwMutex;
+    int locksAcquired = -1;
+    ConditionVariable cond;
+    Mutex mutex;
+    std::atomic<int> numReadLocks{0};
+    
+    auto job = [&](VoidContextPtr ctx) mutable -> int {
+        ReadWriteMutex::Guard rwGuard(ctx, rwMutex, lock::acquireRead);
+        numReadLocks++;
+        {
+            Mutex::Guard guard(ctx, mutex);
+            cond.wait(ctx, mutex, [&]() -> bool { return locksAcquired == 0; });
+        }
+        rwGuard.upgradeToWrite(ctx);
+        locksAcquired++;
+        //hold lock for a small period of time
+        ctx->yield();
+        return 0;
+    };
+    
+    std::vector<ThreadContextPtr<int>> futures;
+    futures.reserve(numThreads);
+    
+    for (int i = 0; i < numCoros; i++) {
+        futures.emplace_back(dispatcher.post(job));
+    }
+    
+    while (numReadLocks < numCoros) {
+        std::this_thread::sleep_for(ms(100));
+    }
+    {
+        Mutex::Guard guard(mutex);
+        locksAcquired=0;
+    }
+    cond.notifyAll();
+    
+    for (auto&& f : futures) {
+        f->wait();
+    }
+    
+    EXPECT_EQ(numCoros, locksAcquired);
 }
 
 TEST(Locks, ReadWriteMutex_Guards)
@@ -989,7 +993,7 @@ TEST(Locks, ReadWriteMutex_Guards)
 
 TEST(Locks, ReadWriteMutex_MultipleReadLocks) {
     ReadWriteMutex mutex;
-    bool run = true;
+    std::atomic_bool run{true};
     
     ASSERT_FALSE(mutex.isLocked());
     

@@ -47,15 +47,14 @@ private:
     static void backoff(size_t& num);
     static void spinWaitWriter(std::atomic_uint32_t& flag);
     static void spinWaitReader(std::atomic_uint32_t& flag);
-    static void spinWaitUpgradedReader(std::atomic_uint32_t& flag);
     static void pauseCPU();
     //Bit manipulations
-    static constexpr uint32_t set(int16_t upgrades, int16_t owners);
-    static constexpr uint32_t add(uint32_t n, int16_t upgrade, int16_t owner);
+    static uint32_t set(int16_t upgrades, int16_t owners);
+    static uint32_t add(uint32_t n, int16_t upgrade, int16_t owner);
     //The high 16 bits
-    static constexpr int16_t upgrades(uint32_t n);
+    static int16_t upgrades(uint32_t n);
     //The low 16 bits. -1 indicates a single exclusive writer
-    static constexpr int16_t owners(uint32_t n);
+    static int16_t owners(uint32_t n);
     static constexpr uint32_t mask = 0x0000FFFF;
 };
 
