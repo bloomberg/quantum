@@ -41,5 +41,14 @@ before_script:
 
 script:
   - ulimit -c unlimited -S #enable core dumps
-  - cmake -DCMAKE-BUILD_TYPE=Debug -DQUANTUM_ENABLE_TESTS=ON -DQUANTUM_BOOST_USE_VALGRIND=ON -DCMAKE_INSTALL_PREFIX=tests -DGTEST_ROOT=googletest/install .
+  - >
+    cmake
+    -DCMAKE_VERBOSE_MAKEFILE=ON
+    -DCMAKE-BUILD_TYPE=RelWithDebInfo
+    -DCMAKE_INSTALL_PREFIX=tests
+    -DCMAKE_CXX_FLAGS_INIT='-Wall -Wextra -m64 -ftemplate-backtrace-limit=0 -faligned-new -O3'
+    -DCMAKE_CXX_STANDARD=$CXXSTANDARD
+    -DGTEST_ROOT=googletest/install .
+    -DQUANTUM_ENABLE_TESTS=ON
+    -DQUANTUM_BOOST_USE_VALGRIND=ON
   - make QuantumTests && ./tests/QuantumTests.Linux64

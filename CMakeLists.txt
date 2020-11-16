@@ -49,7 +49,7 @@ if (NOT CMAKE_CXX_COMPILER)
 endif()
 #Set the compiler if the CXX_STANDARD environment variable is not set
 if (NOT CMAKE_CXX_STANDARD)
-    set(CMAKE_CXX_STANDARD 14)
+    set(CMAKE_CXX_STANDARD 17)
 endif()
 #Set compile flags if CXXFLAGS environment variable is not set
 if (NOT CMAKE_CXX_FLAGS)
