@@ -34,7 +34,7 @@ struct IQueueStatistics
     /// @brief Reset all the counters to 0.
     virtual void reset() = 0;
     
-    /// @brief Gets the current size of the queue
+    /// @brief Gets the current number of active coroutines on this queue.
     virtual size_t numElements() const = 0;
     
     /// @brief Increment this counter.

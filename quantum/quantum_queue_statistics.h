@@ -81,12 +81,12 @@ public:
 
 private:
     std::atomic_size_t  _numElements;
-    size_t      _errorCount;
-    size_t      _sharedQueueErrorCount;
-    size_t      _completedCount;
-    size_t      _sharedQueueCompletedCount;
-    size_t      _postedCount;
-    size_t      _highPriorityCount;
+    size_t              _errorCount;
+    size_t              _sharedQueueErrorCount;
+    size_t              _completedCount;
+    size_t              _sharedQueueCompletedCount;
+    size_t              _postedCount;
+    size_t              _highPriorityCount;
 };
 
 }}
