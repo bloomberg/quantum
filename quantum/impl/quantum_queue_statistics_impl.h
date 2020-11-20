@@ -157,13 +157,12 @@ void QueueStatistics::incHighPriorityCount()
 inline
 void QueueStatistics::print(std::ostream& out) const
 {
-    out << "Num elemetns: " << _numElements << std::endl;
-    out << "Num queued: " << _errorCount << std::endl;
+    out << "Num active: " << _numElements << std::endl;
     out << "Num completed: " << _completedCount << std::endl;
     out << "Num shared completed: " << _sharedQueueCompletedCount << std::endl;
     out << "Num errors: " << _errorCount << std::endl;
     out << "Num shared errors: " << _sharedQueueErrorCount << std::endl;
-    out << "Num high priority count: " << _highPriorityCount << std::endl;
+    out << "Num high-priority count: " << _highPriorityCount << std::endl;
 }
 
 inline

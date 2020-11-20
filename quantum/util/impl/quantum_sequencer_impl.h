@@ -507,7 +507,7 @@ Sequencer<SequenceKey, Hash, KeyEqual, Allocator>::callPosted(
     try
     {
         std::forward<FUNC>(func)(ctx, std::forward<ARGS>(args)...);
-        return ctx->set(Void{});
+        return 0;
     }
     catch (const Traits::CoroutineStackUnwind&) {
         //allow coroutine stack to unwind properly
