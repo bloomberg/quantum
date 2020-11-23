@@ -23,7 +23,7 @@
 #include <thread>
 #include <functional>
 #include <algorithm>
-#ifdef _WIN32
+#if defined(_WIN32) && !defined(__CYGWIN__)
 #include <winbase.h>
 #else
 #include <pthread.h>

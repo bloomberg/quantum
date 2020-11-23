@@ -16,7 +16,15 @@
 //NOTE: DO NOT INCLUDE DIRECTLY
 #include <type_traits>
 #include <algorithm>
-#include <assert.h>
+#include <cassert>
+#include <algorithm>
+#include <cstring>
+
+#if defined(_WIN32) && !defined(__CYGWIN__)
+    //TODO: Windows headers for memory mapping and page protection
+#else
+    #include <sys/mman.h>
+#endif
 
 #if defined(BOOST_USE_VALGRIND)
     #include <valgrind/valgrind.h>
@@ -31,34 +39,48 @@ namespace quantum {
 template <typename STACK_TRAITS>
 CoroutinePoolAllocator<STACK_TRAITS>::CoroutinePoolAllocator(index_type size) :
     _size(size),
-    _blocks(new Header*[size]),
-    _freeBlocks(new index_type[size]),
-    _freeBlockIndex(size-1),
+    _blocks(nullptr),
+    _freeBlocks(nullptr),
+    _freeBlockIndex(size-1), //point to the last element
     _numHeapAllocatedBlocks(0),
-    _stackSize(std::min(std::max(traits::default_size(), traits::minimum_size()), traits::maximum_size()))
+    _stackSize(std::min(std::max(traits::default_size(),
+                                 traits::minimum_size()),
+                        traits::maximum_size()))
 {
-    if (!_blocks || !_freeBlocks) {
-        throw std::bad_alloc();
-    }
-    if (_size == 0) {
+    if (_size == 0)
+    {
         throw std::runtime_error("Invalid coroutine allocator pool size");
     }
-    //pre-allocate all the coroutine stack blocks
-    for (index_type i = 0; i < size; ++i) {
-        _blocks[i] = reinterpret_cast<Header*>(new char[_stackSize]);
-        if (!_blocks[i]) {
+    _freeBlocks = new index_type[size];
+    if (!_freeBlocks)
+    {
+        throw std::bad_alloc();
+    }
+    _blocks = new uint8_t*[size];
+    if (!_blocks)
+    {
+        delete[] _freeBlocks;
+        throw std::bad_alloc();
+    }
+    //pre-allocate all the coroutine stack blocks and protect the last stack page to
+    //track coroutine stack overflows.
+    for (size_t i = 0; i < size; ++i)
+    {
+        _blocks[i] = allocateCoroutine(ProtectMemPage::On);
+        if (!_blocks[i])
+        {
+            deallocateBlocks(i);
             throw std::bad_alloc();
         }
-        _blocks[i]->_pos = i; //mark position
+        //set the block position
+        header(_blocks[i])->_pos = i;
     }
     //initialize the free block list
-    for (index_type i = 0; i < size; ++i) {
-        _freeBlocks[i] = i;
-    }
+    std::iota(_freeBlocks, _freeBlocks + size, 0);
 }
 
 template <typename STACK_TRAITS>
-CoroutinePoolAllocator<STACK_TRAITS>::CoroutinePoolAllocator(CoroutinePoolAllocator<STACK_TRAITS>&& other)
+CoroutinePoolAllocator<STACK_TRAITS>::CoroutinePoolAllocator(CoroutinePoolAllocator<STACK_TRAITS>&& other) noexcept
 {
     *this = other;
 }
@@ -82,17 +104,62 @@ CoroutinePoolAllocator<STACK_TRAITS>& CoroutinePoolAllocator<STACK_TRAITS>::oper
 template <typename STACK_TRAITS>
 CoroutinePoolAllocator<STACK_TRAITS>::~CoroutinePoolAllocator()
 {
-    for (size_t i = 0; i < _size; ++i) {
-        delete[] (char*)_blocks[i];
+    deallocateBlocks(_size);
+}
+
+template <typename STACK_TRAITS>
+void CoroutinePoolAllocator<STACK_TRAITS>::deallocateBlocks(size_t pos)
+{
+    for (size_t j = 0; j < pos; ++j)
+    {
+        deallocateCoroutine(_blocks[j]);
     }
     delete[] _blocks;
     delete[] _freeBlocks;
 }
 
 template <typename STACK_TRAITS>
+uint8_t* CoroutinePoolAllocator<STACK_TRAITS>::allocateCoroutine(ProtectMemPage protect) const
+{
+#if defined(_WIN32) && !defined(__CYGWIN__)
+    return new uint8_t[_stackSize];
+#else
+    uint8_t* block = (uint8_t*)mmap(nullptr,
+                                    _stackSize,
+                                    PROT_WRITE | PROT_READ | PROT_EXEC,
+                                    MAP_ANONYMOUS | MAP_PRIVATE,
+                                    -1, //invalid fd
+                                    0); //no offset
+    if (block == MAP_FAILED)
+    {
+        return nullptr;
+    }
+    //Add protection to the lowest page
+    if ((protect == ProtectMemPage::On) &&
+         mprotect(block, traits::page_size(), PROT_NONE) != 0)
+    {
+        munmap(block, _stackSize); //free region
+        return nullptr;
+    }
+    return block;
+#endif
+}
+
+template <typename STACK_TRAITS>
+int CoroutinePoolAllocator<STACK_TRAITS>::deallocateCoroutine(uint8_t* block) const
+{
+    assert(block);
+#if defined(_WIN32) && !defined(__CYGWIN__)
+    delete[] block;
+    return 0;
+#else
+    return munmap(block, _stackSize);
+#endif
+}
+
+template <typename STACK_TRAITS>
 boost::context::stack_context CoroutinePoolAllocator<STACK_TRAITS>::allocate() {
-    boost::context::stack_context ctx;
-    Header* block = nullptr;
+    uint8_t* block = nullptr;
     {
         SpinLock::Guard lock(_spinlock);
         if (!isEmpty())
@@ -100,28 +167,32 @@ boost::context::stack_context CoroutinePoolAllocator<STACK_TRAITS>::allocate() {
             block = _blocks[_freeBlocks[_freeBlockIndex--]];
         }
     }
-    if (!block) {
-        // Use heap allocation
-        block = (Header*)new char[_stackSize];
-        if (!block) {
+    if (!block)
+    {
+        //Do not protect last memory page for performance reasons
+        block = allocateCoroutine(ProtectMemPage::Off);
+        if (!block)
+        {
             throw std::bad_alloc();
         }
-        block->_pos = -1; //mark position as non-managed
+        header(block)->_pos = -1; //mark position as non-managed
         SpinLock::Guard lock(_spinlock);
         ++_numHeapAllocatedBlocks;
     }
-    char* block_start = reinterpret_cast<char*>(block) + sizeof(Header);
+    //populate stack context
+    boost::context::stack_context ctx;
     ctx.size = _stackSize - sizeof(Header);
-    ctx.sp = block_start + ctx.size;
-    #if defined(BOOST_USE_VALGRIND)
-        ctx.valgrind_stack_id = VALGRIND_STACK_REGISTER(ctx.sp, block_start);
-    #endif
+    ctx.sp = block + ctx.size;
+#if defined(BOOST_USE_VALGRIND)
+    ctx.valgrind_stack_id = VALGRIND_STACK_REGISTER(ctx.sp, block);
+#endif
     return ctx;
 }
 
 template <typename STACK_TRAITS>
 void CoroutinePoolAllocator<STACK_TRAITS>::deallocate(const boost::context::stack_context& ctx) {
-    if (!ctx.sp) {
+    if (!ctx.sp)
+    {
         return;
     }
 #if defined(BOOST_USE_VALGRIND)
@@ -129,16 +200,24 @@ void CoroutinePoolAllocator<STACK_TRAITS>::deallocate(const boost::context::stac
 #endif
     int bi = blockIndex(ctx);
     assert(bi >= -1 && bi < _size); //guard against coroutine stack overflow or corruption
-    if (isManaged(ctx)) {
+    if (isManaged(ctx))
+    {
         //find index of the block
         SpinLock::Guard lock(_spinlock);
         _freeBlocks[++_freeBlockIndex] = bi;
     }
-    else {
-        delete[] (char*)getHeader(ctx);
-        SpinLock::Guard lock(_spinlock);
-        --_numHeapAllocatedBlocks;
-        assert(_numHeapAllocatedBlocks >= 0);
+    else
+    {
+        //Unlink coroutine stack
+        {
+            SpinLock::Guard lock(_spinlock);
+            --_numHeapAllocatedBlocks;
+            assert(_numHeapAllocatedBlocks >= 0);
+        }
+        if (deallocateCoroutine(stackEnd(ctx)) != 0)
+        {
+            throw std::runtime_error("Bad de-allocation");
+        }
     }
 }
 
@@ -168,9 +247,23 @@ bool CoroutinePoolAllocator<STACK_TRAITS>::isEmpty() const
 
 template <typename STACK_TRAITS>
 typename CoroutinePoolAllocator<STACK_TRAITS>::Header*
-CoroutinePoolAllocator<STACK_TRAITS>::getHeader(const boost::context::stack_context& ctx) const
+CoroutinePoolAllocator<STACK_TRAITS>::header(const boost::context::stack_context& ctx) const
 {
-    return reinterpret_cast<Header*>(reinterpret_cast<char*>(ctx.sp) - ctx.size - sizeof(Header));
+    return reinterpret_cast<Header*>(ctx.sp);
+}
+
+template <typename STACK_TRAITS>
+typename CoroutinePoolAllocator<STACK_TRAITS>::Header*
+CoroutinePoolAllocator<STACK_TRAITS>::header(uint8_t* block) const
+{
+    return reinterpret_cast<Header*>(block + _stackSize - sizeof(Header));
+}
+
+template <typename STACK_TRAITS>
+uint8_t*
+CoroutinePoolAllocator<STACK_TRAITS>::stackEnd(const boost::context::stack_context& ctx) const
+{
+    return static_cast<uint8_t*>(ctx.sp) - ctx.size;
 }
 
 template <typename STACK_TRAITS>
@@ -182,7 +275,7 @@ bool CoroutinePoolAllocator<STACK_TRAITS>::isManaged(const boost::context::stack
 template <typename STACK_TRAITS>
 int CoroutinePoolAllocator<STACK_TRAITS>::blockIndex(const boost::context::stack_context& ctx) const
 {
-    return getHeader(ctx)->_pos;
+    return header(ctx)->_pos;
 }
 
 }}

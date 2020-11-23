@@ -46,9 +46,9 @@ struct CoroutinePoolAllocator
     typedef STACK_TRAITS                          traits;
     
     //------------------------------- Methods ----------------------------------
-    CoroutinePoolAllocator(index_type size);
+    explicit CoroutinePoolAllocator(index_type size);
     CoroutinePoolAllocator(const this_type&) = delete;
-    CoroutinePoolAllocator(this_type&&);
+    CoroutinePoolAllocator(this_type&&) noexcept;
     CoroutinePoolAllocator& operator=(const this_type&) = delete;
     CoroutinePoolAllocator& operator=(this_type&&);
     virtual ~CoroutinePoolAllocator();
@@ -65,14 +65,19 @@ private:
     struct Header {
         int _pos;
     };
-    
+    enum class ProtectMemPage { On, Off };
     int blockIndex(const boost::context::stack_context& ctx) const;
     bool isManaged(const boost::context::stack_context& ctx) const;
-    Header* getHeader(const boost::context::stack_context& ctx) const;
+    Header* header(const boost::context::stack_context& ctx) const;
+    Header* header(uint8_t* block) const;
+    uint8_t* stackEnd(const boost::context::stack_context& ctx) const;
+    void deallocateBlocks(size_t pos);
+    uint8_t* allocateCoroutine(ProtectMemPage protect) const;
+    int deallocateCoroutine(uint8_t*) const;
     
     //------------------------------- Members ----------------------------------
     index_type          _size;
-    Header**            _blocks;
+    uint8_t**           _blocks;
     index_type*         _freeBlocks;
     ssize_t             _freeBlockIndex;
     size_t              _numHeapAllocatedBlocks;
@@ -85,7 +90,8 @@ struct CoroutinePoolAllocatorProxy
 {
     typedef std::false_type default_constructor;
     
-    CoroutinePoolAllocatorProxy(uint16_t size) : _alloc(new CoroutinePoolAllocator<STACK_TRAITS>(size))
+    explicit CoroutinePoolAllocatorProxy(uint16_t size) :
+        _alloc(new CoroutinePoolAllocator<STACK_TRAITS>(size))
     {
         if (!_alloc) {
             throw std::bad_alloc();
