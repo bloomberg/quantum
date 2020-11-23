@@ -133,7 +133,7 @@ TEST_P(SequencerTest, BasicTaskOrder)
 {
     using namespace Bloomberg::quantum;
 
-    const int taskCount = 100;
+    const int taskCount = 2000;
     const int sequenceKeyCount = 3;
     SequencerTestData testData;
     SequencerTestData::SequenceKeyMap sequenceKeys;

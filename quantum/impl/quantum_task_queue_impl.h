@@ -92,7 +92,7 @@ TaskQueue::~TaskQueue()
 inline
 void TaskQueue::pinToCore(int coreId)
 {
-#ifdef _WIN32
+#if defined(_WIN32) && !defined(__CYGWIN__)
     SetThreadAffinityMask(_thread->native_handle(), 1 << coreId);
 #else
     int cpuSetSize = sizeof(cpu_set_t);
