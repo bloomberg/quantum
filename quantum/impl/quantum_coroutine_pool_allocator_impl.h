@@ -47,9 +47,15 @@ CoroutinePoolAllocator<STACK_TRAITS>::CoroutinePoolAllocator(index_type size) :
                                  traits::minimum_size()),
                         traits::maximum_size()))
 {
-    if (_size == 0)
+    if ((_size == 0) || (_stackSize == 0))
     {
-        throw std::runtime_error("Invalid coroutine allocator pool size");
+        throw std::runtime_error("Invalid coroutine allocator size specification");
+    }
+    //Make sure the stack is a multiple of the system page size
+    size_t remainder = _stackSize % traits::page_size();
+    if (remainder > 0) {
+        //extend to the next page
+        _stackSize += (traits::page_size()-remainder);
     }
     _freeBlocks = new index_type[size];
     if (!_freeBlocks)
