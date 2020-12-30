@@ -16,17 +16,17 @@
 #ifndef BLOOMBERG_QUANTUM_IO_QUEUE_H
 #define BLOOMBERG_QUANTUM_IO_QUEUE_H
 
-#include <list>
-#include <thread>
-#include <condition_variable>
-#include <iostream>
-#include <atomic>
 #include <quantum/interface/quantum_itask.h>
 #include <quantum/interface/quantum_iterminate.h>
 #include <quantum/interface/quantum_iqueue.h>
 #include <quantum/quantum_io_task.h>
 #include <quantum/quantum_queue_statistics.h>
 #include <quantum/quantum_configuration.h>
+#include <list>
+#include <thread>
+#include <condition_variable>
+#include <iostream>
+#include <atomic>
 
 namespace Bloomberg {
 namespace quantum {

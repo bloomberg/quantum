@@ -17,6 +17,8 @@
 #define BLOOMBERG_QUANTUM_READ_WRITE_MUTEX_H
 
 #include <quantum/quantum_read_write_spinlock.h>
+#include <quantum/interface/quantum_icoro_sync.h>
+#include <quantum/quantum_task_id.h>
 
 namespace Bloomberg {
 namespace quantum {

@@ -16,11 +16,11 @@
 #ifndef BLOOMBERG_QUANTUM_IO_TASK_H
 #define BLOOMBERG_QUANTUM_IO_TASK_H
 
-#include <functional>
 #include <quantum/interface/quantum_itask.h>
 #include <quantum/quantum_capture.h>
 #include <quantum/quantum_promise.h>
 #include <quantum/util/quantum_util.h>
+#include <functional>
 
 namespace Bloomberg {
 namespace quantum {

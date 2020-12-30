@@ -18,7 +18,8 @@
 //##############################################################################################
 //#################################### IMPLEMENTATIONS #########################################
 //##############################################################################################
-#include <quantum/quantum_task_queue.h>
+#include <quantum/interface/quantum_iqueue.h>
+#include <quantum/quantum_context.h>
 #include <stdexcept>
 #include <memory>
 

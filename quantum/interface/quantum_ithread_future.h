@@ -17,7 +17,7 @@
 #define BLOOMBERG_QUANTUM_ITHREAD_FUTURE_H
 
 #include <quantum/interface/quantum_icontext_base.h>
-#include <quantum/interface/quantum_icoro_future_base.h>
+#include <quantum/interface/quantum_ifuture.h>
 #include <quantum/quantum_traits.h>
 
 namespace Bloomberg {

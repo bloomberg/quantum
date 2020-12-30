@@ -61,8 +61,8 @@ public:
     
     /// @brief Load balancee the shared IO queues.
     /// @param[in] value If set to true, posting to the 'any' IO queue will result in
-    ///              the load being spread among N queues. This mode can provide higher
-    ///              throughput if dealing with high task loads. Default is false.
+    ///                  the load being spread among N queues. This mode can provide higher
+    ///                  throughput if dealing with high task loads. Default is false.
     /// @note To achieve higher performance, the threads run in polling mode which
     ///       increases CPU usage even when idle.
     void setLoadBalanceSharedIoQueues(bool value);
@@ -79,12 +79,12 @@ public:
     
     /// @brief Set the number of backoffs.
     /// @param[in] numBackoffs The number of backoff increments. Default is 0.
-    ///                    When the number of backoffs is reached, the poll interval remains unchanged thereafter.
+    ///                        When the number of backoffs is reached, the poll interval remains unchanged thereafter.
     void setLoadBalancePollIntervalNumBackoffs(size_t numBackoffs);
 
     /// @brief Sets the range of coroutine queueIds covered by IQueue::QueueId::Any when using Dispatcher::post
     /// @param[in] coroQueueIdRangeForAny The range [minQueueId, maxQueueId] of queueIds that IQueue::QueueId::Any
-    /// will cover.
+    ///                                   will cover.
     /// @remark if the provided range is empty or invalid, then the default range of
     /// std::pair<int, int>(0, getNumCoroutineThreads()-1) will be used
     void setCoroQueueIdRangeForAny(const std::pair<int, int>& coroQueueIdRangeForAny);

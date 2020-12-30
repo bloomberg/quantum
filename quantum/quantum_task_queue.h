@@ -16,6 +16,14 @@
 #ifndef BLOOMBERG_QUANTUM_TASK_QUEUE_H
 #define BLOOMBERG_QUANTUM_TASK_QUEUE_H
 
+#include <quantum/interface/quantum_itask_continuation.h>
+#include <quantum/interface/quantum_iterminate.h>
+#include <quantum/interface/quantum_iqueue.h>
+#include <quantum/quantum_spinlock.h>
+#include <quantum/quantum_task.h>
+#include <quantum/quantum_yielding_thread.h>
+#include <quantum/quantum_queue_statistics.h>
+#include <quantum/quantum_configuration.h>
 #include <list>
 #include <atomic>
 #include <functional>
@@ -25,14 +33,6 @@
 #include <thread>
 #include <pthread.h>
 #include <iostream>
-#include <quantum/interface/quantum_itask_continuation.h>
-#include <quantum/interface/quantum_iterminate.h>
-#include <quantum/interface/quantum_iqueue.h>
-#include <quantum/quantum_spinlock.h>
-#include <quantum/quantum_task.h>
-#include <quantum/quantum_yielding_thread.h>
-#include <quantum/quantum_queue_statistics.h>
-#include <quantum/quantum_configuration.h>
 
 namespace Bloomberg {
 namespace quantum {

@@ -16,12 +16,13 @@
 #ifndef BLOOMBERG_QUANTUM_POOL_MANAGER_H
 #define BLOOMBERG_QUANTUM_POOL_MANAGER_H
 
+
+#include <quantum/quantum_spinlock.h>
 #include <memory>
-#include <assert.h>
+#include <cassert>
 #include <limits>
 #include <type_traits>
 #include <utility>
-#include <quantum/quantum_spinlock.h>
 
 namespace Bloomberg {
 namespace quantum {

@@ -39,7 +39,6 @@ const std::string& Configuration::getJsonSchema()
             "numIoThreads": {
                 "type": "number",
                 "default": 5
-                
             },
             "pinToCores": {
                 "type": "boolean",

@@ -16,10 +16,10 @@
 #ifndef BLOOMBERG_QUANTUM_ICORO_CONTEXT_BASE_H
 #define BLOOMBERG_QUANTUM_ICORO_CONTEXT_BASE_H
 
-#include <future>
-#include <chrono>
 #include <quantum/interface/quantum_icontext_base.h>
 #include <quantum/interface/quantum_icoro_sync.h>
+#include <future>
+#include <chrono>
 
 namespace Bloomberg {
 namespace quantum {

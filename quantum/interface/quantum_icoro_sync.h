@@ -16,10 +16,10 @@
 #ifndef BLOOMBERG_QUANTUM_ICORO_SYNC_H
 #define BLOOMBERG_QUANTUM_ICORO_SYNC_H
 
+#include <quantum/quantum_traits.h>
 #include <memory>
 #include <atomic>
 #include <chrono>
-#include <quantum/quantum_traits.h>
 
 namespace Bloomberg {
 namespace quantum {

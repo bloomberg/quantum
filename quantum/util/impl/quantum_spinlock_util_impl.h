@@ -21,6 +21,8 @@
 
 #include <quantum/quantum_spinlock_traits.h>
 #include <random>
+#include <cassert>
+#include <thread>
 
 //Arch macros: https://sourceforge.net/p/predef/wiki/Architectures
 #if defined(_MSC_VER) && \

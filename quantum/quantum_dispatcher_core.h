@@ -16,6 +16,9 @@
 #ifndef BLOOMBERG_QUANTUM_DISPATCHER_CORE_H
 #define BLOOMBERG_QUANTUM_DISPATCHER_CORE_H
 
+#include <quantum/quantum_configuration.h>
+#include <quantum/quantum_task_queue.h>
+#include <quantum/quantum_io_queue.h>
 #include <vector>
 #include <condition_variable>
 #include <mutex>
@@ -28,9 +31,6 @@
 #else
 #include <pthread.h>
 #endif
-#include <quantum/quantum_configuration.h>
-#include <quantum/quantum_task_queue.h>
-#include <quantum/quantum_io_queue.h>
 
 namespace Bloomberg {
 namespace quantum {

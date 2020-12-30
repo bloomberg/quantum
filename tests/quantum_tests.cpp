@@ -138,6 +138,16 @@ INSTANTIATE_TEST_CASE_P(CleanupTest_Default,
                         ::testing::Values(TestConfiguration(false, false),
                                           TestConfiguration(false, true)));
 
+#ifdef __QUANTUM_RESOURCE_TEST
+struct ResourceLimit: public DispatcherFixture
+{};
+
+INSTANTIATE_TEST_CASE_P(ResourceLimit_Default,
+                        ResourceLimit,
+                        ::testing::Values(TestConfiguration(false, false),
+                                          TestConfiguration(false, true)));
+#endif
+
 //==============================================================================
 //                           TEST HELPERS
 //==============================================================================
@@ -1605,7 +1615,7 @@ TEST_P(CoroLocalStorageTest, GetContext)
 }
 
 TEST_P(CleanupTest, CoroutineUnwind)
- {
+{
      for(int i = 0; i < 10; ++i)
      {
          getDispatcher().post([i](CoroContext<int>::Ptr ctx)->int
@@ -1616,7 +1626,139 @@ TEST_P(CleanupTest, CoroutineUnwind)
      }
      std::this_thread::sleep_for(ms(10));
      getDispatcher().terminate();
- }
+}
+
+#ifdef __QUANTUM_RESOURCE_TEST
+TEST_P(ResourceLimit, RunWhenResourceIsAvailable)
+{
+    int batch = AllocatorTraits::defaultCoroPoolAllocSize()-10;
+    int ioThreads = getDispatcher().getNumIoThreads();
+    std::vector<ThreadContextPtr<int>> futures, futures2;
+    futures.reserve(batchNum);
+    futures2.reserve(batchNum);
+    
+    auto start = std::chrono::steady_clock::now();
+    for (int i = 0; i < batch; ++i)
+    {
+        //Post IO-bound coroutine
+        futures.push_back(getDispatcher().post([ioThreads, i](VoidContextPtr ctx)->int
+        {
+            return ctx->postAsyncIo(i%ioThreads, false, []()->int {
+              std::this_thread::sleep_for(std::chrono::milliseconds(5));
+              return 0;
+            })->get(ctx);
+        }));
+    }
+    auto start2 = std::chrono::steady_clock::now();
+    for (auto& f : futures) {
+        f->get();
+        //post CPU-bound coroutine as soon as we have a resource available
+        futures2.push_back(getDispatcher().post([](VoidContextPtr)->int { return 0; }));
+    }
+    getDispatcher().drain();
+    auto stop = std::chrono::steady_clock::now();
+    std::cout << "total:" << std::chrono::duration_cast<std::chrono::microseconds>(stop-start).count()
+              << " cpu-bound:" << std::chrono::duration_cast<std::chrono::microseconds>(stop-start2).count() << std::endl;
+}
+
+TEST_P(ResourceLimit, RunWhenAllResourcesAreAvailable)
+{
+    int batch = AllocatorTraits::defaultCoroPoolAllocSize()-10;
+    int ioThreads = getDispatcher().getNumIoThreads();
+    std::vector<ThreadContextPtr<int>> futures, futures2;
+    futures.reserve(batchNum);
+    futures2.reserve(batchNum);
+    
+    auto start = std::chrono::steady_clock::now();
+     for (int i = 0; i < batch; ++i)
+     {
+         //Post IO-bound coroutine
+         futures.push_back(getDispatcher().post([ioThreads, i](VoidContextPtr ctx)->int
+         {
+              return ctx->postAsyncIo(i%ioThreads, false, []()->int {
+                  std::this_thread::sleep_for(std::chrono::milliseconds(5));
+                  return 0;
+              })->get(ctx);
+          }));
+     }
+     getDispatcher().drain();
+     auto start2 = std::chrono::steady_clock::now();
+     for (int i = 0; i < batch; ++i)
+     {
+         //Post CPU-bound coroutine
+         futures2.push_back(getDispatcher().post([](VoidContextPtr)->int { return 0; }));
+     }
+     getDispatcher().drain();
+     auto stop = std::chrono::steady_clock::now();
+     std::cout << "total:" << std::chrono::duration_cast<std::chrono::microseconds>(stop-start).count()
+              << " cpu-bound:" << std::chrono::duration_cast<std::chrono::microseconds>(stop-start2).count() << std::endl;
+}
+
+TEST_P(ResourceLimit, RunAllAtOnce)
+{
+    int batch = AllocatorTraits::defaultCoroPoolAllocSize()-10;
+    int ioThreads = getDispatcher().getNumIoThreads();
+    std::vector<ThreadContextPtr<int>> futures, futures2;
+    futures.reserve(batchNum);
+    futures2.reserve(batchNum);
+    
+    auto start = std::chrono::steady_clock::now();
+     for (int i = 0; i < batch; ++i)
+     {
+         //Post IO coroutine
+         futures.push_back(getDispatcher().post([ioThreads, i](VoidContextPtr ctx)->int
+         {
+              return ctx->postAsyncIo(i%ioThreads, false, []()->int {
+                  std::this_thread::sleep_for(std::chrono::milliseconds(5));
+                  return 0;
+              })->get(ctx);
+          }));
+         //Post CPU-bound coroutine
+         futures2.push_back(getDispatcher().post([](VoidContextPtr)->int { return 0; }));
+     }
+     auto start2 = std::chrono::steady_clock::now();
+     for (auto& f : futures2) {
+        f->get();
+     }
+     auto stop2 = std::chrono::steady_clock::now();
+     getDispatcher().drain();
+     auto stop = std::chrono::steady_clock::now();
+     std::cout << "total:" << std::chrono::duration_cast<std::chrono::microseconds>(stop-start).count()
+               << " cpu-bound:" << std::chrono::duration_cast<std::chrono::microseconds>(stop2-start2).count() << std::endl;
+}
+
+TEST_P(ResourceLimit, NoCoroutines)
+{
+    std::string s;
+    int batch = AllocatorTraits::defaultCoroPoolAllocSize()-10;
+    int ioThreads = getDispatcher().getNumIoThreads();
+    std::vector<ThreadFuturePtr<int>> futures, futures2;
+    futures.reserve(batchNum);
+    futures2.reserve(batchNum);
+    
+    auto start = std::chrono::steady_clock::now();
+     for (int i = 0; i < batch; ++i)
+     {
+         //Post IO task
+         futures.push_back(getDispatcher().postAsyncIo(i%ioThreads, false, []()->int
+         {
+              std::this_thread::sleep_for(std::chrono::milliseconds(5));
+              return 0;
+         }));
+         //Post CPU-bound task
+         futures2.push_back(getDispatcher().postAsyncIo([]()->int { return 0; }));
+     }
+     auto start2 = std::chrono::steady_clock::now();
+     for (auto& f : futures2) {
+        f->get();
+     }
+     auto stop2 = std::chrono::steady_clock::now();
+     getDispatcher().drain();
+     auto stop = std::chrono::steady_clock::now();
+     std::cout << "total:" << std::chrono::duration_cast<std::chrono::microseconds>(stop-start).count()
+               << " cpu-bound:" << std::chrono::duration_cast<std::chrono::microseconds>(stop2-start2).count() << std::endl;
+}
+#endif
 
 //This test **must** come last to make Valgrind happy.
 TEST_P(CleanupTest, DeleteDispatcherInstance)

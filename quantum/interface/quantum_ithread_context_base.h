@@ -16,9 +16,9 @@
 #ifndef BLOOMBERG_QUANTUM_ITHREAD_CONTEXT_BASE_H
 #define BLOOMBERG_QUANTUM_ITHREAD_CONTEXT_BASE_H
 
+#include <quantum/interface/quantum_icontext_base.h>
 #include <future>
 #include <chrono>
-#include <quantum/interface/quantum_icontext_base.h>
 
 namespace Bloomberg {
 namespace quantum {

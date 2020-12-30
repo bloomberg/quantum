@@ -16,9 +16,9 @@
 #ifndef BLOOMBERG_QUANTUM_YIELDING_THREAD_H
 #define BLOOMBERG_QUANTUM_YIELDING_THREAD_H
 
+#include <quantum/quantum_thread_traits.h>
 #include <thread>
 #include <chrono>
-#include <quantum/quantum_thread_traits.h>
 
 namespace Bloomberg {
 namespace quantum {

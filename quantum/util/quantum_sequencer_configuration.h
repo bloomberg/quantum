@@ -18,7 +18,7 @@
 
 #include <functional>
 #include <memory>
-#include <exception>
+#include <stdexcept>
 
 namespace Bloomberg {
 namespace quantum {

@@ -16,9 +16,9 @@
 #ifndef BLOOMBERG_QUANTUM_ICONTEXT_BASE_H
 #define BLOOMBERG_QUANTUM_ICONTEXT_BASE_H
 
-#include <exception>
-#include <memory>
 #include <quantum/quantum_task_id.h>
+#include <stdexcept>
+#include <memory>
 
 namespace Bloomberg {
 namespace quantum {

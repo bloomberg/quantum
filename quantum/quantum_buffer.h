@@ -16,10 +16,10 @@
 #ifndef BLOOMBERG_QUANTUM_FUTURE_ITERATOR_H
 #define BLOOMBERG_QUANTUM_FUTURE_ITERATOR_H
 
-#include <iostream>
-#include <deque>
 #include <quantum/quantum_future_state.h>
 #include <quantum/quantum_traits.h>
+#include <iostream>
+#include <deque>
 
 namespace Bloomberg {
 namespace quantum {

@@ -20,6 +20,7 @@
 #include <functional>
 #include <vector>
 #include <iterator>
+#include <utility>
 
 namespace Bloomberg {
 namespace quantum {

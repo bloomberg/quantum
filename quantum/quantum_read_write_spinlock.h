@@ -16,6 +16,7 @@
 #ifndef BLOOMBERG_QUANTUM_READ_WRITE_SPINLOCK_H
 #define BLOOMBERG_QUANTUM_READ_WRITE_SPINLOCK_H
 
+#include <quantum/quantum_spinlock_traits.h>
 #include <atomic>
 #include <mutex>
 

@@ -17,7 +17,7 @@
 #define BLOOMBERG_QUANTUM_SHARED_STATE_MUTEX_H
 
 #include <memory>
-#include <exception>
+#include <stdexcept>
 #include <quantum/quantum_traits.h>
 #include <quantum/quantum_future_state.h>
 #include <quantum/quantum_yielding_thread.h>
@@ -27,6 +27,8 @@
 
 namespace Bloomberg {
 namespace quantum {
+
+template <class RET> class Promise;
 
 //==============================================================================================
 //                                 class SharedState

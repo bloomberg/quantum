@@ -20,6 +20,7 @@
 //##############################################################################################
 
 #include <quantum/util/quantum_sequence_key_statistics.h>
+#include <quantum/interface/quantum_icoro_context_base.h>
 
 namespace Bloomberg {
 namespace quantum {
