@@ -16,9 +16,9 @@
 #ifndef BLOOMBERG_QUANTUM_ITASK_ACCESSOR_H
 #define BLOOMBERG_QUANTUM_ITASK_ACCESSOR_H
 
-#include <memory>
 #include <quantum/interface/quantum_itask.h>
 #include <quantum/interface/quantum_iterminate.h>
+#include <memory>
 
 namespace Bloomberg {
 namespace quantum {

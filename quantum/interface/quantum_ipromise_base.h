@@ -16,10 +16,10 @@
 #ifndef BLOOMBERG_QUANTUM_IPROMISE_BASE_H
 #define BLOOMBERG_QUANTUM_IPROMISE_BASE_H
 
-#include <exception>
 #include <quantum/interface/quantum_iterminate.h>
 #include <quantum/interface/quantum_ifuture.h>
 #include <quantum/quantum_traits.h>
+#include <stdexcept>
 
 namespace Bloomberg {
 namespace quantum {

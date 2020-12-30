@@ -16,12 +16,12 @@
 #ifndef QUANUM_COROUTINE_POOL_ALLOCATOR
 #define QUANUM_COROUTINE_POOL_ALLOCATOR
 
+#include <quantum/quantum_spinlock.h>
 #include <memory>
-#include <assert.h>
+#include <cassert>
 #include <limits>
 #include <type_traits>
 #include <utility>
-#include <quantum/quantum_spinlock.h>
 #include <boost/context/stack_context.hpp>
 
 namespace Bloomberg {

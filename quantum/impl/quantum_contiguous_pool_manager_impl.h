@@ -14,14 +14,16 @@
 ** limitations under the License.
 */
 //NOTE: DO NOT INCLUDE DIRECTLY
-#include <type_traits>
-#include <assert.h>
-#include <exception>
-#include <algorithm>
 
 //##############################################################################################
 //#################################### IMPLEMENTATIONS #########################################
 //##############################################################################################
+
+#include <type_traits>
+#include <cassert>
+#include <stdexcept>
+#include <algorithm>
+
 namespace Bloomberg {
 namespace quantum {
 

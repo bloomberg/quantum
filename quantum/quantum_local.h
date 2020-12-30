@@ -17,6 +17,7 @@
 #define BLOOMBERG_QUANTUM_LOCAL_H
 
 #include <quantum/quantum_traits.h>
+#include <quantum/quantum_task_id.h>
 #include <string>
 
 namespace Bloomberg {

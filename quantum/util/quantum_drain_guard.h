@@ -16,6 +16,8 @@
 #ifndef BLOOMBERG_QUANTUM_DRAIN_GUARD_H
 #define BLOOMBERG_QUANTUM_DRAIN_GUARD_H
 
+#include <atomic>
+
 namespace Bloomberg {
 namespace quantum {
 

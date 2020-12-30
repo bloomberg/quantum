@@ -20,7 +20,7 @@
 #include <quantum/quantum_traits.h>
 #include <quantum/quantum_allocator_traits.h>
 #include <type_traits>
-#include <assert.h>
+#include <cassert>
 #include <utility>
 #include <tuple>
 #include <array>

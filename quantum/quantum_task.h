@@ -16,10 +16,6 @@
 #ifndef BLOOMBERG_QUANTUM_TASK_H
 #define BLOOMBERG_QUANTUM_TASK_H
 
-#include <iostream>
-#include <memory>
-#include <list>
-#include <utility>
 #include <quantum/interface/quantum_iterminate.h>
 #include <quantum/interface/quantum_icontext.h>
 #include <quantum/interface/quantum_iqueue.h>
@@ -27,6 +23,10 @@
 #include <quantum/interface/quantum_itask_accessor.h>
 #include <quantum/quantum_traits.h>
 #include <quantum/util/quantum_util.h>
+#include <iostream>
+#include <memory>
+#include <list>
+#include <utility>
 
 namespace Bloomberg {
 namespace quantum {

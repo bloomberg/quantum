@@ -16,12 +16,12 @@
 #ifndef BLOOMBERG_QUANTUM_ITASK_H
 #define BLOOMBERG_QUANTUM_ITASK_H
 
-#include <memory>
-#include <limits>
-#include <unordered_map>
 #include <quantum/quantum_traits.h>
 #include <quantum/interface/quantum_iterminate.h>
 #include <quantum/quantum_task_id.h>
+#include <memory>
+#include <limits>
+#include <unordered_map>
 
 namespace Bloomberg {
 namespace quantum {

@@ -18,6 +18,7 @@
 
 #include <quantum/quantum_macros.h>
 #include <mutex>
+#include <chrono>
 
 namespace Bloomberg {
 namespace quantum {

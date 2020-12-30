@@ -17,7 +17,7 @@
 #define BLOOMBERG_QUANTUM_FUTURE_STATE_H
 
 #include <future>
-#include <exception>
+#include <stdexcept>
 #include <map>
 
 namespace Bloomberg {

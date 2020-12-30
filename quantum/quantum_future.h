@@ -16,10 +16,10 @@
 #ifndef BLOOMBERG_QUANTUM_FUTURE_H
 #define BLOOMBERG_QUANTUM_FUTURE_H
 
-#include <exception>
 #include <quantum/quantum_shared_state.h>
 #include <quantum/interface/quantum_icontext.h>
 #include <quantum/interface/quantum_ifuture.h>
+#include <stdexcept>
 
 namespace Bloomberg {
 namespace quantum {

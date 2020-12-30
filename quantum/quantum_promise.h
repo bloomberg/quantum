@@ -17,7 +17,10 @@
 #define BLOOMBERG_QUANTUM_PROMISE_H
 
 #include <quantum/quantum_future.h>
+#include <quantum/quantum_shared_state.h>
 #include <quantum/interface/quantum_ipromise.h>
+#include <atomic>
+#include <memory>
 
 namespace Bloomberg {
 namespace quantum {

@@ -16,10 +16,10 @@
 #ifndef BLOOMBERG_QUANTUM_ITHREAD_CONTEXT_H
 #define BLOOMBERG_QUANTUM_ITHREAD_CONTEXT_H
 
-#include <future>
-#include <chrono>
 #include <quantum/quantum_traits.h>
 #include <quantum/interface/quantum_ithread_context_base.h>
+#include <future>
+#include <chrono>
 
 namespace Bloomberg {
 namespace quantum {

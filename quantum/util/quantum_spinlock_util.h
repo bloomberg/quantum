@@ -17,6 +17,7 @@
 #define QUANTUM_QUANTUM_SPINLOCK_UTIL_H
 
 #include <quantum/quantum_spinlock_traits.h>
+#include <atomic>
 
 namespace Bloomberg {
 namespace quantum {

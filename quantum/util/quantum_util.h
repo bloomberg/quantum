@@ -16,6 +16,11 @@
 #ifndef BLOOMBERG_QUANTUM_UTIL_H
 #define BLOOMBERG_QUANTUM_UTIL_H
 
+#include <quantum/quantum_traits.h>
+#include <quantum/interface/quantum_itask.h>
+#include <quantum/interface/quantum_icontext.h>
+#include <quantum/interface/quantum_ipromise.h>
+#include <quantum/quantum_capture.h>
 #include <tuple>
 #include <functional>
 #include <utility>
@@ -23,11 +28,8 @@
 #include <map>
 #include <vector>
 #include <iterator>
-#include <quantum/quantum_traits.h>
-#include <quantum/interface/quantum_itask.h>
-#include <quantum/interface/quantum_icontext.h>
-#include <quantum/interface/quantum_ipromise.h>
-#include <quantum/quantum_capture.h>
+#include <mutex>
+#include <memory>
 
 namespace Bloomberg {
 namespace quantum {

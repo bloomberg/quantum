@@ -16,12 +16,12 @@
 #ifndef BLOOMBERG_QUANTUM_CONDITION_VARIABLE_H
 #define BLOOMBERG_QUANTUM_CONDITION_VARIABLE_H
 
-#include <list>
-#include <atomic>
 #include <quantum/quantum_mutex.h>
 #include <quantum/quantum_yielding_thread.h>
 #include <quantum/interface/quantum_icontext.h>
 #include <quantum/quantum_traits.h>
+#include <list>
+#include <atomic>
 
 namespace Bloomberg {
 namespace quantum {

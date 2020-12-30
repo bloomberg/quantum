@@ -16,12 +16,12 @@
 #ifndef BLOOMBERG_QUANTUM_MUTEX_H
 #define BLOOMBERG_QUANTUM_MUTEX_H
 
-#include <atomic>
 #include <quantum/quantum_traits.h>
 #include <quantum/quantum_spinlock.h>
 #include <quantum/interface/quantum_icontext.h>
 #include <quantum/quantum_yielding_thread.h>
 #include <quantum/quantum_task_id.h>
+#include <atomic>
 
 namespace Bloomberg {
 namespace quantum {

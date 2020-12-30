@@ -16,10 +16,10 @@
 #ifndef BLOOMBERG_QUANTUM_ITHREAD_FUTURE_BASE_H
 #define BLOOMBERG_QUANTUM_ITHREAD_FUTURE_BASE_H
 
+#include <quantum/interface/quantum_icoro_sync.h>
 #include <memory>
 #include <future>
 #include <chrono>
-#include <quantum/interface/quantum_icoro_sync.h>
 
 namespace Bloomberg {
 namespace quantum {
