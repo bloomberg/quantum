@@ -88,7 +88,7 @@ Sequencer<SequenceKey, Hash, KeyEqual, Allocator>::enqueue(
     }
     if (queueId < (int)IQueue::QueueId::Any)
     {
-        throw std::runtime_error("Invalid IO queue id");
+        throw std::out_of_range(std::string{"Invalid IO queue id: "} + std::to_string(queueId));
     }
     _dispatcher.post(_controllerQueueId,
                       false,
@@ -143,7 +143,7 @@ Sequencer<SequenceKey, Hash, KeyEqual, Allocator>::enqueue(
     }
     if (queueId < (int)IQueue::QueueId::Any)
     {
-        throw std::runtime_error("Invalid IO queue id");
+        throw std::out_of_range(std::string{"Invalid IO queue id: "} + std::to_string(queueId));
     }
     _dispatcher.post(_controllerQueueId,
                       false,
@@ -193,7 +193,7 @@ Sequencer<SequenceKey, Hash, KeyEqual, Allocator>::enqueueAll(
     }
     if (queueId < (int)IQueue::QueueId::Any)
     {
-        throw std::runtime_error("Invalid IO queue id");
+        throw std::out_of_range(std::string{"Invalid IO queue id: "} + std::to_string(queueId));
     }
     _dispatcher.post(_controllerQueueId,
                       false,

@@ -108,8 +108,9 @@ private: // methods
         std::chrono::steady_clock::time_point startTime = std::chrono::steady_clock::now();
         do {
             ctx->sleep(std::chrono::milliseconds(1));
-            if (not error.empty())
+            if (not error.empty()) {
                 throw std::runtime_error(error);
+            }
         }
         while(blockFlag and *blockFlag);
         std::chrono::steady_clock::time_point endTime = std::chrono::steady_clock::now();

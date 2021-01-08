@@ -730,7 +730,7 @@ void Context<RET>::validateTaskType(ITask::Type type) const
 {
     if (!_task)
     {
-        throw std::runtime_error("Invalid task pointer");
+        throw std::invalid_argument("Invalid task pointer");
     }
     
     bool isValid = true;
@@ -801,7 +801,9 @@ void Context<RET>::setYieldHandle(Traits::Yield& yield)
 template <class RET>
 Traits::Yield& Context<RET>::getYieldHandle()
 {
-    if (!_yield) throw std::runtime_error("Yield handle is null");
+    if (!_yield) {
+        throw std::runtime_error("Yield handle is null");
+    }
     return *_yield;
 }
 
@@ -988,7 +990,7 @@ Context<RET>::postAsyncIoImpl(int queueId, bool isHighPriority, FUNC&& func, ARG
     using FirstArg = decltype(firstArgOf(func));
     if (queueId < (int)IQueue::QueueId::Any)
     {
-        throw std::runtime_error("Invalid coroutine queue id");
+        throw std::out_of_range(std::string{"Invalid coroutine queue id: "} + std::to_string(queueId));
     }
     auto promise = PromisePtr<OTHER_RET>(new Promise<OTHER_RET>(), Promise<OTHER_RET>::deleter);
     auto task = IoTask::Ptr(new IoTask(Traits::IsThreadPromise<FirstArg>{},
@@ -1456,7 +1458,7 @@ Context<RET>::postImpl(int queueId, bool isHighPriority, ITask::Type type, FUNC&
     using FirstArg = decltype(firstArgOf(func));
     if (queueId < (int)IQueue::QueueId::Same)
     {
-        throw std::runtime_error("Invalid coroutine queue id");
+        throw std::out_of_range(std::string{"Invalid coroutine queue id: "} + std::to_string(queueId));
     }
     auto ctx = ContextPtr<OTHER_RET>(new Context<OTHER_RET>(*_dispatcher),
                                      Context<OTHER_RET>::deleter);

@@ -47,7 +47,7 @@ ContiguousPoolManager<T>::ContiguousPoolManager(const ContiguousPoolManager<U>& 
 {
     if (!_control || !_control->_buffer)
     {
-        throw std::runtime_error("Invalid allocator.");
+        throw std::invalid_argument("Invalid allocator");
     }
     //normalize size of buffer
     index_type newSize = std::min(_control->_size, (index_type)resize<U,T>(_control->_size));
@@ -62,7 +62,7 @@ ContiguousPoolManager<T>::ContiguousPoolManager(ContiguousPoolManager<U>&& other
 {
     if (!_control || !_control->_buffer)
     {
-        throw std::runtime_error("Invalid allocator.");
+        throw std::invalid_argument("Invalid allocator");
     }
     //normalize size of buffer
     index_type newSize = std::min(_control->_size, (index_type)resize<U,T>(_control->_size));
@@ -77,10 +77,10 @@ void ContiguousPoolManager<T>::setBuffer(aligned_type *buffer, index_type size)
         throw std::bad_alloc();
     }
     if (!buffer) {
-        throw std::runtime_error("Null buffer");
+        throw std::invalid_argument("Null buffer");
     }
     if (size == 0) {
-        throw std::runtime_error("Invalid allocator pool size");
+        throw std::invalid_argument("Invalid allocator pool size of zero");
     }
     _control->_size = size;
     _control->_buffer = buffer;

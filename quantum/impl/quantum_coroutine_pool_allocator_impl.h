@@ -50,7 +50,7 @@ CoroutinePoolAllocator<STACK_TRAITS>::CoroutinePoolAllocator(index_type size) :
 {
     if ((_size == 0) || (_stackSize == 0))
     {
-        throw std::runtime_error("Invalid coroutine allocator size specification");
+        throw std::invalid_argument("Invalid coroutine allocator size of zero");
     }
     //Make sure the stack is a multiple of the system page size
     size_t remainder = _stackSize % traits::page_size();
