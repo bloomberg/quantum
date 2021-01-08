@@ -18,6 +18,9 @@
 
 #include <quantum/interface/quantum_ifuture.h>
 #include <quantum/interface/quantum_icontext.h>
+#if (__cplusplus >= 201703L)
+#include <variant>
+#endif
 
 namespace Bloomberg {
 namespace quantum {
@@ -29,13 +32,11 @@ namespace quantum {
 /// @brief Utility class that may contain one of four different future types.
 /// @details This class can be used to wrap different futures at runtime, when the return type
 ///          of a function may vary depending on the function being invoked in a coroutine context or not
-///          e.g. by using local::context() to detect coroutine presence.
+///          e.g. by using quantum::local::context() to detect coroutine presence.
 template <typename T>
 class GenericFuture : public IThreadFutureBase
 {
 public:
-    enum class Type : int { ThreadContext, ThreadFuture, CoroContext, CoroFuture, Invalid };
-    
     /// @brief Constructors/Destructor
     GenericFuture();
     GenericFuture(ThreadContextPtr<T> f);
@@ -71,6 +72,20 @@ public:
     BufferRetType<V> pull(bool& isBufferClosed);
     
 private:
+#if (__cplusplus >= 201703L)
+    using GenericContext = std::variant<ThreadContextPtr<T>,
+                                        ThreadFuturePtr<T>,
+                                        CoroContextPtr<T>,
+                                        CoroFuturePtr<T>>;
+    GenericContext _context;
+#else
+    enum class Type : int {
+        ThreadContext,
+        ThreadFuture,
+        CoroContext,
+        CoroFuture,
+        Invalid
+    };
     Type                    _type;
     union {
         ThreadContextPtr<T> _threadContext;
@@ -78,6 +93,7 @@ private:
         CoroContextPtr<T>   _coroContext;
         CoroFuturePtr<T>    _coroFuture;
     };
+#endif
     ICoroSyncPtr            _sync;
 };
 

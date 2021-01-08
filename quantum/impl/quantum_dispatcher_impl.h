@@ -440,7 +440,7 @@ Dispatcher::postImpl(int queueId,
     }
     if (queueId < (int)IQueue::QueueId::Any)
     {
-        throw std::runtime_error("Invalid coroutine queue id");
+        throw std::out_of_range(std::string{"Invalid coroutine queue id: "} + std::to_string(queueId));
     }
     auto ctx = ContextPtr<RET>(new Context<RET>(_dispatcher),
                                Context<RET>::deleter);
@@ -474,7 +474,7 @@ Dispatcher::postAsyncIoImpl(int queueId,
     }
     if (queueId < (int)IQueue::QueueId::Any)
     {
-        throw std::runtime_error("Invalid IO queue id");
+        throw std::out_of_range(std::string{"Invalid IO queue id: "} + std::to_string(queueId));
     }
     auto promise = PromisePtr<RET>(new Promise<RET>(), Promise<RET>::deleter);
     auto task = IoTask::Ptr(new IoTask(Traits::IsThreadPromise<FirstArg>{},

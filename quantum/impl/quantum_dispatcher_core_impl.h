@@ -128,7 +128,7 @@ size_t DispatcherCore::size(IQueue::QueueType type,
     {
         if (queueId != (int)IQueue::QueueId::All)
         {
-            throw std::runtime_error("Cannot specify queue id");
+            throw std::invalid_argument("Cannot specify queue id when type is 'All'");
         }
         return coroSize((int)IQueue::QueueId::All) + ioSize((int)IQueue::QueueId::All);
     }
@@ -147,7 +147,7 @@ bool DispatcherCore::empty(IQueue::QueueType type,
     {
         if (queueId != (int)IQueue::QueueId::All)
         {
-            throw std::runtime_error("Cannot specify queue id");
+            throw std::invalid_argument("Cannot specify queue id when type is 'All'");
         }
         return coroEmpty((int)IQueue::QueueId::All) && ioEmpty((int)IQueue::QueueId::All);
     }
@@ -176,7 +176,7 @@ size_t DispatcherCore::coroSize(int queueId) const
     }
     else if ((queueId >= (int)_coroQueues.size()) || (queueId < 0))
     {
-        throw std::runtime_error("Invalid coroutine queue id");
+        throw std::out_of_range(std::string{"Invalid coroutine queue id: "} + std::to_string(queueId));
     }
     return _coroQueues.at(queueId).size();
 }
@@ -198,7 +198,7 @@ bool DispatcherCore::coroEmpty(int queueId) const
     }
     else if ((queueId >= (int)_coroQueues.size()) || (queueId < 0))
     {
-        throw std::runtime_error("Invalid coroutine queue id");
+        throw std::out_of_range(std::string{"Invalid coroutine queue id: "} + std::to_string(queueId));
     }
     return _coroQueues.at(queueId).empty();
 }
@@ -273,7 +273,7 @@ QueueStatistics DispatcherCore::stats(IQueue::QueueType type, int queueId)
     {
         if (queueId != (int)IQueue::QueueId::All)
         {
-            throw std::runtime_error("Cannot specify queue id");
+            throw std::invalid_argument("Cannot specify queue id when queue type is 'All'");
         }
         return coroStats((int)IQueue::QueueId::All) + ioStats((int)IQueue::QueueId::All);
     }
@@ -304,7 +304,7 @@ QueueStatistics DispatcherCore::coroStats(int queueId)
     {
         if ((queueId >= (int)_coroQueues.size()) || (queueId < 0))
         {
-            throw std::runtime_error("Invalid coroutine queue id");
+            throw std::out_of_range(std::string{"Invalid coroutine queue id: "} + std::to_string(queueId));
         }
         return static_cast<const QueueStatistics&>(_coroQueues.at(queueId).stats());
     }
@@ -339,7 +339,7 @@ QueueStatistics DispatcherCore::ioStats(int queueId)
     {
         if ((queueId >= (int)_ioQueues.size()) || (queueId < 0))
         {
-            throw std::runtime_error("Invalid IO queue id");
+            throw std::invalid_argument(std::string{"Invalid IO queue id: "} + std::to_string(queueId));
         }
         return static_cast<const QueueStatistics&>(_ioQueues.at(queueId).stats());
     }
@@ -406,7 +406,7 @@ void DispatcherCore::post(Task::Ptr task)
     {
         if (task->getQueueId() >= (int)_coroQueues.size())
         {
-            throw std::runtime_error("Queue id out of bounds");
+            throw std::out_of_range(std::string{"Invalid coroutine queue id: "} + std::to_string(task->getQueueId()));
         }
     }
     
@@ -449,7 +449,7 @@ void DispatcherCore::postAsyncIo(IoTask::Ptr task)
     {
         if (task->getQueueId() >= (int)_ioQueues.size())
         {
-            throw std::runtime_error("Queue id out of bounds");
+            throw std::out_of_range(std::string{"Invalid IO queue id: "} + std::to_string(task->getQueueId()));
         }
         
         //Run on specific queue
