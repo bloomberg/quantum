@@ -775,19 +775,6 @@ TEST_P(PromiseTest, GetFutureFromIoTask2)
     EXPECT_EQ(33, ctx->get()); //block until value is available
 }
 
-TEST_P(PromiseTest, GetGenericFutureFromIoTask)
-{
-    Dispatcher& dispatcher = getDispatcher();
-    GenericFuture<int> genFuture = dispatcher.post([](CoroContext<int>::Ptr ctx)->int{
-        //post an IO task and get future from there
-        GenericFuture<double> genFuture(ctx->postAsyncIo([](ThreadPromise<double>::Ptr promise)->int{
-            return promise->set(33.22);
-        }), ctx);
-        return ctx->set((int)genFuture.get()); //forward the promise
-    });
-    EXPECT_EQ(33, genFuture.get()); //block until value is available
-}
-
 TEST_P(PromiseTest, GetFutureFromExternalSource)
 {
     Dispatcher& dispatcher = getDispatcher();
