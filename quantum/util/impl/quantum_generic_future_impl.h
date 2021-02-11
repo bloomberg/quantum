@@ -63,6 +63,11 @@ GenericFuture<T>::GenericFuture()
 {}
 
 template <typename T>
+GenericFuture<T>::GenericFuture(const Promise<T>& p) :
+    _context(local::context() ? p.getICoroFuture() : p.getIThreadFuture())
+{}
+
+template <typename T>
 GenericFuture<T>::GenericFuture(ThreadContextPtr<T> f) :
     _context(f)
 {
@@ -375,6 +380,20 @@ GenericFuture<T>::GenericFuture() :
     _type(Type::Invalid),
     _threadContext()
 {}
+
+template <typename T>
+GenericFuture<T>::GenericFuture(const Promise<T>& p) :
+    _type(local::context() ? Type::CoroFuture : Type::ThreadFuture)
+{
+    if (_type == Type::ThreadFuture)
+    {
+        _threadFuture = p.getIThreadFuture();
+    }
+    else
+    {
+        _coroFuture = p.getICoroFuture();
+    }
+}
 
 template <typename T>
 GenericFuture<T>::GenericFuture(ThreadContextPtr<T> f) :

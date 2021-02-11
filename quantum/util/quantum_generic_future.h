@@ -16,8 +16,7 @@
 #ifndef BLOOMBERGLP_QUANTUM_GENERIC_FUTURE_H
 #define BLOOMBERGLP_QUANTUM_GENERIC_FUTURE_H
 
-#include <quantum/interface/quantum_ifuture.h>
-#include <quantum/interface/quantum_icontext.h>
+#include <quantum/quantum_promise.h>
 #if (__cplusplus >= 201703L)
 #include <variant>
 #endif
@@ -39,6 +38,7 @@ class GenericFuture : public IThreadFutureBase
 public:
     /// @brief Constructors/Destructor
     GenericFuture();
+    GenericFuture(const Promise<T>& p);
     GenericFuture(ThreadContextPtr<T> f);
     GenericFuture(ThreadFuturePtr<T> f);
     GenericFuture(CoroContextPtr<T> f); //uses local context
