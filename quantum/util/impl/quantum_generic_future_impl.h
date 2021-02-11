@@ -63,9 +63,15 @@ GenericFuture<T>::GenericFuture()
 {}
 
 template <typename T>
-GenericFuture<T>::GenericFuture(const Promise<T>& p) :
-    _context(local::context() ? p.getICoroFuture() : p.getIThreadFuture())
-{}
+GenericFuture<T>::GenericFuture(const Promise<T>& p)
+{
+    if (local::context()) {
+        _context = p.getICoroFuture();
+    }
+    else {
+        _context = p.getIThreadFuture();
+    }
+}
 
 template <typename T>
 GenericFuture<T>::GenericFuture(ThreadContextPtr<T> f) :
