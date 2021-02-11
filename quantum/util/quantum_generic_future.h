@@ -41,9 +41,13 @@ public:
     GenericFuture();
     GenericFuture(ThreadContextPtr<T> f);
     GenericFuture(ThreadFuturePtr<T> f);
+    GenericFuture(CoroContextPtr<T> f); //uses local context
     GenericFuture(CoroContextPtr<T> f, ICoroSyncPtr sync);
+    GenericFuture(CoroFuturePtr<T> f); //uses local context
     GenericFuture(CoroFuturePtr<T> f, ICoroSyncPtr sync);
+    GenericFuture(const GenericFuture& other);
     GenericFuture(GenericFuture&& other);
+    GenericFuture& operator=(const GenericFuture& other);
     GenericFuture& operator=(GenericFuture&& other);
     ~GenericFuture();
     
