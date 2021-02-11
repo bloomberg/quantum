@@ -87,6 +87,9 @@ TEST(GenericFuture, TestCopyable)
     //create one future
     v.push_back(dispatcher.post([](VoidContextPtr)->int{ return 33; }));
     
+    //use Promise constructor
+    v.push_back(Promise<int>{});
+    
     //copy it
     v.push_back(v.front());
     
