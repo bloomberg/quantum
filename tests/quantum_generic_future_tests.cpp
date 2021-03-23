@@ -76,6 +76,8 @@ TEST(GenericFuture, WaitForIoFutureInCoroutine)
         return ioFuture.get() + 10;
     });
     
+    EXPECT_TRUE(threadFuture.valid());
+    
     EXPECT_EQ(43, threadFuture.get()); //block until value is available
 }
 
@@ -98,4 +100,10 @@ TEST(GenericFuture, TestCopyable)
     
     //read from the second future and we should throw
     EXPECT_THROW(v.back().get(), FutureAlreadyRetrievedException);
+}
+
+TEST(GenericFuture, Invalid)
+{
+    GenericFuture<int> future; //default constructed
+    EXPECT_FALSE(future.valid());
 }

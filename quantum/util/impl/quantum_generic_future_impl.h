@@ -178,7 +178,7 @@ GenericFuture<T>::~GenericFuture()
 template <typename T>
 bool GenericFuture<T>::valid() const
 {
-    return std::visit([](const auto& ctx)->bool { return ctx->valid(); }, _context);
+    return std::visit([](const auto& ctx)->bool { return ctx ? ctx->valid() : false; }, _context);
 }
 
 template <typename T>
