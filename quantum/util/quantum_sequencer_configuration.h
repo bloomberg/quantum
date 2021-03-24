@@ -26,6 +26,22 @@ namespace quantum {
 struct SequenceKeyData;
 
 //==============================================================================================
+//                                    class SequencerConfigurationSchemaProvider
+//==============================================================================================
+/// @class SequencerConfigurationSchemaProvider
+/// @brief Provides static accessors to a json schema representing a SequencerConfiguration object
+struct SequencerConfigurationSchemaProvider
+{
+    /// @brief Get the JSON schema corresponding to this configuration object.
+    /// @return The draft-04 compatible schema.
+    static const std::string& getJsonSchema();
+    
+    /// @brief Get the schema URI used to resolve remote JSON references '$ref'.
+    /// @return The URI.
+    static const std::string& getJsonSchemaUri();
+};
+
+//==============================================================================================
 //                                      class SequencerConfiguration
 //==============================================================================================
 /// @class SequencerConfiguration.
@@ -38,21 +54,20 @@ template <class SequenceKey,
           class Hash = std::hash<SequenceKey>,
           class KeyEqual = std::equal_to<SequenceKey>,
           class Allocator = std::allocator<std::pair<const SequenceKey, SequenceKeyData>>>
-class SequencerConfiguration
+class SequencerConfiguration : public SequencerConfigurationSchemaProvider
 {
-public: 
-
+public:
     /// @brief Callback for unhandled exceptions in tasks posted to Sequencer
     /// @param exception pointer to the thrown exception
     /// @param opaque opaque data passed when posting a task
     using ExceptionCallback = std::function<void(std::exception_ptr exception, void* opaque)>;
-
-public:
+    
     /// @brief Sets the id of the control queue
     /// @param controlQueueId the queue id
     /// @remark Sequencer typically processes tasks with the lower latency when the control queue is
-    /// dedicated for the sequencer control tasks only, and no other tasks are enqueued into it.
-    void setControlQueueId(int controlQueueId);
+    ///         dedicated for the sequencer control tasks only, and no other tasks are enqueued into it.
+    /// @return A reference to itself
+    SequencerConfiguration& setControlQueueId(int controlQueueId);
 
     /// @brief Gets the id of the control queue
     /// @return the queue id
@@ -60,7 +75,8 @@ public:
 
     /// @brief Sets the minimal number of buckets to be used for the context hash map
     /// @param bucketCount the bucket number
-    void setBucketCount(size_t bucketCount);
+    /// @return A reference to itself
+    SequencerConfiguration& setBucketCount(size_t bucketCount);
 
     /// @brief gets the minimal number of buckets to be used for the context hash map
     /// @return the bucket number
@@ -99,12 +115,12 @@ public:
     const ExceptionCallback& getExceptionCallback() const;
 
 private:
-    int _controllerQueueId{0};
-    size_t _bucketCount{0};
-    Hash _hash;
-    KeyEqual _keyEqual;
-    Allocator _allocator;
-    ExceptionCallback _exceptionCallback;
+    int                 _controllerQueueId{0};
+    size_t              _bucketCount{100};
+    Hash                _hash;
+    KeyEqual            _keyEqual;
+    Allocator           _allocator;
+    ExceptionCallback   _exceptionCallback;
 };
     
 }}

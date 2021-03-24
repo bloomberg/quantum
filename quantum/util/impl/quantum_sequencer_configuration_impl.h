@@ -35,11 +35,45 @@ struct SequenceKeyData
     StatsPtr            _stats;
 };
 
+inline const std::string&
+SequencerConfigurationSchemaProvider::getJsonSchema()
+{
+    static std::string schema = R"JSON(
+    {
+        "$schema" : "http://json-schema.org/draft-04/schema#",
+        "$id" : "bloomberg:sequencer.quantum.json",
+        "title": "Quantum sequencer settings",
+        "type": "object",
+        "properties": {
+            "controlQueueId": {
+                "type": "number",
+                "default": 0
+            },
+            "bucketCount": {
+                "type": "number",
+                "default": 100
+            }
+        },
+        "additionalProperties": false,
+        "required": []
+    }
+    )JSON";
+    return schema;
+}
+
+inline const std::string&
+SequencerConfigurationSchemaProvider::getJsonSchemaUri()
+{
+    static std::string uri = "bloomberg:sequencer.quantum.json";
+    return uri;
+}
+
 template <class SequenceKey, class Hash, class KeyEqual, class Allocator>
-void
+SequencerConfiguration<SequenceKey, Hash, KeyEqual, Allocator>&
 SequencerConfiguration<SequenceKey, Hash, KeyEqual, Allocator>::setControlQueueId(int controlQueueId)
 {
     _controllerQueueId = controlQueueId;
+    return *this;
 }
 
 template <class SequenceKey, class Hash, class KeyEqual, class Allocator>
@@ -50,10 +84,11 @@ SequencerConfiguration<SequenceKey, Hash, KeyEqual, Allocator>::getControlQueueI
 }
 
 template <class SequenceKey, class Hash, class KeyEqual, class Allocator>
-void
+SequencerConfiguration<SequenceKey, Hash, KeyEqual, Allocator>&
 SequencerConfiguration<SequenceKey, Hash, KeyEqual, Allocator>::setBucketCount(size_t bucketCount)
 {
     _bucketCount = bucketCount;
+    return *this;
 }
 
 template <class SequenceKey, class Hash, class KeyEqual, class Allocator>

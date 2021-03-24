@@ -23,7 +23,7 @@ namespace Bloomberg {
 namespace quantum {
 
 inline
-const std::string& Configuration::getJsonSchema()
+const std::string& ConfigurationSchemaProvider::getJsonSchema()
 {
     static std::string schema = R"JSON(
     {
@@ -85,64 +85,73 @@ const std::string& Configuration::getJsonSchema()
 }
 
 inline
-const std::string& Configuration::getJsonSchemaUri()
+const std::string& ConfigurationSchemaProvider::getJsonSchemaUri()
 {
     static std::string uri = "bloomberg:quantum.json";
     return uri;
 }
 
 inline
-void Configuration::setNumCoroutineThreads(int num)
+Configuration& Configuration::setNumCoroutineThreads(int num)
 {
     _numCoroutineThreads = num;
+    return *this;
 }
 
 inline
-void Configuration::setNumIoThreads(int num)
+Configuration& Configuration::setNumIoThreads(int num)
 {
     _numIoThreads = num;
+    return *this;
 }
 
 inline
-void Configuration::setPinCoroutineThreadsToCores(bool value)
+Configuration& Configuration::setPinCoroutineThreadsToCores(bool value)
 {
     _pinCoroutineThreadsToCores = value;
+    return *this;
 }
 
 inline
-void Configuration::setLoadBalanceSharedIoQueues(bool value)
+Configuration& Configuration::setLoadBalanceSharedIoQueues(bool value)
 {
     _loadBalanceSharedIoQueues = value;
+    return *this;
 }
 
 inline
-void Configuration::setLoadBalancePollIntervalMs(std::chrono::milliseconds interval)
+Configuration& Configuration::setLoadBalancePollIntervalMs(std::chrono::milliseconds interval)
 {
     _loadBalancePollIntervalMs = interval;
+    return *this;
 }
 
 inline
-void Configuration::setLoadBalancePollIntervalBackoffPolicy(BackoffPolicy policy)
+Configuration& Configuration::setLoadBalancePollIntervalBackoffPolicy(BackoffPolicy policy)
 {
     _loadBalancePollIntervalBackoffPolicy = policy;
+    return *this;
 }
 
 inline
-void Configuration::setLoadBalancePollIntervalNumBackoffs(size_t numBackoffs)
+Configuration& Configuration::setLoadBalancePollIntervalNumBackoffs(size_t numBackoffs)
 {
     _loadBalancePollIntervalNumBackoffs = numBackoffs;
+    return *this;
 }
 
 inline
-void Configuration::setCoroQueueIdRangeForAny(const std::pair<int, int>& coroQueueIdRangeForAny)
+Configuration& Configuration::setCoroQueueIdRangeForAny(const std::pair<int, int>& coroQueueIdRangeForAny)
 {
      _coroQueueIdRangeForAny = coroQueueIdRangeForAny;
+     return *this;
 }
 
 inline
-void Configuration::setCoroutineSharingForAny(bool sharing)
+Configuration& Configuration::setCoroutineSharingForAny(bool sharing)
 {
      _coroutineSharingForAny = sharing;
+     return *this;
 }
 
 inline

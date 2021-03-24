@@ -25,17 +25,12 @@ namespace Bloomberg {
 namespace quantum {
 
 //==============================================================================================
-//                                 class Configuration
+//                                 class ConfigurationSchemaProvider
 //==============================================================================================
-/// @class class Configuration.
-/// @brief Configuration parameters for the Quantum library.
-class Configuration
+/// @class ConfigurationSchemaProvider
+/// @brief Provides static accessors to a json schema representing a Configuration object
+struct ConfigurationSchemaProvider
 {
-public:
-    enum class BackoffPolicy : int {
-        Linear = QUANTUM_BACKOFF_LINEAR,          ///< Linear backoff
-        Exponential = QUANTUM_BACKOFF_EXPONENTIAL ///< Exponential backoff (doubles every time)
-    };
     /// @brief Get the JSON schema corresponding to this configuration object.
     /// @return The draft-04 compatible schema.
     static const std::string& getJsonSchema();
@@ -43,51 +38,73 @@ public:
     /// @brief Get the schema URI used to resolve remote JSON references '$ref'.
     /// @return The URI.
     static const std::string& getJsonSchemaUri();
+};
+
+//==============================================================================================
+//                                 class Configuration
+//==============================================================================================
+/// @class class Configuration.
+/// @brief Configuration parameters for the Quantum library.
+class Configuration : public ConfigurationSchemaProvider
+{
+public:
+    enum class BackoffPolicy : int {
+        Linear = QUANTUM_BACKOFF_LINEAR,          ///< Linear backoff
+        Exponential = QUANTUM_BACKOFF_EXPONENTIAL ///< Exponential backoff (doubles every time)
+    };
     
     /// @brief Set the number of threads running coroutines.
     /// @param[in] num The number of threads. Set to -1 to have one coroutine thread per core.
     ///            Default is -1.
-    void setNumCoroutineThreads(int num);
+    /// @return A reference to itself
+    Configuration& setNumCoroutineThreads(int num);
     
     /// @brief Set the number of threads running IO tasks.
     /// @param[in] num The number of threads. Default is 5.
-    void setNumIoThreads(int num);
+    /// @return A reference to itself
+    Configuration& setNumIoThreads(int num);
     
     /// @brief Indicate if coroutine threads should be pinned to a core.
     /// @param[in] value True or False. Default is False.
     /// @note For best performance, the number of coroutine threads should
     ///       be <= the number of cores in the system.
-    void setPinCoroutineThreadsToCores(bool value);
+    /// @return A reference to itself
+    Configuration& setPinCoroutineThreadsToCores(bool value);
     
-    /// @brief Load balancee the shared IO queues.
+    /// @brief Load balance the shared IO queues.
     /// @param[in] value If set to true, posting to the 'any' IO queue will result in
     ///                  the load being spread among N queues. This mode can provide higher
     ///                  throughput if dealing with high task loads. Default is false.
     /// @note To achieve higher performance, the threads run in polling mode which
     ///       increases CPU usage even when idle.
-    void setLoadBalanceSharedIoQueues(bool value);
+    /// @return A reference to itself
+    Configuration& setLoadBalanceSharedIoQueues(bool value);
     
     /// @brief Set the interval between IO thread polls.
     /// @param[in] interval Interval in milliseconds. Default is 100ms.
     /// @note Setting this to a higher value means it may take longer to react to the first
     ///       IO task posted, and vice-versa if the interval is lower.
-    void setLoadBalancePollIntervalMs(std::chrono::milliseconds interval);
+    /// @return A reference to itself
+    Configuration& setLoadBalancePollIntervalMs(std::chrono::milliseconds interval);
     
     /// @brief Set a backoff policy for the shared queue polling interval.
     /// @param[in] policy The backoff policy to use. Default is 'Linear'.
-    void setLoadBalancePollIntervalBackoffPolicy(BackoffPolicy policy);
+    /// @return A reference to itself
+    Configuration& setLoadBalancePollIntervalBackoffPolicy(BackoffPolicy policy);
     
     /// @brief Set the number of backoffs.
     /// @param[in] numBackoffs The number of backoff increments. Default is 0.
     ///                        When the number of backoffs is reached, the poll interval remains unchanged thereafter.
-    void setLoadBalancePollIntervalNumBackoffs(size_t numBackoffs);
+    /// @return A reference to itself
+    Configuration& setLoadBalancePollIntervalNumBackoffs(size_t numBackoffs);
 
     /// @brief Sets the range of coroutine queueIds covered by IQueue::QueueId::Any when using Dispatcher::post
     /// @param[in] coroQueueIdRangeForAny The range [minQueueId, maxQueueId] of queueIds that IQueue::QueueId::Any
     ///                                   will cover.
     /// @remark if the provided range is empty or invalid, then the default range of
     /// std::pair<int, int>(0, getNumCoroutineThreads()-1) will be used
-    void setCoroQueueIdRangeForAny(const std::pair<int, int>& coroQueueIdRangeForAny);
+    /// @return A reference to itself
+    Configuration& setCoroQueueIdRangeForAny(const std::pair<int, int>& coroQueueIdRangeForAny);
 
     /// @brief Enables or disables the shared-coro-queue-for-any settings
     /// @param[in] isSharedCoroQueueForAny sets the shared-coro-queue-for any setting
@@ -95,7 +112,8 @@ public:
     /// (explicit or implicit) a coroutine sent to the Any queue may be executed by
     /// a different thread. As a result, coroutines using thread-local-storage (e.g., via thread_local),
     /// will _not_ work as expected.
-    void setCoroutineSharingForAny(bool sharing);
+    /// @return A reference to itself
+    Configuration& setCoroutineSharingForAny(bool sharing);
     
     /// @brief Get the number of coroutine threads.
     /// @return The number of threads.
