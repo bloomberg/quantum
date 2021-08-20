@@ -242,13 +242,13 @@ TEST_P(SequencerLiteTest, ExceptionHandler)
         if (id % exceptionFrequency == 0)
         {
             // enqueue with generating exception
-            sequencer.enqueue(sequenceKey, testData.makeTaskWithException(id, errorText), &sequenceKeys[id]);
+            sequencer.enqueue(&sequenceKeys[id], (int)IQueue::QueueId::Any, false, sequenceKey, testData.makeTaskWithException(id, errorText));
             ++generatedExceptionCount;
         }
         else
         {
             // enqueue with no exception generation
-            sequencer.enqueue(sequenceKey, testData.makeTask(id), &sequenceKeys[id]);
+            sequencer.enqueue(&sequenceKeys[id], (int)IQueue::QueueId::Any, false, sequenceKey, testData.makeTask(id));
         }
     }
     sequencer.drain();

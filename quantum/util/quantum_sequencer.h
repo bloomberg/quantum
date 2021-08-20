@@ -35,7 +35,14 @@ namespace quantum {
 /// @tparam Hash Hash-function used for storing instances of SequenceKey in hash maps
 /// @tparam KeyEqual The equal-function used for storing instances of SequenceKey in hash maps
 /// @tparam Allocator The allocator used for storing instances of SequenceKey in hash maps
-    
+/// @note quantum::Sequencer heavily relies on quantum::Dispatcher to track task interdependence
+/// and finding pending tasks ready to be executed (i.e. those having no pending dependents). Because 
+/// quantum::Dispatcher is not optimized for this particular task, the performance of task scheduling
+/// via quantum::Sequencer and the overall CPU usage may be suboptimal. In particular, this may become
+/// noticable when quantum::Dispatcher has a lot of coroutine threads configured and long chains of dependent tasks 
+/// are enqueued to quantum::Sequencer. If this becomes an issue, it's suggested to use quantum::SequencerLite 
+/// instead. quantum::SequencerLite manages task ordering ourside of quantum::Dispatcher.
+
 template <class SequenceKey,
           class Hash = std::hash<SequenceKey>,
           class KeyEqual = std::equal_to<SequenceKey>,

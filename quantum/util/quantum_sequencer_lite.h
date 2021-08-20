@@ -37,12 +37,13 @@ namespace quantum {
 /// @tparam Hash Hash-function used for storing instances of SequenceKey in hash maps
 /// @tparam KeyEqual The equal-function used for storing instances of SequenceKey in hash maps
 /// @tparam Allocator The allocator used for storing instances of SequenceKey in hash maps
-/// @note Differences from quantum::Sequencer
-/// * SequencerLite has a simplified interface: fewer enqueue taking more restricted types of functions
-/// * SequencerLite does not rely on quantum::Dispatcher to order tasks based on their dependence. Task ordering
-/// is done in SequencerLite which pushes tasks to quantum::Dispatcher when they are ready to be executed.
-/// This typically results in executing scheduled tasks faster (w.r.t. quantum::Dispatcher) and fewer CPU cycles
-/// spent by quantum::Dispatcher.
+/// @note The interfaces of quantum::SequencerLite and quantum::Sequencer are the same. The major difference
+/// between their functionalities is that quantum::SequencerLite does not rely on quantum::Dispatcher to order tasks 
+/// based on their interdependence. In contrast, quantum::SequencerLite manages task ordering itself 
+/// by construcing a DAG of pending tasks. In quantum::SequencerLite, a task is pushed into quantum::Dispatcher 
+/// only when it's ready to be executed (i.e. when it has no pending dependents). This typically results 
+/// in executing scheduled tasks faster (w.r.t. quantum::Dispatcher) and wasting fewer CPU cycles in 
+/// quantum::Dispatcher.
 
 template <class SequenceKey,
           class Hash = std::hash<SequenceKey>,
@@ -63,46 +64,124 @@ public:
     /// @details This method will post the coroutine on any thread available and will run when the previous coroutine
     ///          associated with the same 'sequenceKey' completes. If there are none, it will run immediately.
     ///          (@see Dispatcher::post for more details).
+    /// @tparam FUNC Callable object type which will be wrapped in a coroutine with signature 'int(VoidContextPtr, Args...)'
+    /// @tparam ARGS Argument types passed to FUNC (@see Dispatcher::post for more details).
     /// @param[in] sequenceKey SequenceKey object that the posted task is associated with
     /// @param[in] func Callable object.
+    /// @param[in] args Variable list of arguments passed to the callable object.
+    /// @note This function is non-blocking and returns immediately.
+    /// @warning The VoidContextPtr can be used to yield() or to post additional coroutines or IO tasks.
+    ///          However it should *not* be set and this will result in undefined behavior.
+    template <class FUNC, class ... ARGS>
+    void
+    enqueue(const SequenceKey& sequenceKey, FUNC&& func, ARGS&&... args);
+
+    /// @brief Enqueue a coroutine to run asynchronously on a specific queue (thread).
+    /// @details This method will post the coroutine on any thread available and will run when the previous coroutine
+    ///          associated with the same 'sequenceKey' completes. If there are none, it will run immediately.
+    ///          (@see Dispatcher::post for more details).
+    /// @tparam FUNC Callable object type which will be wrapped in a coroutine with signature 'int(VoidContextPtr, Args...)'
+    /// @tparam ARGS Argument types passed to FUNC (@see Dispatcher::post for more details).
+    /// @param[in] queueId Id of the queue where this coroutine should run. Note that the user can
+    ///                    specify IQueue::QueueId::Any as a value, which is equivalent to running
+    ///                    the simpler version of post() above. Valid range is [0, numCoroutineThreads) or
+    ///                    IQueue::QueueId::Any.
+    /// @param[in] isHighPriority If set to true, the sequencer coroutine will be scheduled right 
+    ///                           after the currently executing coroutine on 'queueId'.
     /// @param[in] opaque pointer to opaque data that is passed to the exception handler (if provided)
     ///            if an unhandled exception is thrown in func
-    /// @param[in] queueId Id of the queue where this coroutine should run.
-    ///            Valid range is [0, numCoroutineThreads) or IQueue::QueueId::Any.
-    /// @param[in] isHighPriority If set to true, the sequencer coroutine will be scheduled right
-    ///            after the currently executing coroutine on 'queueId'.
+    /// @param[in] sequenceKey SequenceKey object that the posted task is associated with
+    /// @param[in] func Callable object.
+    /// @param[in] args Variable list of arguments passed to the callable object.
     /// @note This function is non-blocking and returns immediately.
+    /// @warning The VoidContextPtr can be used to yield() or to post additional coroutines or IO tasks.
+    ///          However it should *not* be set and this will result in undefined behavior.
+    template <class FUNC, class ... ARGS>
     void
-    enqueue(const SequenceKey& sequenceKey, std::function<int(VoidContextPtr)>&& func, void* opaque = nullptr, int queueId = (int)IQueue::QueueId::Any, bool isHighPriority = false);
+    enqueue(void* opaque, int queueId, bool isHighPriority, const SequenceKey& sequenceKey, FUNC&& func, ARGS&&... args);
 
     /// @brief Enqueue a coroutine to run asynchronously.
     /// @details This method will post the coroutine on any thread available and will run when the previous coroutine(s)
     ///          associated with all the 'sequenceKeys' complete. If there are none, then it will run immediately.
     ///          (@see Dispatcher::post for more details).
+    /// @tparam FUNC Callable object type which will be wrapped in a coroutine with signature 'int(VoidContextPtr, Args...)'
+    /// @tparam ARGS Argument types passed to FUNC (@see Dispatcher::post for more details).
     /// @param[in] sequenceKeys A collection of sequenceKey objects that the posted task is associated with
     /// @param[in] func Callable object.
+    /// @param[in] args Variable list of arguments passed to the callable object.
+    /// @note This function is non-blocking and returns immediately.
+    /// @warning The VoidContextPtr can be used to yield() or to post additional coroutines or IO tasks.
+    ///          However it should *not* be set and this will result in undefined behavior.
+    template <class FUNC, class ... ARGS>
+    void
+    enqueue(const std::vector<SequenceKey>& sequenceKeys, FUNC&& func, ARGS&&... args);
+
+    /// @brief Enqueue a coroutine to run asynchronously on a specific queue (thread).
+    /// @details This method will post the coroutine on any thread available and will run when the previous coroutine(s)
+    ///          associated with all the 'sequenceKeys' complete. If there are none, then it will run immediately.
+    ///          (@see Dispatcher::post for more details).
+    /// @tparam FUNC Callable object type which will be wrapped in a coroutine with signature 'int(VoidContextPtr, Args...)'
+    /// @tparam ARGS Argument types passed to FUNC (@see Dispatcher::post for more details).
+    /// @param[in] queueId Id of the queue where this coroutine should run. Note that the user 
+    ///                    can specify IQueue::QueueId::Any as a value, which is equivalent to running 
+    ///                    the simpler version of post() above. Valid range is [0, numCoroutineThreads) or 
+    ///                    IQueue::QueueId::Any.
+    /// @param[in] isHighPriority If set to true, the sequencer coroutine will be scheduled right 
+    ///                           after the currently executing coroutine on 'queueId'.
     /// @param[in] opaque pointer to opaque data that is passed to the exception handler (if provided)
     ///            if an unhandled exception is thrown in func
-    /// @param[in] queueId Id of the queue where this coroutine should run.
-    ///            Valid range is [0, numCoroutineThreads) or IQueue::QueueId::Any.
-    /// @param[in] isHighPriority If set to true, the sequencer coroutine will be scheduled right
-    ///            after the currently executing coroutine on 'queueId'.
+    /// @param[in] sequenceKeys A collection of sequenceKey objects that the posted task is associated with
+    /// @param[in] func Callable object.
+    /// @param[in] args Variable list of arguments passed to the callable object.
     /// @note This function is non-blocking and returns immediately.
+    /// @warning The VoidContextPtr can be used to yield() or to post additional coroutines or IO tasks.
+    ///          However it should *not* be set and this will result in undefined behavior.
+    template <class FUNC, class ... ARGS>
     void
-    enqueue(const std::vector<SequenceKey>& sequenceKeys, std::function<int(VoidContextPtr)>&& func, void* opaque = nullptr, int queueId = (int)IQueue::QueueId::Any, bool isHighPriority = false);
+    enqueue(void* opaque,
+            int queueId,
+            bool isHighPriority,
+            const std::vector<SequenceKey>& sequenceKeys,
+            FUNC&& func,
+            ARGS&&... args);
 
     /// @brief Enqueue a coroutine to run asynchronously after all keys have run.
     /// @details This method will post the coroutine on any thread available. The posted task is assumed to be associated
     ///          with the entire universe of sequenceKeys already running or pending, which means that it will wait
     ///          until all tasks complete. This task can be considered as having a 'universal' key.
+    /// @tparam FUNC Callable object type which will be wrapped in a coroutine with signature 'int(VoidContextPtr, Args...)'
+    /// @tparam ARGS Argument types passed to FUNC (@see Dispatcher::post for more details).
     /// @param[in] func Callable object.
+    /// @param[in] args Variable list of arguments passed to the callable object.
+    /// @note This function is non-blocking and returns immediately.
+    /// @warning The VoidContextPtr can be used to yield() or to post additional coroutines or IO tasks.
+    ///          However it should *not* be set and this will result in undefined behavior.
+    template <class FUNC, class ... ARGS>
+    void
+    enqueueAll(FUNC&& func, ARGS&&... args);
+
+    /// @brief Enqueue a coroutine to run asynchronously on a specific queue (thread), after all keys have run.
+    /// @details This method will post the coroutine on any thread available. The posted task is assumed to be associated
+    ///          with the entire universe of sequenceKeys already running or pending, which means that it will wait
+    ///          until all tasks complete. This task can be considered as having a 'universal' key.
+    /// @tparam FUNC Callable object type which will be wrapped in a coroutine with signature 'int(VoidContextPtr, Args...)'
+    /// @tparam ARGS Argument types passed to FUNC (@see Dispatcher::post for more details).
+    /// @param[in] queueId Id of the queue where this coroutine should run. Note that the user 
+    ///                    can specify IQueue::QueueId::Any as a value, which is equivalent to running 
+    ///                    the simpler version of post() above. Valid range is [0, numCoroutineThreads) or 
+    ///                    IQueue::QueueId::Any.
+    /// @param[in] isHighPriority If set to true, the sequencer coroutine will be scheduled right 
+    ///                           after the currently executing coroutine on 'queueId'.
     /// @param[in] opaque pointer to opaque data that is passed to the exception handler (if provided)
     ///            if an unhandled exception is thrown in func
-    /// @param[in] queueId Id of the queue where this coroutine should run.
-    ///            Valid range is [0, numCoroutineThreads) or IQueue::QueueId::Any.
+    /// @param[in] func Callable object.
+    /// @param[in] args Variable list of arguments passed to the callable object.
     /// @note This function is non-blocking and returns immediately.
+    /// @warning The VoidContextPtr can be used to yield() or to post additional coroutines or IO tasks.
+    ///          However it should *not* be set and this will result in undefined behavior.
+    template <class FUNC, class ... ARGS>
     void
-    enqueueAll(std::function<int(VoidContextPtr)>&& func, void* opaque = nullptr, int queueId = (int)IQueue::QueueId::Any);
+    enqueueAll(void* opaque, int queueId, bool isHighPriority, FUNC&& func, ARGS&&... args);
 
     /// @brief Trims the sequence keys not used by the sequencer anymore.
     /// @details It's recommended to call this function periodically to clean up state sequence keys.
@@ -175,6 +254,27 @@ private:
     std::shared_ptr<SequencerLiteTask<SequenceKey>> removePending(
         SequencerLiteKeyData<SequenceKey>& entry,
         const std::shared_ptr<SequencerLiteTask<SequenceKey>>& task);
+
+    template <class FUNC, class ... ARGS>
+    void
+    enqueueSingle(void* opaque, int queueId, bool isHighPriority, const SequenceKey& sequenceKey, FUNC&& func, ARGS&&... args);
+
+    template <class FUNC, class ... ARGS>
+    void
+    enqueueMultiple(void* opaque,
+                    int queueId,
+                    bool isHighPriority,
+                    const std::vector<SequenceKey>& sequenceKeys,
+                    FUNC&& func,
+                    ARGS&&... args);
+
+    template <class FUNC, class ... ARGS>
+    void
+    enqueueAllImpl(void* opaque, int queueId, bool isHighPriority, FUNC&& func, ARGS&&... args);
+
+    template<class FUNC, class ...ARGS>
+    static std::function<int(VoidContextPtr)> wrap(
+        FUNC&& func, ARGS&&... args);
 
     Dispatcher&                  _dispatcher;
     std::atomic_bool             _drain;

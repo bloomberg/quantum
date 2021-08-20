@@ -190,29 +190,68 @@ SequencerLite<SequenceKey, Hash, KeyEqual, Allocator>::scheduleTask(
     }
     _taskStats->decrementPendingTaskCount();
 
-    _dispatcher.post(task->_queueId, task->_isHighPriority, bsl::move(taskWrapper));
+    _dispatcher.post(task->_queueId, task->_isHighPriority, std::move(taskWrapper));
 }
 
 template <class SequenceKey, class Hash, class KeyEqual, class Allocator>
+template<class FUNC, class ...ARGS>
+std::function<int(VoidContextPtr)> 
+SequencerLite<SequenceKey, Hash, KeyEqual, Allocator>::wrap(
+    FUNC&& func, ARGS&&... args)
+{
+    return [f = func, a = std::make_tuple(std::forward<ARGS>(args)...)](VoidContextPtr ctx) -> int {
+        return std::apply(
+                [f, ctx](auto&&... args) { return f(ctx, std::forward<decltype(args)>(args)...); },
+                std::move(a));
+    };
+}
+
+template <class SequenceKey, class Hash, class KeyEqual, class Allocator>
+template <class FUNC, class ... ARGS>
 void
 SequencerLite<SequenceKey, Hash, KeyEqual, Allocator>::enqueue(
-    const SequenceKey& sequenceKey,
-    std::function<int(VoidContextPtr)>&& func,
-    void* opaque,
-    int queueId,
-    bool isHighPriority)
+    const SequenceKey& sequenceKey, FUNC&& func, ARGS&&... args)
+{
+    enqueueSingle(nullptr, (int)IQueue::QueueId::Any, false, sequenceKey, std::move(func), std::forward<ARGS>(args)...);
+}
+
+template <class SequenceKey, class Hash, class KeyEqual, class Allocator>
+template <class FUNC, class ... ARGS>
+void
+SequencerLite<SequenceKey, Hash, KeyEqual, Allocator>::enqueue(
+    void* opaque, 
+    int queueId, 
+    bool isHighPriority, 
+    const SequenceKey& sequenceKey, 
+    FUNC&& func, 
+    ARGS&&... args)
+{
+    enqueueSingle(opaque, queueId, isHighPriority, sequenceKey, std::move(func), std::forward<ARGS>(args)...);  
+}
+
+template <class SequenceKey, class Hash, class KeyEqual, class Allocator>
+template <class FUNC, class ... ARGS>
+void
+SequencerLite<SequenceKey, Hash, KeyEqual, Allocator>::enqueueSingle(
+    void* opaque, 
+    int queueId, 
+    bool isHighPriority, 
+    const SequenceKey& sequenceKey, 
+    FUNC&& func, 
+    ARGS&&... args)
 {
     if (_drain)
     {
         throw std::runtime_error("SequencerLite is disabled");
     }
+
     if (queueId < (int)IQueue::QueueId::Any)
     {
         throw std::out_of_range(std::string{"Invalid IO queue id: "} + std::to_string(queueId));
     }
 
     auto task = std::make_shared<SequencerLiteTask<SequenceKey>>(
-        std::move(func),
+        wrap(std::move(func), std::forward<ARGS>(args)...),
         false,
         opaque,
         queueId,
@@ -230,13 +269,40 @@ SequencerLite<SequenceKey, Hash, KeyEqual, Allocator>::enqueue(
 }
 
 template <class SequenceKey, class Hash, class KeyEqual, class Allocator>
+template <class FUNC, class ... ARGS>
 void
 SequencerLite<SequenceKey, Hash, KeyEqual, Allocator>::enqueue(
-    const std::vector<SequenceKey>& sequenceKeys,
-    std::function<int(VoidContextPtr)>&& func,
+    const std::vector<SequenceKey>& sequenceKeys, 
+    FUNC&& func, 
+    ARGS&&... args)
+{
+    enqueueMultiple(nullptr, (int)IQueue::QueueId::Any, false, sequenceKeys, std::move(func), std::forward<ARGS>(args)...);
+}
+
+template <class SequenceKey, class Hash, class KeyEqual, class Allocator>
+template <class FUNC, class ... ARGS>
+void
+SequencerLite<SequenceKey, Hash, KeyEqual, Allocator>::enqueue(
     void* opaque,
     int queueId,
-    bool isHighPriority)
+    bool isHighPriority,
+    const std::vector<SequenceKey>& sequenceKeys,
+    FUNC&& func,
+    ARGS&&... args)
+{
+    enqueueMultiple(opaque, queueId, isHighPriority, sequenceKeys, std::move(func), std::forward<ARGS>(args)...);
+}
+
+template <class SequenceKey, class Hash, class KeyEqual, class Allocator>
+template <class FUNC, class ... ARGS>
+void
+SequencerLite<SequenceKey, Hash, KeyEqual, Allocator>::enqueueMultiple(
+    void* opaque,
+    int queueId,
+    bool isHighPriority,
+    const std::vector<SequenceKey>& sequenceKeys,
+    FUNC&& func,
+    ARGS&&... args)
 {
     if (_drain)
     {
@@ -248,7 +314,7 @@ SequencerLite<SequenceKey, Hash, KeyEqual, Allocator>::enqueue(
     }
 
     auto task = std::make_shared<SequencerLiteTask<SequenceKey>>(
-        std::move(func),
+        wrap(std::move(func), std::forward<ARGS>(args)...),
         false,
         opaque,
         queueId,
@@ -274,11 +340,35 @@ SequencerLite<SequenceKey, Hash, KeyEqual, Allocator>::enqueue(
 }
 
 template <class SequenceKey, class Hash, class KeyEqual, class Allocator>
+template <class FUNC, class ... ARGS>
+void
+SequencerLite<SequenceKey, Hash, KeyEqual, Allocator>::enqueueAll(FUNC&& func, ARGS&&... args)
+{
+    enqueueAllImpl(nullptr, (int)IQueue::QueueId::Any, false, std::move(func), std::forward<ARGS>(args)...);
+}
+
+template <class SequenceKey, class Hash, class KeyEqual, class Allocator>
+template <class FUNC, class ... ARGS>
 void
 SequencerLite<SequenceKey, Hash, KeyEqual, Allocator>::enqueueAll(
-    std::function<int(VoidContextPtr)>&& func,
-    void* opaque,
-    int queueId)
+    void* opaque, 
+    int queueId, 
+    bool isHighPriority, 
+    FUNC&& func, 
+    ARGS&&... args)
+{
+    enqueueAllImpl(opaque, queueId, isHighPriority, std::move(func), std::forward<ARGS>(args)...);
+}
+
+template <class SequenceKey, class Hash, class KeyEqual, class Allocator>
+template <class FUNC, class ... ARGS>
+void
+SequencerLite<SequenceKey, Hash, KeyEqual, Allocator>::enqueueAllImpl(
+    void* opaque, 
+    int queueId, 
+    bool isHighPriority, 
+    FUNC&& func, 
+    ARGS&&... args)
 {
     if (_drain)
     {
@@ -290,11 +380,11 @@ SequencerLite<SequenceKey, Hash, KeyEqual, Allocator>::enqueueAll(
     }
 
     auto task = std::make_shared<SequencerLiteTask<SequenceKey>>(
-        std::move(func),
+        wrap(std::move(func), std::forward<ARGS>(args)...),
         true,
         opaque,
         queueId,
-        false);
+        isHighPriority);
 
     std::lock_guard<std::mutex> lock(_mutex);
 
