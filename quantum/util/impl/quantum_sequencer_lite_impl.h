@@ -23,6 +23,7 @@
 #include <quantum/quantum_promise.h>
 #include <quantum/quantum_traits.h>
 #include <stdexcept>
+#include <tuple>
 
 namespace Bloomberg {
 namespace quantum {

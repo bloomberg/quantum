@@ -13,8 +13,11 @@
 ** See the License for the specific language governing permissions and
 ** limitations under the License.
 */
+
 #include <quantum_fixture.h>
 #include <gtest/gtest.h>
+
+#ifdef BLOOMBERG_QUANTUM_SEQUENCER_LITE_SUPPORT
 
 using namespace quantum;
 
@@ -518,3 +521,5 @@ TEST_P(SequencerLiteTest, CustomHashFunction)
         }
     }
 }
+
+#endif // BLOOMBERG_QUANTUM_SEQUENCER_LITE_SUPPORT

@@ -16,6 +16,12 @@
 #ifndef BLOOMBERG_QUANTUM_SEQUENCER_LITE_H
 #define BLOOMBERG_QUANTUM_SEQUENCER_LITE_H
 
+#if __cplusplus >= 201402L
+#define BLOOMBERG_QUANTUM_SEQUENCER_LITE_SUPPORT
+#endif // __cplusplus >= 201402L
+
+#ifdef BLOOMBERG_QUANTUM_SEQUENCER_LITE_SUPPORT
+
 #include <quantum/quantum_dispatcher.h>
 #include <quantum/interface/quantum_iqueue.h>
 #include <quantum/interface/quantum_ithread_context_base.h>
@@ -273,8 +279,7 @@ private:
     enqueueAllImpl(void* opaque, int queueId, bool isHighPriority, FUNC&& func, ARGS&&... args);
 
     template<class FUNC, class ...ARGS>
-    static std::function<int(VoidContextPtr)> wrap(
-        FUNC&& func, ARGS&&... args);
+    static std::function<int(VoidContextPtr)> wrap(FUNC&& func, ARGS&&... args);
 
     Dispatcher&                  _dispatcher;
     std::atomic_bool             _drain;
@@ -288,5 +293,7 @@ private:
 }}
 
 #include <quantum/util/impl/quantum_sequencer_lite_impl.h>
+
+#endif // BLOOMBERG_QUANTUM_SEQUENCER_LITE_SUPPORT
 
 #endif //BLOOMBERG_QUANTUM_SEQUENCER_LITE_H
