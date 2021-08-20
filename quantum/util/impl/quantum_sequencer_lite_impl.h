@@ -22,8 +22,8 @@
 #include <quantum/util/quantum_drain_guard.h>
 #include <quantum/quantum_promise.h>
 #include <quantum/quantum_traits.h>
+#include <quantum/impl/quantum_stl_impl.h>
 #include <stdexcept>
-#include <tuple>
 
 namespace Bloomberg {
 namespace quantum {
@@ -201,7 +201,7 @@ SequencerLite<SequenceKey, Hash, KeyEqual, Allocator>::wrap(
     FUNC&& func, ARGS&&... args)
 {
     return [f = func, a = std::make_tuple(std::forward<ARGS>(args)...)](VoidContextPtr ctx) -> int {
-        return std::apply(
+        return apply(
                 [f, ctx](auto&&... args) { return f(ctx, std::forward<decltype(args)>(args)...); },
                 std::move(a));
     };
