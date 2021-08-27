@@ -26,7 +26,7 @@ namespace quantum {
 
 template<typename Sequencer>
 void testSequencerPerformance(
-    const bsl::string& name,
+    const std::string& name,
     quantum::Dispatcher& dispatcher,
     unsigned int sleepTimeMicroseconds,
     unsigned int distinctKeyCount,
