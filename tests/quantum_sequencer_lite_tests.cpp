@@ -199,7 +199,7 @@ TEST_P(SequencerLiteTest, BasicTaskOrderWithYields)
     const int yieldCount = 2;
     SequencerLiteTestData testData;
     SequencerLiteTestData::SequenceKeyMap sequenceKeys;
-    std::atomic<unsigned int> totalYieldCount = 0;
+    std::atomic<unsigned int> totalYieldCount(0);
     
     SequencerLiteTestData::TaskSequencerLite sequencer(getDispatcher());
 
@@ -237,7 +237,7 @@ TEST_P(SequencerLiteTest, BasicTaskOrderWithParams)
     SequencerLiteTestData::SequenceKeyMap sequenceKeys;
     
     SequencerLiteTestData::TaskSequencerLite sequencer(getDispatcher());
-    std::atomic<int> mismatchCount = 0;
+    std::atomic<int> mismatchCount(0);
 
     // enqueue the tasks
     for(SequencerLiteTestData::TaskId id = 0; id < taskCount; ++id) 
