@@ -1,5 +1,5 @@
 /*
-** Copyright 2018 Bloomberg Finance L.P.
+** Copyright 2021 Bloomberg Finance L.P.
 **
 ** Licensed under the Apache License, Version 2.0 (the "License");
 ** you may not use this file except in compliance with the License.
@@ -25,7 +25,9 @@
 #include <quantum/quantum_dispatcher.h>
 #include <quantum/interface/quantum_iqueue.h>
 #include <quantum/interface/quantum_ithread_context_base.h>
+#include <quantum/quantum_mutex.h>
 #include <quantum/util/quantum_sequencer_lite_configuration.h>
+#include <quantum/util/quantum_sequencer_lite_task.h>
 #include <quantum/util/quantum_sequence_key_statistics.h>
 #include <vector>
 #include <unordered_map>
@@ -44,12 +46,19 @@ namespace quantum {
 /// @tparam KeyEqual The equal-function used for storing instances of SequenceKey in hash maps
 /// @tparam Allocator The allocator used for storing instances of SequenceKey in hash maps
 /// @note The interfaces of quantum::SequencerLite and quantum::Sequencer are the same. The major difference
-/// between their functionalities is that quantum::SequencerLite does not rely on quantum::Dispatcher to order tasks 
-/// based on their interdependence. In contrast, quantum::SequencerLite manages task ordering itself 
-/// by construcing a DAG of pending tasks. In quantum::SequencerLite, a task is pushed into quantum::Dispatcher 
-/// only when it's ready to be executed (i.e. when it has no pending dependents). This typically results 
-/// in executing scheduled tasks faster (w.r.t. quantum::Dispatcher) and wasting fewer CPU cycles in 
+/// between their functionalities is that quantum::SequencerLite does not rely on quantum::Dispatcher to order tasks
+/// based on their interdependence. In contrast, quantum::SequencerLite manages task ordering itself
+/// by construcing a DAG of pending tasks. In quantum::SequencerLite, a task is pushed into quantum::Dispatcher
+/// only when it's ready to be executed (i.e. when it has no pending dependents). This typically results
+/// in executing scheduled tasks faster (w.r.t. quantum::Dispatcher) and wasting fewer CPU cycles in
 /// quantum::Dispatcher.
+/// @note Due to the fact that tasks enqueued to Sequencer do not get sent to quantum::Dispatcher right away,
+/// no enqueue/enqueueAll method of Sequencer returns an instance of ThreadContextPtr. An important goal
+/// of ThreadContextPtr returned by quantum::Dispather::post(...) calls is exception marshalling i.e.
+/// notifing the caller of an exception thrown in a coroutine. Sequencer uses the exception-callback
+/// mechanism instead. A user can specify an exception callback (see SequencerConfiguration<...>::getExceptionCallback)
+/// that will be called whenever a task posted to Sequencer::enqueue/enqueueAll throws an exception. The opaque
+/// parameter can be used to distinguish one task from another.
 
 template <class SequenceKey,
           class Hash = std::hash<SequenceKey>,
@@ -92,7 +101,7 @@ public:
     ///                    specify IQueue::QueueId::Any as a value, which is equivalent to running
     ///                    the simpler version of post() above. Valid range is [0, numCoroutineThreads) or
     ///                    IQueue::QueueId::Any.
-    /// @param[in] isHighPriority If set to true, the sequencer coroutine will be scheduled right 
+    /// @param[in] isHighPriority If set to true, the sequencer coroutine will be scheduled right
     ///                           after the currently executing coroutine on 'queueId'.
     /// @param[in] opaque pointer to opaque data that is passed to the exception handler (if provided)
     ///            if an unhandled exception is thrown in func
@@ -128,11 +137,11 @@ public:
     ///          (@see Dispatcher::post for more details).
     /// @tparam FUNC Callable object type which will be wrapped in a coroutine with signature 'int(VoidContextPtr, Args...)'
     /// @tparam ARGS Argument types passed to FUNC (@see Dispatcher::post for more details).
-    /// @param[in] queueId Id of the queue where this coroutine should run. Note that the user 
-    ///                    can specify IQueue::QueueId::Any as a value, which is equivalent to running 
-    ///                    the simpler version of post() above. Valid range is [0, numCoroutineThreads) or 
+    /// @param[in] queueId Id of the queue where this coroutine should run. Note that the user
+    ///                    can specify IQueue::QueueId::Any as a value, which is equivalent to running
+    ///                    the simpler version of post() above. Valid range is [0, numCoroutineThreads) or
     ///                    IQueue::QueueId::Any.
-    /// @param[in] isHighPriority If set to true, the sequencer coroutine will be scheduled right 
+    /// @param[in] isHighPriority If set to true, the sequencer coroutine will be scheduled right
     ///                           after the currently executing coroutine on 'queueId'.
     /// @param[in] opaque pointer to opaque data that is passed to the exception handler (if provided)
     ///            if an unhandled exception is thrown in func
@@ -172,11 +181,11 @@ public:
     ///          until all tasks complete. This task can be considered as having a 'universal' key.
     /// @tparam FUNC Callable object type which will be wrapped in a coroutine with signature 'int(VoidContextPtr, Args...)'
     /// @tparam ARGS Argument types passed to FUNC (@see Dispatcher::post for more details).
-    /// @param[in] queueId Id of the queue where this coroutine should run. Note that the user 
-    ///                    can specify IQueue::QueueId::Any as a value, which is equivalent to running 
-    ///                    the simpler version of post() above. Valid range is [0, numCoroutineThreads) or 
+    /// @param[in] queueId Id of the queue where this coroutine should run. Note that the user
+    ///                    can specify IQueue::QueueId::Any as a value, which is equivalent to running
+    ///                    the simpler version of post() above. Valid range is [0, numCoroutineThreads) or
     ///                    IQueue::QueueId::Any.
-    /// @param[in] isHighPriority If set to true, the sequencer coroutine will be scheduled right 
+    /// @param[in] isHighPriority If set to true, the sequencer coroutine will be scheduled right
     ///                           after the currently executing coroutine on 'queueId'.
     /// @param[in] opaque pointer to opaque data that is passed to the exception handler (if provided)
     ///            if an unhandled exception is thrown in func
@@ -249,8 +258,10 @@ private:
         const std::shared_ptr<SequencerLiteTask<SequenceKey>>& task);
 
     /// @brief Removes the task from the pending queues and schedule next tasks
+    /// @param ctx context
     /// @param task the task to remove
     void removePending(
+        VoidContextPtr ctx,
         const std::shared_ptr<SequencerLiteTask<SequenceKey>>& task);
 
     /// @brief Removes the task from the pending queue
@@ -260,6 +271,16 @@ private:
     std::shared_ptr<SequencerLiteTask<SequenceKey>> removePending(
         SequencerLiteKeyData<SequenceKey>& entry,
         const std::shared_ptr<SequencerLiteTask<SequenceKey>>& task);
+
+    /// @brief Execute a pending task
+    /// @param ctx context
+    /// @param sequencer the sequencer
+    /// @param task the task to execute
+    /// @return task return code
+    static int executePending(
+        VoidContextPtr ctx,
+        SequencerLite* sequencer,
+        std::shared_ptr<SequencerLiteTask<SequenceKey>> task);
 
     template <class FUNC, class ... ARGS>
     void
@@ -278,15 +299,12 @@ private:
     void
     enqueueAllImpl(void* opaque, int queueId, bool isHighPriority, FUNC&& func, ARGS&&... args);
 
-    template<class FUNC, class ...ARGS>
-    static std::function<int(VoidContextPtr)> wrap(FUNC&& func, ARGS&&... args);
-
     Dispatcher&                  _dispatcher;
     std::atomic_bool             _drain;
     SequencerLiteKeyData<SequenceKey> _universalTaskQueue;
     PendingTaskQueueMap          _pendingTaskQueueMap;
     ExceptionCallback            _exceptionCallback;
-    std::mutex                   _mutex;
+    quantum::Mutex               _mutex;
     std::shared_ptr<SequenceKeyStatisticsWriter> _taskStats;
 };
 

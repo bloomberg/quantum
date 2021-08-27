@@ -14,6 +14,7 @@
 ** limitations under the License.
 */
 #include <quantum_fixture.h>
+#include <quantum_sequencer_test_common.h>
 #include <gtest/gtest.h>
 
 using namespace quantum;
@@ -57,10 +58,6 @@ public: // types
         ASSERT_NE(beforeTaskIt, _results.end());
         TaskResultMap::const_iterator afterTaskIt = _results.find(afterTaskId);
         ASSERT_NE(afterTaskIt, _results.end());
-        if (beforeTaskIt == _results.end() || afterTaskIt == _results.end())
-        {
-            return;
-        }
         EXPECT_LE(beforeTaskIt->second.endTime, afterTaskIt->second.startTime);
     }
     
@@ -528,4 +525,32 @@ TEST_P(SequencerTest, CustomHashFunction)
             testData.ensureOrder(sequenceKeyData.second[i-1], sequenceKeyData.second[i]);
         }
     }
+}
+
+TEST_P(SequencerTest, PerformanceTest)
+{
+    using namespace Bloomberg::quantum;
+
+    const int taskCount = 10000;
+    const unsigned int sleepTime = 1000;
+
+    testSequencerPerformance<SequencerTestData::TaskSequencer>(
+        "Highly dependent tasks",
+        getDispatcher(),
+        sleepTime,
+        3,
+        2,
+        taskCount,
+        10,
+        1);
+
+    testSequencerPerformance<SequencerTestData::TaskSequencer>(
+        "Independent tasks",
+        getDispatcher(),
+        sleepTime,
+        taskCount,
+        1,
+        taskCount,
+        0,
+        0);
 }

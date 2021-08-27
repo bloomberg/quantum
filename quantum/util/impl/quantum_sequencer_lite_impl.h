@@ -1,5 +1,5 @@
 /*
-** Copyright 2018 Bloomberg Finance L.P.
+** Copyright 2021 Bloomberg Finance L.P.
 **
 ** Licensed under the Apache License, Version 2.0 (the "License");
 ** you may not use this file except in compliance with the License.
@@ -24,6 +24,7 @@
 #include <quantum/quantum_traits.h>
 #include <quantum/impl/quantum_stl_impl.h>
 #include <stdexcept>
+#include <functional>
 
 namespace Bloomberg {
 namespace quantum {
@@ -70,10 +71,16 @@ SequencerLite<SequenceKey, Hash, KeyEqual, Allocator>::addPendingTask(
     {
         it = _pendingTaskQueueMap.emplace(key, SequencerLiteKeyData<SequenceKey>()).first;
         // add each universal task to this queue before the task
+        bool first = true;
         for(auto& universalTask : _universalTaskQueue._tasks)
         {
             it->second._tasks.push_back(universalTask);
-            ++universalTask->_pendingKeyCount;
+            // increment the pending count of the universal task unless it's first in the queue
+            if (not first)
+            {
+                ++universalTask->_pendingKeyCount;
+            }
+            first = false;
         }
     }
     bool empty = it->second._tasks.empty();
@@ -97,31 +104,41 @@ SequencerLite<SequenceKey, Hash, KeyEqual, Allocator>::removePending(
     SequencerLiteKeyData<SequenceKey>& entry,
     const std::shared_ptr<SequencerLiteTask<SequenceKey>>& task)
 {
-    // delete this entry
+    // Regular tasks tasks:
+    // * entry._tasks.empty() means that there's a bug somewhere: when we intend to delete a pending task,
+    // the task queue must not be empty
+    // * entry._tasks.front() == task means that there's a bug somewhere:
+    // only completed tasks are removed from the queue, and such tasks must sit at the head of the queue
+    // Universal tasks: because we do not track the queues where universal tasks are enqueued,
+    // entry._tasks.empty() or entry._tasks.front() != task just means that the task was never enqueued
+    // to this queue.
     if (entry._tasks.empty() or
         entry._tasks.front() != task)
     {
-        return std::shared_ptr<SequencerLiteTask<SequenceKey>>();
+        return nullptr;
     }
 
     entry._tasks.pop_front();
     if (entry._tasks.empty())
     {
-        return std::shared_ptr<SequencerLiteTask<SequenceKey>>();
+        // no more tasks in the queue
+        return nullptr;
     }
     std::shared_ptr<SequencerLiteTask<SequenceKey>> next = entry._tasks.front();
-    // the new front has one less key to wait
+    // decrementing _pendingKeyCount because the task next is now the head of the queue.
+    // As a result, the next task has one less pending dependent to wait for
     return 0 == --next->_pendingKeyCount
         ? next
-        : std::shared_ptr<SequencerLiteTask<SequenceKey>>();
+        : nullptr;
 }
 
 template <class SequenceKey, class Hash, class KeyEqual, class Allocator>
 void
 SequencerLite<SequenceKey, Hash, KeyEqual, Allocator>::removePending(
+    VoidContextPtr ctx,
     const std::shared_ptr<SequencerLiteTask<SequenceKey>>& task)
 {
-    std::lock_guard<std::mutex> lock(_mutex);
+    Mutex::Guard lock(ctx, _mutex);
     if (task->_universal)
     {
         // remove the task from all key queues
@@ -153,31 +170,44 @@ SequencerLite<SequenceKey, Hash, KeyEqual, Allocator>::removePending(
 }
 
 template <class SequenceKey, class Hash, class KeyEqual, class Allocator>
+int
+SequencerLite<SequenceKey, Hash, KeyEqual, Allocator>::executePending(
+    VoidContextPtr ctx,
+    SequencerLite* sequencer,
+    std::shared_ptr<SequencerLiteTask<SequenceKey>> task)
+{
+    // passing Sequencer pointer into the static executePending instead of
+    // making executePending non-static because executePending is passed to
+    // dispatcher as a coroutine function, but dispatcher.post(...) doesn't support
+    // results of std::bind(...)
+    int rc = -1;
+    try
+    {
+        rc = task->_func(ctx);
+    }
+    catch(const boost::coroutines2::detail::forced_unwind&)
+    {
+        // quantum context switch
+        throw;
+    }
+    catch(...)
+    {
+        if (sequencer->_exceptionCallback)
+        {
+            sequencer->_exceptionCallback(std::current_exception(), task->_opaque);
+        }
+    }
+
+    // remove the task from the pending queues + schedule next tasks
+    sequencer->removePending(ctx, task);
+    return rc;
+}
+
+template <class SequenceKey, class Hash, class KeyEqual, class Allocator>
 void
 SequencerLite<SequenceKey, Hash, KeyEqual, Allocator>::scheduleTask(
     const std::shared_ptr<SequencerLiteTask<SequenceKey>>& task)
 {
-    // the task is at the head of its queue hence we can schedule it right away
-    auto taskWrapper = [this, task](VoidContextPtr ctx)->int
-    {
-        int rc = -1;
-        try
-        {
-            rc = task->_func(ctx);
-        }
-        catch(...)
-        {
-            if (_exceptionCallback)
-            {
-                _exceptionCallback(std::current_exception(), task->_opaque);
-            }
-        }
-
-        // remove the task from the pending queues + schedule next tasks
-        removePending(task);
-        return rc;
-    };
-
     if (task->_universal)
     {
         _universalTaskQueue._stats->decrementPendingTaskCount();
@@ -191,20 +221,12 @@ SequencerLite<SequenceKey, Hash, KeyEqual, Allocator>::scheduleTask(
     }
     _taskStats->decrementPendingTaskCount();
 
-    _dispatcher.post(task->_queueId, task->_isHighPriority, std::move(taskWrapper));
-}
-
-template <class SequenceKey, class Hash, class KeyEqual, class Allocator>
-template<class FUNC, class ...ARGS>
-std::function<int(VoidContextPtr)> 
-SequencerLite<SequenceKey, Hash, KeyEqual, Allocator>::wrap(
-    FUNC&& func, ARGS&&... args)
-{
-    return [f = func, a = std::make_tuple(std::forward<ARGS>(args)...)](VoidContextPtr ctx) -> int {
-        return apply(
-                [f, ctx](auto&&... args) { return f(ctx, std::forward<decltype(args)>(args)...); },
-                std::move(a));
-    };
+    _dispatcher.post(
+        task->_queueId,
+        task->_isHighPriority,
+        &SequencerLite<SequenceKey, Hash, KeyEqual, Allocator>::executePending,
+        this,
+        std::shared_ptr<SequencerLiteTask<SequenceKey>>(task));
 }
 
 template <class SequenceKey, class Hash, class KeyEqual, class Allocator>
@@ -213,32 +235,32 @@ void
 SequencerLite<SequenceKey, Hash, KeyEqual, Allocator>::enqueue(
     const SequenceKey& sequenceKey, FUNC&& func, ARGS&&... args)
 {
-    enqueueSingle(nullptr, (int)IQueue::QueueId::Any, false, sequenceKey, std::move(func), std::forward<ARGS>(args)...);
+    enqueueSingle(nullptr, (int)IQueue::QueueId::Any, false, sequenceKey, std::forward<FUNC>(func), std::forward<ARGS>(args)...);
 }
 
 template <class SequenceKey, class Hash, class KeyEqual, class Allocator>
 template <class FUNC, class ... ARGS>
 void
 SequencerLite<SequenceKey, Hash, KeyEqual, Allocator>::enqueue(
-    void* opaque, 
-    int queueId, 
-    bool isHighPriority, 
-    const SequenceKey& sequenceKey, 
-    FUNC&& func, 
+    void* opaque,
+    int queueId,
+    bool isHighPriority,
+    const SequenceKey& sequenceKey,
+    FUNC&& func,
     ARGS&&... args)
 {
-    enqueueSingle(opaque, queueId, isHighPriority, sequenceKey, std::move(func), std::forward<ARGS>(args)...);  
+    enqueueSingle(opaque, queueId, isHighPriority, sequenceKey, std::forward<FUNC>(func), std::forward<ARGS>(args)...);
 }
 
 template <class SequenceKey, class Hash, class KeyEqual, class Allocator>
 template <class FUNC, class ... ARGS>
 void
 SequencerLite<SequenceKey, Hash, KeyEqual, Allocator>::enqueueSingle(
-    void* opaque, 
-    int queueId, 
-    bool isHighPriority, 
-    const SequenceKey& sequenceKey, 
-    FUNC&& func, 
+    void* opaque,
+    int queueId,
+    bool isHighPriority,
+    const SequenceKey& sequenceKey,
+    FUNC&& func,
     ARGS&&... args)
 {
     if (_drain)
@@ -252,13 +274,13 @@ SequencerLite<SequenceKey, Hash, KeyEqual, Allocator>::enqueueSingle(
     }
 
     auto task = std::make_shared<SequencerLiteTask<SequenceKey>>(
-        wrap(std::move(func), std::forward<ARGS>(args)...),
+        makeCapture<int>(std::forward<FUNC>(func), std::forward<ARGS>(args)...),
         false,
         opaque,
         queueId,
         isHighPriority);
 
-    std::lock_guard<std::mutex> lock(_mutex);
+    Mutex::Guard lock(_mutex);
 
     _taskStats->incrementPostedTaskCount();
     _taskStats->incrementPendingTaskCount();
@@ -273,11 +295,11 @@ template <class SequenceKey, class Hash, class KeyEqual, class Allocator>
 template <class FUNC, class ... ARGS>
 void
 SequencerLite<SequenceKey, Hash, KeyEqual, Allocator>::enqueue(
-    const std::vector<SequenceKey>& sequenceKeys, 
-    FUNC&& func, 
+    const std::vector<SequenceKey>& sequenceKeys,
+    FUNC&& func,
     ARGS&&... args)
 {
-    enqueueMultiple(nullptr, (int)IQueue::QueueId::Any, false, sequenceKeys, std::move(func), std::forward<ARGS>(args)...);
+    enqueueMultiple(nullptr, (int)IQueue::QueueId::Any, false, sequenceKeys, std::forward<FUNC>(func), std::forward<ARGS>(args)...);
 }
 
 template <class SequenceKey, class Hash, class KeyEqual, class Allocator>
@@ -291,7 +313,7 @@ SequencerLite<SequenceKey, Hash, KeyEqual, Allocator>::enqueue(
     FUNC&& func,
     ARGS&&... args)
 {
-    enqueueMultiple(opaque, queueId, isHighPriority, sequenceKeys, std::move(func), std::forward<ARGS>(args)...);
+    enqueueMultiple(opaque, queueId, isHighPriority, sequenceKeys, std::forward<FUNC>(func), std::forward<ARGS>(args)...);
 }
 
 template <class SequenceKey, class Hash, class KeyEqual, class Allocator>
@@ -315,13 +337,13 @@ SequencerLite<SequenceKey, Hash, KeyEqual, Allocator>::enqueueMultiple(
     }
 
     auto task = std::make_shared<SequencerLiteTask<SequenceKey>>(
-        wrap(std::move(func), std::forward<ARGS>(args)...),
+        makeCapture<int>(std::forward<FUNC>(func), std::forward<ARGS>(args)...),
         false,
         opaque,
         queueId,
         isHighPriority);
 
-    std::lock_guard<std::mutex> lock(_mutex);
+    Mutex::Guard lock(_mutex);
 
     _taskStats->incrementPostedTaskCount();
     _taskStats->incrementPendingTaskCount();
@@ -345,17 +367,17 @@ template <class FUNC, class ... ARGS>
 void
 SequencerLite<SequenceKey, Hash, KeyEqual, Allocator>::enqueueAll(FUNC&& func, ARGS&&... args)
 {
-    enqueueAllImpl(nullptr, (int)IQueue::QueueId::Any, false, std::move(func), std::forward<ARGS>(args)...);
+    enqueueAllImpl(nullptr, (int)IQueue::QueueId::Any, false, std::forward<FUNC>(func), std::forward<ARGS>(args)...);
 }
 
 template <class SequenceKey, class Hash, class KeyEqual, class Allocator>
 template <class FUNC, class ... ARGS>
 void
 SequencerLite<SequenceKey, Hash, KeyEqual, Allocator>::enqueueAll(
-    void* opaque, 
-    int queueId, 
-    bool isHighPriority, 
-    FUNC&& func, 
+    void* opaque,
+    int queueId,
+    bool isHighPriority,
+    FUNC&& func,
     ARGS&&... args)
 {
     enqueueAllImpl(opaque, queueId, isHighPriority, std::move(func), std::forward<ARGS>(args)...);
@@ -365,10 +387,10 @@ template <class SequenceKey, class Hash, class KeyEqual, class Allocator>
 template <class FUNC, class ... ARGS>
 void
 SequencerLite<SequenceKey, Hash, KeyEqual, Allocator>::enqueueAllImpl(
-    void* opaque, 
-    int queueId, 
-    bool isHighPriority, 
-    FUNC&& func, 
+    void* opaque,
+    int queueId,
+    bool isHighPriority,
+    FUNC&& func,
     ARGS&&... args)
 {
     if (_drain)
@@ -381,13 +403,13 @@ SequencerLite<SequenceKey, Hash, KeyEqual, Allocator>::enqueueAllImpl(
     }
 
     auto task = std::make_shared<SequencerLiteTask<SequenceKey>>(
-        wrap(std::move(func), std::forward<ARGS>(args)...),
+        makeCapture<int>(std::forward<FUNC>(func), std::forward<ARGS>(args)...),
         true,
         opaque,
         queueId,
         isHighPriority);
 
-    std::lock_guard<std::mutex> lock(_mutex);
+    Mutex::Guard lock(_mutex);
 
     _taskStats->incrementPostedTaskCount();
     _taskStats->incrementPendingTaskCount();
@@ -410,7 +432,7 @@ template <class SequenceKey, class Hash, class KeyEqual, class Allocator>
 size_t
 SequencerLite<SequenceKey, Hash, KeyEqual, Allocator>::trimSequenceKeys()
 {
-    std::lock_guard<std::mutex> lock(_mutex);
+    Mutex::Guard lock(_mutex);
     for(typename PendingTaskQueueMap::iterator it = _pendingTaskQueueMap.begin(); it != _pendingTaskQueueMap.end(); )
     {
         if (it->second._tasks.empty())
@@ -425,7 +447,7 @@ template <class SequenceKey, class Hash, class KeyEqual, class Allocator>
 SequenceKeyStatistics
 SequencerLite<SequenceKey, Hash, KeyEqual, Allocator>::getStatistics(const SequenceKey& sequenceKey)
 {
-    std::lock_guard<std::mutex> lock(_mutex);
+    Mutex::Guard lock(_mutex);
     typename PendingTaskQueueMap::const_iterator it = _pendingTaskQueueMap.find(sequenceKey);
     if (it == _pendingTaskQueueMap.end())
         return SequenceKeyStatistics();
@@ -436,7 +458,7 @@ template <class SequenceKey, class Hash, class KeyEqual, class Allocator>
 SequenceKeyStatistics
 SequencerLite<SequenceKey, Hash, KeyEqual, Allocator>::getStatistics()
 {
-    std::lock_guard<std::mutex> lock(_mutex);
+    Mutex::Guard lock(_mutex);
     return *_universalTaskQueue._stats;
 }
 
@@ -451,7 +473,7 @@ template <class SequenceKey, class Hash, class KeyEqual, class Allocator>
 size_t
 SequencerLite<SequenceKey, Hash, KeyEqual, Allocator>::getSequenceKeyCount()
 {
-    std::lock_guard<std::mutex> lock(_mutex);
+    Mutex::Guard lock(_mutex);
     return _pendingTaskQueueMap.size();
 }
 

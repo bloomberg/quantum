@@ -1,5 +1,5 @@
 /*
-** Copyright 2018 Bloomberg Finance L.P.
+** Copyright 2021 Bloomberg Finance L.P.
 **
 ** Licensed under the Apache License, Version 2.0 (the "License");
 ** you may not use this file except in compliance with the License.
@@ -15,7 +15,9 @@
 */
 
 #include <quantum_fixture.h>
+#include <quantum_sequencer_test_common.h>
 #include <gtest/gtest.h>
+#include <sstream>
 
 #ifdef BLOOMBERG_QUANTUM_SEQUENCER_LITE_SUPPORT
 
@@ -60,10 +62,6 @@ public: // types
         ASSERT_NE(beforeTaskIt, _results.end());
         TaskResultMap::const_iterator afterTaskIt = _results.find(afterTaskId);
         ASSERT_NE(afterTaskIt, _results.end());
-        if (beforeTaskIt == _results.end() || afterTaskIt == _results.end())
-        {
-            return;
-        }
         EXPECT_LE(beforeTaskIt->second.endTime, afterTaskIt->second.startTime);
     }
     
@@ -71,7 +69,16 @@ public: // types
     {
         return [this, taskId](VoidContextPtr ctx)->int
         {
-            taskFunc(ctx, taskId, nullptr, "");
+            taskFunc(ctx, taskId, nullptr, "", 0, nullptr);
+            return 0;
+        };
+    }
+
+    std::function<int(VoidContextPtr)> makeTaskWithYields(TaskId taskId, unsigned int yieldCount, std::atomic<unsigned int>* totalYieldCount)
+    {
+        return [this, taskId, yieldCount, totalYieldCount](VoidContextPtr ctx)->int
+        {
+            taskFunc(ctx, taskId, nullptr, "", yieldCount, totalYieldCount);
             return 0;
         };
     }
@@ -80,7 +87,7 @@ public: // types
     {
         return [this, taskId, blockFlag](VoidContextPtr ctx)->int
         {
-            taskFunc(ctx, taskId, blockFlag, "");
+            taskFunc(ctx, taskId, blockFlag, "", 0, nullptr);
             return 0;
         };
     }
@@ -89,7 +96,7 @@ public: // types
     {
         return [this, taskId, error](VoidContextPtr ctx)->int
         {
-            taskFunc(ctx, taskId, nullptr, error);
+            taskFunc(ctx, taskId, nullptr, error, 0, nullptr);
             return 0;
         };
     }
@@ -103,19 +110,36 @@ public: // types
     {
         std::this_thread::sleep_for(std::chrono::milliseconds(periodCount*1));
     }
-    
-private: // methods
 
-    void taskFunc(VoidContextPtr ctx, TaskId id, std::atomic<bool>* blockFlag, std::string error)
+    void taskFunc(
+        VoidContextPtr ctx, 
+        TaskId id, 
+        std::atomic<bool>* blockFlag, 
+        std::string error, 
+        unsigned int yieldCount,
+        std::atomic<unsigned int>* totalYieldCount)
     {
         std::chrono::steady_clock::time_point startTime = std::chrono::steady_clock::now();
-        do {
-            ctx->sleep(std::chrono::milliseconds(1));
-            if (not error.empty()) {
-                throw std::runtime_error(error);
-            }
+        if (yieldCount)
+        {
+            do {
+                ctx->sleep(std::chrono::milliseconds(1));
+                ctx->yield();
+                --yieldCount;
+                if (totalYieldCount)
+                    ++(*totalYieldCount);
+            } while(yieldCount);
         }
-        while(blockFlag and *blockFlag);
+        else
+        {
+            do {
+                ctx->sleep(std::chrono::milliseconds(1));
+                if (not error.empty()) {
+                    throw std::runtime_error(error);
+                }
+            }
+            while(blockFlag and *blockFlag);
+        }
         std::chrono::steady_clock::time_point endTime = std::chrono::steady_clock::now();
 
         // update the task map with the time stats
@@ -154,6 +178,103 @@ TEST_P(SequencerLiteTest, BasicTaskOrder)
     }
     sequencer.drain();
 
+    EXPECT_EQ(testData.results().size(), (size_t)taskCount);
+
+    // the tasks must be ordered within the same sequenceKey
+    for(auto sequenceKeyData : sequenceKeys) 
+    {
+        for(size_t i = 1; i < sequenceKeyData.second.size(); ++i) 
+        {
+            testData.ensureOrder(sequenceKeyData.second[i-1], sequenceKeyData.second[i]);
+        }
+    }
+}
+
+TEST_P(SequencerLiteTest, BasicTaskOrderWithYields)
+{
+    using namespace Bloomberg::quantum;
+
+    const int taskCount = 2000;
+    const int sequenceKeyCount = 3;
+    const int yieldCount = 2;
+    SequencerLiteTestData testData;
+    SequencerLiteTestData::SequenceKeyMap sequenceKeys;
+    std::atomic<unsigned int> totalYieldCount = 0;
+    
+    SequencerLiteTestData::TaskSequencerLite sequencer(getDispatcher());
+
+    // enqueue the tasks
+    for(SequencerLiteTestData::TaskId id = 0; id < taskCount; ++id) 
+    {
+        SequencerLiteTestData::SequenceKey sequenceKey = id % sequenceKeyCount;
+        // save the task id for this sequenceKey
+        sequenceKeys[sequenceKey].push_back(id);
+        sequencer.enqueue(sequenceKey, testData.makeTaskWithYields(id, yieldCount, &totalYieldCount));
+    }
+    sequencer.drain();
+
+    EXPECT_EQ(testData.results().size(), (size_t)taskCount);
+
+    // the tasks must be ordered within the same sequenceKey
+    for(auto sequenceKeyData : sequenceKeys) 
+    {
+        for(size_t i = 1; i < sequenceKeyData.second.size(); ++i) 
+        {
+            testData.ensureOrder(sequenceKeyData.second[i-1], sequenceKeyData.second[i]);
+        }
+    }
+    EXPECT_EQ(yieldCount * taskCount, totalYieldCount);
+}
+
+TEST_P(SequencerLiteTest, BasicTaskOrderWithParams)
+{
+    using namespace Bloomberg::quantum;
+
+    const int taskCount = 2000;
+    const int sequenceKeyCount = 3;
+    SequencerLiteTestData testData;
+    std::ostringstream buf;
+    SequencerLiteTestData::SequenceKeyMap sequenceKeys;
+    
+    SequencerLiteTestData::TaskSequencerLite sequencer(getDispatcher());
+    std::atomic<int> mismatchCount = 0;
+
+    // enqueue the tasks
+    for(SequencerLiteTestData::TaskId id = 0; id < taskCount; ++id) 
+    {
+        SequencerLiteTestData::SequenceKey sequenceKey = id % sequenceKeyCount;
+        buf.str("");
+        buf << "Task " << id;
+        std::string text1 = buf.str();
+        std::string text2 = text1;
+        std::string text3 = text1;
+
+        sequenceKeys[sequenceKey].push_back(id);
+        auto task = [&testData, id, &mismatchCount, text3](
+            VoidContextPtr ctx, std::string&& text1, std::string text2)->int 
+        {
+            std::ostringstream buf2;
+            buf2 << "Task " << id;
+            std::string strId = buf2.str();
+            if (strId != text1) {
+                ++mismatchCount;
+            }
+            if (strId != text2){
+                ++mismatchCount;
+            }
+            if (strId != text3){
+                ++mismatchCount;
+            }
+
+            testData.taskFunc(ctx, id, nullptr, "", 0, nullptr);
+            return 0;
+        };
+
+        sequencer.enqueue(sequenceKey, std::move(task), std::move(text1), std::string(text2));
+    }
+    sequencer.drain();
+
+    EXPECT_EQ(0u, mismatchCount);
     EXPECT_EQ(testData.results().size(), (size_t)taskCount);
 
     // the tasks must be ordered within the same sequenceKey
@@ -433,7 +554,7 @@ TEST_P(SequencerLiteTest, MultiSequenceKeyTasks)
     {
         std::vector<SequencerLiteTestData::SequenceKey> sequenceKeys = getBitVector(id);
         // save the task id for this sequenceKey
-        sequencer.enqueue(bsl::move(sequenceKeys), testData.makeTask(id));
+        sequencer.enqueue(std::move(sequenceKeys), testData.makeTask(id));
     }
     sequencer.drain();
 
@@ -520,6 +641,33 @@ TEST_P(SequencerLiteTest, CustomHashFunction)
             testData.ensureOrder(sequenceKeyData.second[i-1], sequenceKeyData.second[i]);
         }
     }
+}
+
+TEST_P(SequencerLiteTest, PerformanceTest)
+{
+    using namespace Bloomberg::quantum;
+    const int taskCount = 10000;
+    const unsigned int sleepTime = 1000;
+
+    testSequencerPerformance<SequencerLiteTestData::TaskSequencerLite>(
+        "Highly dependent tasks",
+        getDispatcher(),
+        sleepTime,
+        3,
+        2,
+        taskCount,
+        10,
+        1);
+
+    testSequencerPerformance<SequencerLiteTestData::TaskSequencerLite>(
+        "Independent tasks",
+        getDispatcher(),
+        sleepTime,
+        taskCount,
+        1,
+        taskCount,
+        0,
+        0);
 }
 
 #endif // BLOOMBERG_QUANTUM_SEQUENCER_LITE_SUPPORT

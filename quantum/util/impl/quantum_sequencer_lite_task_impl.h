@@ -19,43 +19,31 @@
 //#################################### IMPLEMENTATIONS #########################################
 //##############################################################################################
 
-#include <quantum/util/quantum_sequence_key_statistics.h>
-#include <quantum/interface/quantum_icoro_context_base.h>
-#include <list>
-#include <vector>
-#include <atomic>
-#include <memory>
-
 namespace Bloomberg {
 namespace quantum {
 
-inline const std::string&
-SequencerLiteConfigurationSchemaProvider::getJsonSchema()
+template <class SequenceKey>
+template<typename FuncType>
+SequencerLiteTask<SequenceKey>::SequencerLiteTask(
+    FuncType&& func,
+    bool universal,
+    void* opaque,
+    int queueId,
+    bool isHighPriority) :
+_func(std::move(func)),
+_pendingKeyCount(0),
+_universal(universal),
+_opaque(opaque),
+_queueId(queueId),
+_isHighPriority(isHighPriority)
 {
-    static std::string schema = R"JSON(
-    {
-        "$schema" : "http://json-schema.org/draft-04/schema#",
-        "$id" : "bloomberg:sequencerlite.quantum.json",
-        "title": "Quantum sequencerlite settings",
-        "type": "object",
-        "properties": {
-            "bucketCount": {
-                "type": "number",
-                "default": 100
-            }
-        },
-        "additionalProperties": false,
-        "required": []
-    }
-    )JSON";
-    return schema;
 }
 
-inline const std::string&
-SequencerLiteConfigurationSchemaProvider::getJsonSchemaUri()
+template <class SequenceKey>
+SequencerLiteKeyData<SequenceKey>::SequencerLiteKeyData() :
+_stats(std::make_shared<SequenceKeyStatisticsWriter>())
 {
-    static std::string uri = "bloomberg:sequencerlite.quantum.json";
-    return uri;
 }
 
 }}
+

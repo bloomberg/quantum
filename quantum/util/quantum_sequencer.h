@@ -42,6 +42,13 @@ namespace quantum {
 /// noticable when quantum::Dispatcher has a lot of coroutine threads configured and long chains of dependent tasks 
 /// are enqueued to quantum::Sequencer. If this becomes an issue, it's suggested to use quantum::SequencerLite 
 /// instead. quantum::SequencerLite manages task ordering ourside of quantum::Dispatcher.
+/// @note Due to the fact that tasks enqueued to Sequencer do not get sent to quantum::Dispatcher right away,
+/// no enqueue/enqueueAll method of Sequencer returns an instance of ThreadContextPtr. An important goal 
+/// of ThreadContextPtr returned by quantum::Dispather::post(...) calls is exception marshalling i.e. 
+/// notifing the caller of an exception thrown in a coroutine. Sequencer uses the exception-callback 
+/// mechanism instead. A user can specify an exception callback (see SequencerConfiguration<...>::getExceptionCallback) 
+/// that will be called whenever a task posted to Sequencer::enqueue/enqueueAll throws an exception. The opaque
+/// parameter can be used to distinguish one task from another.
 
 template <class SequenceKey,
           class Hash = std::hash<SequenceKey>,
