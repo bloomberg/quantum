@@ -46,7 +46,7 @@ namespace quantum {
 class TaskQueue : public IQueue
 {
 public:
-    using TaskList = std::list<Task::Ptr, ContiguousPoolManager<ITask::Ptr>>;
+    using TaskList = std::list<ITask::Ptr, ContiguousPoolManager<ITask::Ptr>>;
     using TaskListIter = TaskList::iterator;
     
     TaskQueue();
@@ -56,9 +56,9 @@ public:
     
     TaskQueue(const TaskQueue& other);
     
-    TaskQueue(TaskQueue&& other) = default;
+    TaskQueue(TaskQueue&& other) noexcept;
     
-    ~TaskQueue();
+    ~TaskQueue() override;
     
     void pinToCore(int coreId) final;
     
@@ -91,12 +91,12 @@ public:
 private:
     struct WorkItem
     {
-        WorkItem(TaskPtr task,
+        WorkItem(ITaskPtr task,
                  TaskListIter iter,
                  bool isBlocked,
                  unsigned int blockedQueueRound);
         
-        TaskPtr         _task;              // task pointer
+        ITaskPtr        _task;              // task pointer
         TaskListIter    _iter;              // task iterator
         bool            _isBlocked;         // true if the entire queue is blocked
         unsigned int    _blockedQueueRound; // blocked queue round id
@@ -135,8 +135,7 @@ private:
     void sleepOnBlockedQueue(const ProcessTaskResult& mainQueueResult,
                              const ProcessTaskResult& sharedQueueResult);
 
-    
-    QueueListAllocator                  _alloc;
+
     std::shared_ptr<std::thread>        _thread;
     TaskList                            _runQueue;
     TaskList                            _waitQueue;

@@ -53,8 +53,8 @@ struct ITask : public ITerminate
         Sleeping = (int)Running-5,                  ///< Coroutine is sleeping
         Max = (int)Running-10,                      ///< Value of the max reserved return code
     };
-    
-    ~ITask() = default;
+
+    ~ITask() override = default;
     
     virtual int run() = 0;
     

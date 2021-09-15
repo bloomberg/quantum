@@ -31,15 +31,7 @@ public:
     
     /// @brief Copy constructor.
     ReadWriteSpinLock(const ReadWriteSpinLock&) = delete;
-    
-    /// @brief Move constructor.
-    ReadWriteSpinLock(ReadWriteSpinLock&&) = default;
-    
-    /// @brief Copy assignment operator.
     ReadWriteSpinLock& operator=(const ReadWriteSpinLock&) = delete;
-    
-    /// @brief Move assignment operator.
-    ReadWriteSpinLock& operator=(ReadWriteSpinLock&&) = default;
     
     /// @brief Lock this object as a reader (shared with other readers)
     void lockRead();

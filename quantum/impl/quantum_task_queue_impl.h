@@ -25,11 +25,11 @@ namespace Bloomberg {
 namespace quantum {
 
 inline
-TaskQueue::WorkItem::WorkItem(TaskPtr task,
+TaskQueue::WorkItem::WorkItem(ITaskPtr task,
                               TaskListIter iter,
                               bool isBlocked,
                               unsigned int blockedQueueRound) :
-    _task(task),
+    _task(std::move(task)),
     _iter(iter),
     _isBlocked(isBlocked),
     _blockedQueueRound(blockedQueueRound)
@@ -52,9 +52,8 @@ TaskQueue::TaskQueue() :
 
 inline
 TaskQueue::TaskQueue(const Configuration&, std::shared_ptr<TaskQueue> sharedQueue) :
-    _alloc(Allocator<QueueListAllocator>::instance(AllocatorTraits::queueListAllocSize())),
-    _runQueue(_alloc),
-    _waitQueue(_alloc),
+    _runQueue(Allocator<QueueListAllocator>::instance(AllocatorTraits::queueListAllocSize())),
+    _waitQueue(Allocator<QueueListAllocator>::instance(AllocatorTraits::queueListAllocSize())),
     _queueIt(_runQueue.end()),
     _blockedIt(_runQueue.end()),
     _isBlocked(false),
@@ -64,7 +63,7 @@ TaskQueue::TaskQueue(const Configuration&, std::shared_ptr<TaskQueue> sharedQueu
     _isIdle(true),
     _terminated(false),
     _isAdvanced(false),
-    _sharedQueue(sharedQueue),
+    _sharedQueue(std::move(sharedQueue)),
     _queueRound(0),
     _lastSleptQueueRound(std::numeric_limits<unsigned int>::max()),
     _lastSleptSharedQueueRound(std::numeric_limits<unsigned int>::max())
@@ -80,7 +79,29 @@ inline
 TaskQueue::TaskQueue(const TaskQueue&) :
     TaskQueue()
 {
+}
 
+inline
+TaskQueue::TaskQueue(TaskQueue&& other) noexcept:
+    _thread(std::move(other._thread)),
+    _runQueue(std::move(other._runQueue)),
+    _waitQueue(std::move(other._waitQueue)),
+    _queueIt(other._queueIt),
+    _blockedIt(_runQueue.end()),
+    _isBlocked(other._isBlocked),
+    _isEmpty(other._isEmpty.load()),
+    _isSharedQueueEmpty(other._isSharedQueueEmpty.load()),
+    _isInterrupted(other._isInterrupted.load()),
+    _isIdle(other._isIdle.load()),
+    _terminated(other._terminated.load()),
+    _isAdvanced(other._isAdvanced),
+    _stats(other._stats),
+    _sharedQueue(std::move(other._sharedQueue)),
+    _helpers(other._helpers),
+    _queueRound(other._queueRound),
+    _lastSleptQueueRound(other._lastSleptQueueRound),
+    _lastSleptSharedQueueRound(other._lastSleptSharedQueueRound)
+{
 }
 
 inline
@@ -183,10 +204,10 @@ TaskQueue::ProcessTaskResult TaskQueue::processTask()
         //Process a task
         workItem = grabWorkItem();
         
-        TaskPtr task = workItem._task;
+        ITaskPtr task = workItem._task;
         if (!task)
         {
-            return ProcessTaskResult(workItem._isBlocked, workItem._blockedQueueRound);
+            return { workItem._isBlocked, workItem._blockedQueueRound };
         }
 
         int rc;
@@ -231,7 +252,7 @@ TaskQueue::ProcessTaskResult TaskQueue::processTask()
     {
         handleException(workItem);
     }
-    return ProcessTaskResult(workItem._isBlocked, workItem._blockedQueueRound);
+    return {workItem._isBlocked, workItem._blockedQueueRound};
 }
 
 inline
@@ -453,7 +474,7 @@ bool TaskQueue::handleSuccess(const WorkItem& workItem)
 {
     ITaskContinuation::Ptr nextTask;
     //check if there's another task scheduled to run after this one
-    nextTask = workItem._task->getNextTask();
+    nextTask = std::static_pointer_cast<Task>(workItem._task)->getNextTask();
     if (nextTask && (nextTask->getType() == ITask::Type::ErrorHandler))
     {
         //skip error handler since we don't have any errors
@@ -473,7 +494,7 @@ bool TaskQueue::handleError(const WorkItem& workItem)
 {
     ITaskContinuation::Ptr nextTask;
     //Check if we have a final task to run
-    nextTask = workItem._task->getErrorHandlerOrFinalTask();
+    nextTask = std::static_pointer_cast<Task>(workItem._task)->getErrorHandlerOrFinalTask();
     //queue next task and de-queue current one
     enqueue(nextTask);
     doDequeue(_isIdle, workItem._iter);
@@ -537,9 +558,9 @@ TaskQueue::grabWorkItem()
     _isIdle = _runQueue.empty();
     if (_runQueue.empty())
     {
-        return WorkItem(nullptr, _runQueue.end(), _isBlocked, _queueRound);
+        return {nullptr, _runQueue.end(), _isBlocked, _queueRound};
     }
-    return WorkItem((*_queueIt), _queueIt, false, 0);
+    return {(*_queueIt), _queueIt, false, 0};
 }
 
 inline

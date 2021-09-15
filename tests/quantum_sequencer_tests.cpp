@@ -26,10 +26,10 @@ using namespace quantum;
 struct SequencerTest: public DispatcherFixture
 {};
 
-INSTANTIATE_TEST_CASE_P(SequencerTest_Default,
-                        SequencerTest,
-                        ::testing::Values(TestConfiguration(false, false),
-                                          TestConfiguration(false, true)));
+INSTANTIATE_TEST_SUITE_P(SequencerTest_Default,
+                         SequencerTest,
+                         ::testing::Values(TestConfiguration(false, false),
+                                           TestConfiguration(false, true)));
 
 // Utility with common functionality for the sequencer related tests
 class SequencerTestData
