@@ -39,13 +39,13 @@ public:
     SpinLock(const SpinLock&) = delete;
     
     /// @brief Move constructor.
-    SpinLock(SpinLock&&) = default;
+    SpinLock(SpinLock&&);
     
     /// @brief Copy assignment operator.
     SpinLock& operator=(const SpinLock&) = delete;
     
     /// @brief Move assignment operator.
-    SpinLock& operator=(SpinLock&&) = default;
+    SpinLock& operator=(SpinLock&&);
     
     /// @brief Locks this object.
     /// @note Blocks the current thread until the lock is acquired. Blocking is achieved

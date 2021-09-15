@@ -29,6 +29,19 @@ namespace quantum {
 //                                   SpinLock
 //==============================================================================
 inline
+SpinLock::SpinLock(SpinLock&& o) : _flag(o._flag.load()) { }
+
+inline
+SpinLock& SpinLock::operator=(SpinLock&& o)
+{
+    if(this != &o)
+    {
+        _flag.store(o._flag.load());
+    }
+    return *this;
+}
+
+inline
 void SpinLock::lock()
 {
     SpinLockUtil::lockWrite(_flag, LockTraits::Attempt::Unlimited);

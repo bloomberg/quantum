@@ -45,7 +45,7 @@ set(CMAKE_BUILD_TYPE Debug)
 
 #Set the compiler if the CXX environment variable is not set
 if (NOT CMAKE_CXX_COMPILER)
-    set(CMAKE_CXX_COMPILER g++)
+    set(CMAKE_CXX_COMPILER clang)
 endif()
 #Set the compiler if the CXX_STANDARD environment variable is not set
 if (NOT CMAKE_CXX_STANDARD)
@@ -58,7 +58,7 @@ endif()
 if (QUANTUM_VERBOSE_MAKEFILE)
     message(STATUS "CMAKE_CXX_FLAGS = ${CMAKE_CXX_FLAGS}")
 endif()
-
+set(CXX_EXTENSIONS ON)
 # Determine if this is a 32 or 64 bit build
 math(EXPR BITS "8*${CMAKE_SIZEOF_VOID_P}")
 
