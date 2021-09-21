@@ -16,6 +16,10 @@
 #ifndef BLOOMBERG_QUANTUM_SEQUENCER_CONFIGURATION_H
 #define BLOOMBERG_QUANTUM_SEQUENCER_CONFIGURATION_H
 
+#include <functional>
+#include <memory>
+#include <stdexcept>
+
 namespace Bloomberg {
 namespace quantum {
 
@@ -58,6 +62,17 @@ public:
     /// @param opaque opaque data passed when posting a task
     using ExceptionCallback = std::function<void(std::exception_ptr exception, void* opaque)>;
 
+    /// @brief Sets the id of the control queue
+    /// @param controlQueueId the queue id
+    /// @remark Sequencer typically processes tasks with the lower latency when the control queue is
+    ///         dedicated for the sequencer control tasks only, and no other tasks are enqueued into it.
+    /// @return A reference to itself
+    SequencerConfiguration& setControlQueueId(int controlQueueId);
+
+    /// @brief Gets the id of the control queue
+    /// @return the queue id
+    int getControlQueueId() const;
+
     /// @brief Sets the minimal number of buckets to be used for the context hash map
     /// @param bucketCount the bucket number
     /// @return A reference to itself
@@ -98,17 +113,6 @@ public:
     /// @brief Gets the exception callback for Sequencer
     /// @return the current callback
     const ExceptionCallback& getExceptionCallback() const;
-
-    /// @brief Sets the id of the control queue
-    /// @param controlQueueId the queue id
-    /// @remark Sequencer typically processes tasks with the lower latency when the control queue is
-    ///         dedicated for the sequencer control tasks only, and no other tasks are enqueued into it.
-    /// @return A reference to itself
-    SequencerConfiguration& setControlQueueId(int controlQueueId);
-
-    /// @brief Gets the id of the control queue
-    /// @return the queue id
-    int getControlQueueId() const;
 
 private:
     size_t              _bucketCount{100};

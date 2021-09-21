@@ -70,6 +70,21 @@ SequencerConfigurationSchemaProvider::getJsonSchemaUri()
 
 template <class SequenceKey, class Hash, class KeyEqual, class Allocator>
 SequencerConfiguration<SequenceKey, Hash, KeyEqual, Allocator>&
+SequencerConfiguration<SequenceKey, Hash, KeyEqual, Allocator>::setControlQueueId(int controlQueueId)
+{
+    _controllerQueueId = controlQueueId;
+    return *this;
+}
+
+template <class SequenceKey, class Hash, class KeyEqual, class Allocator>
+int
+SequencerConfiguration<SequenceKey, Hash, KeyEqual, Allocator>::getControlQueueId() const
+{
+    return _controllerQueueId;
+}
+
+template <class SequenceKey, class Hash, class KeyEqual, class Allocator>
+SequencerConfiguration<SequenceKey, Hash, KeyEqual, Allocator>&
 SequencerConfiguration<SequenceKey, Hash, KeyEqual, Allocator>::setBucketCount(size_t bucketCount)
 {
     _bucketCount = bucketCount;
@@ -144,21 +159,6 @@ const typename SequencerConfiguration<SequenceKey, Hash, KeyEqual, Allocator>::E
 SequencerConfiguration<SequenceKey, Hash, KeyEqual, Allocator>::getExceptionCallback() const
 {
     return _exceptionCallback;
-}
-
-template <class SequenceKey, class Hash, class KeyEqual, class Allocator>
-SequencerConfiguration<SequenceKey, Hash, KeyEqual, Allocator>&
-SequencerConfiguration<SequenceKey, Hash, KeyEqual, Allocator>::setControlQueueId(int controlQueueId)
-{
-    _controllerQueueId = controlQueueId;
-    return *this;
-}
-
-template <class SequenceKey, class Hash, class KeyEqual, class Allocator>
-int
-SequencerConfiguration<SequenceKey, Hash, KeyEqual, Allocator>::getControlQueueId() const
-{
-    return _controllerQueueId;
 }
 
 }}
