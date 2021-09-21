@@ -13,21 +13,21 @@
 ** See the License for the specific language governing permissions and
 ** limitations under the License.
 */
-#ifndef BLOOMBERG_QUANTUM_SEQUENCER_LITE_H
-#define BLOOMBERG_QUANTUM_SEQUENCER_LITE_H
+#ifndef BLOOMBERG_QUANTUM_SEQUENCER_EXPERIMENTAL_H
+#define BLOOMBERG_QUANTUM_SEQUENCER_EXPERIMENTAL_H
 
 #if __cplusplus >= 201402L
-#define BLOOMBERG_QUANTUM_SEQUENCER_LITE_SUPPORT
+#define BLOOMBERG_QUANTUM_SEQUENCER_SUPPORT
 #endif // __cplusplus >= 201402L
 
-#ifdef BLOOMBERG_QUANTUM_SEQUENCER_LITE_SUPPORT
+#ifdef BLOOMBERG_QUANTUM_SEQUENCER_SUPPORT
 
 #include <quantum/quantum_dispatcher.h>
 #include <quantum/interface/quantum_iqueue.h>
 #include <quantum/interface/quantum_ithread_context_base.h>
 #include <quantum/quantum_mutex.h>
-#include <quantum/util/quantum_sequencer_lite_configuration.h>
-#include <quantum/util/quantum_sequencer_lite_task.h>
+#include <quantum/util/quantum_sequencer_configuration_experimental.h>
+#include <quantum/util/quantum_sequencer_task_experimental.h>
 #include <quantum/util/quantum_sequence_key_statistics.h>
 #include <vector>
 #include <unordered_map>
@@ -35,20 +35,21 @@
 
 namespace Bloomberg {
 namespace quantum {
+namespace experimental {
 
 //==============================================================================================
-//                                      class SequencerLite
+//                                      class Sequencer
 //==============================================================================================
-/// @class SequencerLite.
+/// @class Sequencer.
 /// @brief Implementation of a key-based task sequencing with quantum.
 /// @tparam SequenceKey Type of the key based that sequenced tasks are associated with
 /// @tparam Hash Hash-function used for storing instances of SequenceKey in hash maps
 /// @tparam KeyEqual The equal-function used for storing instances of SequenceKey in hash maps
 /// @tparam Allocator The allocator used for storing instances of SequenceKey in hash maps
-/// @note The interfaces of quantum::SequencerLite and quantum::Sequencer are the same. The major difference
-/// between their functionalities is that quantum::SequencerLite does not rely on quantum::Dispatcher to order tasks
-/// based on their interdependence. In contrast, quantum::SequencerLite manages task ordering itself
-/// by construcing a DAG of pending tasks. In quantum::SequencerLite, a task is pushed into quantum::Dispatcher
+/// @note The interfaces of quantum::experimental::Sequencer and quantum::Sequencer are the same. The major difference
+/// between their functionalities is that quantum::experimental::Sequencer does not rely on quantum::Dispatcher to order tasks
+/// based on their interdependence. In contrast, quantum::experimental::Sequencer manages task ordering itself
+/// by construcing a DAG of pending tasks. In quantum::experimental::Sequencer, a task is pushed into quantum::Dispatcher
 /// only when it's ready to be executed (i.e. when it has no pending dependents). This typically results
 /// in executing scheduled tasks faster (w.r.t. quantum::Dispatcher) and wasting fewer CPU cycles in
 /// quantum::Dispatcher.
@@ -63,17 +64,17 @@ namespace quantum {
 template <class SequenceKey,
           class Hash = std::hash<SequenceKey>,
           class KeyEqual = std::equal_to<SequenceKey>,
-          class Allocator = std::allocator<std::pair<const SequenceKey, SequencerLiteKeyData<SequenceKey>>>>
-class SequencerLite
+          class Allocator = std::allocator<std::pair<const SequenceKey, SequencerKeyData<SequenceKey>>>>
+class Sequencer
 {
 public:
-    /// @brief Configuration class for SequencerLite
-    using Configuration = SequencerLiteConfiguration<SequenceKey, Hash, KeyEqual, Allocator>;
+    /// @brief Configuration class for Sequencer
+    using Configuration = SequencerConfiguration<SequenceKey, Hash, KeyEqual, Allocator>;
 
     /// @brief Constructor.
     /// @param[in] dispatcher Dispatcher for all task dispatching
     /// @param[in] configuration the configuration object
-    SequencerLite(Dispatcher& dispatcher, const Configuration& configuration = Configuration());
+    Sequencer(Dispatcher& dispatcher, const Configuration& configuration = Configuration());
 
     /// @brief Enqueue a coroutine to run asynchronously.
     /// @details This method will post the coroutine on any thread available and will run when the previous coroutine
@@ -237,7 +238,7 @@ public:
                bool isFinal = false);
 
 private:
-    using PendingTaskQueueMap = std::unordered_map<SequenceKey, SequencerLiteKeyData<SequenceKey>, Hash, KeyEqual, Allocator>;
+    using PendingTaskQueueMap = std::unordered_map<SequenceKey, SequencerKeyData<SequenceKey>, Hash, KeyEqual, Allocator>;
     using ExceptionCallback = typename Configuration::ExceptionCallback;
 
     /// @brief Adds the task to the pending queue
@@ -245,32 +246,32 @@ private:
     /// @param task the task to add
     /// @return true if the added task is the only enqueued task
     bool addPendingTask(const SequenceKey& key,
-                        const std::shared_ptr<SequencerLiteTask<SequenceKey>>& task);
+                        const std::shared_ptr<SequencerTask<SequenceKey>>& task);
 
     /// @brief Adds the task to the universal pending queue
     /// @param task the task to add
     /// @return true if the added task is the only enqueued task
-    bool addPendingTask(const std::shared_ptr<SequencerLiteTask<SequenceKey>>& task);
+    bool addPendingTask(const std::shared_ptr<SequencerTask<SequenceKey>>& task);
 
     /// @brief Schedules the task via the dispatcher
     /// @param task the task to schedule
     void scheduleTask(
-        const std::shared_ptr<SequencerLiteTask<SequenceKey>>& task);
+        const std::shared_ptr<SequencerTask<SequenceKey>>& task);
 
     /// @brief Removes the task from the pending queues and schedule next tasks
     /// @param ctx context
     /// @param task the task to remove
     void removePending(
         VoidContextPtr ctx,
-        const std::shared_ptr<SequencerLiteTask<SequenceKey>>& task);
+        const std::shared_ptr<SequencerTask<SequenceKey>>& task);
 
     /// @brief Removes the task from the pending queue
     /// @param entry the queue container
     /// @param task the task to remove
     /// @return next task to be scheduled
-    std::shared_ptr<SequencerLiteTask<SequenceKey>> removePending(
-        SequencerLiteKeyData<SequenceKey>& entry,
-        const std::shared_ptr<SequencerLiteTask<SequenceKey>>& task);
+    std::shared_ptr<SequencerTask<SequenceKey>> removePending(
+        SequencerKeyData<SequenceKey>& entry,
+        const std::shared_ptr<SequencerTask<SequenceKey>>& task);
 
     /// @brief Execute a pending task
     /// @param ctx context
@@ -279,8 +280,8 @@ private:
     /// @return task return code
     static int executePending(
         VoidContextPtr ctx,
-        SequencerLite* sequencer,
-        std::shared_ptr<SequencerLiteTask<SequenceKey>> task);
+        Sequencer* sequencer,
+        std::shared_ptr<SequencerTask<SequenceKey>> task);
 
     template <class FUNC, class ... ARGS>
     void
@@ -301,17 +302,17 @@ private:
 
     Dispatcher&                  _dispatcher;
     std::atomic_bool             _drain;
-    SequencerLiteKeyData<SequenceKey> _universalTaskQueue;
+    SequencerKeyData<SequenceKey> _universalTaskQueue;
     PendingTaskQueueMap          _pendingTaskQueueMap;
     ExceptionCallback            _exceptionCallback;
     quantum::Mutex               _mutex;
     std::shared_ptr<SequenceKeyStatisticsWriter> _taskStats;
 };
 
-}}
+}}}
 
-#include <quantum/util/impl/quantum_sequencer_lite_impl.h>
+#include <quantum/util/impl/quantum_sequencer_experimental_impl.h>
 
-#endif // BLOOMBERG_QUANTUM_SEQUENCER_LITE_SUPPORT
+#endif // BLOOMBERG_QUANTUM_SEQUENCER_SUPPORT
 
-#endif //BLOOMBERG_QUANTUM_SEQUENCER_LITE_H
+#endif // BLOOMBERG_QUANTUM_SEQUENCER_EXPERIMENTAL_H

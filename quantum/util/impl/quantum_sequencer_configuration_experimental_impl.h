@@ -21,13 +21,47 @@
 
 #include <quantum/util/quantum_sequence_key_statistics.h>
 #include <quantum/interface/quantum_icoro_context_base.h>
+#include <list>
+#include <vector>
+#include <atomic>
+#include <memory>
 
 namespace Bloomberg {
 namespace quantum {
+namespace experimental {
+
+inline const std::string&
+SequencerConfigurationSchemaProvider::getJsonSchema()
+{
+    static std::string schema = R"JSON(
+    {
+        "$schema" : "http://json-schema.org/draft-04/schema#",
+        "$id" : "bloomberg:sequencer.quantum.json",
+        "title": "Quantum sequencer settings",
+        "type": "object",
+        "properties": {
+            "bucketCount": {
+                "type": "number",
+                "default": 100
+            }
+        },
+        "additionalProperties": false,
+        "required": []
+    }
+    )JSON";
+    return schema;
+}
+
+inline const std::string&
+SequencerConfigurationSchemaProvider::getJsonSchemaUri()
+{
+    static std::string uri = "bloomberg:sequencer.quantum.json";
+    return uri;
+}
 
 template <class SequenceKey, class Hash, class KeyEqual, class Allocator>
-SequencerConfigurationBase<SequenceKey, Hash, KeyEqual, Allocator>&
-SequencerConfigurationBase<SequenceKey, Hash, KeyEqual, Allocator>::setBucketCount(size_t bucketCount)
+SequencerConfiguration<SequenceKey, Hash, KeyEqual, Allocator>&
+SequencerConfiguration<SequenceKey, Hash, KeyEqual, Allocator>::setBucketCount(size_t bucketCount)
 {
     _bucketCount = bucketCount;
     return *this;
@@ -35,14 +69,14 @@ SequencerConfigurationBase<SequenceKey, Hash, KeyEqual, Allocator>::setBucketCou
 
 template <class SequenceKey, class Hash, class KeyEqual, class Allocator>
 size_t
-SequencerConfigurationBase<SequenceKey, Hash, KeyEqual, Allocator>::getBucketCount() const
+SequencerConfiguration<SequenceKey, Hash, KeyEqual, Allocator>::getBucketCount() const
 {
     return _bucketCount;
 }
 
 template <class SequenceKey, class Hash, class KeyEqual, class Allocator>
-SequencerConfigurationBase<SequenceKey, Hash, KeyEqual, Allocator>&
-SequencerConfigurationBase<SequenceKey, Hash, KeyEqual, Allocator>::setHash(const Hash& hash)
+SequencerConfiguration<SequenceKey, Hash, KeyEqual, Allocator>&
+SequencerConfiguration<SequenceKey, Hash, KeyEqual, Allocator>::setHash(const Hash& hash)
 {
     _hash = hash;
     return *this;
@@ -50,14 +84,14 @@ SequencerConfigurationBase<SequenceKey, Hash, KeyEqual, Allocator>::setHash(cons
 
 template <class SequenceKey, class Hash, class KeyEqual, class Allocator>
 const Hash&
-SequencerConfigurationBase<SequenceKey, Hash, KeyEqual, Allocator>::getHash() const
+SequencerConfiguration<SequenceKey, Hash, KeyEqual, Allocator>::getHash() const
 {
     return _hash;
 }
 
 template <class SequenceKey, class Hash, class KeyEqual, class Allocator>
-SequencerConfigurationBase<SequenceKey, Hash, KeyEqual, Allocator>&
-SequencerConfigurationBase<SequenceKey, Hash, KeyEqual, Allocator>::setKeyEqual(const KeyEqual& keyEqual)
+SequencerConfiguration<SequenceKey, Hash, KeyEqual, Allocator>&
+SequencerConfiguration<SequenceKey, Hash, KeyEqual, Allocator>::setKeyEqual(const KeyEqual& keyEqual)
 {
     _keyEqual = keyEqual;
     return *this;
@@ -65,14 +99,14 @@ SequencerConfigurationBase<SequenceKey, Hash, KeyEqual, Allocator>::setKeyEqual(
 
 template <class SequenceKey, class Hash, class KeyEqual, class Allocator>
 const KeyEqual&
-SequencerConfigurationBase<SequenceKey, Hash, KeyEqual, Allocator>::getKeyEqual() const
+SequencerConfiguration<SequenceKey, Hash, KeyEqual, Allocator>::getKeyEqual() const
 {
     return _keyEqual;
 }
 
 template <class SequenceKey, class Hash, class KeyEqual, class Allocator>
-SequencerConfigurationBase<SequenceKey, Hash, KeyEqual, Allocator>&
-SequencerConfigurationBase<SequenceKey, Hash, KeyEqual, Allocator>::setAllocator(const Allocator& allocator)
+SequencerConfiguration<SequenceKey, Hash, KeyEqual, Allocator>&
+SequencerConfiguration<SequenceKey, Hash, KeyEqual, Allocator>::setAllocator(const Allocator& allocator)
 {
     _allocator = allocator;
     return *this;
@@ -80,14 +114,14 @@ SequencerConfigurationBase<SequenceKey, Hash, KeyEqual, Allocator>::setAllocator
 
 template <class SequenceKey, class Hash, class KeyEqual, class Allocator>
 const Allocator&
-SequencerConfigurationBase<SequenceKey, Hash, KeyEqual, Allocator>::getAllocator() const
+SequencerConfiguration<SequenceKey, Hash, KeyEqual, Allocator>::getAllocator() const
 {
     return _allocator;
 }
 
 template <class SequenceKey, class Hash, class KeyEqual, class Allocator>
-SequencerConfigurationBase<SequenceKey, Hash, KeyEqual, Allocator>&
-SequencerConfigurationBase<SequenceKey, Hash, KeyEqual, Allocator>::setExceptionCallback(
+SequencerConfiguration<SequenceKey, Hash, KeyEqual, Allocator>&
+SequencerConfiguration<SequenceKey, Hash, KeyEqual, Allocator>::setExceptionCallback(
     const ExceptionCallback&
     exceptionCallback)
 
@@ -97,10 +131,10 @@ SequencerConfigurationBase<SequenceKey, Hash, KeyEqual, Allocator>::setException
 }
 
 template <class SequenceKey, class Hash, class KeyEqual, class Allocator>
-const typename SequencerConfigurationBase<SequenceKey, Hash, KeyEqual, Allocator>::ExceptionCallback&
-SequencerConfigurationBase<SequenceKey, Hash, KeyEqual, Allocator>::getExceptionCallback() const
+const typename SequencerConfiguration<SequenceKey, Hash, KeyEqual, Allocator>::ExceptionCallback&
+SequencerConfiguration<SequenceKey, Hash, KeyEqual, Allocator>::getExceptionCallback() const
 {
     return _exceptionCallback;
 }
 
-}}
+}}}

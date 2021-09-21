@@ -19,8 +19,8 @@
 //#################################### IMPLEMENTATIONS #########################################
 //##############################################################################################
 
-#ifndef BLOOMBERG_QUANTUM_SEQUENCER_LITE_TASK_H
-#define BLOOMBERG_QUANTUM_SEQUENCER_LITE_TASK_H
+#ifndef BLOOMBERG_QUANTUM_SEQUENCER_TASK_EXPERIMENTAL_H
+#define BLOOMBERG_QUANTUM_SEQUENCER_TASK_EXPERIMENTAL_H
 
 #include <atomic>
 #include <memory>
@@ -30,22 +30,24 @@
 
 namespace Bloomberg {
 namespace quantum {
+namespace experimental {
 
 template <class SequenceKey>
-struct SequencerLiteKeyData;
+struct SequencerKeyData;
 
 template <class SequenceKey>
-struct SequencerLiteTask
+struct SequencerTask
 {
     template<typename FuncType>
-    SequencerLiteTask(FuncType&& func,
-                      bool universal,
-                      void* opaque,
-                      int queueId,
-                      bool isHighPriority);
+    SequencerTask(
+        FuncType&& func,
+        bool universal,
+        void* opaque,
+        int queueId,
+        bool isHighPriority);
 
     Function<int(VoidContextPtr)> _func; // the function to run
-    std::vector<SequencerLiteKeyData<SequenceKey>*> _keyData; // pointers to the key data of my keys
+    std::vector<SequencerKeyData<SequenceKey>*> _keyData; // pointers to the key data of my keys
     unsigned int _pendingKeyCount; // number of key queues where I am not at the head
     bool _universal; // true of universal tasks
     void* _opaque; // opaque pointer passed by user
@@ -54,17 +56,17 @@ struct SequencerLiteTask
 };
 
 template <class SequenceKey>
-struct SequencerLiteKeyData
+struct SequencerKeyData
 {
-    SequencerLiteKeyData();
+    SequencerKeyData();
 
-    std::list<std::shared_ptr<SequencerLiteTask<SequenceKey>>> _tasks; // task queue
+    std::list<std::shared_ptr<SequencerTask<SequenceKey>>> _tasks; // task queue
     std::shared_ptr<SequenceKeyStatisticsWriter> _stats; // stats for all tasks sharing this key
 };
 
-}}
+}}}
 
-#include <quantum/util/impl/quantum_sequencer_lite_task_impl.h>
+#include <quantum/util/impl/quantum_sequencer_task_experimental_impl.h>
 
-#endif // BLOOMBERG_QUANTUM_SEQUENCER_LITE_TASK_H
+#endif // BLOOMBERG_QUANTUM_SEQUENCER_TASK_EXPERIMENTAL_H
 

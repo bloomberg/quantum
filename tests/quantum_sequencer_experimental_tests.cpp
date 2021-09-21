@@ -19,7 +19,7 @@
 #include <gtest/gtest.h>
 #include <sstream>
 
-#ifdef BLOOMBERG_QUANTUM_SEQUENCER_LITE_SUPPORT
+#ifdef BLOOMBERG_QUANTUM_SEQUENCER_SUPPORT
 
 using namespace quantum;
 
@@ -27,22 +27,22 @@ using namespace quantum;
 // TEST FIXTURES
 //==============================================================================
 
-struct SequencerLiteTest: public DispatcherFixture
+struct SequencerExperimentalTest: public DispatcherFixture
 {};
 
-INSTANTIATE_TEST_CASE_P(SequencerLiteTest_Default,
-                        SequencerLiteTest,
+INSTANTIATE_TEST_CASE_P(SequencerExperimentalTest_Default,
+                        SequencerExperimentalTest,
                         ::testing::Values(TestConfiguration(false, false),
                                           TestConfiguration(false, true)));
 
 // Utility with common functionality for the sequencer related tests
-class SequencerLiteTestData
+class SequencerExperimentalTestData
 {
 public: // types
     using SequenceKey = int;
     using TaskId = int;
-    using TaskSequencerLite = SequencerLite<SequenceKey>;
-    using TaskSequencerLiteConfiguration = SequencerLiteConfiguration<SequenceKey>;
+    using TaskSequencer = experimental::Sequencer<SequenceKey>;
+    using TaskSequencerConfiguration = experimental::SequencerConfiguration<SequenceKey>;
     struct TaskResult
     {
         /// Task start time
@@ -157,21 +157,21 @@ private: // members
     quantum::Mutex _resultMutex;
 };
 
-TEST_P(SequencerLiteTest, BasicTaskOrder)
+TEST_P(SequencerExperimentalTest, BasicTaskOrder)
 {
     using namespace Bloomberg::quantum;
 
     const int taskCount = 2000;
     const int sequenceKeyCount = 3;
-    SequencerLiteTestData testData;
-    SequencerLiteTestData::SequenceKeyMap sequenceKeys;
+    SequencerExperimentalTestData testData;
+    SequencerExperimentalTestData::SequenceKeyMap sequenceKeys;
     
-    SequencerLiteTestData::TaskSequencerLite sequencer(getDispatcher());
+    SequencerExperimentalTestData::TaskSequencer sequencer(getDispatcher());
 
     // enqueue the tasks
-    for(SequencerLiteTestData::TaskId id = 0; id < taskCount; ++id) 
+    for(SequencerExperimentalTestData::TaskId id = 0; id < taskCount; ++id) 
     {
-        SequencerLiteTestData::SequenceKey sequenceKey = id % sequenceKeyCount;
+        SequencerExperimentalTestData::SequenceKey sequenceKey = id % sequenceKeyCount;
         // save the task id for this sequenceKey
         sequenceKeys[sequenceKey].push_back(id);
         sequencer.enqueue(sequenceKey, testData.makeTask(id));
@@ -190,23 +190,23 @@ TEST_P(SequencerLiteTest, BasicTaskOrder)
     }
 }
 
-TEST_P(SequencerLiteTest, BasicTaskOrderWithYields)
+TEST_P(SequencerExperimentalTest, BasicTaskOrderWithYields)
 {
     using namespace Bloomberg::quantum;
 
     const int taskCount = 2000;
     const int sequenceKeyCount = 3;
     const int yieldCount = 2;
-    SequencerLiteTestData testData;
-    SequencerLiteTestData::SequenceKeyMap sequenceKeys;
+    SequencerExperimentalTestData testData;
+    SequencerExperimentalTestData::SequenceKeyMap sequenceKeys;
     std::atomic<unsigned int> totalYieldCount(0);
     
-    SequencerLiteTestData::TaskSequencerLite sequencer(getDispatcher());
+    SequencerExperimentalTestData::TaskSequencer sequencer(getDispatcher());
 
     // enqueue the tasks
-    for(SequencerLiteTestData::TaskId id = 0; id < taskCount; ++id) 
+    for(SequencerExperimentalTestData::TaskId id = 0; id < taskCount; ++id) 
     {
-        SequencerLiteTestData::SequenceKey sequenceKey = id % sequenceKeyCount;
+        SequencerExperimentalTestData::SequenceKey sequenceKey = id % sequenceKeyCount;
         // save the task id for this sequenceKey
         sequenceKeys[sequenceKey].push_back(id);
         sequencer.enqueue(sequenceKey, testData.makeTaskWithYields(id, yieldCount, &totalYieldCount));
@@ -226,23 +226,23 @@ TEST_P(SequencerLiteTest, BasicTaskOrderWithYields)
     EXPECT_EQ(yieldCount * taskCount, totalYieldCount);
 }
 
-TEST_P(SequencerLiteTest, BasicTaskOrderWithParams)
+TEST_P(SequencerExperimentalTest, BasicTaskOrderWithParams)
 {
     using namespace Bloomberg::quantum;
 
     const int taskCount = 2000;
     const int sequenceKeyCount = 3;
-    SequencerLiteTestData testData;
+    SequencerExperimentalTestData testData;
     std::ostringstream buf;
-    SequencerLiteTestData::SequenceKeyMap sequenceKeys;
+    SequencerExperimentalTestData::SequenceKeyMap sequenceKeys;
     
-    SequencerLiteTestData::TaskSequencerLite sequencer(getDispatcher());
+    SequencerExperimentalTestData::TaskSequencer sequencer(getDispatcher());
     std::atomic<int> mismatchCount(0);
 
     // enqueue the tasks
-    for(SequencerLiteTestData::TaskId id = 0; id < taskCount; ++id) 
+    for(SequencerExperimentalTestData::TaskId id = 0; id < taskCount; ++id) 
     {
-        SequencerLiteTestData::SequenceKey sequenceKey = id % sequenceKeyCount;
+        SequencerExperimentalTestData::SequenceKey sequenceKey = id % sequenceKeyCount;
         buf.str("");
         buf << "Task " << id;
         std::string text1 = buf.str();
@@ -287,20 +287,20 @@ TEST_P(SequencerLiteTest, BasicTaskOrderWithParams)
     }
 }
 
-TEST_P(SequencerLiteTest, TrimKeys)
+TEST_P(SequencerExperimentalTest, TrimKeys)
 {
     using namespace Bloomberg::quantum;
 
     const int taskCount = 100;
     const int sequenceKeyCount = 3;
-    SequencerLiteTestData testData;
+    SequencerExperimentalTestData testData;
     
-    SequencerLiteTestData::TaskSequencerLite sequencer(getDispatcher());
+    SequencerExperimentalTestData::TaskSequencer sequencer(getDispatcher());
 
     // enqueue the tasks
-    for(SequencerLiteTestData::TaskId id = 0; id < taskCount; ++id)
+    for(SequencerExperimentalTestData::TaskId id = 0; id < taskCount; ++id)
     {
-        SequencerLiteTestData::SequenceKey sequenceKey = id % sequenceKeyCount;
+        SequencerExperimentalTestData::SequenceKey sequenceKey = id % sequenceKeyCount;
         sequencer.enqueue(sequenceKey, testData.makeTask(id));
     }
     sequencer.drain();
@@ -310,15 +310,15 @@ TEST_P(SequencerLiteTest, TrimKeys)
     EXPECT_EQ(sequencer.getSequenceKeyCount(), 0u);
 }
 
-TEST_P(SequencerLiteTest, ExceptionHandler)
+TEST_P(SequencerExperimentalTest, ExceptionHandler)
 {
     using namespace Bloomberg::quantum;
 
     const int taskCount = 100;
     const int sequenceKeyCount = 3;
     const int exceptionFrequency = 14;
-    SequencerLiteTestData testData;
-    std::vector<SequencerLiteTestData::TaskId> sequenceKeys(taskCount);
+    SequencerExperimentalTestData testData;
+    std::vector<SequencerExperimentalTestData::TaskId> sequenceKeys(taskCount);
 
     // generate the sequence of tasks for passing as opaque
     int generateTaskId = 0;
@@ -346,7 +346,7 @@ TEST_P(SequencerLiteTest, ExceptionHandler)
         {
             EXPECT_EQ(e.what(), errorText);
             ASSERT_NE(opaque, nullptr);
-            SequencerLiteTestData::TaskId taskId = *static_cast<SequencerLiteTestData::TaskId*>(opaque);
+            SequencerExperimentalTestData::TaskId taskId = *static_cast<SequencerExperimentalTestData::TaskId*>(opaque);
             EXPECT_EQ(taskId % exceptionFrequency, 0);
         }
         catch (...)
@@ -355,14 +355,14 @@ TEST_P(SequencerLiteTest, ExceptionHandler)
         }
     };
 
-    SequencerLiteConfiguration<int> config;
+    SequencerExperimentalTestData::TaskSequencerConfiguration config;
     config.setExceptionCallback(exceptionCallback);
-    SequencerLite<int> sequencer(getDispatcher(), config);
+    SequencerExperimentalTestData::TaskSequencer sequencer(getDispatcher(), config);
     
     unsigned int generatedExceptionCount = 0;
-    for(SequencerLiteTestData::TaskId id = 0; id < taskCount; ++id)
+    for(SequencerExperimentalTestData::TaskId id = 0; id < taskCount; ++id)
     {
-        SequencerLiteTestData::SequenceKey sequenceKey = id % sequenceKeyCount;
+        SequencerExperimentalTestData::SequenceKey sequenceKey = id % sequenceKeyCount;
         if (id % exceptionFrequency == 0)
         {
             // enqueue with generating exception
@@ -380,21 +380,21 @@ TEST_P(SequencerLiteTest, ExceptionHandler)
     EXPECT_EQ(generatedExceptionCount, exceptionCallbackCallCount);
 }
 
-TEST_P(SequencerLiteTest, SequenceKeyStats)
+TEST_P(SequencerExperimentalTest, SequenceKeyStats)
 {
     using namespace Bloomberg::quantum;
 
     const int taskCount = 50;
     const int sequenceKeyCount = 3;
     const int universalTaskFrequency = 11; // every 11th task is universal
-    SequencerLiteTestData testData;
+    SequencerExperimentalTestData testData;
     std::atomic<bool> blockFlag(true);
     
-    SequencerLiteTestData::TaskSequencerLiteConfiguration config;
-    SequencerLiteTestData::TaskSequencerLite sequencer(getDispatcher(), config);
+    SequencerExperimentalTestData::TaskSequencerConfiguration config;
+    SequencerExperimentalTestData::TaskSequencer sequencer(getDispatcher(), config);
 
     // enqueue the first half
-    for(SequencerLiteTestData::TaskId id = 0; id < taskCount / 2; ++id)
+    for(SequencerExperimentalTestData::TaskId id = 0; id < taskCount / 2; ++id)
     {
         if ( id % universalTaskFrequency == 0 ) 
         {
@@ -402,7 +402,7 @@ TEST_P(SequencerLiteTest, SequenceKeyStats)
         }
         else
         {
-            SequencerLiteTestData::SequenceKey sequenceKey = id % sequenceKeyCount;
+            SequencerExperimentalTestData::SequenceKey sequenceKey = id % sequenceKeyCount;
             sequencer.enqueue(sequenceKey, testData.makeTaskWithBlock(id, &blockFlag));
         }
     }
@@ -430,7 +430,7 @@ TEST_P(SequencerLiteTest, SequenceKeyStats)
     blockFlag = false;
 
     // enqueue the second half
-    for(SequencerLiteTestData::TaskId id = taskCount / 2; id < taskCount; ++id)
+    for(SequencerExperimentalTestData::TaskId id = taskCount / 2; id < taskCount; ++id)
     {
         if ( id % universalTaskFrequency == 0 )
         {
@@ -438,7 +438,7 @@ TEST_P(SequencerLiteTest, SequenceKeyStats)
         }
         else
         {
-            SequencerLiteTestData::SequenceKey sequenceKey = id % sequenceKeyCount;
+            SequencerExperimentalTestData::SequenceKey sequenceKey = id % sequenceKeyCount;
             sequencer.enqueue(sequenceKey, testData.makeTaskWithBlock(id, &blockFlag));
         }
     }
@@ -465,20 +465,20 @@ TEST_P(SequencerLiteTest, SequenceKeyStats)
     EXPECT_EQ(0u, sequencer.getTaskStatistics().getPendingTaskCount());
 }
 
-TEST_P(SequencerLiteTest, TaskOrderWithUniversal)
+TEST_P(SequencerExperimentalTest, TaskOrderWithUniversal)
 {
     using namespace Bloomberg::quantum;
 
     const int taskCount = 50;
     const int sequenceKeyCount = 3;
     const int universalTaskFrequency = 11; // every 11th task is universal
-    SequencerLiteTestData testData;
-    SequencerLiteTestData::SequenceKeyMap sequenceKeys;
-    std::vector<SequencerLiteTestData::TaskId> universal;
+    SequencerExperimentalTestData testData;
+    SequencerExperimentalTestData::SequenceKeyMap sequenceKeys;
+    std::vector<SequencerExperimentalTestData::TaskId> universal;
     
-    SequencerLiteTestData::TaskSequencerLite sequencer(getDispatcher());
+    SequencerExperimentalTestData::TaskSequencer sequencer(getDispatcher());
     
-    for(SequencerLiteTestData::TaskId id = 0; id < taskCount; ++id) 
+    for(SequencerExperimentalTestData::TaskId id = 0; id < taskCount; ++id) 
     {
         if ( id % universalTaskFrequency == 0 ) 
         {
@@ -488,7 +488,7 @@ TEST_P(SequencerLiteTest, TaskOrderWithUniversal)
         }
         else 
         {
-            SequencerLiteTestData::SequenceKey sequenceKey = id % sequenceKeyCount;
+            SequencerExperimentalTestData::SequenceKey sequenceKey = id % sequenceKeyCount;
             // save the task id for this sequenceKey
             sequenceKeys[sequenceKey].push_back(id);
             sequencer.enqueue(sequenceKey, testData.makeTask(id));
@@ -510,7 +510,7 @@ TEST_P(SequencerLiteTest, TaskOrderWithUniversal)
     // all tasks enqueued before a universal task must be finished before it starts
     for (auto universalTaskId : universal) 
     {
-        for(SequencerLiteTestData::TaskId taskId = 0; taskId < universalTaskId; ++taskId) 
+        for(SequencerExperimentalTestData::TaskId taskId = 0; taskId < universalTaskId; ++taskId) 
         {
             testData.ensureOrder(taskId, universalTaskId);
         }
@@ -518,26 +518,26 @@ TEST_P(SequencerLiteTest, TaskOrderWithUniversal)
     // all tasks enqueued after a universal task must be started after it finishes
     for (auto universalTaskId : universal) 
     {
-        for(SequencerLiteTestData::TaskId taskId = universalTaskId + 1; taskId < taskCount; ++taskId) 
+        for(SequencerExperimentalTestData::TaskId taskId = universalTaskId + 1; taskId < taskCount; ++taskId) 
         {
             testData.ensureOrder(universalTaskId, taskId);
         }
     }    
 }
 
-TEST_P(SequencerLiteTest, MultiSequenceKeyTasks)
+TEST_P(SequencerExperimentalTest, MultiSequenceKeyTasks)
 {
     using namespace Bloomberg::quantum;
 
     const int sequenceKeyCount = 7;
     const int taskCount = (2 << (sequenceKeyCount - 1)) - 1;
-    SequencerLiteTestData testData;
+    SequencerExperimentalTestData testData;
 
     // constructs a sequence key collection from the bitmap of an unsigned it, 
     // e.g. for the taskId = 5, the returned collection will be {0, 2}
-    auto getBitVector = [](unsigned int value)->std::vector<SequencerLiteTestData::SequenceKey>
+    auto getBitVector = [](unsigned int value)->std::vector<SequencerExperimentalTestData::SequenceKey>
     {
-        std::vector<SequencerLiteTestData::SequenceKey> result;
+        std::vector<SequencerExperimentalTestData::SequenceKey> result;
         int bit = 0;
         for(; value; ++bit, value = value >> 1) 
         {
@@ -549,10 +549,10 @@ TEST_P(SequencerLiteTest, MultiSequenceKeyTasks)
         return result;
     };
     
-    SequencerLiteTestData::TaskSequencerLite sequencer(getDispatcher());
-    for(SequencerLiteTestData::TaskId id = 1; id <= taskCount; ++id)
+    SequencerExperimentalTestData::TaskSequencer sequencer(getDispatcher());
+    for(SequencerExperimentalTestData::TaskId id = 1; id <= taskCount; ++id)
     {
-        std::vector<SequencerLiteTestData::SequenceKey> sequenceKeys = getBitVector(id);
+        std::vector<SequencerExperimentalTestData::SequenceKey> sequenceKeys = getBitVector(id);
         // save the task id for this sequenceKey
         sequencer.enqueue(std::move(sequenceKeys), testData.makeTask(id));
     }
@@ -562,9 +562,9 @@ TEST_P(SequencerLiteTest, MultiSequenceKeyTasks)
     EXPECT_EQ((int)sequencer.getSequenceKeyCount(), sequenceKeyCount);
 
     // the tasks must be ordered within the sequenceKey set intersection
-    for(SequencerLiteTestData::TaskId id = 1; id <= taskCount; ++id) 
+    for(SequencerExperimentalTestData::TaskId id = 1; id <= taskCount; ++id) 
     {
-        for(SequencerLiteTestData::TaskId refId = 1; refId <= taskCount; ++refId) 
+        for(SequencerExperimentalTestData::TaskId refId = 1; refId <= taskCount; ++refId) 
         {
             if (id != refId and id & refId) 
             {
@@ -581,48 +581,48 @@ TEST_P(SequencerLiteTest, MultiSequenceKeyTasks)
     }
 }
 
-TEST_P(SequencerLiteTest, CustomHashFunction)
+TEST_P(SequencerExperimentalTest, CustomHashFunction)
 {
     using namespace Bloomberg::quantum;
 
     const int taskCount = 100;
     const int fullSequenceKeyCount = 20;
     const int restrictedSequenceKeyCount = 3;
-    SequencerLiteTestData testData;
-    SequencerLiteTestData::SequenceKeyMap sequenceKeys;
+    SequencerExperimentalTestData testData;
+    SequencerExperimentalTestData::SequenceKeyMap sequenceKeys;
 
     // our custom hash value will be restricted to [0, restrictedSequenceKeyCount-1]
-    using Hasher = std::function<size_t(SequencerLiteTestData::SequenceKey sequenceKeyId)>;
-    Hasher customHasher = [](SequencerLiteTestData::SequenceKey sequenceKeyId)->size_t
+    using Hasher = std::function<size_t(SequencerExperimentalTestData::SequenceKey sequenceKeyId)>;
+    Hasher customHasher = [](SequencerExperimentalTestData::SequenceKey sequenceKeyId)->size_t
     {
-        return std::hash<SequencerLiteTestData::SequenceKey>()(sequenceKeyId % restrictedSequenceKeyCount);
+        return std::hash<SequencerExperimentalTestData::SequenceKey>()(sequenceKeyId % restrictedSequenceKeyCount);
     };
 
     // our custom equal operator will compare the hash values of sequenceKeys
     // this effectively means that the number of sequenceKeys is reduced to
     // restrictedSequenceKeyCount. So we get a lower memory consumption due to the 
-    // bound size of the hash table in SequencerLite and hence need not to call
+    // bound size of the hash table in experimental::Sequencer and hence need not to call
     // trimSequenceKeys from time to time. The price for this is a reduced parallelism:
     // instead of running at most fullSequenceKeyCount tasks in parallel, we can now run at most
     // restrictedSequenceKeyCount
 
-    using KeyEqual = std::function<bool(SequencerLiteTestData::SequenceKey sequenceKeyId0, SequencerLiteTestData::SequenceKey sequenceKeyId1)>;
-    const KeyEqual customEqual = [customHasher](SequencerLiteTestData::SequenceKey sequenceKeyId0, SequencerLiteTestData::SequenceKey sequenceKeyId1)->bool 
+    using KeyEqual = std::function<bool(SequencerExperimentalTestData::SequenceKey sequenceKeyId0, SequencerExperimentalTestData::SequenceKey sequenceKeyId1)>;
+    const KeyEqual customEqual = [customHasher](SequencerExperimentalTestData::SequenceKey sequenceKeyId0, SequencerExperimentalTestData::SequenceKey sequenceKeyId1)->bool 
     {
         return customHasher(sequenceKeyId0) == customHasher(sequenceKeyId1);
     };
 
-    SequencerLiteConfiguration<SequencerLiteTestData::SequenceKey, Hasher, KeyEqual> config;
+    experimental::SequencerConfiguration<SequencerExperimentalTestData::SequenceKey, Hasher, KeyEqual> config;
     config.setBucketCount(0);
     config.setHash(customHasher);
     config.setKeyEqual(customEqual);
     
-    SequencerLite<SequencerLiteTestData::SequenceKey, Hasher, KeyEqual>
+    experimental::Sequencer<SequencerExperimentalTestData::SequenceKey, Hasher, KeyEqual>
         sequencer(getDispatcher(), config);
     
-    for(SequencerLiteTestData::TaskId id = 0; id < taskCount; ++id) 
+    for(SequencerExperimentalTestData::TaskId id = 0; id < taskCount; ++id) 
     {
-        SequencerLiteTestData::SequenceKey sequenceKey = id % fullSequenceKeyCount;
+        SequencerExperimentalTestData::SequenceKey sequenceKey = id % fullSequenceKeyCount;
         // save the task id for this sequenceKey
         sequenceKeys[sequenceKey].push_back(id);
         // enqueue the task with the real sequenceKey id
@@ -643,13 +643,13 @@ TEST_P(SequencerLiteTest, CustomHashFunction)
     }
 }
 
-TEST_P(SequencerLiteTest, PerformanceTest)
+TEST_P(SequencerExperimentalTest, PerformanceTest)
 {
     using namespace Bloomberg::quantum;
     const int taskCount = 10000;
     const unsigned int sleepTime = 1000;
 
-    testSequencerPerformance<SequencerLiteTestData::TaskSequencerLite>(
+    testSequencerPerformance<SequencerExperimentalTestData::TaskSequencer>(
         "Highly dependent tasks",
         getDispatcher(),
         sleepTime,
@@ -659,7 +659,7 @@ TEST_P(SequencerLiteTest, PerformanceTest)
         10,
         1);
 
-    testSequencerPerformance<SequencerLiteTestData::TaskSequencerLite>(
+    testSequencerPerformance<SequencerExperimentalTestData::TaskSequencer>(
         "Independent tasks",
         getDispatcher(),
         sleepTime,

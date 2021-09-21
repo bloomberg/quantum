@@ -40,8 +40,8 @@ namespace quantum {
 /// quantum::Dispatcher is not optimized for this particular task, the performance of task scheduling
 /// via quantum::Sequencer and the overall CPU usage may be suboptimal. In particular, this may become
 /// noticable when quantum::Dispatcher has a lot of coroutine threads configured and long chains of dependent tasks 
-/// are enqueued to quantum::Sequencer. If this becomes an issue, it's suggested to use quantum::SequencerLite 
-/// instead. quantum::SequencerLite manages task ordering ourside of quantum::Dispatcher.
+/// are enqueued to quantum::Sequencer. If this becomes an issue, it's suggested to use quantum::experimental::Sequencer 
+/// instead. quantum::experimenetal::Sequencer manages task ordering ourside of quantum::Dispatcher.
 /// @note Due to the fact that tasks enqueued to Sequencer do not get sent to quantum::Dispatcher right away,
 /// no enqueue/enqueueAll method of Sequencer returns an instance of ThreadContextPtr. An important goal 
 /// of ThreadContextPtr returned by quantum::Dispather::post(...) calls is exception marshalling i.e. 

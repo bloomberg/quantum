@@ -21,10 +21,11 @@
 
 namespace Bloomberg {
 namespace quantum {
+namespace experimental {
 
 template <class SequenceKey>
 template<typename FuncType>
-SequencerLiteTask<SequenceKey>::SequencerLiteTask(
+SequencerTask<SequenceKey>::SequencerTask(
     FuncType&& func,
     bool universal,
     void* opaque,
@@ -40,10 +41,10 @@ _isHighPriority(isHighPriority)
 }
 
 template <class SequenceKey>
-SequencerLiteKeyData<SequenceKey>::SequencerLiteKeyData() :
+SequencerKeyData<SequenceKey>::SequencerKeyData() :
 _stats(std::make_shared<SequenceKeyStatisticsWriter>())
 {
 }
 
-}}
+}}}
 

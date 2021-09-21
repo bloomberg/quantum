@@ -80,8 +80,8 @@
 #include <quantum/util/quantum_sequence_key_statistics.h>
 #include <quantum/util/quantum_sequencer.h>
 #include <quantum/util/quantum_sequencer_configuration.h>
-#include <quantum/util/quantum_sequencer_lite.h>
-#include <quantum/util/quantum_sequencer_lite_configuration.h>
+#include <quantum/util/quantum_sequencer_experimental.h>
+#include <quantum/util/quantum_sequencer_configuration_experimental.h>
 #include <quantum/util/quantum_spinlock_util.h>
 #include <quantum/util/quantum_util.h>
 

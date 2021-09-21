@@ -1,5 +1,5 @@
 /*
-** Copyright 2018 Bloomberg Finance L.P.
+** Copyright 2021 Bloomberg Finance L.P.
 **
 ** Licensed under the Apache License, Version 2.0 (the "License");
 ** you may not use this file except in compliance with the License.
@@ -13,30 +13,46 @@
 ** See the License for the specific language governing permissions and
 ** limitations under the License.
 */
-#ifndef BLOOMBERG_QUANTUM_SEQUENCER_CONFIGURATION_BASE_H
-#define BLOOMBERG_QUANTUM_SEQUENCER_CONFIGURATION_BASE_H
-
-#include <functional>
-#include <memory>
-#include <stdexcept>
+#ifndef BLOOMBERG_QUANTUM_SEQUENCER_CONFIGURATION_EXPERIMENTAL_H
+#define BLOOMBERG_QUANTUM_SEQUENCER_CONFIGURATION_EXPERIMENTAL_H
 
 namespace Bloomberg {
 namespace quantum {
+namespace experimental {
+
+template<typename SequenceKey>
+struct SequencerKeyData;
+
+//==============================================================================================
+//                                    class SequencerConfigurationSchemaProvider
+//==============================================================================================
+// @class SequencerConfigurationSchemaProvider
+// @brief Provides static accessors to a json schema representing a SequencerConfiguration object
+struct SequencerConfigurationSchemaProvider
+{
+    /// @brief Get the JSON schema corresponding to this configuration object.
+    /// @return The draft-04 compatible schema.
+    static const std::string& getJsonSchema();
+
+    /// @brief Get the schema URI used to resolve remote JSON references '$ref'.
+    /// @return The URI.
+    static const std::string& getJsonSchemaUri();
+};
 
 //==============================================================================================
 //                                      class SequencerConfiguration
 //==============================================================================================
-/// @class SequencerConfigurationBase.
-/// @brief Implementation of a base configuration class for Sequencer implementations
-/// @tparam SequenceKey Type of the key based that sequenced tasks are associated with in Sequencer
-/// @tparam Hash Hash-function used for storing instances of SequenceKey in hash maps in Sequencer
-/// @tparam KeyEqual The equal-function used for storing instances of SequenceKey in hash maps in Sequencer
-/// @tparam Allocator The allocator used for storing instances of SequenceKey in hash maps in Sequencer
+/// @class SequencerConfiguration.
+/// @brief Implementation of a configuration class for Sequencer
+/// @tparam SequenceKey Type of the key based that sequenced tasks are associated with in quantum::experimental::Sequencer
+/// @tparam Hash Hash-function used for storing instances of SequenceKey in hash maps in quantum::experimental::Sequencer
+/// @tparam KeyEqual The equal-function used for storing instances of SequenceKey in hash maps in quantum::experimental::Sequencer
+/// @tparam Allocator The allocator used for storing instances of SequenceKey in hash maps in quantum::experimental::Sequencer
 template <class SequenceKey,
-          class Hash,
-          class KeyEqual,
-          class Allocator>
-class SequencerConfigurationBase
+          class Hash = std::hash<SequenceKey>,
+          class KeyEqual = std::equal_to<SequenceKey>,
+          class Allocator = std::allocator<std::pair<const SequenceKey, SequencerKeyData<SequenceKey>>>>
+class SequencerConfiguration : public SequencerConfigurationSchemaProvider
 {
 public:
     /// @brief Callback for unhandled exceptions in tasks posted to Sequencer
@@ -47,7 +63,7 @@ public:
     /// @brief Sets the minimal number of buckets to be used for the context hash map
     /// @param bucketCount the bucket number
     /// @return A reference to itself
-    SequencerConfigurationBase& setBucketCount(size_t bucketCount);
+    SequencerConfiguration& setBucketCount(size_t bucketCount);
 
     /// @brief gets the minimal number of buckets to be used for the context hash map
     /// @return the bucket number
@@ -55,7 +71,7 @@ public:
 
     /// @brief Sets the hash function to be used for the context hash map
     /// @param hash the hash function
-    SequencerConfigurationBase& setHash(const Hash& hash);
+    SequencerConfiguration& setHash(const Hash& hash);
 
     /// @brief Gets the hash function to be used for the context hash map
     /// @return the hash function
@@ -63,7 +79,7 @@ public:
 
     /// @brief Sets the comparison function to be used for all SequenceKey comparisons for the context hash map
     /// @param keyEqual the comparison function
-    SequencerConfigurationBase& setKeyEqual(const KeyEqual& keyEqual);
+    SequencerConfiguration& setKeyEqual(const KeyEqual& keyEqual);
 
     /// @brief Gets the comparison function to be used for all SequenceKey comparisons for the context hash map
     /// @return the comparison function
@@ -71,7 +87,7 @@ public:
 
     /// @brief Sets the allocator for all SequenceKey comparisons for the context hash map
     /// @param allocator the allocator
-    SequencerConfigurationBase& setAllocator(const Allocator& allocator);
+    SequencerConfiguration& setAllocator(const Allocator& allocator);
 
     /// @brief Gets the allocator for all SequenceKey comparisons for the context hash map
     /// @return the allocator
@@ -79,7 +95,7 @@ public:
 
     /// @brief Sets the exception callback for Sequencer
     /// @param exceptionCallback the callback to set
-    SequencerConfigurationBase& setExceptionCallback(const ExceptionCallback& exceptionCallback);
+    SequencerConfiguration& setExceptionCallback(const ExceptionCallback& exceptionCallback);
 
     /// @brief Gets the exception callback for Sequencer
     /// @return the current callback
@@ -93,8 +109,8 @@ private:
     ExceptionCallback   _exceptionCallback;
 };
 
-}}
+}}}
 
-#include <quantum/util/impl/quantum_sequencer_configuration_base_impl.h>
+#include <quantum/util/impl/quantum_sequencer_configuration_experimental_impl.h>
 
-#endif //BLOOMBERG_QUANTUM_SEQUENCER_CONFIGURATION_BASE_H
+#endif //BLOOMBERG_QUANTUM_SEQUENCER_CONFIGURATION_EXPERIMENTAL_H
