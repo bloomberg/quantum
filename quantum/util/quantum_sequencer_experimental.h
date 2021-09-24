@@ -258,18 +258,18 @@ private:
     void scheduleTask(
         const std::shared_ptr<SequencerTask<SequenceKey>>& task);
 
-    /// @brief Removes the task from the pending queues and schedule next tasks
+    /// @brief Removes a completed task from the pending queues and schedule next tasks
     /// @param ctx context
     /// @param task the task to remove
-    void removePending(
+    void removeCompletedAndScheduleNext(
         VoidContextPtr ctx,
         const std::shared_ptr<SequencerTask<SequenceKey>>& task);
 
-    /// @brief Removes the task from the pending queue
+    /// @brief Removes a completed task from the pending queue
     /// @param entry the queue container
     /// @param task the task to remove
     /// @return next task to be scheduled
-    std::shared_ptr<SequencerTask<SequenceKey>> removePending(
+    std::shared_ptr<SequencerTask<SequenceKey>> removeCompleted(
         SequencerKeyData<SequenceKey>& entry,
         const std::shared_ptr<SequencerTask<SequenceKey>>& task);
 

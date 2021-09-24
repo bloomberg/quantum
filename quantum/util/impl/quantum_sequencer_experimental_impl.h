@@ -101,14 +101,14 @@ Sequencer<SequenceKey, Hash, KeyEqual, Allocator>::addPendingTask(
 
 template <class SequenceKey, class Hash, class KeyEqual, class Allocator>
 std::shared_ptr<SequencerTask<SequenceKey>>
-Sequencer<SequenceKey, Hash, KeyEqual, Allocator>::removePending(
+Sequencer<SequenceKey, Hash, KeyEqual, Allocator>::removeCompleted(
     SequencerKeyData<SequenceKey>& entry,
     const std::shared_ptr<SequencerTask<SequenceKey>>& task)
 {
     // Regular tasks tasks:
     // * entry._tasks.empty() means that there's a bug somewhere: when we intend to delete a pending task,
     // the task queue must not be empty
-    // * entry._tasks.front() == task means that there's a bug somewhere:
+    // * entry._tasks.front() != task means that there's a bug somewhere:
     // only completed tasks are removed from the queue, and such tasks must sit at the head of the queue
     // Universal tasks: because we do not track the queues where universal tasks are enqueued,
     // entry._tasks.empty() or entry._tasks.front() != task just means that the task was never enqueued
@@ -135,7 +135,7 @@ Sequencer<SequenceKey, Hash, KeyEqual, Allocator>::removePending(
 
 template <class SequenceKey, class Hash, class KeyEqual, class Allocator>
 void
-Sequencer<SequenceKey, Hash, KeyEqual, Allocator>::removePending(
+Sequencer<SequenceKey, Hash, KeyEqual, Allocator>::removeCompletedAndScheduleNext(
     VoidContextPtr ctx,
     const std::shared_ptr<SequencerTask<SequenceKey>>& task)
 {
@@ -145,14 +145,14 @@ Sequencer<SequenceKey, Hash, KeyEqual, Allocator>::removePending(
         // remove the task from all key queues
         for(auto& item : _pendingTaskQueueMap)
         {
-            if (std::shared_ptr<SequencerTask<SequenceKey>> nextTask = removePending(item.second, task))
+            if (auto nextTask = removeCompleted(item.second, task))
             {
                 scheduleTask(nextTask);
             }
         }
 
         // remove the task from the universal queue
-        if (std::shared_ptr<SequencerTask<SequenceKey>> nextTask = removePending(_universalTaskQueue, task))
+        if (auto nextTask = removeCompleted(_universalTaskQueue, task))
         {
             scheduleTask(nextTask);
         }
@@ -162,7 +162,7 @@ Sequencer<SequenceKey, Hash, KeyEqual, Allocator>::removePending(
         // remove the task from its key queues only
         for(SequencerKeyData<SequenceKey>* data : task->_keyData)
         {
-            if (std::shared_ptr<SequencerTask<SequenceKey>> nextTask = removePending(*data, task))
+            if (auto nextTask = removeCompleted(*data, task))
             {
                 scheduleTask(nextTask);
             }
@@ -200,7 +200,7 @@ Sequencer<SequenceKey, Hash, KeyEqual, Allocator>::executePending(
     }
 
     // remove the task from the pending queues + schedule next tasks
-    sequencer->removePending(ctx, task);
+    sequencer->removeCompletedAndScheduleNext(ctx, task);
     return rc;
 }
 
