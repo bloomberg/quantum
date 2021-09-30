@@ -13,23 +13,21 @@
 ** See the License for the specific language governing permissions and
 ** limitations under the License.
 */
-#ifndef BLOOMBERG_QUANTUM_SEQUENCER_CONFIGURATION_H
-#define BLOOMBERG_QUANTUM_SEQUENCER_CONFIGURATION_H
-
-#include <functional>
-#include <memory>
-#include <stdexcept>
+#ifndef BLOOMBERG_QUANTUM_SEQUENCER_CONFIGURATION_EXPERIMENTAL_H
+#define BLOOMBERG_QUANTUM_SEQUENCER_CONFIGURATION_EXPERIMENTAL_H
 
 namespace Bloomberg {
 namespace quantum {
+namespace experimental {
 
-struct SequenceKeyData;
+template<typename SequenceKey>
+struct SequencerKeyData;
 
 //==============================================================================================
 //                                    class SequencerConfigurationSchemaProvider
 //==============================================================================================
-/// @class SequencerConfigurationSchemaProvider
-/// @brief Provides static accessors to a json schema representing a SequencerConfiguration object
+// @class SequencerConfigurationSchemaProvider
+// @brief Provides static accessors to a json schema representing a SequencerConfiguration object
 struct SequencerConfigurationSchemaProvider
 {
     /// @brief Get the JSON schema corresponding to this configuration object.
@@ -46,14 +44,14 @@ struct SequencerConfigurationSchemaProvider
 //==============================================================================================
 /// @class SequencerConfiguration.
 /// @brief Implementation of a configuration class for Sequencer
-/// @tparam SequenceKey Type of the key based that sequenced tasks are associated with in Sequencer
-/// @tparam Hash Hash-function used for storing instances of SequenceKey in hash maps in Sequencer
-/// @tparam KeyEqual The equal-function used for storing instances of SequenceKey in hash maps in Sequencer
-/// @tparam Allocator The allocator used for storing instances of SequenceKey in hash maps in Sequencer
+/// @tparam SequenceKey Type of the key based that sequenced tasks are associated with in quantum::experimental::Sequencer
+/// @tparam Hash Hash-function used for storing instances of SequenceKey in hash maps in quantum::experimental::Sequencer
+/// @tparam KeyEqual The equal-function used for storing instances of SequenceKey in hash maps in quantum::experimental::Sequencer
+/// @tparam Allocator The allocator used for storing instances of SequenceKey in hash maps in quantum::experimental::Sequencer
 template <class SequenceKey,
           class Hash = std::hash<SequenceKey>,
           class KeyEqual = std::equal_to<SequenceKey>,
-          class Allocator = std::allocator<std::pair<const SequenceKey, SequenceKeyData>>>
+          class Allocator = std::allocator<std::pair<const SequenceKey, SequencerKeyData<SequenceKey>>>>
 class SequencerConfiguration : public SequencerConfigurationSchemaProvider
 {
 public:
@@ -61,17 +59,6 @@ public:
     /// @param exception pointer to the thrown exception
     /// @param opaque opaque data passed when posting a task
     using ExceptionCallback = std::function<void(std::exception_ptr exception, void* opaque)>;
-
-    /// @brief Sets the id of the control queue
-    /// @param controlQueueId the queue id
-    /// @remark Sequencer typically processes tasks with the lower latency when the control queue is
-    ///         dedicated for the sequencer control tasks only, and no other tasks are enqueued into it.
-    /// @return A reference to itself
-    SequencerConfiguration& setControlQueueId(int controlQueueId);
-
-    /// @brief Gets the id of the control queue
-    /// @return the queue id
-    int getControlQueueId() const;
 
     /// @brief Sets the minimal number of buckets to be used for the context hash map
     /// @param bucketCount the bucket number
@@ -120,11 +107,10 @@ private:
     KeyEqual            _keyEqual;
     Allocator           _allocator;
     ExceptionCallback   _exceptionCallback;
-    int                 _controllerQueueId{0};
 };
 
-}}
+}}}
 
-#include <quantum/util/impl/quantum_sequencer_configuration_impl.h>
+#include <quantum/util/impl/quantum_sequencer_configuration_experimental_impl.h>
 
-#endif //BLOOMBERG_QUANTUM_SEQUENCER_CONFIGURATION_H
+#endif //BLOOMBERG_QUANTUM_SEQUENCER_CONFIGURATION_EXPERIMENTAL_H

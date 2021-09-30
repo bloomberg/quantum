@@ -21,19 +21,14 @@
 
 #include <quantum/util/quantum_sequence_key_statistics.h>
 #include <quantum/interface/quantum_icoro_context_base.h>
+#include <list>
+#include <vector>
+#include <atomic>
+#include <memory>
 
 namespace Bloomberg {
 namespace quantum {
-
-using StatsPtr = std::shared_ptr<SequenceKeyStatisticsWriter>;
-struct SequenceKeyData
-{
-    SequenceKeyData() :
-        _stats(std::make_shared<SequenceKeyStatisticsWriter>())
-    {}
-    ICoroContextBasePtr _context;
-    StatsPtr            _stats;
-};
+namespace experimental {
 
 inline const std::string&
 SequencerConfigurationSchemaProvider::getJsonSchema()
@@ -45,10 +40,6 @@ SequencerConfigurationSchemaProvider::getJsonSchema()
         "title": "Quantum sequencer settings",
         "type": "object",
         "properties": {
-            "controlQueueId": {
-                "type": "number",
-                "default": 0
-            },
             "bucketCount": {
                 "type": "number",
                 "default": 100
@@ -66,21 +57,6 @@ SequencerConfigurationSchemaProvider::getJsonSchemaUri()
 {
     static std::string uri = "bloomberg:sequencer.quantum.json";
     return uri;
-}
-
-template <class SequenceKey, class Hash, class KeyEqual, class Allocator>
-SequencerConfiguration<SequenceKey, Hash, KeyEqual, Allocator>&
-SequencerConfiguration<SequenceKey, Hash, KeyEqual, Allocator>::setControlQueueId(int controlQueueId)
-{
-    _controllerQueueId = controlQueueId;
-    return *this;
-}
-
-template <class SequenceKey, class Hash, class KeyEqual, class Allocator>
-int
-SequencerConfiguration<SequenceKey, Hash, KeyEqual, Allocator>::getControlQueueId() const
-{
-    return _controllerQueueId;
 }
 
 template <class SequenceKey, class Hash, class KeyEqual, class Allocator>
@@ -161,4 +137,4 @@ SequencerConfiguration<SequenceKey, Hash, KeyEqual, Allocator>::getExceptionCall
     return _exceptionCallback;
 }
 
-}}
+}}}
