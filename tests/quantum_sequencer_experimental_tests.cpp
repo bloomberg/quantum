@@ -670,4 +670,19 @@ TEST_P(SequencerExperimentalTest, PerformanceTest)
         0);
 }
 
+TEST_P(SequencerExperimentalTest, CoroSafety)
+{
+    // This test demonstrates that it is safe to call the experimental::Sequencer from within a
+    // coroutine
+
+    SequencerExperimentalTestData::TaskSequencer sequencer{ getDispatcher() };
+
+    getDispatcher().post([&sequencer](VoidContextPtr ctx) -> int {
+        sequencer.enqueue(0, [](VoidContextPtr ctx) -> int { return 0; });
+        return 0;
+    });
+
+    getDispatcher().drain();
+}
+
 #endif // BLOOMBERG_QUANTUM_SEQUENCER_LITE_SUPPORT

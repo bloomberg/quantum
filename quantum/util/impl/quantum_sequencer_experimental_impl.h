@@ -20,6 +20,7 @@
 //##############################################################################################
 
 #include <quantum/util/quantum_drain_guard.h>
+#include <quantum/quantum_local.h>
 #include <quantum/quantum_promise.h>
 #include <quantum/quantum_traits.h>
 #include <quantum/impl/quantum_stl_impl.h>
@@ -281,7 +282,7 @@ Sequencer<SequenceKey, Hash, KeyEqual, Allocator>::enqueueSingle(
         queueId,
         isHighPriority);
 
-    Mutex::Guard lock(_mutex);
+    Mutex::Guard lock(local::context(), _mutex);
 
     _taskStats->incrementPostedTaskCount();
     _taskStats->incrementPendingTaskCount();
@@ -344,7 +345,7 @@ Sequencer<SequenceKey, Hash, KeyEqual, Allocator>::enqueueMultiple(
         queueId,
         isHighPriority);
 
-    Mutex::Guard lock(_mutex);
+    Mutex::Guard lock(local::context(), _mutex);
 
     _taskStats->incrementPostedTaskCount();
     _taskStats->incrementPendingTaskCount();
@@ -410,7 +411,7 @@ Sequencer<SequenceKey, Hash, KeyEqual, Allocator>::enqueueAllImpl(
         queueId,
         isHighPriority);
 
-    Mutex::Guard lock(_mutex);
+    Mutex::Guard lock(local::context(), _mutex);
 
     _taskStats->incrementPostedTaskCount();
     _taskStats->incrementPendingTaskCount();
@@ -433,7 +434,7 @@ template <class SequenceKey, class Hash, class KeyEqual, class Allocator>
 size_t
 Sequencer<SequenceKey, Hash, KeyEqual, Allocator>::trimSequenceKeys()
 {
-    Mutex::Guard lock(_mutex);
+    Mutex::Guard lock(local::context(), _mutex);
     for(typename PendingTaskQueueMap::iterator it = _pendingTaskQueueMap.begin(); it != _pendingTaskQueueMap.end(); )
     {
         if (it->second._tasks.empty())
@@ -448,7 +449,7 @@ template <class SequenceKey, class Hash, class KeyEqual, class Allocator>
 SequenceKeyStatistics
 Sequencer<SequenceKey, Hash, KeyEqual, Allocator>::getStatistics(const SequenceKey& sequenceKey)
 {
-    Mutex::Guard lock(_mutex);
+    Mutex::Guard lock(local::context(), _mutex);
     typename PendingTaskQueueMap::const_iterator it = _pendingTaskQueueMap.find(sequenceKey);
     if (it == _pendingTaskQueueMap.end())
         return SequenceKeyStatistics();
@@ -459,7 +460,7 @@ template <class SequenceKey, class Hash, class KeyEqual, class Allocator>
 SequenceKeyStatistics
 Sequencer<SequenceKey, Hash, KeyEqual, Allocator>::getStatistics()
 {
-    Mutex::Guard lock(_mutex);
+    Mutex::Guard lock(local::context(), _mutex);
     return *_universalTaskQueue._stats;
 }
 
@@ -474,7 +475,7 @@ template <class SequenceKey, class Hash, class KeyEqual, class Allocator>
 size_t
 Sequencer<SequenceKey, Hash, KeyEqual, Allocator>::getSequenceKeyCount()
 {
-    Mutex::Guard lock(_mutex);
+    Mutex::Guard lock(local::context(), _mutex);
     return _pendingTaskQueueMap.size();
 }
 
