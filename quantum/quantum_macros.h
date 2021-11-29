@@ -16,6 +16,14 @@
 #ifndef BLOOMBERG_QUANTUM_MACROS_H
 #define BLOOMBERG_QUANTUM_MACROS_H
 
+#if defined(__GNUC__) || defined(__clang__)
+    #define QUANTUM_DEPRECATED __attribute__((deprecated))
+#elif defined(_MSC_VER)
+    #define QUANTUM_DEPRECATED __declspec(deprecated)
+#else
+    #define QUANTUM_DEPRECATED
+#endif
+
 #define QUANTUM_BACKOFF_LINEAR 0
 #define QUANTUM_BACKOFF_EXPONENTIAL 1
 #define QUANTUM_BACKOFF_EQUALSTEP 2
