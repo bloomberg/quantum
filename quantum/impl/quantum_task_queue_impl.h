@@ -94,7 +94,7 @@ void TaskQueue::pinToCore(int coreId)
 {
 #if defined(_WIN32) && !defined(__CYGWIN__)
     SetThreadAffinityMask(_thread->native_handle(), 1 << coreId);
-#else
+#elif defined(__linux__)
     int cpuSetSize = sizeof(cpu_set_t);
     if (coreId >= 0 && (coreId <= cpuSetSize*8))
     {
