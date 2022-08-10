@@ -36,7 +36,7 @@ SequencerConfigurationSchemaProvider::getJsonSchema()
     static std::string schema = R"JSON(
     {
         "$schema" : "http://json-schema.org/draft-04/schema#",
-        "$id" : "bloomberg:sequencer.quantum.json",
+        "$id" : "bloomberg:sequencer.experimental.quantum.json",
         "title": "Quantum sequencer settings",
         "type": "object",
         "properties": {
@@ -55,7 +55,7 @@ SequencerConfigurationSchemaProvider::getJsonSchema()
 inline const std::string&
 SequencerConfigurationSchemaProvider::getJsonSchemaUri()
 {
-    static std::string uri = "bloomberg:sequencer.quantum.json";
+    static std::string uri = "bloomberg:sequencer.experimental.quantum.json";
     return uri;
 }
 

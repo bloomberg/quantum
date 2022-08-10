@@ -27,6 +27,7 @@
 #include <memory>
 #include <list>
 #include <utility>
+#include <atomic>
 
 namespace Bloomberg {
 namespace quantum {
