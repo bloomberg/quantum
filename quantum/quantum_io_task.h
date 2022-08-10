@@ -52,13 +52,13 @@ public:
            bool isHighPriority,
            FUNC&& func,
            ARGS&&... args);
+
+    IoTask(const IoTask&) = delete;
+    IoTask(IoTask&& other) noexcept;
+    IoTask& operator=(const IoTask&) = delete;
+    IoTask& operator=(IoTask&& other) noexcept;
     
-    IoTask(const IoTask& task) = delete;
-    IoTask(IoTask&& task) = default;
-    IoTask& operator=(const IoTask& task) = delete;
-    IoTask& operator=(IoTask&& task) = default;
-    
-    ~IoTask();
+    ~IoTask() override;
     
     //ITerminate
     void terminate() final;
@@ -70,7 +70,7 @@ public:
     Type getType() const final;
     TaskId getTaskId() const final;
     bool isBlocked() const final;
-    bool isSleeping(bool updateTimer = false) final;
+    bool isSleeping(bool updateTimer) final;
     bool isHighPriority() const final;
     bool isSuspended() const final;
     ITask::LocalStorage& getLocalStorage() final;

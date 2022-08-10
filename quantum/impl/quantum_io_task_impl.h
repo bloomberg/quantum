@@ -64,6 +64,30 @@ IoTask::IoTask(std::false_type,
 }
 
 inline
+IoTask::IoTask(IoTask&& other) noexcept :
+    _func(std::move(other._func)),
+    _terminated(other._terminated.load()),
+    _queueId(other._queueId),
+    _isHighPriority(other._isHighPriority),
+    _taskId(ThreadContextTag{})
+{
+}
+
+inline
+IoTask& IoTask::operator=(IoTask&& other) noexcept
+{
+    if (this != &other) {
+        _func = std::move(other._func);
+        _terminated.store(other._terminated.load());
+        _queueId = other._queueId;
+        _isHighPriority = other._isHighPriority;
+        _taskId = other._taskId;
+        _localStorage = std::move(other._localStorage);
+    }
+    return *this;
+}
+
+inline
 IoTask::~IoTask()
 {
     terminate();

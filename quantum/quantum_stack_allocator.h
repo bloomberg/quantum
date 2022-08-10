@@ -63,7 +63,7 @@ struct StackAllocator : public ContiguousPoolManager<T>
     
     StackAllocator(const this_type&) : StackAllocator()
     {}
-    StackAllocator(this_type&&) : StackAllocator()
+    StackAllocator(this_type&&) noexcept : StackAllocator()
     {}
     StackAllocator& operator=(const this_type&) = delete;
     StackAllocator& operator=(this_type&&) = delete;

@@ -65,12 +65,12 @@ public:
          FUNC&& func,
          ARGS&&... args);
     
-    Task(const Task& task) = delete;
-    Task(Task&& task) = default;
-    Task& operator=(const Task& task) = delete;
-    Task& operator=(Task&& task) = default;
+    Task(const Task&) = delete;
+    Task(Task&& other) noexcept;
+    Task& operator=(const Task&) = delete;
+    Task& operator=(Task&& other) noexcept;
     
-    ~Task();
+    ~Task() override;
     
     //ITerminate
     void terminate() final;
@@ -82,7 +82,7 @@ public:
     Type getType() const final;
     TaskId getTaskId() const final;
     bool isBlocked() const final;
-    bool isSleeping(bool updateTimer = false) final;
+    bool isSleeping(bool updateTimer) final;
     bool isHighPriority() const final;
     bool isSuspended() const final;
     
@@ -111,29 +111,29 @@ public:
 private:
     
     struct SuspensionGuard {
-        SuspensionGuard(std::atomic_int& suspendedState) :
+        explicit SuspensionGuard(std::atomic_int& suspendedState) :
             _isLocked(false),
             _suspendedState(suspendedState)
         {
             int suspended = (int)State::Suspended;
             _isLocked = _suspendedState.compare_exchange_strong(suspended,
                                                                 (int)State::Running,
-                                                                std::memory_order::memory_order_acq_rel);
+                                                                std::memory_order_acq_rel);
         }
         ~SuspensionGuard()
         {
             if (_isLocked)
             {
-                _suspendedState.store((int)State::Suspended, std::memory_order::memory_order_acq_rel);
+                _suspendedState.store((int)State::Suspended, std::memory_order_acq_rel);
             }
         }
         void set(int newState)
         {
-            _suspendedState.store(newState, std::memory_order::memory_order_acq_rel);
+            _suspendedState.store(newState, std::memory_order_acq_rel);
             _isLocked = false;
         }
                
-        operator bool() const
+        explicit operator bool() const
         {
             return _isLocked;
         }

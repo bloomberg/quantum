@@ -219,7 +219,7 @@ void CoroutinePoolAllocator<STACK_TRAITS>::deallocate(const boost::context::stac
         {
             SpinLock::Guard lock(_spinlock);
             --_numHeapAllocatedBlocks;
-            assert(_numHeapAllocatedBlocks >= 0);
+            assert(_numHeapAllocatedBlocks != (size_t)-1);
         }
         if (deallocateCoroutine(stackEnd(ctx)) != 0)
         {

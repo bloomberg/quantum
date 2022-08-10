@@ -73,6 +73,38 @@ Task::Task(std::true_type,
 {}
 
 inline
+Task::Task(Task&& other) noexcept :
+    _coroContext(std::move(other._coroContext)),
+    _coro(std::move(other._coro)),
+    _isHighPriority(other._isHighPriority),
+    _next(std::move(other._next)),
+    _prev(std::move(other._prev)),
+    _type(other._type),
+    _taskId(other._taskId),
+    _terminated(other._terminated.load()),
+    _suspendedState(other._suspendedState.load()),
+    _localStorage(std::move(other._localStorage))
+{}
+
+inline
+Task& Task::operator=(Task&& other) noexcept
+{
+    if (this != &other) {
+        _coroContext = std::move(other._coroContext);
+        _coro = std::move(other._coro);
+        _isHighPriority = other._isHighPriority;
+        _next = std::move(other._next);
+        _prev = std::move(other._prev);
+        _type = other._type;
+        _taskId = other._taskId;
+        _terminated.store(other._terminated.load());
+        _suspendedState.store(other._suspendedState.load());
+        _localStorage = std::move(other._localStorage);
+    }
+    return *this;
+}
+
+inline
 Task::~Task()
 {
     terminate();

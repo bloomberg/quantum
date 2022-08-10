@@ -37,15 +37,7 @@ public:
     
     /// @brief Copy constructor.
     SpinLock(const SpinLock&) = delete;
-    
-    /// @brief Move constructor.
-    SpinLock(SpinLock&&) = default;
-    
-    /// @brief Copy assignment operator.
     SpinLock& operator=(const SpinLock&) = delete;
-    
-    /// @brief Move assignment operator.
-    SpinLock& operator=(SpinLock&&) = default;
     
     /// @brief Locks this object.
     /// @note Blocks the current thread until the lock is acquired. Blocking is achieved

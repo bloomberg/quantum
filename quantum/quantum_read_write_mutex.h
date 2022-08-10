@@ -31,15 +31,7 @@ public:
 
     /// @brief Copy constructor
     ReadWriteMutex(const ReadWriteMutex&) = delete;
-
-    /// @brief Move constructor
-    ReadWriteMutex(ReadWriteMutex&&) = default;
-
-    /// @brief Copy assignment operator
     ReadWriteMutex& operator=(const ReadWriteMutex&) = delete;
-
-    /// @brief Move assignment operator
-    ReadWriteMutex& operator=(ReadWriteMutex&&) = default;
 
     /// @brief Lock this object as a reader (shared with other readers)
     /// @details The current context will be yielded until the lock is acquired.

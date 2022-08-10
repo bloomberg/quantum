@@ -37,115 +37,115 @@ DispatcherSingleton::DispatcherMap DispatcherSingleton::_dispatchers;
 struct CoreTest: public DispatcherFixture
 {};
 
-INSTANTIATE_TEST_CASE_P(CoreTest_Default,
-                        CoreTest,
-                        ::testing::Values(TestConfiguration(false, false),
-                                          TestConfiguration(false, true)));
+INSTANTIATE_TEST_SUITE_P(CoreTest_Default,
+                         CoreTest,
+                         ::testing::Values(TestConfiguration(false, false),
+                                           TestConfiguration(false, true)));
 
 struct ParamtersTest: public DispatcherFixture
 {};
 
-INSTANTIATE_TEST_CASE_P(ParamtersTest_Default,
-                        ParamtersTest,
-                        ::testing::Values(TestConfiguration(false, false),
-                                          TestConfiguration(false, true)));
+INSTANTIATE_TEST_SUITE_P(ParamtersTest_Default,
+                         ParamtersTest,
+                         ::testing::Values(TestConfiguration(false, false),
+                                           TestConfiguration(false, true)));
 
 
 struct ExecutionTest: public DispatcherFixture
 {};
 
-INSTANTIATE_TEST_CASE_P(ExecutionTest_Default,
-                        ExecutionTest,
-                        ::testing::Values(TestConfiguration(false, false),
-                                          TestConfiguration(false, true)));
+INSTANTIATE_TEST_SUITE_P(ExecutionTest_Default,
+                         ExecutionTest,
+                         ::testing::Values(TestConfiguration(false, false),
+                                           TestConfiguration(false, true)));
 
 
 struct PromiseTest: public DispatcherFixture
 {};
 
-INSTANTIATE_TEST_CASE_P(PromiseTest_Default,
-                        PromiseTest,
-                        ::testing::Values(TestConfiguration(false, false),
-                                          TestConfiguration(false, true)));
+INSTANTIATE_TEST_SUITE_P(PromiseTest_Default,
+                         PromiseTest,
+                         ::testing::Values(TestConfiguration(false, false),
+                                           TestConfiguration(false, true)));
 
 
 struct MutexTest: public DispatcherFixture
 {};
 
-INSTANTIATE_TEST_CASE_P(MutexTest_Default,
-                        MutexTest,
-                        ::testing::Values(TestConfiguration(false, false),
-                                          TestConfiguration(false, true)));
+INSTANTIATE_TEST_SUITE_P(MutexTest_Default,
+                         MutexTest,
+                         ::testing::Values(TestConfiguration(false, false),
+                                           TestConfiguration(false, true)));
 
 
 struct StressTest: public DispatcherFixture
 {};
 
-INSTANTIATE_TEST_CASE_P(StressTest_Default,
-                        StressTest,
-                        ::testing::Values(TestConfiguration(false, false),
-                                          TestConfiguration(false, true)));
+INSTANTIATE_TEST_SUITE_P(StressTest_Default,
+                         StressTest,
+                         ::testing::Values(TestConfiguration(false, false),
+                                           TestConfiguration(false, true)));
 
 
 struct StressTestBalanced: public DispatcherFixture
 {};
 
-INSTANTIATE_TEST_CASE_P(StressTestBalanced_Default,
-                        StressTestBalanced,
-                        ::testing::Values(TestConfiguration(true, false),
-                                          TestConfiguration(true, true)));
+INSTANTIATE_TEST_SUITE_P(StressTestBalanced_Default,
+                         StressTestBalanced,
+                         ::testing::Values(TestConfiguration(true, false),
+                                           TestConfiguration(true, true)));
 
 
 struct ForEachTest: public DispatcherFixture
 {};
 
-INSTANTIATE_TEST_CASE_P(ForEachTest_Default,
-                        ForEachTest,
-                        ::testing::Values(TestConfiguration(false, false),
-                                          TestConfiguration(false, true)));
+INSTANTIATE_TEST_SUITE_P(ForEachTest_Default,
+                         ForEachTest,
+                         ::testing::Values(TestConfiguration(false, false),
+                                           TestConfiguration(false, true)));
 
 
 struct MapReduce: public DispatcherFixture
 {};
 
-INSTANTIATE_TEST_CASE_P(MapReduce_Default,
-                        MapReduce,
-                        ::testing::Values(TestConfiguration(false, false),
-                                          TestConfiguration(false, true)));
+INSTANTIATE_TEST_SUITE_P(MapReduce_Default,
+                         MapReduce,
+                         ::testing::Values(TestConfiguration(false, false),
+                                           TestConfiguration(false, true)));
 
 
 struct FutureJoinerTest: public DispatcherFixture
 {};
 
-INSTANTIATE_TEST_CASE_P(FutureJoinerTest_Default,
-                        FutureJoinerTest,
-                        ::testing::Values(TestConfiguration(false, false),
-                                          TestConfiguration(false, true)));
+INSTANTIATE_TEST_SUITE_P(FutureJoinerTest_Default,
+                         FutureJoinerTest,
+                         ::testing::Values(TestConfiguration(false, false),
+                                           TestConfiguration(false, true)));
 
 struct CoroLocalStorageTest: public DispatcherFixture
 {};
 
-INSTANTIATE_TEST_CASE_P(CoroLocalStorageTest_Default,
-                        CoroLocalStorageTest,
-                        ::testing::Values(TestConfiguration(false, false),
-                                          TestConfiguration(false, true)));
+INSTANTIATE_TEST_SUITE_P(CoroLocalStorageTest_Default,
+                         CoroLocalStorageTest,
+                         ::testing::Values(TestConfiguration(false, false),
+                                           TestConfiguration(false, true)));
 
 struct CleanupTest: public DispatcherFixture
 {};
 
-INSTANTIATE_TEST_CASE_P(CleanupTest_Default,
-                        CleanupTest,
-                        ::testing::Values(TestConfiguration(false, false),
-                                          TestConfiguration(false, true)));
+INSTANTIATE_TEST_SUITE_P(CleanupTest_Default,
+                         CleanupTest,
+                         ::testing::Values(TestConfiguration(false, false),
+                                           TestConfiguration(false, true)));
 
 #ifdef __QUANTUM_RESOURCE_TEST
 struct ResourceLimit: public DispatcherFixture
 {};
 
-INSTANTIATE_TEST_CASE_P(ResourceLimit_Default,
-                        ResourceLimit,
-                        ::testing::Values(TestConfiguration(false, false),
-                                          TestConfiguration(false, true)));
+INSTANTIATE_TEST_SUITE_P(ResourceLimit_Default,
+                         ResourceLimit,
+                         ::testing::Values(TestConfiguration(false, false),
+                                           TestConfiguration(false, true)));
 #endif
 
 //==============================================================================

@@ -71,6 +71,23 @@ IoQueue::IoQueue(const IoQueue& other) :
 }
 
 inline
+IoQueue::IoQueue(IoQueue&& other) noexcept:
+    _sharedIoQueues(other._sharedIoQueues),
+    _loadBalanceSharedIoQueues(other._loadBalanceSharedIoQueues),
+    _loadBalancePollIntervalMs(other._loadBalancePollIntervalMs),
+    _loadBalancePollIntervalBackoffPolicy(other._loadBalancePollIntervalBackoffPolicy),
+    _loadBalancePollIntervalNumBackoffs(other._loadBalancePollIntervalNumBackoffs),
+    _loadBalanceBackoffNum(other._loadBalanceBackoffNum),
+    _thread(std::move(other._thread)),
+    _queue(std::move(other._queue)),
+    _isEmpty(other._isEmpty.load()),
+    _isInterrupted(other._isInterrupted.load()),
+    _isIdle(other._isIdle.load()),
+    _terminated(other._terminated.load())
+{
+}
+
+inline
 IoQueue::~IoQueue()
 {
     terminate();
