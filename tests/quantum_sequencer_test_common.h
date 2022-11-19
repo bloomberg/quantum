@@ -45,53 +45,51 @@ void testSequencerPerformance(
     ProcStats startStats = getProcStats();
 
     // enqueue the tasks
-    std::chrono::steady_clock::time_point startTime = std::chrono::steady_clock::now();
-    for(unsigned int id = 0; id < taskCount; ++id)
     {
-        // save the task id for this sequenceKey
-        auto task = [id, sleepTimeMicroseconds, yieldCount](VoidContextPtr ctx)->int
+        Timer timer;
+        for(unsigned int id = 0; id < taskCount; ++id)
         {
-            auto sleepTime = sleepTimeMicroseconds / (yieldCount + 1);
-            for(unsigned int i = 0; i < yieldCount; ++i)
+            // save the task id for this sequenceKey
+            auto task = [id, sleepTimeMicroseconds, yieldCount](VoidContextPtr ctx)->int
             {
+                auto sleepTime = sleepTimeMicroseconds / (yieldCount + 1);
+                for(unsigned int i = 0; i < yieldCount; ++i)
+                {
+                    ctx->sleep(std::chrono::microseconds(sleepTime));
+                    ctx->yield();
+                }
                 ctx->sleep(std::chrono::microseconds(sleepTime));
-                ctx->yield();
-            }
-            ctx->sleep(std::chrono::microseconds(sleepTime));
-            return 0;
-        };
+                return 0;
+            };
 
-        if (id and universalTaskFreq and id % universalTaskFreq == 0)
-        {
-            sequencer.enqueueAll(std::move(task));
-        }
-        else
-        {
-            if (keyCountPerTask == 1)
+            if (id and universalTaskFreq and id % universalTaskFreq == 0)
             {
-                sequencer.enqueue(id % distinctKeyCount, std::move(task));
+                sequencer.enqueueAll(std::move(task));
             }
             else
             {
-                std::vector<int> keys;
-                for(unsigned int i = 0; i < keyCountPerTask; ++i)
+                if (keyCountPerTask == 1)
                 {
-                    keys.push_back((id + i) % distinctKeyCount);
+                    sequencer.enqueue(id % distinctKeyCount, std::move(task));
                 }
+                else
+                {
+                    std::vector<int> keys;
+                    for(unsigned int i = 0; i < keyCountPerTask; ++i)
+                    {
+                        keys.push_back((id + i) % distinctKeyCount);
+                    }
 
-                sequencer.enqueue(keys, std::move(task));
+                    sequencer.enqueue(keys, std::move(task));
+                }
             }
         }
+        sequencer.drain();
     }
-    sequencer.drain();
-
     ProcStats procStats = getProcStats() - startStats;
 
-    std::chrono::steady_clock::time_point endTime = std::chrono::steady_clock::now();
-    auto duration = std::chrono::duration_cast<std::chrono::microseconds>(endTime - startTime).count();
-
     std::cout << name << ": elapsed "
-              << duration / 1000000.0 << " s, "
+              << Timer::elapsed<std::chrono::seconds>() << " s, "
               << procStats._kernelModeTime + procStats._userModeTime << " CPU ticks"
               << std::endl;
 }
