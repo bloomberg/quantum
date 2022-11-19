@@ -24,6 +24,38 @@
 namespace Bloomberg {
 namespace quantum {
 
+namespace {
+CoroutineStateHandler wrapCoroutineStateHandler(const CoroutineStateHandler& coroutineStateHandler)
+{
+    return [coroutineStateHandler] (CoroutineState state)
+    {
+        if (not coroutineStateHandler)
+        {
+            return;
+        }
+
+        try
+        {
+            coroutineStateHandler(state);
+        }
+        catch (const std::exception& ex)
+        {
+#ifdef __QUANTUM_PRINT_DEBUG
+            std::lock_guard<std::mutex> guard(Util::LogMutex());
+            std::cerr << "Cannot handle coroutine state: " << ex.what() << std::endl;
+#endif
+        }
+        catch (...)
+        {
+#ifdef __QUANTUM_PRINT_DEBUG
+            std::lock_guard<std::mutex> guard(Util::LogMutex());
+            std::cerr << "Cannot handle coroutine state" << std::endl;
+#endif
+        }
+    };
+}
+}
+
 inline
 TaskQueue::WorkItem::WorkItem(TaskPtr task,
                               TaskListIter iter,
@@ -43,7 +75,7 @@ TaskQueue::ProcessTaskResult::ProcessTaskResult(bool isBlocked,
     _blockedQueueRound(blockedQueueRound)
 {
 }
-    
+
 inline
 TaskQueue::TaskQueue() :
     TaskQueue(Configuration(), nullptr)
@@ -51,7 +83,7 @@ TaskQueue::TaskQueue() :
 }
 
 inline
-TaskQueue::TaskQueue(const Configuration&, std::shared_ptr<TaskQueue> sharedQueue) :
+TaskQueue::TaskQueue(const Configuration& configuration, std::shared_ptr<TaskQueue> sharedQueue) :
     _alloc(Allocator<QueueListAllocator>::instance(AllocatorTraits::queueListAllocSize())),
     _runQueue(_alloc),
     _waitQueue(_alloc),
@@ -67,12 +99,14 @@ TaskQueue::TaskQueue(const Configuration&, std::shared_ptr<TaskQueue> sharedQueu
     _sharedQueue(sharedQueue),
     _queueRound(0),
     _lastSleptQueueRound(std::numeric_limits<unsigned int>::max()),
-    _lastSleptSharedQueueRound(std::numeric_limits<unsigned int>::max())
+    _lastSleptSharedQueueRound(std::numeric_limits<unsigned int>::max()),
+    _coroutineStateHandler(wrapCoroutineStateHandler(configuration.getCoroutineStateHandler()))
 {
     if (_sharedQueue)
     {
         _sharedQueue->_helpers.push_back(this);
     }
+
     _thread = std::make_shared<std::thread>(std::bind(&TaskQueue::run, this));
 }
 
@@ -165,7 +199,7 @@ void TaskQueue::sleepOnBlockedQueue(const ProcessTaskResult& mainQueueResult,
         mainQueueResult._isBlocked && mainQueueResult._blockedQueueRound != _lastSleptQueueRound;
     const bool isSharedQueueBlocked =
         sharedQueueResult._isBlocked && sharedQueueResult._blockedQueueRound != _lastSleptSharedQueueRound;
-    
+
     if ((isQueueBlocked || _isEmpty) && (isSharedQueueBlocked || _isSharedQueueEmpty))
     {
         _lastSleptQueueRound = mainQueueResult._blockedQueueRound;
@@ -173,7 +207,7 @@ void TaskQueue::sleepOnBlockedQueue(const ProcessTaskResult& mainQueueResult,
         YieldingThread()();
     }
 }
-    
+
 inline
 TaskQueue::ProcessTaskResult TaskQueue::processTask()
 {
@@ -182,22 +216,14 @@ TaskQueue::ProcessTaskResult TaskQueue::processTask()
     {
         //Process a task
         workItem = grabWorkItem();
-        
+
         TaskPtr task = workItem._task;
         if (!task)
         {
             return ProcessTaskResult(workItem._isBlocked, workItem._blockedQueueRound);
         }
 
-        int rc;
-        {
-            // set the current task for local-storage queries
-            IQueue::TaskSetterGuard taskSetter(*this, task);
-            //========================= START/RESUME COROUTINE =========================
-            rc = task->run();
-            //=========================== END/YIELD COROUTINE ==========================
-        }
-        
+        const int rc = runTask(task);
         switch (rc)
         {
             case (int)ITask::RetCode::NotCallable:
@@ -232,6 +258,43 @@ TaskQueue::ProcessTaskResult TaskQueue::processTask()
         handleException(workItem);
     }
     return ProcessTaskResult(workItem._isBlocked, workItem._blockedQueueRound);
+}
+
+inline
+int TaskQueue::runTask(const TaskPtr& task)
+{
+    // set the current task for local-storage queries
+    IQueue::TaskSetterGuard taskSetter(*this, task);
+
+    _coroutineStateHandler(task->isNew() ? CoroutineState::Constructed
+                                         : CoroutineState::Resumed);
+    int rc = 0;
+    try
+    {
+        rc = task->run();
+    }
+    catch (...)
+    {
+        _coroutineStateHandler(CoroutineState::Suspended);
+        _coroutineStateHandler(CoroutineState::Destructed);
+        throw;
+    }
+
+    _coroutineStateHandler(CoroutineState::Suspended);
+    switch (rc)
+    {
+        case (int)ITask::RetCode::AlreadyResumed:
+        case (int)ITask::RetCode::Blocked:
+        case (int)ITask::RetCode::Sleeping:
+        case (int)ITask::RetCode::Running:
+            // Do nothing
+            break;
+        default:
+            _coroutineStateHandler(CoroutineState::Destructed);
+            break;
+    }
+
+    return rc;
 }
 
 inline
@@ -526,7 +589,7 @@ bool TaskQueue::isInterrupted()
 inline
 TaskQueue::WorkItem
 TaskQueue::grabWorkItem()
-{    
+{
     //========================= LOCKED SCOPE =========================
     SpinLock::Guard lock(_runQueueLock);
     if ((_queueIt == _runQueue.end()) || (!_isAdvanced && (++_queueIt == _runQueue.end())))
@@ -600,7 +663,7 @@ void TaskQueue::acquireWaiting()
         //rewind by one since we are at end()
         --_queueIt;
     }
-    {        
+    {
         //splice wait queue unto run queue.
         _runQueue.splice(_runQueue.end(), _waitQueue);
     }
