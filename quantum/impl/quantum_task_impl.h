@@ -49,6 +49,7 @@ Task::Task(std::false_type,
     _isHighPriority(isHighPriority),
     _type(type),
     _taskId(CoroContextTag{}),
+    _isNew(true),
     _terminated(false),
     _suspendedState((int)State::Suspended)
 {}
@@ -68,6 +69,7 @@ Task::Task(std::true_type,
     _isHighPriority(isHighPriority),
     _type(type),
     _taskId(CoroContextTag{}),
+    _isNew(true),
     _terminated(false),
     _suspendedState((int)State::Suspended)
 {}
@@ -94,6 +96,10 @@ int Task::run()
     SuspensionGuard guard(_suspendedState);
     if (guard)
     {
+        if (isNew())
+        {
+            _isNew = false;
+        }
         if (!_coro)
         {
             return (int)ITask::RetCode::NotCallable;
@@ -175,6 +181,13 @@ ITaskContinuation::Ptr Task::getErrorHandlerOrFinalTask()
 }
 
 inline
+bool Task::isNew() const
+{
+    return _isNew;
+}
+
+
+inline
 bool Task::isBlocked() const
 {
     return _coroContext ? _coroContext->isBlocked() : false; //coroutine is waiting on some signal
@@ -231,5 +244,5 @@ void Task::deleter(Task* p)
     delete p;
 #endif
 }
-    
+
 }}

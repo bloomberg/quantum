@@ -36,12 +36,12 @@ struct ITask : public ITerminate
     using Ptr = std::shared_ptr<ITask>;
     using WeakPtr = std::weak_ptr<ITask>;
     using LocalStorage = std::unordered_map<std::string, void*>;
-    
+
     enum class Type : int
     {
         Standalone, First, Continuation, ErrorHandler, Final, Termination, IO
     };
-    
+
     enum class RetCode : int
     {
         Success = 0,                                ///< Coroutine finished successfully
@@ -53,27 +53,31 @@ struct ITask : public ITerminate
         Sleeping = (int)Running-5,                  ///< Coroutine is sleeping
         Max = (int)Running-10,                      ///< Value of the max reserved return code
     };
-    
+
     ~ITask() = default;
-    
+
     virtual int run() = 0;
-    
+
     virtual void setQueueId(int queueId) = 0;
-    
+
     virtual int getQueueId() const = 0;
-    
+
     virtual TaskId getTaskId() const = 0;
-    
+
     virtual Type getType() const = 0;
-    
+
+    /// @brief Determines if the task has been launched or not
+    /// @return True if the task hasn't been launched yet, false otherwise
+    virtual bool isNew() const = 0;
+
     virtual bool isBlocked() const = 0;
-    
+
     virtual bool isSleeping(bool updateTimer) = 0;
-    
+
     virtual bool isHighPriority() const = 0;
-    
+
     virtual bool isSuspended() const = 0;
-    
+
     virtual LocalStorage& getLocalStorage() = 0;
 };
 

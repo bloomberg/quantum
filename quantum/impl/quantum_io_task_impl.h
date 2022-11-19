@@ -114,6 +114,12 @@ TaskId IoTask::getTaskId() const
 }
 
 inline
+bool IoTask::isNew() const
+{
+    return false;
+}
+
+inline
 bool IoTask::isBlocked() const
 {
     return false;

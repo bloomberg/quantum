@@ -36,7 +36,7 @@ class IoTask : public ITask
 public:
     using Ptr = std::shared_ptr<IoTask>;
     using WeakPtr = std::weak_ptr<IoTask>;
-    
+
     template <class RET, class FUNC, class ... ARGS>
     IoTask(std::true_type,
            std::shared_ptr<Promise<RET>> promise,
@@ -44,7 +44,7 @@ public:
            bool isHighPriority,
            FUNC&& func,
            ARGS&&... args);
-    
+
     template <class RET, class FUNC, class ... ARGS>
     IoTask(std::false_type,
            std::shared_ptr<Promise<RET>> promise,
@@ -52,36 +52,38 @@ public:
            bool isHighPriority,
            FUNC&& func,
            ARGS&&... args);
-    
+
     IoTask(const IoTask& task) = delete;
     IoTask(IoTask&& task) = default;
     IoTask& operator=(const IoTask& task) = delete;
     IoTask& operator=(IoTask&& task) = default;
-    
+
     ~IoTask();
-    
+
     //ITerminate
     void terminate() final;
-    
+
     //ITask
     int run() final;
     void setQueueId(int queueId) final;
     int getQueueId() const final;
     Type getType() const final;
     TaskId getTaskId() const final;
+    //Always return false
+    bool isNew() const final;
     bool isBlocked() const final;
     bool isSleeping(bool updateTimer = false) final;
     bool isHighPriority() const final;
     bool isSuspended() const final;
     ITask::LocalStorage& getLocalStorage() final;
-    
+
     //===================================
     //           NEW / DELETE
     //===================================
     static void* operator new(size_t size);
     static void operator delete(void* p);
     static void deleter(IoTask* p);
-    
+
 private:
     Function<int()>         _func;      //the current runnable io function
     std::atomic_bool        _terminated;

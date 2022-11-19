@@ -44,9 +44,9 @@ class Task : public ITaskContinuation,
 public:
     using Ptr = std::shared_ptr<Task>;
     using WeakPtr = std::weak_ptr<Task>;
-    
+
     enum class State : int { Running, Suspended, Terminated };
-    
+
     template <class RET, class FUNC, class ... ARGS>
     Task(std::false_type t,
          std::shared_ptr<Context<RET>> ctx,
@@ -55,7 +55,7 @@ public:
          ITask::Type type,
          FUNC&& func,
          ARGS&&... args);
-    
+
     template <class RET, class FUNC, class ... ARGS>
     Task(std::true_type t,
          std::shared_ptr<Context<RET>> ctx,
@@ -64,39 +64,40 @@ public:
          ITask::Type type,
          FUNC&& func,
          ARGS&&... args);
-    
+
     Task(const Task& task) = delete;
     Task(Task&& task) = default;
     Task& operator=(const Task& task) = delete;
     Task& operator=(Task&& task) = default;
-    
+
     ~Task();
-    
+
     //ITerminate
     void terminate() final;
-    
+
     //ITask
     int run() final;
     void setQueueId(int queueId) final;
     int getQueueId() const final;
     Type getType() const final;
     TaskId getTaskId() const final;
+    bool isNew() const final;
     bool isBlocked() const final;
     bool isSleeping(bool updateTimer = false) final;
     bool isHighPriority() const final;
     bool isSuspended() const final;
-    
+
     //ITaskContinuation
     ITaskContinuation::Ptr getNextTask() final;
     void setNextTask(ITaskContinuation::Ptr nextTask) final;
     ITaskContinuation::Ptr getPrevTask() final;
     void setPrevTask(ITaskContinuation::Ptr prevTask) final;
     ITaskContinuation::Ptr getFirstTask() final;
-    
+
     //Returns a final or error handler task in the chain and in the process frees all
     //the subsequent continuation tasks
     ITaskContinuation::Ptr getErrorHandlerOrFinalTask() final;
-    
+
     //Local storage accessors
     LocalStorage& getLocalStorage() final;
     ITaskAccessor::Ptr getTaskAccessor() const;
@@ -107,9 +108,9 @@ public:
     static void* operator new(size_t size);
     static void operator delete(void* p);
     static void deleter(Task* p);
-    
+
 private:
-    
+
     struct SuspensionGuard {
         SuspensionGuard(std::atomic_int& suspendedState) :
             _isLocked(false),
@@ -132,16 +133,16 @@ private:
             _suspendedState.store(newState, std::memory_order::memory_order_acq_rel);
             _isLocked = false;
         }
-               
+
         operator bool() const
         {
             return _isLocked;
         }
-        
+
         bool _isLocked;
         std::atomic_int& _suspendedState;
     };
-    
+
     ITaskAccessor::Ptr          _coroContext; //holds execution context
     Traits::Coroutine           _coro; //the current runnable coroutine
     int                         _queueId;
@@ -150,6 +151,7 @@ private:
     ITaskContinuation::WeakPtr  _prev; //Previous task in the chain
     ITask::Type                 _type;
     TaskId                      _taskId;
+    bool                        _isNew;
     std::atomic_bool            _terminated;
     std::atomic_int             _suspendedState; // stores values of State
     ITask::LocalStorage         _localStorage; // local storage of the coroutine
