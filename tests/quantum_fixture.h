@@ -26,12 +26,15 @@ namespace quantum = Bloomberg::quantum;
 
 struct TestConfiguration
 {
-    TestConfiguration(bool loadBalance, bool coroutineSharingForAny) :
+    TestConfiguration(bool loadBalance,
+                      bool coroutineSharingForAny,
+                      const quantum::CoroutineStateHandler& coroutineStateHandler = {}) :
         _loadBalance(loadBalance),
-        _coroutineSharingForAny(coroutineSharingForAny)
+        _coroutineSharingForAny(coroutineSharingForAny),
+        _coroutineStateHandler(coroutineStateHandler)
     {
     }
-   
+
     bool operator == (const TestConfiguration& that) const
     {
         return _loadBalance == that._loadBalance &&
@@ -40,6 +43,7 @@ struct TestConfiguration
 
     bool _loadBalance;
     bool _coroutineSharingForAny;
+    quantum::CoroutineStateHandler _coroutineStateHandler;
 };
 
 namespace std {
@@ -67,26 +71,27 @@ public:
         config.setLoadBalancePollIntervalMs(std::chrono::milliseconds(10));
         config.setCoroQueueIdRangeForAny(std::make_pair(1,numCoro-1));
         config.setCoroutineSharingForAny(taskConfig._coroutineSharingForAny);
+        config.setCoroutineStateHandler(taskConfig._coroutineStateHandler);
         return std::make_shared<quantum::Dispatcher>(config);
     }
-    
+
     static quantum::Dispatcher& instance(const TestConfiguration& config)
     {
         auto it = _dispatchers.find(config);
         if (it == _dispatchers.end())
-        {                
+        {
             it = _dispatchers.emplace(config, createInstance(config)).first;
         }
         return *it->second;
     }
-    
+
     static void deleteInstances()
     {
         _dispatchers.clear();
     }
-    
+
     static constexpr int numCoro{4};
-    
+
     static constexpr int numThreads{5};
 private:
     using DispatcherMap = std::unordered_map<TestConfiguration, std::shared_ptr<quantum::Dispatcher>>;
@@ -110,7 +115,7 @@ public:
         _dispatcher->drain();
         _dispatcher->resetStats();
     }
-    
+
     void TearDown()
     {
         _dispatcher = nullptr;
@@ -120,7 +125,7 @@ public:
     {
         return *_dispatcher;
     }
-    
+
 protected:
     quantum::Dispatcher*  _dispatcher;
 };
