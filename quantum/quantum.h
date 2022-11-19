@@ -48,6 +48,7 @@
 #include <quantum/quantum_context.h>
 #include <quantum/quantum_contiguous_pool_manager.h>
 #include <quantum/quantum_coroutine_pool_allocator.h>
+#include <quantum/quantum_coroutine_state_handler.h>
 #include <quantum/quantum_dispatcher.h>
 #include <quantum/quantum_dispatcher_core.h>
 #include <quantum/quantum_functions.h>
@@ -80,8 +81,9 @@
 #include <quantum/util/quantum_sequence_key_statistics.h>
 #include <quantum/util/quantum_sequencer.h>
 #include <quantum/util/quantum_sequencer_configuration.h>
-#include <quantum/util/quantum_sequencer_experimental.h>
 #include <quantum/util/quantum_sequencer_configuration_experimental.h>
+#include <quantum/util/quantum_sequencer_experimental.h>
+#include <quantum/util/quantum_sequencer_task_experimental.h>
 #include <quantum/util/quantum_spinlock_util.h>
 #include <quantum/util/quantum_util.h>
 
