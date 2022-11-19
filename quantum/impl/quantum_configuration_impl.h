@@ -19,6 +19,8 @@
 //#################################### IMPLEMENTATIONS #########################################
 //##############################################################################################
 
+#include <quantum/quantum_coroutine_state_handler.h>
+
 namespace Bloomberg {
 namespace quantum {
 
@@ -155,6 +157,13 @@ Configuration& Configuration::setCoroutineSharingForAny(bool sharing)
 }
 
 inline
+Configuration& Configuration::setCoroutineStateHandler(const CoroutineStateHandler& coroutineStateHandler)
+{
+     _coroutineStateHandler = coroutineStateHandler;
+     return *this;
+}
+
+inline
 int Configuration::getNumCoroutineThreads() const
 {
     return _numCoroutineThreads;
@@ -207,6 +216,12 @@ bool Configuration::getCoroutineSharingForAny() const
 {
     return _coroutineSharingForAny;
 }
-    
+
+inline
+const CoroutineStateHandler& Configuration::getCoroutineStateHandler() const
+{
+    return _coroutineStateHandler;
+}
+
 }
 }
