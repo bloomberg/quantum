@@ -38,45 +38,45 @@ class ConditionVariable
 public:
     /// @brief Default constructor.
     ConditionVariable();
-    
+
     /// @warning Copy constructor is explicitly deleted.
     ConditionVariable(const ConditionVariable& other) = delete;
-    
+
     /// @warning Move constructor is explicitly deleted.
     ConditionVariable(ConditionVariable&& other) = delete;
-    
+
     /// @warning Assignment operator is explicitly deleted.
     ConditionVariable& operator=(const ConditionVariable& other) = delete;
-    
+
     /// @warning Move assignment operator is explicitly deleted.
     ConditionVariable& operator=(ConditionVariable&& other) = delete;
-    
+
     /// @brief Destructor.
     /// @warning Deleting this object while there are still waiting threads results in undefined behavior. Ensure that
     ///          all threads have been notified before doing so. Once the destructor is called, no other wait attempts
     ///          should be made on this object.
     ~ConditionVariable();
-    
+
     /// @brief Notify one waiting thread or coroutine.
     void notifyOne();
-    
+
     /// @brief Notify one waiting thread or coroutine.
     /// @param[in] sync Pointer to a coroutine synchronization object.
     void notifyOne(ICoroSync::Ptr sync);
-    
+
     /// @brief Notify all waiting threads and coroutines.
     void notifyAll();
-    
+
     /// @brief Notify all waiting threads and coroutines.
     /// @param[in] sync Pointer to a coroutine synchronization object.
     void notifyAll(ICoroSync::Ptr sync);
-    
+
     /// @brief Block the current thread until the condition is signalled via notifyOne() or notifyAll().
     /// @details When this function returns, the mutex is guaranteed to be locked.
     /// @param[in] mutex Mutex object which is locked by the current thread.
     /// @note This function should be called from a regular thread not from a coroutine.
     void wait(Mutex& mutex);
-    
+
     /// @brief Yield the current coroutine until the condition is signalled via notifyOne() or notifyAll().
     /// @details When this function returns, the mutex is guaranteed to be locked.
     /// @param[in] sync Pointer to a coroutine synchronization object.
@@ -84,7 +84,7 @@ public:
     /// @note This function should be called from a coroutine.
     void wait(ICoroSync::Ptr sync,
               Mutex& mutex);
-    
+
     /// @brief Block the current thread until the condition is signalled via notifyOne() or notifyAll().
     /// @details When this function returns, the mutex is guaranteed to be locked. This function calls wait() in a loop
     ///          until the predicate returns true. This ensures that the condition has not changed after notifyOne()
@@ -102,7 +102,7 @@ public:
     template <class PREDICATE = bool()>
     void wait(Mutex& mutex,
               PREDICATE predicate);
-    
+
     /// @brief Yield the current coroutine until the condition is signalled via notifyOne() or notifyAll(). When this
     ///        function returns, the mutex is guaranteed to be locked.
     /// @details When this function returns, the mutex is guaranteed to be locked. This function calls wait() in a loop
@@ -123,7 +123,7 @@ public:
     void wait(ICoroSync::Ptr sync,
               Mutex& mutex,
               PREDICATE predicate);
-    
+
     /// @brief Block the current thread until the condition is signalled via notifyOne() or notifyAll() or until 'time'
     ///        duration expires.
     /// @details When this function returns, the mutex is guaranteed to be locked.
@@ -137,7 +137,7 @@ public:
     template <class REP, class PERIOD>
     bool waitFor(Mutex& mutex,
                  const std::chrono::duration<REP, PERIOD>& time);
-    
+
     /// @brief Block the current thread until the condition is signalled via notifyOne() or notifyAll() or until 'time'
     ///        duration expires.
     /// @details When this function returns, the mutex is guaranteed to be locked.
@@ -153,7 +153,7 @@ public:
     bool waitFor(ICoroSync::Ptr sync,
                  Mutex& mutex,
                  const std::chrono::duration<REP, PERIOD>& time);
-    
+
     /// @brief Block the current thread until the condition is signalled via notifyOne() or notifyAll() or until 'time'
     ///        duration expires.
     /// @details When this function returns, the mutex is guaranteed to be locked. This function calls
@@ -182,11 +182,11 @@ public:
     bool waitFor(Mutex& mutex,
                  const std::chrono::duration<REP, PERIOD>& time,
                  PREDICATE predicate);
-    
+
     /// @brief Block the current thread until the condition is signalled via notifyOne() or notifyAll() or until 'time'
     ///        duration expires.
     /// @details When this function returns, the mutex is guaranteed to be locked. This function calls
-    ///          wait() in a loop until the predicate returns true or 'time' expires. This ensures that the condition
+    ///          wait() in a loop until the predicate  or 'time' expires. This ensures that the condition
     ///          has not changed after notifyOne() or notifyAll() have been called. The internal logic is equivalent to:
     /// @code
     ///     while(!predicate())
@@ -213,27 +213,27 @@ public:
                  Mutex& mutex,
                  const std::chrono::duration<REP, PERIOD>& time,
                  PREDICATE predicate);
-    
+
 private:
     void waitImpl(ICoroSync::Ptr sync,
                   Mutex& mutex);
-    
+
     template <class PREDICATE = bool()>
     void waitImpl(ICoroSync::Ptr sync,
                   Mutex& mutex,
                   PREDICATE predicate);
-    
+
     template <class REP, class PERIOD>
     bool waitForImpl(ICoroSync::Ptr sync,
                      Mutex& mutex,
                      const std::chrono::duration<REP, PERIOD>& time);
-    
+
     template <class REP, class PERIOD, class PREDICATE = bool()>
     bool waitForImpl(ICoroSync::Ptr sync,
                      Mutex& mutex,
                      const std::chrono::duration<REP, PERIOD>& time,
                      PREDICATE predicate);
-    
+
     //MEMBERS
     Mutex                           _thisLock; //sync access to this object
     std::list<std::atomic_int*>     _waiters;

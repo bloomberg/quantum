@@ -42,12 +42,12 @@ class Context : public IThreadContext<RET>,
     friend class Task;
     friend class Dispatcher;
     template <class OTHER_RET> friend class Context;
-    
+
 public:
     using Ptr = std::shared_ptr<Context<RET>>;
     using ThreadCtx = IThreadContext<RET>;
     using CoroCtx = ICoroContext<RET>;
-    
+
     //===================================
     //              D'TOR
     //===================================
@@ -57,7 +57,7 @@ public:
     //           ITERMINATE
     //===================================
     void terminate() final;
-    
+
     //===================================
     //         ITASKACCESSOR
     //===================================
@@ -73,7 +73,7 @@ public:
     bool valid() const final;
     bool validAt(int num) const final;
     int setException(std::exception_ptr ex) final;
-    
+
     //===================================
     //        ITHREADCONTEXTBASE
     //===================================
@@ -100,7 +100,7 @@ public:
     NonBufferRetType<OTHER_RET> getAt(int num);
     template <class OTHER_RET>
     const NonBufferRetType<OTHER_RET>& getRefAt(int num) const;
-    
+
     //===================================
     //        ICOROCONTEXTBASE
     //===================================
@@ -109,7 +109,7 @@ public:
     void wait(ICoroSync::Ptr sync) const final;
     std::future_status waitFor(ICoroSync::Ptr sync, std::chrono::milliseconds timeMs) const final;
     void waitAll(ICoroSync::Ptr sync) const final;
-    
+
     //===================================
     //         ICOROCONTEXT
     //===================================
@@ -131,7 +131,7 @@ public:
     NonBufferRetType<OTHER_RET> getPrev(ICoroSync::Ptr sync);
     template <class OTHER_RET>
     const NonBufferRetType<OTHER_RET>& getPrevRef(ICoroSync::Ptr sync);
-    
+
     //===================================
     //           ICOROSYNC
     //===================================
@@ -141,7 +141,7 @@ public:
     std::atomic_int& signal() final;
     void sleep(const std::chrono::milliseconds& timeMs) final;
     void sleep(const std::chrono::microseconds& timeUs) final;
-    
+
     //===================================
     //      MISC IMPLEMENTATIONS
     //===================================
@@ -152,98 +152,98 @@ public:
     int getNumCoroutineThreads() const;
     int getNumIoThreads() const;
     const std::pair<int, int>& getCoroQueueIdRangeForAny() const;
-    
+
     //===================================
     //        TASK CONTINUATIONS
     //===================================
     template <class OTHER_RET, class FUNC, class ... ARGS>
     typename Context<OTHER_RET>::Ptr
     post(FUNC&& func, ARGS&&... args);
-    
+
     template <class OTHER_RET, class FUNC, class ... ARGS>
     typename Context<OTHER_RET>::Ptr
     post2(FUNC&& func, ARGS&&... args);
-    
+
     template <class OTHER_RET, class FUNC, class ... ARGS>
     typename Context<OTHER_RET>::Ptr
     post(int queueId, bool isHighPriority, FUNC&& func, ARGS&&... args);
-    
+
     template <class OTHER_RET, class FUNC, class ... ARGS>
     typename Context<OTHER_RET>::Ptr
     post2(int queueId, bool isHighPriority, FUNC&& func, ARGS&&... args);
-    
+
     template <class OTHER_RET, class FUNC, class ... ARGS>
     typename Context<OTHER_RET>::Ptr
     postFirst(FUNC&& func, ARGS&&... args);
-    
+
     template <class OTHER_RET, class FUNC, class ... ARGS>
     typename Context<OTHER_RET>::Ptr
     postFirst2(FUNC&& func, ARGS&&... args);
-    
+
     template <class OTHER_RET, class FUNC, class ... ARGS>
     typename Context<OTHER_RET>::Ptr
     postFirst(int queueId, bool isHighPriority, FUNC&& func, ARGS&&... args);
-    
+
     template <class OTHER_RET, class FUNC, class ... ARGS>
     typename Context<OTHER_RET>::Ptr
     postFirst2(int queueId, bool isHighPriority, FUNC&& func, ARGS&&... args);
-    
+
     template <class OTHER_RET, class FUNC, class ... ARGS>
     typename Context<OTHER_RET>::Ptr
     then(FUNC&& func, ARGS&&... args);
-    
+
     template <class OTHER_RET, class FUNC, class ... ARGS>
     typename Context<OTHER_RET>::Ptr
     then2(FUNC&& func, ARGS&&... args);
-    
+
     template <class OTHER_RET, class FUNC, class ... ARGS>
     typename Context<OTHER_RET>::Ptr
     onError(FUNC&& func, ARGS&&... args);
-    
+
     template <class OTHER_RET, class FUNC, class ... ARGS>
     typename Context<OTHER_RET>::Ptr
     onError2(FUNC&& func, ARGS&&... args);
-    
+
     template <class OTHER_RET, class FUNC, class ... ARGS>
     typename Context<OTHER_RET>::Ptr
     finally(FUNC&& func, ARGS&&... args);
-    
+
     template <class OTHER_RET, class FUNC, class ... ARGS>
     typename Context<OTHER_RET>::Ptr
     finally2(FUNC&& func, ARGS&&... args);
-    
+
     Ptr end();
-    
+
     //===================================
     //           BLOCKING IO
     //===================================
     template <class OTHER_RET, class FUNC, class ... ARGS>
     CoroFuturePtr<OTHER_RET>
     postAsyncIo(FUNC&& func, ARGS&&... args);
-    
+
     template <class OTHER_RET, class FUNC, class ... ARGS>
     CoroFuturePtr<OTHER_RET>
     postAsyncIo2(FUNC&& func, ARGS&&... args);
-    
+
     template <class OTHER_RET, class FUNC, class ... ARGS>
     CoroFuturePtr<OTHER_RET>
     postAsyncIo(int queueId, bool isHighPriority, FUNC&& func, ARGS&&... args);
-    
+
     template <class OTHER_RET, class FUNC, class ... ARGS>
     CoroFuturePtr<OTHER_RET>
     postAsyncIo2(int queueId, bool isHighPriority, FUNC&& func, ARGS&&... args);
-    
+
     //===================================
     //           FOR EACH
     //===================================
     template <class OTHER_RET, class INPUT_IT, class FUNC, class = Traits::IsInputIterator<INPUT_IT>>
     typename Context<std::vector<OTHER_RET>>::Ptr
     forEach(INPUT_IT first, INPUT_IT last, FUNC&& func);
-    
+
     template <class OTHER_RET, class INPUT_IT, class FUNC>
     typename Context<std::vector<OTHER_RET>>::Ptr
     forEach(INPUT_IT first, size_t num, FUNC&& func);
-    
+
     template <class OTHER_RET, class INPUT_IT, class FUNC, class = Traits::IsInputIterator<INPUT_IT>>
     typename Context<std::vector<std::vector<OTHER_RET>>>::Ptr
     forEachBatch(INPUT_IT first, INPUT_IT last, FUNC&& func);
@@ -251,7 +251,7 @@ public:
     template <class OTHER_RET, class INPUT_IT, class FUNC>
     typename Context<std::vector<std::vector<OTHER_RET>>>::Ptr
     forEachBatch(INPUT_IT first, size_t num, FUNC&& func);
-    
+
     //===================================
     //           MAP REDUCE
     //===================================
@@ -265,7 +265,7 @@ public:
               INPUT_IT last,
               Functions::MapFunc<KEY, MAPPED_TYPE, INPUT_IT> mapper,
               Functions::ReduceFunc<KEY, MAPPED_TYPE, REDUCED_TYPE> reducer);
-    
+
     template <class KEY,
               class MAPPED_TYPE,
               class REDUCED_TYPE,
@@ -275,7 +275,7 @@ public:
               size_t num,
               Functions::MapFunc<KEY, MAPPED_TYPE, INPUT_IT> mapper,
               Functions::ReduceFunc<KEY, MAPPED_TYPE, REDUCED_TYPE> reducer);
-    
+
     template <class KEY,
               class MAPPED_TYPE,
               class REDUCED_TYPE,
@@ -286,7 +286,7 @@ public:
                    INPUT_IT last,
                    Functions::MapFunc<KEY, MAPPED_TYPE, INPUT_IT> mapper,
                    Functions::ReduceFunc<KEY, MAPPED_TYPE, REDUCED_TYPE> reducer);
-    
+
     template <class KEY,
               class MAPPED_TYPE,
               class REDUCED_TYPE,
@@ -296,22 +296,22 @@ public:
                    size_t num,
                    Functions::MapFunc<KEY, MAPPED_TYPE, INPUT_IT> mapper,
                    Functions::ReduceFunc<KEY, MAPPED_TYPE, REDUCED_TYPE> reducer);
-    
+
     //===================================
     //           NEW / DELETE
     //===================================
     static void* operator new(size_t size);
     static void operator delete(void* p);
     static void deleter(Context<RET>* p);
-    
+
 private:
     explicit Context(DispatcherCore& dispatcher);
-    
+
     template <class OTHER_RET>
     Context(Context<OTHER_RET>& other);
-    
+
     Context(IContextBase& other);
-    
+
     template <class OTHER_RET, class FUNC, class ... ARGS>
     typename Context<OTHER_RET>::Ptr
     thenImpl(ITask::Type type, FUNC&& func, ARGS&&... args);
@@ -319,17 +319,17 @@ private:
     template <class OTHER_RET, class FUNC, class ... ARGS>
     typename Context<OTHER_RET>::Ptr
     postImpl(int queueId, bool isHighPriority, ITask::Type type, FUNC&& func, ARGS&&... args);
-    
+
     template <class OTHER_RET, class FUNC, class ... ARGS>
     CoroFuturePtr<OTHER_RET>
     postAsyncIoImpl(int queueId, bool isHighPriority, FUNC&& func, ARGS&&... args);
-    
+
     int index(int num) const;
-    
+
     void validateTaskType(ITask::Type type) const; //throws
-    
+
     void validateContext(ICoroSync::Ptr sync) const; //throws
-    
+
     //Members
     ITask::Ptr                              _task;
     std::vector<IPromiseBase::Ptr>          _promises;
