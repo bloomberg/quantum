@@ -91,15 +91,11 @@ void Task::terminate()
 }
 
 inline
-int Task::run()
+int Task::run(const CoroutineStateHandler& stateHandler)
 {
     SuspensionGuard guard(_suspendedState);
     if (guard)
     {
-        if (isNew())
-        {
-            _isNew = false;
-        }
         if (!_coro)
         {
             return (int)ITask::RetCode::NotCallable;
@@ -112,9 +108,39 @@ int Task::run()
         {
             return (int)ITask::RetCode::Sleeping;
         }
+        CoroutineState coroutineState = CoroutineState::Resumed;
+        if (_isNew)
+        {
+            coroutineState = CoroutineState::Constructed;
+            _isNew = false;
+        }
+        stateHandler(coroutineState);
         int rc = (int)ITask::RetCode::Running;
         _taskId.assignCurrentThread();
-        _coro(rc);
+        try {
+            _coro(rc);
+        }
+        catch (...)
+        {
+            stateHandler(CoroutineState::Suspended);
+            stateHandler(CoroutineState::Destructed);
+            throw;
+        }
+
+        stateHandler(CoroutineState::Suspended);
+        switch (rc)
+        {
+            case (int)ITask::RetCode::AlreadyResumed:
+            case (int)ITask::RetCode::Blocked:
+            case (int)ITask::RetCode::Sleeping:
+            case (int)ITask::RetCode::Running:
+                // Do nothing
+                break;
+            default:
+                stateHandler(CoroutineState::Destructed);
+                break;
+        }
+
         if (!_coro)
         {
             guard.set((int)State::Terminated);
@@ -179,13 +205,6 @@ ITaskContinuation::Ptr Task::getErrorHandlerOrFinalTask()
     }
     return nullptr;
 }
-
-inline
-bool Task::isNew() const
-{
-    return _isNew;
-}
-
 
 inline
 bool Task::isBlocked() const

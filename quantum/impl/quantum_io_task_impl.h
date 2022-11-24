@@ -80,7 +80,7 @@ void IoTask::terminate()
 }
 
 inline
-int IoTask::run()
+int IoTask::run(const CoroutineStateHandler&)
 {
     if (_func) {
         _taskId.assignCurrentThread();
@@ -111,12 +111,6 @@ inline
 TaskId IoTask::getTaskId() const
 {
     return _taskId;
-}
-
-inline
-bool IoTask::isNew() const
-{
-    return false;
 }
 
 inline

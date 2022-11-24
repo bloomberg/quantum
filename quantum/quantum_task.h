@@ -22,6 +22,7 @@
 #include <quantum/interface/quantum_itask_continuation.h>
 #include <quantum/interface/quantum_itask_accessor.h>
 #include <quantum/quantum_traits.h>
+#include <quantum/quantum_coroutine_state_handler.h>
 #include <quantum/util/quantum_util.h>
 #include <iostream>
 #include <memory>
@@ -76,12 +77,11 @@ public:
     void terminate() final;
 
     //ITask
-    int run() final;
+    int run(const CoroutineStateHandler& handler) final;
     void setQueueId(int queueId) final;
     int getQueueId() const final;
     Type getType() const final;
     TaskId getTaskId() const final;
-    bool isNew() const final;
     bool isBlocked() const final;
     bool isSleeping(bool updateTimer = false) final;
     bool isHighPriority() const final;

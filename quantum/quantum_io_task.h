@@ -64,13 +64,12 @@ public:
     void terminate() final;
 
     //ITask
-    int run() final;
+    int run(const CoroutineStateHandler& handler) final;
     void setQueueId(int queueId) final;
     int getQueueId() const final;
     Type getType() const final;
     TaskId getTaskId() const final;
     //Always return false
-    bool isNew() const final;
     bool isBlocked() const final;
     bool isSleeping(bool updateTimer = false) final;
     bool isHighPriority() const final;
