@@ -54,7 +54,7 @@ CoroutineStateHandler wrapCoroutineStateHandler(const CoroutineStateHandler& cor
         }
     };
 }
-}
+} // namepsace
 
 inline
 TaskQueue::WorkItem::WorkItem(TaskPtr task,
@@ -223,7 +223,14 @@ TaskQueue::ProcessTaskResult TaskQueue::processTask()
             return ProcessTaskResult(workItem._isBlocked, workItem._blockedQueueRound);
         }
 
-        const int rc = runTask(task);
+        int rc = 0;
+        {
+            // set the current task for local-storage queries
+            IQueue::TaskSetterGuard taskSetter(*this, task);
+            //========================= START/RESUME COROUTINE =========================
+            rc = task->run(_coroutineStateHandler);
+            //=========================== END/YIELD COROUTINE ==========================
+        }
         switch (rc)
         {
             case (int)ITask::RetCode::NotCallable:
@@ -258,43 +265,6 @@ TaskQueue::ProcessTaskResult TaskQueue::processTask()
         handleException(workItem);
     }
     return ProcessTaskResult(workItem._isBlocked, workItem._blockedQueueRound);
-}
-
-inline
-int TaskQueue::runTask(const TaskPtr& task)
-{
-    // set the current task for local-storage queries
-    IQueue::TaskSetterGuard taskSetter(*this, task);
-
-    _coroutineStateHandler(task->isNew() ? CoroutineState::Constructed
-                                         : CoroutineState::Resumed);
-    int rc = 0;
-    try
-    {
-        rc = task->run();
-    }
-    catch (...)
-    {
-        _coroutineStateHandler(CoroutineState::Suspended);
-        _coroutineStateHandler(CoroutineState::Destructed);
-        throw;
-    }
-
-    _coroutineStateHandler(CoroutineState::Suspended);
-    switch (rc)
-    {
-        case (int)ITask::RetCode::AlreadyResumed:
-        case (int)ITask::RetCode::Blocked:
-        case (int)ITask::RetCode::Sleeping:
-        case (int)ITask::RetCode::Running:
-            // Do nothing
-            break;
-        default:
-            _coroutineStateHandler(CoroutineState::Destructed);
-            break;
-    }
-
-    return rc;
 }
 
 inline

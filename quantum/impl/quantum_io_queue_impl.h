@@ -110,7 +110,7 @@ void IoQueue::run()
                 //Wait for the queue to have at least one element
                 _notEmptyCond.wait(lock, [this]() -> bool { return !_isEmpty || _isInterrupted; });
             }
-            
+
             if (_isInterrupted)
             {
                 break;
@@ -125,11 +125,11 @@ void IoQueue::run()
                     continue;
                 }
             }
-            
+
             // set the current task
             IQueue::TaskSetterGuard taskSetter(*this, task);
             //========================= START TASK =========================
-            int rc = task->run();
+            int rc = task->run({});
             //========================== END TASK ==========================
 
             if (rc == (int)ITask::RetCode::Success)
@@ -280,7 +280,7 @@ ITask::Ptr IoQueue::tryDequeueFromShared()
     static size_t index = 0;
     ITask::Ptr task;
     size_t size = 0;
-    
+
     for (size_t i = 0; i < (*_sharedIoQueues).size(); ++i)
     {
         IoQueue& queue = (*_sharedIoQueues)[++index % (*_sharedIoQueues).size()];
@@ -383,7 +383,7 @@ ITask::Ptr IoQueue::grabWorkItem()
     static bool grabFromShared = false;
     ITask::Ptr task = nullptr;
     grabFromShared = !grabFromShared;
-    
+
     if (grabFromShared) {
         //========================= LOCKED SCOPE (SHARED QUEUE) =========================
         SpinLock::Guard lock((*_sharedIoQueues)[0].getLock());
@@ -423,7 +423,7 @@ ITask::Ptr IoQueue::grabWorkItemFromAll()
     static bool grabFromShared = false;
     ITask::Ptr task = nullptr;
     grabFromShared = !grabFromShared;
-    
+
     if (grabFromShared)
     {
         task = tryDequeueFromShared();
