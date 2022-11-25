@@ -15,36 +15,40 @@
 */
 
 #include <cstdlib>
+#include <atomic>
 
 #include <gtest/gtest.h>
 #include <quantum/quantum.h>
 #include <quantum_fixture.h>
-#include <quantum_perf_utils.h>
 
-using namespace Bloomberg;
-using namespace quantum;
-using ms = std::chrono::milliseconds;
 
 namespace {
 
 struct TaskParams
 {
     size_t yieldIterations{0}; // number of times the task is supposed to yield
+    bool randomYieldIterations{false}; // if true the task will yield a random number of times in range [0, yieldIterations]
     ms sleepTime{30}; // sleep time between yield calls. If yieldIterations is 0, a task will sleep sleepTime ms
-    bool randomSleepTime{false}; // if true the task will sleep random time in range (0, sleepTime)
+    bool randomSleepTime{false}; // if true the task will sleep random time in range [0, sleepTime]
     bool throwException{false}; // indicates if a task should throw exception
     size_t exceptionIteration{0}; // iteration on which exception is thrown
-    ITask::RetCode returnCode{ITask::RetCode::Success}; // return code of the task
+    Bloomberg::quantum::ITask::RetCode returnCode{Bloomberg::quantum::ITask::RetCode::Success}; // return code of the task
 };
 
-std::function<int(CoroContext<int>::Ptr)> makeTask(const TaskParams& taskParms)
+std::function<int(Bloomberg::quantum::CoroContext<int>::Ptr)> makeTask(const TaskParams& taskParms)
 {
-    auto yield = [](CoroContext<int>::Ptr ctx) -> bool {
+    auto yield = [](Bloomberg::quantum::CoroContext<int>::Ptr ctx) -> bool {
         ctx->yield();
         return true;
     };
-    return [taskParms, yield](CoroContext<int>::Ptr ctx)-> int {
+    return [taskParms, yield](Bloomberg::quantum::CoroContext<int>::Ptr ctx)-> int {
         size_t iteration = 0;
+        size_t yieldIterations = taskParms.yieldIterations;
+        if (taskParms.randomYieldIterations)
+        {
+            yieldIterations = rand() % (taskParms.yieldIterations + 1);
+        }
+
         do {
             ms sleepTime = taskParms.sleepTime;
             if (taskParms.randomSleepTime)
@@ -56,189 +60,170 @@ std::function<int(CoroContext<int>::Ptr)> makeTask(const TaskParams& taskParms)
             {
                 throw std::runtime_error("Unexpected error");
             }
-        } while ((iteration++ < taskParms.yieldIterations) && yield(ctx));
+        } while ((iteration++ < yieldIterations) && yield(ctx));
 
         return static_cast<int>(taskParms.returnCode);
     };
 }
 
-void throwException(CoroutineState)
-{
-    throw std::runtime_error("Coroutine state handler exception");
-}
-
-void createVariablesInLocalStorage(CoroutineState state)
-{
-    switch (state)
-    {
-        case quantum::CoroutineState::Constructed:
-        {
-            local::variable<size_t>("WholeLifetime") = new size_t(local::taskId().id());
-            break;
-        }
-        case quantum::CoroutineState::Resumed:
-        {
-            local::variable<size_t>("ExecutionLifetime") = new size_t(local::taskId().id());
-            break;
-        }
-        case quantum::CoroutineState::Suspended:
-        {
-            size_t*& var = local::variable<size_t>("ExecutionLifetime");
-            if (var)
-            {
-                EXPECT_EQ(*var, local::taskId().id());
-                delete var;
-                var = nullptr;
-            }
-            break;
-        }
-        case quantum::CoroutineState::Destructed:
-        {
-            size_t*& var = local::variable<size_t>("WholeLifetime");
-            EXPECT_TRUE(var);
-            EXPECT_EQ(*var, local::taskId().id());
-            delete var;
-            var = nullptr;
-            break;
-        }
-    }
-}
-
-class TestCoroutineStateHandler : public ::testing::Test
+class CoroutineStateHandlerTest : public ::testing::TestWithParam<Bloomberg::quantum::CoroutineStateHandler>
 {
 protected:
-    TestCoroutineStateHandler()
+    CoroutineStateHandlerTest():
+        _constructed(0),
+        _resumed(0),
+        _suspended(0),
+        _destructed(0)
     {
         srand((unsigned) time(NULL));
     }
 
     void testCoroutineStateHandler(
-        const CoroutineStateHandler& coroutineStateHandler,
         size_t tasksCount,
-        const TaskParams& taskParams)
+        const TaskParams& taskParams,
+        bool coroutineSharingForAny = false,
+        bool loadBalanceSharedIoQueues = false)
     {
-        CoroutineStateHandler handler{};
+        Bloomberg::quantum::CoroutineStateHandler finalStateHandler{};
+        auto& coroutineStateHandler = GetParam();
         if (coroutineStateHandler)
         {
-            handler = [this, &coroutineStateHandler](CoroutineState state)
+            finalStateHandler = [this, coroutineStateHandler](Bloomberg::quantum::CoroutineState state)
             {
                 countCoroutineStates(state);
-                if (coroutineStateHandler)
-                {
-                    coroutineStateHandler(state);
-                }
+                coroutineStateHandler(state);
             };
         }
-        const TestConfiguration config(false, false, handler);
+        const TestConfiguration config(loadBalanceSharedIoQueues,
+                                       coroutineSharingForAny,
+                                       finalStateHandler);
         auto dispatcher = DispatcherSingleton::createInstance(config);
+        dispatcher->drain();
+        for(size_t taskId = 0; taskId < tasksCount; ++taskId)
         {
-            Timer timer;
-            for(size_t taskId = 0; taskId < tasksCount; ++taskId)
-            {
-                dispatcher->post((int)IQueue::QueueId::Any, false, makeTask(taskParams));
-            }
-            dispatcher->drain();
+            dispatcher->post((int)Bloomberg::quantum::IQueue::QueueId::Any, false, makeTask(taskParams));
         }
+        dispatcher->drain();
+
+        std::cout << "Counters" << '\n'
+                  << "constructed: " << _constructed << '\n'
+                  << "resumed: " << _resumed << '\n'
+                  << "suspended: " << _suspended << '\n'
+                  << "destructed: " << _destructed << std::endl;
+
         EXPECT_EQ(_constructed, _destructed);
         EXPECT_EQ(_constructed + _resumed, _suspended);
-
-        std::cout
-                << "Execution time: " <<  Timer::elapsed<std::chrono::milliseconds>() << "ms\n"
-                << "constructed counter: " << _constructed << '\n'
-                << "resumed counter: " << _resumed << '\n'
-                << "suspended counter: " << _suspended << '\n'
-                << "destructed counter: " << _destructed << std::endl;
     }
 
 private:
-    void countCoroutineStates(quantum::CoroutineState state)
+    void countCoroutineStates(Bloomberg::quantum::CoroutineState state)
     {
         switch (state)
         {
-            case quantum::CoroutineState::Constructed:
+            case Bloomberg::quantum::CoroutineState::Constructed:
                 ++_constructed;
                 break;
-            case quantum::CoroutineState::Resumed:
+            case Bloomberg::quantum::CoroutineState::Resumed:
                 ++_resumed;
                 break;
-            case quantum::CoroutineState::Suspended:
+            case Bloomberg::quantum::CoroutineState::Suspended:
                 ++_suspended;
                 break;
-            case quantum::CoroutineState::Destructed:
+            case Bloomberg::quantum::CoroutineState::Destructed:
                 ++_destructed;
                 break;
         }
     }
 
 private:
-    std::atomic_int _constructed = 0;
-    std::atomic_int _resumed = 0;
-    std::atomic_int _suspended = 0;
-    std::atomic_int _destructed = 0;
+    std::atomic_int _constructed;
+    std::atomic_int _resumed;
+    std::atomic_int _suspended;
+    std::atomic_int _destructed;
 };
 
+
+// Handlers
+Bloomberg::quantum::CoroutineStateHandler emptyHandler{};
+Bloomberg::quantum::CoroutineStateHandler exceptionThrowingHandler = [](Bloomberg::quantum::CoroutineState)
+{
+    throw std::runtime_error("Coroutine state handler exception");
+};
+Bloomberg::quantum::CoroutineStateHandler memoryManagementHandler = TestCoroutineStateHandler();
+
 } // namespace
+
+INSTANTIATE_TEST_CASE_P(CoroutineStateHandlerTest_Default,
+                        CoroutineStateHandlerTest,
+                            ::testing::Values(emptyHandler,
+                                              exceptionThrowingHandler,
+                                              memoryManagementHandler));
 
 //==============================================================================
 //                             TEST CASES
 //==============================================================================
 
-TEST_F(TestCoroutineStateHandler, WithMultipleYieldsAnwWithEmptyHandler)
+TEST_P(CoroutineStateHandlerTest, NoYield)
 {
-    testCoroutineStateHandler({}, 100, {2, ms(30), true});
+    testCoroutineStateHandler(100, {0, false, ms(30), true});
 }
 
-TEST_F(TestCoroutineStateHandler, WithoutYield)
+TEST_P(CoroutineStateHandlerTest, MultipleYields)
 {
-    testCoroutineStateHandler(createVariablesInLocalStorage, 100, {0, ms(30), true});
+    testCoroutineStateHandler(100, {3, true, ms(30), true});
 }
 
-TEST_F(TestCoroutineStateHandler, WithMultipleYields)
+TEST_P(CoroutineStateHandlerTest, NoYieldSharedQueue)
 {
-    testCoroutineStateHandler(createVariablesInLocalStorage, 100, {2, ms(30), true});
+    testCoroutineStateHandler(100, {0, false, ms(30), true}, true);
 }
 
-TEST_F(TestCoroutineStateHandler, WithoutYieldAndWithTaskException)
+TEST_P(CoroutineStateHandlerTest, MultipleYieldsSharedQueue)
 {
-    testCoroutineStateHandler(createVariablesInLocalStorage, 100, {0, ms(30), true, true});
+    testCoroutineStateHandler(100, {3, true, ms(30), true}, true);
 }
 
-TEST_F(TestCoroutineStateHandler, WithYieldAndWithTaskException)
+TEST_P(CoroutineStateHandlerTest, NoYieldLoadBalanceSharedIoQueues)
 {
-    testCoroutineStateHandler(createVariablesInLocalStorage, 100, {1, ms(30), true, true, 1});
+    testCoroutineStateHandler(100, {0, false, ms(30), true}, false, true);
 }
 
-TEST_F(TestCoroutineStateHandler, WithoutYieldAndWithTaskExceptionCode)
+TEST_P(CoroutineStateHandlerTest, MultipleYieldsLoadBalanceSharedIoQueues)
 {
-    testCoroutineStateHandler(createVariablesInLocalStorage, 100, {0, ms(30), true, false, 0, ITask::RetCode::Exception});
+    testCoroutineStateHandler(100, {3, true, ms(30), true}, false, true);
 }
 
-TEST_F(TestCoroutineStateHandler, WithYieldAndWithTaskExceptionCode)
+TEST_P(CoroutineStateHandlerTest, NoYieldTaskException)
 {
-    testCoroutineStateHandler(createVariablesInLocalStorage, 100, {1, ms(30), true, false, 0, ITask::RetCode::Exception});
+    testCoroutineStateHandler(100, {0, false, ms(30), true, true});
 }
 
-TEST_F(TestCoroutineStateHandler, WithoutYieldAndWithHandlerException)
+TEST_P(CoroutineStateHandlerTest, MultipleYieldsException)
 {
-    testCoroutineStateHandler(throwException, 100, {0, ms(30)});
+    testCoroutineStateHandler(100, {2, false, ms(30), true, true, 1});
 }
 
-TEST_F(TestCoroutineStateHandler, WithYieldAndWithHandlerException)
+TEST_P(CoroutineStateHandlerTest, NoYieldTaskExceptionSharedQueue)
 {
-    testCoroutineStateHandler(throwException, 100, {1, ms(30)});
+    testCoroutineStateHandler(100, {0, false, ms(30), true, true}, true);
 }
 
-TEST_F(TestCoroutineStateHandler, WithYieldAndWithHandlerExceptionAndWithTaskException)
+TEST_P(CoroutineStateHandlerTest, MultipleYieldsTaskExceptionSharedQueue)
 {
-    testCoroutineStateHandler(throwException, 100, {1, ms(30), true, true, 1});
+    testCoroutineStateHandler(100, {2, false, ms(30), true, true, 1}, true);
 }
 
-TEST_F(TestCoroutineStateHandler, WithYieldAndWithHandlerExceptionAndWithTaskExceptionCode)
+TEST_P(CoroutineStateHandlerTest, NoYieldTaskCodeException)
 {
-    testCoroutineStateHandler(throwException, 100, {1, ms(30), true, false, 0, ITask::RetCode::Exception});
+    testCoroutineStateHandler(100, {0, false, ms(30), true, false, 0, Bloomberg::quantum::ITask::RetCode::Exception});
 }
 
-TEST_F(TestCoroutineStateHandler, StressTest)
+TEST_P(CoroutineStateHandlerTest, MultipleYieldsTaskCodeException)
 {
-    testCoroutineStateHandler(createVariablesInLocalStorage, 1000, {2, ms(50), true});
+    testCoroutineStateHandler(100, {2, false, ms(30), true, false, 0, Bloomberg::quantum::ITask::RetCode::Exception});
+}
+
+TEST_P(CoroutineStateHandlerTest, StressTest)
+{
+    testCoroutineStateHandler(1000, {3, true, ms(20), true});
 }

@@ -27,7 +27,6 @@
 
 
 using namespace quantum;
-using ms = std::chrono::milliseconds;
 using us = std::chrono::microseconds;
 constexpr int DispatcherSingleton::numCoro;
 constexpr int DispatcherSingleton::numThreads;

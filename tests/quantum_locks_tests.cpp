@@ -22,7 +22,6 @@
 #include <memory>
 
 using namespace Bloomberg::quantum;
-using ms = std::chrono::milliseconds;
 using us = std::chrono::microseconds;
 
 #ifdef BOOST_USE_VALGRIND
