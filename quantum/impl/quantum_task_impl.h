@@ -49,9 +49,9 @@ Task::Task(std::false_type,
     _isHighPriority(isHighPriority),
     _type(type),
     _taskId(CoroContextTag{}),
-    _isNew(true),
     _terminated(false),
-    _suspendedState((int)State::Suspended)
+    _suspendedState((int)State::Suspended),
+    _taskState(TaskState::Initialized)
 {}
 
 template <class RET, class FUNC, class ... ARGS>
@@ -69,9 +69,9 @@ Task::Task(std::true_type,
     _isHighPriority(isHighPriority),
     _type(type),
     _taskId(CoroContextTag{}),
-    _isNew(true),
     _terminated(false),
-    _suspendedState((int)State::Suspended)
+    _suspendedState((int)State::Suspended),
+    _taskState(TaskState::Initialized)
 {}
 
 inline
@@ -91,7 +91,7 @@ void Task::terminate()
 }
 
 inline
-int Task::run(const CoroutineStateHandler& stateHandler)
+int Task::run(const TaskStateHandler& stateHandler, TaskState handledStates)
 {
     SuspensionGuard guard(_suspendedState);
     if (guard)
@@ -108,13 +108,15 @@ int Task::run(const CoroutineStateHandler& stateHandler)
         {
             return (int)ITask::RetCode::Sleeping;
         }
-        CoroutineState coroutineState = CoroutineState::Resumed;
-        if (_isNew)
+
+        if (_taskState == TaskState::Initialized)
         {
-            coroutineState = CoroutineState::Constructed;
-            _isNew = false;
+            handleTaskState(stateHandler, _taskId.id(), _queueId, handledStates, TaskState::Started, _taskState);
         }
-        stateHandler(coroutineState);
+        else
+        {
+            handleTaskState(stateHandler, _taskId.id(), _queueId, handledStates, TaskState::Resumed, _taskState);
+        }
         int rc = (int)ITask::RetCode::Running;
         _taskId.assignCurrentThread();
         try {
@@ -122,22 +124,22 @@ int Task::run(const CoroutineStateHandler& stateHandler)
         }
         catch (...)
         {
-            stateHandler(CoroutineState::Suspended);
-            stateHandler(CoroutineState::Destructed);
+            handleTaskState(stateHandler, _taskId.id(), _queueId, handledStates, TaskState::Stopped, _taskState);
             throw;
         }
 
-        stateHandler(CoroutineState::Suspended);
         switch (rc)
         {
-            case (int)ITask::RetCode::AlreadyResumed:
             case (int)ITask::RetCode::Blocked:
             case (int)ITask::RetCode::Sleeping:
-            case (int)ITask::RetCode::Running:
+            case (int)ITask::RetCode::AlreadyResumed:
                 // Do nothing
                 break;
+            case (int)ITask::RetCode::Running:
+                handleTaskState(stateHandler, _taskId.id(), _queueId, handledStates, TaskState::Suspended, _taskState);
+                break;
             default:
-                stateHandler(CoroutineState::Destructed);
+                handleTaskState(stateHandler, _taskId.id(), _queueId, handledStates, TaskState::Stopped, _taskState);
                 break;
         }
 

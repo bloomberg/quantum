@@ -24,38 +24,6 @@
 namespace Bloomberg {
 namespace quantum {
 
-namespace {
-CoroutineStateHandler wrapCoroutineStateHandler(const CoroutineStateHandler& coroutineStateHandler)
-{
-    return [coroutineStateHandler] (CoroutineState state)
-    {
-        if (not coroutineStateHandler)
-        {
-            return;
-        }
-
-        try
-        {
-            coroutineStateHandler(state);
-        }
-        catch (const std::exception& ex)
-        {
-#ifdef __QUANTUM_PRINT_DEBUG
-            std::lock_guard<std::mutex> guard(Util::LogMutex());
-            std::cerr << "Cannot handle coroutine state: " << ex.what() << std::endl;
-#endif
-        }
-        catch (...)
-        {
-#ifdef __QUANTUM_PRINT_DEBUG
-            std::lock_guard<std::mutex> guard(Util::LogMutex());
-            std::cerr << "Cannot handle coroutine state" << std::endl;
-#endif
-        }
-    };
-}
-} // namepsace
-
 inline
 TaskQueue::WorkItem::WorkItem(TaskPtr task,
                               TaskListIter iter,
@@ -100,8 +68,18 @@ TaskQueue::TaskQueue(const Configuration& configuration, std::shared_ptr<TaskQue
     _queueRound(0),
     _lastSleptQueueRound(std::numeric_limits<unsigned int>::max()),
     _lastSleptSharedQueueRound(std::numeric_limits<unsigned int>::max()),
-    _coroutineStateHandler(wrapCoroutineStateHandler(configuration.getCoroutineStateHandler()))
+    _taskStateHandler(configuration.getTaskStateConfig().handler),
+    _handledTaskStates(configuration.getTaskStateConfig().handledStates)
 {
+    if (isIntersection(configuration.getTaskStateConfig().handledTaskTypes, TaskType::Coroutine))
+    {
+        _taskStateHandler = makeExceptionSafe(_taskStateHandler);
+    }
+    else
+    {
+        _taskStateHandler = {};
+    }
+
     if (_sharedQueue)
     {
         _sharedQueue->_helpers.push_back(this);
@@ -228,7 +206,7 @@ TaskQueue::ProcessTaskResult TaskQueue::processTask()
             // set the current task for local-storage queries
             IQueue::TaskSetterGuard taskSetter(*this, task);
             //========================= START/RESUME COROUTINE =========================
-            rc = task->run(_coroutineStateHandler);
+            rc = task->run(_taskStateHandler, _handledTaskStates);
             //=========================== END/YIELD COROUTINE ==========================
         }
         switch (rc)

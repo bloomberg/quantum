@@ -19,7 +19,7 @@
 #include <quantum/quantum_traits.h>
 #include <quantum/interface/quantum_iterminate.h>
 #include <quantum/quantum_task_id.h>
-#include <quantum/quantum_coroutine_state_handler.h>
+#include <quantum/quantum_task_state_handler.h>
 #include <memory>
 #include <limits>
 #include <unordered_map>
@@ -57,7 +57,7 @@ struct ITask : public ITerminate
 
     ~ITask() = default;
 
-    virtual int run(const CoroutineStateHandler& handler) = 0;
+    virtual int run(const TaskStateHandler& stateHandler, TaskState handledStates) = 0;
 
     virtual void setQueueId(int queueId) = 0;
 

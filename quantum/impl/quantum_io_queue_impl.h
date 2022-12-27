@@ -42,11 +42,22 @@ IoQueue::IoQueue(const Configuration& config,
     _isEmpty(true),
     _isInterrupted(false),
     _isIdle(true),
-    _terminated(false)
+    _terminated(false),
+    _taskStateHandler(config.getTaskStateConfig().handler),
+    _handledTaskStates(config.getTaskStateConfig().handledStates)
 {
     if (_sharedIoQueues) {
         //The shared queue doesn't have its own thread
         _thread = std::make_shared<std::thread>(std::bind(&IoQueue::run, this));
+    }
+
+    if (isIntersection(config.getTaskStateConfig().handledTaskTypes, TaskType::IoTask))
+    {
+        _taskStateHandler = makeExceptionSafe(_taskStateHandler);
+    }
+    else
+    {
+        _taskStateHandler = {};
     }
 }
 
@@ -62,12 +73,15 @@ IoQueue::IoQueue(const IoQueue& other) :
     _isEmpty(true),
     _isInterrupted(false),
     _isIdle(true),
-    _terminated(false)
+    _terminated(false),
+    _taskStateHandler(other._taskStateHandler),
+    _handledTaskStates(other._handledTaskStates)
 {
     if (_sharedIoQueues) {
         //The shared queue doesn't have its own thread
         _thread = std::make_shared<std::thread>(std::bind(&IoQueue::run, this));
     }
+
 }
 
 inline
@@ -129,7 +143,7 @@ void IoQueue::run()
             // set the current task
             IQueue::TaskSetterGuard taskSetter(*this, task);
             //========================= START TASK =========================
-            int rc = task->run({});
+            int rc = task->run(_taskStateHandler, _handledTaskStates);
             //========================== END TASK ==========================
 
             if (rc == (int)ITask::RetCode::Success)

@@ -26,25 +26,32 @@ namespace quantum = Bloomberg::quantum;
 
 using ms = std::chrono::milliseconds;
 
-/// @brief TestCoroutineStateHandler class
-class TestCoroutineStateHandler
+/// @brief TestTaskStateHandler class
+class TestTaskStateHandler
 {
 public:
-    TestCoroutineStateHandler();
+    TestTaskStateHandler();
 
-    void operator()(quantum::CoroutineState state);
+    void operator()(size_t taskId, int queueId, quantum::TaskState state);
 
 private:
-    class TestCoroutineStateHandlerImpl;
-    std::shared_ptr<TestCoroutineStateHandlerImpl> _impl;
+    class TestTaskStateHandlerImpl;
+    std::shared_ptr<TestTaskStateHandlerImpl> _impl;
 };
+
+const quantum::TaskStateConfig testTaskStateConfig {
+    TestTaskStateHandler(),
+    quantum::TaskState::All,
+    quantum::TaskType::Coroutine
+};
+
 
 /// @brief TestConfiguration struct
 struct TestConfiguration
 {
     TestConfiguration(bool loadBalance,
                       bool coroutineSharingForAny,
-                      const quantum::CoroutineStateHandler& coroutineStateHandler = TestCoroutineStateHandler());
+                      const quantum::TaskStateConfig& taskStateConfig = testTaskStateConfig);
 
     bool operator == (const TestConfiguration& that) const
     {
@@ -54,7 +61,7 @@ struct TestConfiguration
 
     bool _loadBalance;
     bool _coroutineSharingForAny;
-    quantum::CoroutineStateHandler _coroutineStateHandler;
+    quantum::TaskStateConfig _taskStateConfig;
 };
 
 namespace std {

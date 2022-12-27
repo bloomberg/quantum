@@ -19,28 +19,28 @@
 
 using namespace Bloomberg;
 
-class TestCoroutineStateHandler::TestCoroutineStateHandlerImpl
+class TestTaskStateHandler::TestTaskStateHandlerImpl
 {
 public:
-    void operator()(Bloomberg::quantum::CoroutineState state)
+    void operator()(size_t, int, Bloomberg::quantum::TaskState state)
     {
         switch (state)
         {
-            case Bloomberg::quantum::CoroutineState::Constructed:
+            case Bloomberg::quantum::TaskState::Started:
             {
                 size_t*& constructedId = Bloomberg::quantum::local::variable<size_t>("ConstructedId");
                 EXPECT_FALSE(constructedId);
                 constructedId = new size_t(Bloomberg::quantum::local::taskId().id());
                 break;
             }
-            case Bloomberg::quantum::CoroutineState::Resumed:
+            case Bloomberg::quantum::TaskState::Resumed:
             {
                 size_t*& resumedId = Bloomberg::quantum::local::variable<size_t>("ResumedId");
                 EXPECT_FALSE(resumedId);
                 resumedId = new size_t(Bloomberg::quantum::local::taskId().id());
                 break;
             }
-            case Bloomberg::quantum::CoroutineState::Suspended:
+            case Bloomberg::quantum::TaskState::Suspended:
             {
                 // Check constructed id exists and equals to the task id
                 size_t*& constructedId = Bloomberg::quantum::local::variable<size_t>("ConstructedId");
@@ -57,7 +57,7 @@ public:
                 }
                 break;
             }
-            case Bloomberg::quantum::CoroutineState::Destructed:
+            case Bloomberg::quantum::TaskState::Stopped:
             {
                 // Check that constructed id exists, equals to the task id and rmeove it
                 size_t*& constructedId = Bloomberg::quantum::local::variable<size_t>("ConstructedId");
@@ -67,25 +67,28 @@ public:
                 constructedId = nullptr;
                 break;
             }
+
+            default:
+                break;
         }
     }
 };
 
-TestCoroutineStateHandler::TestCoroutineStateHandler():
-    _impl(std::make_shared<TestCoroutineStateHandlerImpl>())
+TestTaskStateHandler::TestTaskStateHandler():
+    _impl(std::make_shared<TestTaskStateHandlerImpl>())
 {}
 
-void TestCoroutineStateHandler::operator()(Bloomberg::quantum::CoroutineState state)
+void TestTaskStateHandler::operator()(size_t taskId, int queueId, Bloomberg::quantum::TaskState state)
 {
-    _impl->operator()(state);
+    _impl->operator()(taskId, queueId, state);
 }
 
 TestConfiguration::TestConfiguration(bool loadBalance,
                                      bool coroutineSharingForAny,
-                                     const Bloomberg::quantum::CoroutineStateHandler& coroutineStateHandler):
+                                     const quantum::TaskStateConfig& taskStateConfig):
     _loadBalance(loadBalance),
     _coroutineSharingForAny(coroutineSharingForAny),
-    _coroutineStateHandler(coroutineStateHandler)
+    _taskStateConfig(taskStateConfig)
 {}
 
 
@@ -100,7 +103,7 @@ DispatcherSingleton::createInstance(const TestConfiguration& taskConfig)
     config.setLoadBalancePollIntervalMs(std::chrono::milliseconds(10));
     config.setCoroQueueIdRangeForAny(std::make_pair(1,numCoro-1));
     config.setCoroutineSharingForAny(taskConfig._coroutineSharingForAny);
-    config.setCoroutineStateHandler(taskConfig._coroutineStateHandler);
+    config.setTaskStateConfig(taskConfig._taskStateConfig);
     return std::make_shared<Bloomberg::quantum::Dispatcher>(config);
 }
 

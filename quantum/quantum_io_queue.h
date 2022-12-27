@@ -42,46 +42,46 @@ class IoQueue : public IQueue
 public:
     using TaskList = std::list<IoTask::Ptr, IoQueueListAllocator>;
     using TaskListIter = TaskList::iterator;
-    
+
     IoQueue();
-    
+
     IoQueue(const Configuration& config,
             std::vector<IoQueue>* sharedIoQueues);
-    
+
     IoQueue(const IoQueue& other);
-    
+
     IoQueue(IoQueue&& other) = default;
-    
+
     ~IoQueue();
-    
+
     void terminate() final;
-    
+
     void pinToCore(int coreId) final;
-    
+
     void run() final;
-    
+
     void enqueue(ITask::Ptr task) final;
-    
+
     bool tryEnqueue(ITask::Ptr task) final;
-    
+
     ITask::Ptr dequeue(std::atomic_bool& hint) final;
-    
+
     ITask::Ptr tryDequeue(std::atomic_bool& hint) final;
-    
+
     size_t size() const final;
-    
+
     bool empty() const final;
-    
+
     IQueueStatistics& stats() final;
-    
+
     SpinLock& getLock() final;
-    
+
     void signalEmptyCondition(bool value) final;
-    
+
     bool isIdle() const final;
-    
+
     const std::shared_ptr<std::thread>& getThread() const final;
-    
+
 private:
     ITask::Ptr grabWorkItem();
     ITask::Ptr grabWorkItemFromAll();
@@ -89,7 +89,7 @@ private:
     ITask::Ptr doDequeue(std::atomic_bool& hint);
     ITask::Ptr tryDequeueFromShared();
     std::chrono::milliseconds getBackoffInterval();
-    
+
     //async IO queue
     std::vector<IoQueue>*           _sharedIoQueues;
     bool                            _loadBalanceSharedIoQueues;
@@ -107,6 +107,8 @@ private:
     std::atomic_bool                _isIdle;
     std::atomic_bool                _terminated;
     QueueStatistics                 _stats;
+    TaskStateHandler                _taskStateHandler;
+    TaskState                       _handledTaskStates;
 };
 
 }}

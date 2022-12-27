@@ -18,7 +18,7 @@
 
 #include <quantum/quantum_thread_traits.h>
 #include <quantum/quantum_macros.h>
-#include <quantum/quantum_coroutine_state_handler.h>
+#include <quantum/quantum_task_state_handler.h>
 #include <chrono>
 #include <utility>
 
@@ -116,10 +116,10 @@ public:
     /// @return A reference to itself
     Configuration& setCoroutineSharingForAny(bool sharing);
 
-    /// @brief Set the coroutine state handler.
-    /// @param[in] coroutineStatehandler The coroutine state handler. Default is empty function object.
+    /// @brief Set the task state config.
+    /// @param[in] taskStateConfig The task state config.
     /// @return A reference to itself
-    Configuration& setCoroutineStateHandler(const CoroutineStateHandler& coroutineStateHandler);
+    Configuration& setTaskStateConfig(const TaskStateConfig& taskStateConfig);
 
     /// @brief Get the number of coroutine threads.
     /// @return The number of threads.
@@ -158,9 +158,9 @@ public:
     /// @return the enablement flag for the feature
     bool getCoroutineSharingForAny() const;
 
-    /// @brief Gets the coroutine state handler
-    /// @return the coroutine state handler
-    const CoroutineStateHandler& getCoroutineStateHandler() const;
+    /// @brief Gets the task state config
+    /// @return the task state config
+    const TaskStateConfig& getTaskStateConfig() const;
 
 private:
     int                         _numCoroutineThreads{-1};
@@ -172,7 +172,7 @@ private:
     size_t                      _loadBalancePollIntervalNumBackoffs{0};
     std::pair<int, int>         _coroQueueIdRangeForAny{-1, -1};
     bool                        _coroutineSharingForAny{false};
-    CoroutineStateHandler       _coroutineStateHandler;
+    TaskStateConfig             _taskStateConfig;
 };
 
 }}

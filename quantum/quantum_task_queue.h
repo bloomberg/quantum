@@ -21,10 +21,10 @@
 #include <quantum/interface/quantum_iqueue.h>
 #include <quantum/quantum_spinlock.h>
 #include <quantum/quantum_task.h>
+#include <quantum/quantum_task_state_handler.h>
 #include <quantum/quantum_yielding_thread.h>
 #include <quantum/quantum_queue_statistics.h>
 #include <quantum/quantum_configuration.h>
-#include <quantum/quantum_coroutine_state_handler.h>
 #include <list>
 #include <atomic>
 #include <functional>
@@ -52,7 +52,7 @@ public:
 
     TaskQueue();
 
-    TaskQueue(const Configuration& config,
+    TaskQueue(const Configuration& configuration,
               std::shared_ptr<TaskQueue> sharedQueue);
 
     TaskQueue(const TaskQueue& other);
@@ -127,7 +127,6 @@ private:
     bool isInterrupted();
     void signalSharedQueueEmptyCondition(bool value);
     ProcessTaskResult processTask();
-    int runTask(const TaskPtr& task);
     WorkItem grabWorkItem();
     void doEnqueue(ITask::Ptr task);
     ITask::Ptr doDequeue(std::atomic_bool& hint,
@@ -161,7 +160,8 @@ private:
     unsigned int                        _queueRound;
     unsigned int                        _lastSleptQueueRound;
     unsigned int                        _lastSleptSharedQueueRound;
-    CoroutineStateHandler               _coroutineStateHandler;
+    TaskStateHandler                    _taskStateHandler;
+    TaskState                           _handledTaskStates;
 };
 
 }}

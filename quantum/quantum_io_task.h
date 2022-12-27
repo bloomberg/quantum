@@ -64,7 +64,7 @@ public:
     void terminate() final;
 
     //ITask
-    int run(const CoroutineStateHandler& handler) final;
+    int run(const TaskStateHandler& handler, TaskState handledStates) final;
     void setQueueId(int queueId) final;
     int getQueueId() const final;
     Type getType() const final;

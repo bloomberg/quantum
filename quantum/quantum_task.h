@@ -22,7 +22,7 @@
 #include <quantum/interface/quantum_itask_continuation.h>
 #include <quantum/interface/quantum_itask_accessor.h>
 #include <quantum/quantum_traits.h>
-#include <quantum/quantum_coroutine_state_handler.h>
+#include <quantum/quantum_task_state_handler.h>
 #include <quantum/util/quantum_util.h>
 #include <iostream>
 #include <memory>
@@ -77,7 +77,7 @@ public:
     void terminate() final;
 
     //ITask
-    int run(const CoroutineStateHandler& handler) final;
+    int run(const TaskStateHandler& handler, TaskState handledStates) final;
     void setQueueId(int queueId) final;
     int getQueueId() const final;
     Type getType() const final;
@@ -151,10 +151,10 @@ private:
     ITaskContinuation::WeakPtr  _prev; //Previous task in the chain
     ITask::Type                 _type;
     TaskId                      _taskId;
-    bool                        _isNew;
     std::atomic_bool            _terminated;
     std::atomic_int             _suspendedState; // stores values of State
     ITask::LocalStorage         _localStorage; // local storage of the coroutine
+    TaskState                   _taskState; // task state
 };
 
 using TaskPtr = Task::Ptr;

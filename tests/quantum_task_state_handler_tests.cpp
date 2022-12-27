@@ -66,37 +66,43 @@ std::function<int(Bloomberg::quantum::CoroContext<int>::Ptr)> makeTask(const Tas
     };
 }
 
-class CoroutineStateHandlerTest : public ::testing::TestWithParam<Bloomberg::quantum::CoroutineStateHandler>
+class TaskStateHandlerTest : public ::testing::TestWithParam<Bloomberg::quantum::TaskStateHandler>
 {
 protected:
-    CoroutineStateHandlerTest():
-        _constructed(0),
+    TaskStateHandlerTest():
+        _started(0),
         _resumed(0),
         _suspended(0),
-        _destructed(0)
+        _stopped(0)
     {
         srand((unsigned) time(NULL));
     }
 
-    void testCoroutineStateHandler(
+    void testTaskStateHandler(
         size_t tasksCount,
         const TaskParams& taskParams,
         bool coroutineSharingForAny = false,
         bool loadBalanceSharedIoQueues = false)
     {
-        Bloomberg::quantum::CoroutineStateHandler finalStateHandler{};
-        auto& coroutineStateHandler = GetParam();
-        if (coroutineStateHandler)
+        Bloomberg::quantum::TaskStateHandler finalStateHandler{};
+        auto& taskStateHandler = GetParam();
+        if (taskStateHandler)
         {
-            finalStateHandler = [this, coroutineStateHandler](Bloomberg::quantum::CoroutineState state)
+            finalStateHandler = [this, taskStateHandler](size_t taskId, int queueId, Bloomberg::quantum::TaskState state)
             {
                 countCoroutineStates(state);
-                coroutineStateHandler(state);
+                taskStateHandler(taskId, queueId, state);
             };
         }
+
+        Bloomberg::quantum::TaskStateConfig taskStateConfig {
+            finalStateHandler,
+            Bloomberg::quantum::TaskState::All,
+            Bloomberg::quantum::TaskType::Coroutine
+        };
         const TestConfiguration config(loadBalanceSharedIoQueues,
                                        coroutineSharingForAny,
-                                       finalStateHandler);
+                                       taskStateConfig);
         auto dispatcher = DispatcherSingleton::createInstance(config);
         dispatcher->drain();
         for(size_t taskId = 0; taskId < tasksCount; ++taskId)
@@ -106,55 +112,57 @@ protected:
         dispatcher->drain();
 
         std::cout << "Counters" << '\n'
-                  << "constructed: " << _constructed << '\n'
+                  << "constructed: " << _started << '\n'
                   << "resumed: " << _resumed << '\n'
                   << "suspended: " << _suspended << '\n'
-                  << "destructed: " << _destructed << std::endl;
+                  << "destructed: " << _stopped << std::endl;
 
-        EXPECT_EQ(_constructed, _destructed);
-        EXPECT_EQ(_constructed + _resumed, _suspended);
+        EXPECT_EQ(_started, _stopped);
+        EXPECT_EQ(_started + _resumed, _suspended);
     }
 
 private:
-    void countCoroutineStates(Bloomberg::quantum::CoroutineState state)
+    void countCoroutineStates(Bloomberg::quantum::TaskState state)
     {
         switch (state)
         {
-            case Bloomberg::quantum::CoroutineState::Constructed:
-                ++_constructed;
+            case Bloomberg::quantum::TaskState::Started:
+                ++_started;
                 break;
-            case Bloomberg::quantum::CoroutineState::Resumed:
+            case Bloomberg::quantum::TaskState::Resumed:
                 ++_resumed;
                 break;
-            case Bloomberg::quantum::CoroutineState::Suspended:
+            case Bloomberg::quantum::TaskState::Suspended:
                 ++_suspended;
                 break;
-            case Bloomberg::quantum::CoroutineState::Destructed:
-                ++_destructed;
+            case Bloomberg::quantum::TaskState::Stopped:
+                ++_stopped;
+                break;
+            default:
                 break;
         }
     }
 
 private:
-    std::atomic_int _constructed;
+    std::atomic_int _started;
     std::atomic_int _resumed;
     std::atomic_int _suspended;
-    std::atomic_int _destructed;
+    std::atomic_int _stopped;
 };
 
 
 // Handlers
-Bloomberg::quantum::CoroutineStateHandler emptyHandler{};
-Bloomberg::quantum::CoroutineStateHandler exceptionThrowingHandler = [](Bloomberg::quantum::CoroutineState)
+Bloomberg::quantum::TaskStateHandler emptyHandler{};
+Bloomberg::quantum::TaskStateHandler exceptionThrowingHandler = [](size_t, int, Bloomberg::quantum::TaskState)
 {
     throw std::runtime_error("Coroutine state handler exception");
 };
-Bloomberg::quantum::CoroutineStateHandler memoryManagementHandler = TestCoroutineStateHandler();
+Bloomberg::quantum::TaskStateHandler memoryManagementHandler = TestTaskStateHandler();
 
 } // namespace
 
-INSTANTIATE_TEST_CASE_P(CoroutineStateHandlerTest_Default,
-                        CoroutineStateHandlerTest,
+INSTANTIATE_TEST_CASE_P(TaskStateHandlerTest_Default,
+                        TaskStateHandlerTest,
                             ::testing::Values(emptyHandler,
                                               exceptionThrowingHandler,
                                               memoryManagementHandler));
@@ -163,67 +171,89 @@ INSTANTIATE_TEST_CASE_P(CoroutineStateHandlerTest_Default,
 //                             TEST CASES
 //==============================================================================
 
-TEST_P(CoroutineStateHandlerTest, NoYield)
+TEST_P(TaskStateHandlerTest, )
 {
-    testCoroutineStateHandler(100, {0, false, ms(30), true});
+    // Task Config
+
+    // 1. Task types
+    // 1.1. Coroutine
+    // 1.2. IoTask
+    // 1.3. Both
+
+    // 2. Handled states
+    // 2.1. None
+    // 2.2. Initialized
+    // 2.3. Started
+    // 2.4. Suspended
+    // 2.5. Resumed
+    // 2.6. Stopped
+    // 2.2. Started/Stopped
+    // 2.3. Resumed/Suspended
+    // 2.4. All
 }
 
-TEST_P(CoroutineStateHandlerTest, MultipleYields)
+
+TEST_P(TaskStateHandlerTest, NoYield)
 {
-    testCoroutineStateHandler(100, {3, true, ms(30), true});
+    testTaskStateHandler(100, {0, false, ms(30), true});
 }
 
-TEST_P(CoroutineStateHandlerTest, NoYieldSharedQueue)
+TEST_P(TaskStateHandlerTest, MultipleYields)
 {
-    testCoroutineStateHandler(100, {0, false, ms(30), true}, true);
+    testTaskStateHandler(100, {3, true, ms(30), true});
 }
 
-TEST_P(CoroutineStateHandlerTest, MultipleYieldsSharedQueue)
+TEST_P(TaskStateHandlerTest, NoYieldSharedQueue)
 {
-    testCoroutineStateHandler(100, {3, true, ms(30), true}, true);
+    testTaskStateHandler(100, {0, false, ms(30), true}, true);
 }
 
-TEST_P(CoroutineStateHandlerTest, NoYieldLoadBalanceSharedIoQueues)
+TEST_P(TaskStateHandlerTest, MultipleYieldsSharedQueue)
 {
-    testCoroutineStateHandler(100, {0, false, ms(30), true}, false, true);
+    testTaskStateHandler(100, {3, true, ms(30), true}, true);
 }
 
-TEST_P(CoroutineStateHandlerTest, MultipleYieldsLoadBalanceSharedIoQueues)
+TEST_P(TaskStateHandlerTest, NoYieldLoadBalanceSharedIoQueues)
 {
-    testCoroutineStateHandler(100, {3, true, ms(30), true}, false, true);
+    testTaskStateHandler(100, {0, false, ms(30), true}, false, true);
 }
 
-TEST_P(CoroutineStateHandlerTest, NoYieldTaskException)
+TEST_P(TaskStateHandlerTest, MultipleYieldsLoadBalanceSharedIoQueues)
 {
-    testCoroutineStateHandler(100, {0, false, ms(30), true, true});
+    testTaskStateHandler(100, {3, true, ms(30), true}, false, true);
 }
 
-TEST_P(CoroutineStateHandlerTest, MultipleYieldsException)
+TEST_P(TaskStateHandlerTest, NoYieldTaskException)
 {
-    testCoroutineStateHandler(100, {2, false, ms(30), true, true, 1});
+    testTaskStateHandler(100, {0, false, ms(30), true, true});
 }
 
-TEST_P(CoroutineStateHandlerTest, NoYieldTaskExceptionSharedQueue)
+TEST_P(TaskStateHandlerTest, MultipleYieldsException)
 {
-    testCoroutineStateHandler(100, {0, false, ms(30), true, true}, true);
+    testTaskStateHandler(100, {2, false, ms(30), true, true, 1});
 }
 
-TEST_P(CoroutineStateHandlerTest, MultipleYieldsTaskExceptionSharedQueue)
+TEST_P(TaskStateHandlerTest, NoYieldTaskExceptionSharedQueue)
 {
-    testCoroutineStateHandler(100, {2, false, ms(30), true, true, 1}, true);
+    testTaskStateHandler(100, {0, false, ms(30), true, true}, true);
 }
 
-TEST_P(CoroutineStateHandlerTest, NoYieldTaskCodeException)
+TEST_P(TaskStateHandlerTest, MultipleYieldsTaskExceptionSharedQueue)
 {
-    testCoroutineStateHandler(100, {0, false, ms(30), true, false, 0, Bloomberg::quantum::ITask::RetCode::Exception});
+    testTaskStateHandler(100, {2, false, ms(30), true, true, 1}, true);
 }
 
-TEST_P(CoroutineStateHandlerTest, MultipleYieldsTaskCodeException)
+TEST_P(TaskStateHandlerTest, NoYieldTaskCodeException)
 {
-    testCoroutineStateHandler(100, {2, false, ms(30), true, false, 0, Bloomberg::quantum::ITask::RetCode::Exception});
+    testTaskStateHandler(100, {0, false, ms(30), true, false, 0, Bloomberg::quantum::ITask::RetCode::Exception});
 }
 
-TEST_P(CoroutineStateHandlerTest, StressTest)
+TEST_P(TaskStateHandlerTest, MultipleYieldsTaskCodeException)
 {
-    testCoroutineStateHandler(1000, {3, true, ms(20), true});
+    testTaskStateHandler(100, {2, false, ms(30), true, false, 0, Bloomberg::quantum::ITask::RetCode::Exception});
+}
+
+TEST_P(TaskStateHandlerTest, StressTest)
+{
+    testTaskStateHandler(1000, {3, true, ms(20), true});
 }
