@@ -107,8 +107,7 @@ private:
     std::atomic_bool                _isIdle;
     std::atomic_bool                _terminated;
     QueueStatistics                 _stats;
-    TaskStateHandler                _taskStateHandler;
-    TaskState                       _handledTaskStates;
+    TaskStateConfiguration          _taskStateConfiguration;
 };
 
 }}

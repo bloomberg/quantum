@@ -81,12 +81,14 @@ void IoTask::terminate()
 }
 
 inline
-int IoTask::run(const TaskStateHandler& stateHandler, TaskState handledStates)
+int IoTask::run(const TaskStateHandler& stateHandler,
+                TaskType taskHandledType,
+                TaskState taskHandledStates)
 {
     if (_func)
     {
         TaskState taskState = TaskState::Initialized;
-        handleTaskState(stateHandler, _taskId.id(), _queueId, handledStates, TaskState::Started, taskState);
+        handleTaskState(stateHandler, _taskId.id(), _queueId, taskHandledType, taskHandledStates, TaskState::Started, taskState);
 
         _taskId.assignCurrentThread();
         int rc = 0;
@@ -100,7 +102,7 @@ int IoTask::run(const TaskStateHandler& stateHandler, TaskState handledStates)
             exception = std::current_exception();
         }
 
-        handleTaskState(stateHandler, _taskId.id(), _queueId, handledStates, TaskState::Stopped, taskState);
+        handleTaskState(stateHandler, _taskId.id(), _queueId, taskHandledType, taskHandledStates, TaskState::Stopped, taskState);
         if (exception)
         {
             std::rethrow_exception(exception);

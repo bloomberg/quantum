@@ -43,22 +43,19 @@ IoQueue::IoQueue(const Configuration& config,
     _isInterrupted(false),
     _isIdle(true),
     _terminated(false),
-    _taskStateHandler(config.getTaskStateConfig().handler),
-    _handledTaskStates(config.getTaskStateConfig().handledStates)
+    _taskStateConfiguration(config.getTaskStateConfiguration())
 {
     if (_sharedIoQueues) {
         //The shared queue doesn't have its own thread
         _thread = std::make_shared<std::thread>(std::bind(&IoQueue::run, this));
     }
 
-    if (isIntersection(config.getTaskStateConfig().handledTaskTypes, TaskType::IoTask))
+    TaskStateHandler taskStateHandler;
+    if (isIntersection(_taskStateConfiguration.getHandledTaskTypes(), TaskType::IoTask))
     {
-        _taskStateHandler = makeExceptionSafe(_taskStateHandler);
+        taskStateHandler = makeExceptionSafe(_taskStateConfiguration.getTaskStateHandler());
     }
-    else
-    {
-        _taskStateHandler = {};
-    }
+    _taskStateConfiguration.setTaskStateHandler(taskStateHandler);
 }
 
 inline
@@ -74,8 +71,7 @@ IoQueue::IoQueue(const IoQueue& other) :
     _isInterrupted(false),
     _isIdle(true),
     _terminated(false),
-    _taskStateHandler(other._taskStateHandler),
-    _handledTaskStates(other._handledTaskStates)
+    _taskStateConfiguration(other._taskStateConfiguration)
 {
     if (_sharedIoQueues) {
         //The shared queue doesn't have its own thread
@@ -143,7 +139,9 @@ void IoQueue::run()
             // set the current task
             IQueue::TaskSetterGuard taskSetter(*this, task);
             //========================= START TASK =========================
-            int rc = task->run(_taskStateHandler, _handledTaskStates);
+            int rc = task->run(_taskStateConfiguration.getTaskStateHandler(),
+                               TaskType::IoTask,
+                               _taskStateConfiguration.getHandledTaskStates());
             //========================== END TASK ==========================
 
             if (rc == (int)ITask::RetCode::Success)

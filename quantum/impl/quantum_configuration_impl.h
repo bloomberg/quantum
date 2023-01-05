@@ -157,9 +157,9 @@ Configuration& Configuration::setCoroutineSharingForAny(bool sharing)
 }
 
 inline
-Configuration& Configuration::setTaskStateConfig(const TaskStateConfig& taskStateConfig)
+Configuration& Configuration::setTaskStateConfiguration(const TaskStateConfiguration& TaskStateConfiguration)
 {
-     _taskStateConfig = taskStateConfig;
+     _taskStateConfiguration = TaskStateConfiguration;
      return *this;
 }
 
@@ -218,9 +218,9 @@ bool Configuration::getCoroutineSharingForAny() const
 }
 
 inline
-const TaskStateConfig& Configuration::getTaskStateConfig() const
+const TaskStateConfiguration& Configuration::getTaskStateConfiguration() const
 {
-    return _taskStateConfig;
+    return _taskStateConfiguration;
 }
 
 }

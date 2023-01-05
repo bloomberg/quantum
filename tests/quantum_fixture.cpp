@@ -22,7 +22,7 @@ using namespace Bloomberg;
 class TestTaskStateHandler::TestTaskStateHandlerImpl
 {
 public:
-    void operator()(size_t taskId, int queueId, Bloomberg::quantum::TaskState state)
+    void operator()(size_t taskId, int queueId, Bloomberg::quantum::TaskType type, Bloomberg::quantum::TaskState state)
     {
         switch (state)
         {
@@ -50,7 +50,8 @@ public:
             }
             case Bloomberg::quantum::TaskState::Suspended:
             {
-                (*this)(taskId, queueId, Bloomberg::quantum::TaskState::Stopped);
+                // Call this handler with 'Stopped' task state to handle stored variables
+                (*this)(taskId, queueId, type, Bloomberg::quantum::TaskState::Stopped);
                 // Create a suspended id
                 size_t*& suspendedId = Bloomberg::quantum::local::variable<size_t>("SuspendedId");
                 EXPECT_FALSE(suspendedId);
@@ -94,17 +95,26 @@ TestTaskStateHandler::TestTaskStateHandler():
     _impl(std::make_shared<TestTaskStateHandlerImpl>())
 {}
 
-void TestTaskStateHandler::operator()(size_t taskId, int queueId, Bloomberg::quantum::TaskState state)
+void TestTaskStateHandler::operator()(size_t taskId, int queueId, Bloomberg::quantum::TaskType type, Bloomberg::quantum::TaskState state)
 {
-    _impl->operator()(taskId, queueId, state);
+    _impl->operator()(taskId, queueId, type, state);
+}
+
+Bloomberg::quantum::TaskStateConfiguration getDefaultTaskStateConfiguration()
+{
+    Bloomberg::quantum::TaskStateConfiguration config;
+    config.setTaskStateHandler(TestTaskStateHandler());
+    config.setHandledTaskStates(Bloomberg::quantum::TaskState::All);
+    config.setHandledTaskTypes(Bloomberg::quantum::TaskType::Coroutine);
+    return config;
 }
 
 TestConfiguration::TestConfiguration(bool loadBalance,
                                      bool coroutineSharingForAny,
-                                     const Bloomberg::quantum::TaskStateConfig& taskStateConfig):
+                                     const Bloomberg::quantum::TaskStateConfiguration& TaskStateConfiguration):
     _loadBalance(loadBalance),
     _coroutineSharingForAny(coroutineSharingForAny),
-    _taskStateConfig(taskStateConfig)
+    _TaskStateConfiguration(TaskStateConfiguration)
 {}
 
 
@@ -119,7 +129,7 @@ DispatcherSingleton::createInstance(const TestConfiguration& taskConfig)
     config.setLoadBalancePollIntervalMs(std::chrono::milliseconds(10));
     config.setCoroQueueIdRangeForAny(std::make_pair(1,numCoro-1));
     config.setCoroutineSharingForAny(taskConfig._coroutineSharingForAny);
-    config.setTaskStateConfig(taskConfig._taskStateConfig);
+    config.setTaskStateConfiguration(taskConfig._TaskStateConfiguration);
     return std::make_shared<Bloomberg::quantum::Dispatcher>(config);
 }
 

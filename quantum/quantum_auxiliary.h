@@ -24,7 +24,7 @@ namespace quantum {
 /// @param[in] lhs bit field.
 /// @param[in] func bit field.
 /// @note For internal use only.
-/// @note BitField type must be convertible to int.
+/// @note BitField type must be the integral or enum type.
 /// @return true if the intersection exists, false otherwise
 template <typename BitField>
 bool isIntersection(BitField lhs, BitField rhs);

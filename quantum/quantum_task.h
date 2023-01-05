@@ -77,7 +77,9 @@ public:
     void terminate() final;
 
     //ITask
-    int run(const TaskStateHandler& handler, TaskState handledStates) final;
+    int run(const TaskStateHandler& handler,
+            TaskType handledTaskTypes,
+            TaskState handledTaskStates) final;
     void setQueueId(int queueId) final;
     int getQueueId() const final;
     Type getType() const final;

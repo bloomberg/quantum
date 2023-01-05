@@ -117,9 +117,9 @@ public:
     Configuration& setCoroutineSharingForAny(bool sharing);
 
     /// @brief Set the task state config.
-    /// @param[in] taskStateConfig The task state config.
+    /// @param[in] TaskStateConfiguration The task state config.
     /// @return A reference to itself
-    Configuration& setTaskStateConfig(const TaskStateConfig& taskStateConfig);
+    Configuration& setTaskStateConfiguration(const TaskStateConfiguration& TaskStateConfiguration);
 
     /// @brief Get the number of coroutine threads.
     /// @return The number of threads.
@@ -160,7 +160,7 @@ public:
 
     /// @brief Gets the task state config
     /// @return the task state config
-    const TaskStateConfig& getTaskStateConfig() const;
+    const TaskStateConfiguration& getTaskStateConfiguration() const;
 
 private:
     int                         _numCoroutineThreads{-1};
@@ -172,7 +172,7 @@ private:
     size_t                      _loadBalancePollIntervalNumBackoffs{0};
     std::pair<int, int>         _coroQueueIdRangeForAny{-1, -1};
     bool                        _coroutineSharingForAny{false};
-    TaskStateConfig             _taskStateConfig;
+    TaskStateConfiguration      _taskStateConfiguration;
 };
 
 }}

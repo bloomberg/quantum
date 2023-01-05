@@ -68,17 +68,14 @@ TaskQueue::TaskQueue(const Configuration& configuration, std::shared_ptr<TaskQue
     _queueRound(0),
     _lastSleptQueueRound(std::numeric_limits<unsigned int>::max()),
     _lastSleptSharedQueueRound(std::numeric_limits<unsigned int>::max()),
-    _taskStateHandler(configuration.getTaskStateConfig().handler),
-    _handledTaskStates(configuration.getTaskStateConfig().handledStates)
+    _taskStateConfiguration(configuration.getTaskStateConfiguration())
 {
-    if (isIntersection(configuration.getTaskStateConfig().handledTaskTypes, TaskType::Coroutine))
+    TaskStateHandler taskStateHandler;
+    if (isIntersection(_taskStateConfiguration.getHandledTaskTypes(), TaskType::Coroutine))
     {
-        _taskStateHandler = makeExceptionSafe(_taskStateHandler);
+        taskStateHandler = makeExceptionSafe(_taskStateConfiguration.getTaskStateHandler());
     }
-    else
-    {
-        _taskStateHandler = {};
-    }
+    _taskStateConfiguration.setTaskStateHandler(taskStateHandler);
 
     if (_sharedQueue)
     {
@@ -206,7 +203,9 @@ TaskQueue::ProcessTaskResult TaskQueue::processTask()
             // set the current task for local-storage queries
             IQueue::TaskSetterGuard taskSetter(*this, task);
             //========================= START/RESUME COROUTINE =========================
-            rc = task->run(_taskStateHandler, _handledTaskStates);
+            rc = task->run(_taskStateConfiguration.getTaskStateHandler(),
+                           TaskType::Coroutine,
+                           _taskStateConfiguration.getHandledTaskStates());
             //=========================== END/YIELD COROUTINE ==========================
         }
         switch (rc)

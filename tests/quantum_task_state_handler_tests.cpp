@@ -35,49 +35,49 @@ struct TaskParams
     Bloomberg::quantum::ITask::RetCode returnCode{Bloomberg::quantum::ITask::RetCode::Success}; // Return code of the task
 };
 
-std::function<int(Bloomberg::quantum::CoroContext<int>::Ptr)> makeCoroutineTask(const TaskParams& taskParms)
+std::function<int(Bloomberg::quantum::CoroContext<int>::Ptr)> makeCoroutineTask(const TaskParams& taskParams)
 {
-    return [taskParms](Bloomberg::quantum::CoroContext<int>::Ptr ctx)-> int {
-        size_t yieldIterations = taskParms.yieldIterations;
-        if (taskParms.randomYieldIterations)
+    return [taskParams](Bloomberg::quantum::CoroContext<int>::Ptr ctx)-> int {
+        size_t yieldIterations = taskParams.yieldIterations;
+        if (taskParams.randomYieldIterations)
         {
-            yieldIterations = rand() % (taskParms.yieldIterations + 1);
+            yieldIterations = rand() % (taskParams.yieldIterations + 1);
         }
 
         size_t iteration = 0;
         while (iteration++ < yieldIterations)
         {
-            ms sleepTime = taskParms.sleepTime;
-            if (taskParms.randomSleepTime && (sleepTime.count() > 0))
+            ms sleepTime = taskParams.sleepTime;
+            if (taskParams.randomSleepTime && (sleepTime.count() > 0))
             {
                 sleepTime = static_cast<ms>(rand() % sleepTime.count() + 1);
             }
             ctx->sleep(sleepTime);
             std::this_thread::sleep_for(static_cast<ms>(sleepTime.count() / 2));
-            if (taskParms.throwException && (taskParms.exceptionIteration == iteration))
+            if (taskParams.throwException && (taskParams.exceptionIteration == iteration))
             {
                 throw std::runtime_error("Unexpected error");
             }
         }
 
-        return static_cast<int>(taskParms.returnCode);
+        return static_cast<int>(taskParams.returnCode);
     };
 }
 
-std::function<int(Bloomberg::quantum::ThreadPromise<int>::Ptr)> makeIoTask(const TaskParams& taskParms)
+std::function<int(Bloomberg::quantum::ThreadPromise<int>::Ptr)> makeIoTask(const TaskParams& taskParams)
 {
-    return [taskParms](Bloomberg::quantum::ThreadPromise<int>::Ptr)-> int {
-        ms sleepTime = taskParms.sleepTime;
-        if (taskParms.randomSleepTime)
+    return [taskParams](Bloomberg::quantum::ThreadPromise<int>::Ptr)-> int {
+        ms sleepTime = taskParams.sleepTime;
+        if (taskParams.randomSleepTime)
         {
-            sleepTime = static_cast<ms>(rand() % taskParms.sleepTime.count() + 1);
+            sleepTime = static_cast<ms>(rand() % taskParams.sleepTime.count() + 1);
         }
         std::this_thread::sleep_for(sleepTime);
-        if (taskParms.throwException)
+        if (taskParams.throwException)
         {
             throw std::runtime_error("Unexpected error");
         }
-        return static_cast<int>(taskParms.returnCode);
+        return static_cast<int>(taskParams.returnCode);
     };
 }
 
@@ -176,21 +176,21 @@ protected:
 
         if (_taskStateHandler)
         {
-            taskStateHandler = [this, &taskStatesCounter](size_t taskId, int queueId, Bloomberg::quantum::TaskState state)
+            taskStateHandler = [this, &taskStatesCounter]
+            (size_t taskId, int queueId, Bloomberg::quantum::TaskType type, Bloomberg::quantum::TaskState state)
             {
                 taskStatesCounter(state);
-                _taskStateHandler(taskId, queueId, state);
+                _taskStateHandler(taskId, queueId, type, state);
             };
         }
 
-        Bloomberg::quantum::TaskStateConfig taskStateConfig {
-            taskStateHandler,
-            handledTaskStates,
-            _handledTaskType
-        };
+        Bloomberg::quantum::TaskStateConfiguration taskStateConfiguration;
+        taskStateConfiguration.setTaskStateHandler(taskStateHandler);
+        taskStateConfiguration.setHandledTaskStates(handledTaskStates);
+        taskStateConfiguration.setHandledTaskTypes(_handledTaskType);
         const TestConfiguration config(loadBalanceSharedIoQueues,
                                        coroutineSharingForAny,
-                                       taskStateConfig);
+                                       taskStateConfiguration);
         auto dispatcher = DispatcherSingleton::createInstance(config);
         for(size_t taskId = 0; taskId < tasksCount; ++taskId)
         {
@@ -203,6 +203,11 @@ protected:
                     break;
                 }
                 case Bloomberg::quantum::TaskType::IoTask: {
+                    dispatcher->postAsyncIo(makeIoTask(taskParams));
+                    break;
+                }
+                case Bloomberg::quantum::TaskType::All: {
+                    dispatcher->post(makeCoroutineTask(taskParams));
                     dispatcher->postAsyncIo(makeIoTask(taskParams));
                     break;
                 }
@@ -227,7 +232,7 @@ protected:
 };
 
 // Handlers
-Bloomberg::quantum::TaskStateHandler EmptyHandler = [](size_t, int, Bloomberg::quantum::TaskState){};
+Bloomberg::quantum::TaskStateHandler EmptyHandler = [](size_t, int, Bloomberg::quantum::TaskType, Bloomberg::quantum::TaskState){};
 Bloomberg::quantum::TaskStateHandler MemoryManagementHandler = TestTaskStateHandler();
 
 // Task handled states
@@ -255,19 +260,23 @@ void testHandleTaskType(Bloomberg::quantum::TaskType taskType,
                         )
 {
     TaskStatesCounter actualTaskStatesCounter;
-    Bloomberg::quantum::TaskStateConfig taskStateConfig {
-        [&actualTaskStatesCounter](size_t, int, Bloomberg::quantum::TaskState state) { actualTaskStatesCounter(state); },
-        Bloomberg::quantum::TaskState::All,
-        taskType
-    };
+    Bloomberg::quantum::TaskStateConfiguration taskStateConfiguration;
+    taskStateConfiguration.setTaskStateHandler(
+        [&actualTaskStatesCounter] (size_t, int, Bloomberg::quantum::TaskType, Bloomberg::quantum::TaskState state)
+        {
+            actualTaskStatesCounter(state);
+        });
+
+    taskStateConfiguration.setHandledTaskStates(Bloomberg::quantum::TaskState::All);
+    taskStateConfiguration.setHandledTaskTypes(taskType);
 
     if (not isHandlerAvailable)
     {
-        taskStateConfig.handler = {};
+        taskStateConfiguration.setTaskStateHandler({});
     }
 
     auto dispatcher = DispatcherSingleton::createInstance(
-        TestConfiguration(loadBalance, coroutineSharingForAny, taskStateConfig));
+        TestConfiguration(loadBalance, coroutineSharingForAny, taskStateConfiguration));
     for (size_t taskId = 0; taskId < tasksCount; ++taskId)
     {
         dispatcher->post(makeCoroutineTask(taskParams));
@@ -285,7 +294,8 @@ void testHandleTaskState(const std::vector<Bloomberg::quantum::TaskState>& state
 {
     TaskStatesCounter actualTaskStatesCounter;
     bool isHandlerCalled = false;
-    auto handler = [&isHandlerCalled, &actualTaskStatesCounter](size_t, int, Bloomberg::quantum::TaskState state)
+    auto handler = [&isHandlerCalled, &actualTaskStatesCounter]
+        (size_t, int, Bloomberg::quantum::TaskType, Bloomberg::quantum::TaskState state)
     {
         actualTaskStatesCounter(state);
         isHandlerCalled = true;
@@ -298,6 +308,7 @@ void testHandleTaskState(const std::vector<Bloomberg::quantum::TaskState>& state
         handleTaskState(handler,
                     0,
                     0,
+                    Bloomberg::quantum::TaskType::None,
                     handledStates,
                     nextState,
                     state);
@@ -316,7 +327,8 @@ INSTANTIATE_TEST_CASE_P(TaskStateHandlerTest_Default,
                          ::testing::Combine(
                             ::testing::Values(
                                 Bloomberg::quantum::TaskType::Coroutine,
-                                Bloomberg::quantum::TaskType::IoTask
+                                Bloomberg::quantum::TaskType::IoTask,
+                                Bloomberg::quantum::TaskType::All
                             ),
                             ::testing::Values(
                                 TestTaskStateHandler())));
@@ -329,7 +341,8 @@ TEST(TestTaskStateHandler, UnableToHandleTaskState)
 {
     TaskStatesCounter taskStatesCounter;
     bool isHandlerCalled = false;
-    auto handler = [&isHandlerCalled, &taskStatesCounter](size_t, int, Bloomberg::quantum::TaskState state)
+    auto handler = [&isHandlerCalled, &taskStatesCounter]
+    (size_t, int, Bloomberg::quantum::TaskType, Bloomberg::quantum::TaskState state)
     {
         taskStatesCounter(state);
         isHandlerCalled = true;
@@ -340,6 +353,7 @@ TEST(TestTaskStateHandler, UnableToHandleTaskState)
     handleTaskState(handler,
                     0,
                     0,
+                    Bloomberg::quantum::TaskType::None,
                     Bloomberg::quantum::TaskState::None,
                     Bloomberg::quantum::TaskState::Started,
                     state);
@@ -351,6 +365,7 @@ TEST(TestTaskStateHandler, UnableToHandleTaskState)
     handleTaskState(handler,
                     0,
                     0,
+                    Bloomberg::quantum::TaskType::None,
                     Bloomberg::quantum::TaskState::None,
                     Bloomberg::quantum::TaskState::Started,
                     state);
@@ -361,6 +376,7 @@ TEST(TestTaskStateHandler, UnableToHandleTaskState)
     handleTaskState(handler,
                     0,
                     0,
+                    Bloomberg::quantum::TaskType::None,
                     unify(Bloomberg::quantum::TaskState::Started,
                           Bloomberg::quantum::TaskState::Stopped),
                     Bloomberg::quantum::TaskState::Suspended,
@@ -417,13 +433,18 @@ TEST(TestTaskStateHandler, HandleDifferentTaskTypes)
     const TaskParams taskParams{1, false, ms(100), true};
     const size_t tasksCount = 100;
 
+    ////////////////////////////
     // No task state handling
+    ////////////////////////////
+
     testHandleTaskType(Bloomberg::quantum::TaskType::None,
                        tasksCount,
                        taskParams,
                        TaskStatesCounter(0, 0, 0, 0, 0));
 
+    ////////////////////////////
     // Coroutine state handling
+    ////////////////////////////
 
     // Without shared coroutine queue
     testHandleTaskType(Bloomberg::quantum::TaskType::Coroutine,
@@ -450,7 +471,9 @@ TEST(TestTaskStateHandler, HandleDifferentTaskTypes)
                        false,
                        false);
 
+    ////////////////////////////
     // IoTask state handling
+    ////////////////////////////
 
     // Without shared IO queue
     testHandleTaskType(Bloomberg::quantum::TaskType::IoTask,
@@ -470,6 +493,35 @@ TEST(TestTaskStateHandler, HandleDifferentTaskTypes)
 
     // Without handler
     testHandleTaskType(Bloomberg::quantum::TaskType::IoTask,
+                       tasksCount,
+                       taskParams,
+                       TaskStatesCounter(0, 0, 0, 0, 0),
+                       false,
+                       false,
+                       false);
+
+    /////////////////////////////////
+    // All task types state handling
+    /////////////////////////////////
+
+    // Without shared IO queue
+    testHandleTaskType(Bloomberg::quantum::TaskType::All,
+                       tasksCount,
+                       taskParams,
+                       TaskStatesCounter(0, tasksCount * 2, tasksCount, tasksCount, tasksCount * 2),
+                       false,
+                       false);
+
+    // With shared IO queue and coroutine queue
+    testHandleTaskType(Bloomberg::quantum::TaskType::All,
+                       tasksCount,
+                       taskParams,
+                       TaskStatesCounter(0, tasksCount * 2, tasksCount, tasksCount, tasksCount * 2),
+                       true,
+                       true);
+
+    // Without handler
+    testHandleTaskType(Bloomberg::quantum::TaskType::All,
                        tasksCount,
                        taskParams,
                        TaskStatesCounter(0, 0, 0, 0, 0),

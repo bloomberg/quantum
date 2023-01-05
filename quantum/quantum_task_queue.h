@@ -160,8 +160,7 @@ private:
     unsigned int                        _queueRound;
     unsigned int                        _lastSleptQueueRound;
     unsigned int                        _lastSleptSharedQueueRound;
-    TaskStateHandler                    _taskStateHandler;
-    TaskState                           _handledTaskStates;
+    TaskStateConfiguration              _taskStateConfiguration;
 };
 
 }}

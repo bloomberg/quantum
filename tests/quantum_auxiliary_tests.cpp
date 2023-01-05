@@ -26,8 +26,12 @@
 
 TEST(AuxiliaryTest, IsIntersection)
 {
+    // Check with different integral types
+    EXPECT_TRUE(Bloomberg::quantum::isIntersection(long(1), long(1)));
+    EXPECT_FALSE(Bloomberg::quantum::isIntersection(short(1), short(0)));
+    EXPECT_TRUE(Bloomberg::quantum::isIntersection(int(1), int(3)));
+
     for (auto state : {
-            Bloomberg::quantum::TaskState::Initialized,
             Bloomberg::quantum::TaskState::Started,
             Bloomberg::quantum::TaskState::Suspended,
             Bloomberg::quantum::TaskState::Resumed,
@@ -38,6 +42,9 @@ TEST(AuxiliaryTest, IsIntersection)
         EXPECT_TRUE(Bloomberg::quantum::isIntersection(Bloomberg::quantum::TaskState::All, state));
         EXPECT_TRUE(Bloomberg::quantum::isIntersection(state, state));
     }
+
+    EXPECT_FALSE(Bloomberg::quantum::isIntersection(Bloomberg::quantum::TaskState::Initialized,
+                                                    Bloomberg::quantum::TaskState::All));
 
     EXPECT_FALSE(Bloomberg::quantum::isIntersection(Bloomberg::quantum::TaskState::Initialized,
                                                     Bloomberg::quantum::TaskState::Started));

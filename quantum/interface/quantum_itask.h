@@ -57,7 +57,9 @@ struct ITask : public ITerminate
 
     ~ITask() = default;
 
-    virtual int run(const TaskStateHandler& stateHandler, TaskState handledStates) = 0;
+    virtual int run(const TaskStateHandler& stateHandler,
+                    TaskType handledTaskTypes,
+                    TaskState handledTaskStates) = 0;
 
     virtual void setQueueId(int queueId) = 0;
 

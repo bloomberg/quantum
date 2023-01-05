@@ -19,13 +19,17 @@
 //#################################### IMPLEMENTATIONS #########################################
 //##############################################################################################
 
+#include <type_traits>
+
 namespace Bloomberg {
 namespace quantum {
 
 template <typename BitField>
 bool isIntersection(BitField lhs, BitField rhs)
 {
-    return static_cast<int>(lhs) & static_cast<int>(rhs);
+    static_assert(std::is_integral<BitField>::value || std::is_enum<BitField>::value,
+                  "BitField must be an integral type.");
+    return static_cast<long long>(lhs) & static_cast<long long>(rhs);
 }
 
 template <typename... Args>

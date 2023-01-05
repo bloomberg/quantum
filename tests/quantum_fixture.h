@@ -32,26 +32,21 @@ class TestTaskStateHandler
 public:
     TestTaskStateHandler();
 
-    void operator()(size_t taskId, int queueId, quantum::TaskState state);
+    void operator()(size_t taskId, int queueId, quantum::TaskType type, quantum::TaskState state);
 
 private:
     class TestTaskStateHandlerImpl;
     std::shared_ptr<TestTaskStateHandlerImpl> _impl;
 };
 
-const quantum::TaskStateConfig testTaskStateConfig {
-    TestTaskStateHandler(),
-    quantum::TaskState::All,
-    quantum::TaskType::Coroutine
-};
-
+quantum::TaskStateConfiguration getDefaultTaskStateConfiguration();
 
 /// @brief TestConfiguration struct
 struct TestConfiguration
 {
     TestConfiguration(bool loadBalance,
                       bool coroutineSharingForAny,
-                      const quantum::TaskStateConfig& taskStateConfig = testTaskStateConfig);
+                      const quantum::TaskStateConfiguration& TaskStateConfiguration = getDefaultTaskStateConfiguration());
 
     bool operator == (const TestConfiguration& that) const
     {
@@ -61,7 +56,7 @@ struct TestConfiguration
 
     bool _loadBalance;
     bool _coroutineSharingForAny;
-    quantum::TaskStateConfig _taskStateConfig;
+    quantum::TaskStateConfiguration _TaskStateConfiguration;
 };
 
 namespace std {

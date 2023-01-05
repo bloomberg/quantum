@@ -91,7 +91,9 @@ void Task::terminate()
 }
 
 inline
-int Task::run(const TaskStateHandler& stateHandler, TaskState handledStates)
+int Task::run(const TaskStateHandler& stateHandler,
+              TaskType taskHandledType,
+              TaskState taskHandledStates)
 {
     SuspensionGuard guard(_suspendedState);
     if (guard)
@@ -111,11 +113,11 @@ int Task::run(const TaskStateHandler& stateHandler, TaskState handledStates)
 
         if (_taskState == TaskState::Initialized)
         {
-            handleTaskState(stateHandler, _taskId.id(), _queueId, handledStates, TaskState::Started, _taskState);
+            handleTaskState(stateHandler, _taskId.id(), _queueId, taskHandledType, taskHandledStates, TaskState::Started, _taskState);
         }
         else
         {
-            handleTaskState(stateHandler, _taskId.id(), _queueId, handledStates, TaskState::Resumed, _taskState);
+            handleTaskState(stateHandler, _taskId.id(), _queueId, taskHandledType, taskHandledStates, TaskState::Resumed, _taskState);
         }
         int rc = (int)ITask::RetCode::Running;
         _taskId.assignCurrentThread();
@@ -124,7 +126,7 @@ int Task::run(const TaskStateHandler& stateHandler, TaskState handledStates)
         }
         catch (...)
         {
-            handleTaskState(stateHandler, _taskId.id(), _queueId, handledStates, TaskState::Stopped, _taskState);
+            handleTaskState(stateHandler, _taskId.id(), _queueId, taskHandledType, taskHandledStates, TaskState::Stopped, _taskState);
             throw;
         }
 
@@ -136,10 +138,10 @@ int Task::run(const TaskStateHandler& stateHandler, TaskState handledStates)
                 // Do nothing
                 break;
             case (int)ITask::RetCode::Running:
-                handleTaskState(stateHandler, _taskId.id(), _queueId, handledStates, TaskState::Suspended, _taskState);
+                handleTaskState(stateHandler, _taskId.id(), _queueId, taskHandledType, taskHandledStates, TaskState::Suspended, _taskState);
                 break;
             default:
-                handleTaskState(stateHandler, _taskId.id(), _queueId, handledStates, TaskState::Stopped, _taskState);
+                handleTaskState(stateHandler, _taskId.id(), _queueId, taskHandledType, taskHandledStates, TaskState::Stopped, _taskState);
                 break;
         }
 

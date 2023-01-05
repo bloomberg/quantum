@@ -25,6 +25,45 @@ namespace Bloomberg {
 namespace quantum {
 
 inline
+TaskStateConfiguration& TaskStateConfiguration::setTaskStateHandler(const TaskStateHandler& handler)
+{
+    handler_ = handler;
+    return *this;
+}
+
+inline
+TaskStateConfiguration& TaskStateConfiguration::setHandledTaskStates(TaskState states)
+{
+    handledStates_ = states;
+    return *this;
+}
+
+inline
+TaskStateConfiguration& TaskStateConfiguration::setHandledTaskTypes(TaskType types)
+{
+    handledTypes_ = types;
+    return *this;
+}
+
+inline
+const TaskStateHandler& TaskStateConfiguration::getTaskStateHandler() const
+{
+    return handler_;
+}
+
+inline
+TaskState TaskStateConfiguration::getHandledTaskStates() const
+{
+    return handledStates_;
+}
+
+inline
+TaskType TaskStateConfiguration::getHandledTaskTypes() const
+{
+    return handledTypes_;
+}
+
+inline
 bool isValidTaskStateOrded(TaskState currentState, TaskState nextState)
 {
     switch (nextState) {
@@ -53,6 +92,7 @@ inline
 void handleTaskState(const TaskStateHandler& stateHandler,
                      size_t taskId,
                      int queueId,
+                     TaskType handledType,
                      TaskState handledStates,
                      TaskState nextState,
                      TaskState& currentState)
@@ -83,7 +123,7 @@ void handleTaskState(const TaskStateHandler& stateHandler,
         return;
     }
 
-    stateHandler(taskId, queueId, nextState);
+    stateHandler(taskId, queueId, handledType, nextState);
 }
 
 }}
