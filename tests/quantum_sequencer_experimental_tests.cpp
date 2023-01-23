@@ -57,14 +57,14 @@ public: // types
      * @Brief checks if a task was started before another task finished
      */
     void ensureOrder(TaskId beforeTaskId, TaskId afterTaskId)
-    {        
+    {
         TaskResultMap::const_iterator beforeTaskIt = _results.find(beforeTaskId);
         ASSERT_NE(beforeTaskIt, _results.end());
         TaskResultMap::const_iterator afterTaskIt = _results.find(afterTaskId);
         ASSERT_NE(afterTaskIt, _results.end());
         EXPECT_LE(beforeTaskIt->second.endTime, afterTaskIt->second.startTime);
     }
-    
+
     std::function<int(VoidContextPtr)> makeTask(TaskId taskId)
     {
         return [this, taskId](VoidContextPtr ctx)->int
@@ -105,17 +105,17 @@ public: // types
     {
         return _results;
     }
-    
+
     void sleep(int periodCount = 1)
     {
         std::this_thread::sleep_for(std::chrono::milliseconds(periodCount*1));
     }
 
     void taskFunc(
-        VoidContextPtr ctx, 
-        TaskId id, 
-        std::atomic<bool>* blockFlag, 
-        std::string error, 
+        VoidContextPtr ctx,
+        TaskId id,
+        std::atomic<bool>* blockFlag,
+        std::string error,
         unsigned int yieldCount,
         std::atomic<unsigned int>* totalYieldCount)
     {
@@ -144,7 +144,7 @@ public: // types
 
         // update the task map with the time stats
         quantum::Mutex::Guard lock(ctx, _resultMutex);
-        
+
         _results[id].startTime = startTime;
         _results[id].endTime = endTime;
     }
@@ -165,11 +165,11 @@ TEST_P(SequencerExperimentalTest, BasicTaskOrder)
     const int sequenceKeyCount = 3;
     SequencerExperimentalTestData testData;
     SequencerExperimentalTestData::SequenceKeyMap sequenceKeys;
-    
+
     SequencerExperimentalTestData::TaskSequencer sequencer(getDispatcher());
 
     // enqueue the tasks
-    for(SequencerExperimentalTestData::TaskId id = 0; id < taskCount; ++id) 
+    for(SequencerExperimentalTestData::TaskId id = 0; id < taskCount; ++id)
     {
         SequencerExperimentalTestData::SequenceKey sequenceKey = id % sequenceKeyCount;
         // save the task id for this sequenceKey
@@ -181,9 +181,9 @@ TEST_P(SequencerExperimentalTest, BasicTaskOrder)
     EXPECT_EQ(testData.results().size(), (size_t)taskCount);
 
     // the tasks must be ordered within the same sequenceKey
-    for(auto sequenceKeyData : sequenceKeys) 
+    for(auto sequenceKeyData : sequenceKeys)
     {
-        for(size_t i = 1; i < sequenceKeyData.second.size(); ++i) 
+        for(size_t i = 1; i < sequenceKeyData.second.size(); ++i)
         {
             testData.ensureOrder(sequenceKeyData.second[i-1], sequenceKeyData.second[i]);
         }
@@ -200,11 +200,11 @@ TEST_P(SequencerExperimentalTest, BasicTaskOrderWithYields)
     SequencerExperimentalTestData testData;
     SequencerExperimentalTestData::SequenceKeyMap sequenceKeys;
     std::atomic<unsigned int> totalYieldCount(0);
-    
+
     SequencerExperimentalTestData::TaskSequencer sequencer(getDispatcher());
 
     // enqueue the tasks
-    for(SequencerExperimentalTestData::TaskId id = 0; id < taskCount; ++id) 
+    for(SequencerExperimentalTestData::TaskId id = 0; id < taskCount; ++id)
     {
         SequencerExperimentalTestData::SequenceKey sequenceKey = id % sequenceKeyCount;
         // save the task id for this sequenceKey
@@ -216,9 +216,9 @@ TEST_P(SequencerExperimentalTest, BasicTaskOrderWithYields)
     EXPECT_EQ(testData.results().size(), (size_t)taskCount);
 
     // the tasks must be ordered within the same sequenceKey
-    for(auto sequenceKeyData : sequenceKeys) 
+    for(auto sequenceKeyData : sequenceKeys)
     {
-        for(size_t i = 1; i < sequenceKeyData.second.size(); ++i) 
+        for(size_t i = 1; i < sequenceKeyData.second.size(); ++i)
         {
             testData.ensureOrder(sequenceKeyData.second[i-1], sequenceKeyData.second[i]);
         }
@@ -235,12 +235,12 @@ TEST_P(SequencerExperimentalTest, BasicTaskOrderWithParams)
     SequencerExperimentalTestData testData;
     std::ostringstream buf;
     SequencerExperimentalTestData::SequenceKeyMap sequenceKeys;
-    
+
     SequencerExperimentalTestData::TaskSequencer sequencer(getDispatcher());
     std::atomic<int> mismatchCount(0);
 
     // enqueue the tasks
-    for(SequencerExperimentalTestData::TaskId id = 0; id < taskCount; ++id) 
+    for(SequencerExperimentalTestData::TaskId id = 0; id < taskCount; ++id)
     {
         SequencerExperimentalTestData::SequenceKey sequenceKey = id % sequenceKeyCount;
         buf.str("");
@@ -251,7 +251,7 @@ TEST_P(SequencerExperimentalTest, BasicTaskOrderWithParams)
 
         sequenceKeys[sequenceKey].push_back(id);
         auto task = [&testData, id, &mismatchCount, text3](
-            VoidContextPtr ctx, std::string&& text1, std::string text2)->int 
+            VoidContextPtr ctx, std::string&& text1, std::string text2)->int
         {
             std::ostringstream buf2;
             buf2 << "Task " << id;
@@ -278,9 +278,9 @@ TEST_P(SequencerExperimentalTest, BasicTaskOrderWithParams)
     EXPECT_EQ(testData.results().size(), (size_t)taskCount);
 
     // the tasks must be ordered within the same sequenceKey
-    for(auto sequenceKeyData : sequenceKeys) 
+    for(auto sequenceKeyData : sequenceKeys)
     {
-        for(size_t i = 1; i < sequenceKeyData.second.size(); ++i) 
+        for(size_t i = 1; i < sequenceKeyData.second.size(); ++i)
         {
             testData.ensureOrder(sequenceKeyData.second[i-1], sequenceKeyData.second[i]);
         }
@@ -294,7 +294,7 @@ TEST_P(SequencerExperimentalTest, TrimKeys)
     const int taskCount = 100;
     const int sequenceKeyCount = 3;
     SequencerExperimentalTestData testData;
-    
+
     SequencerExperimentalTestData::TaskSequencer sequencer(getDispatcher());
 
     // enqueue the tasks
@@ -322,10 +322,10 @@ TEST_P(SequencerExperimentalTest, ExceptionHandler)
 
     // generate the sequence of tasks for passing as opaque
     int generateTaskId = 0;
-    std::generate(sequenceKeys.begin(), 
-                  sequenceKeys.end(), 
+    std::generate(sequenceKeys.begin(),
+                  sequenceKeys.end(),
                   [&generateTaskId]() { return generateTaskId++; });
-    
+
     const std::string errorText = "Error";
     // the callback will check that exceptions are generated as expected
     std::atomic<unsigned int> exceptionCallbackCallCount(0);
@@ -335,7 +335,7 @@ TEST_P(SequencerExperimentalTest, ExceptionHandler)
         ASSERT_NE(exception, nullptr);
         try
         {
-            if (exception) 
+            if (exception)
             {
                 std::rethrow_exception(exception);
             }
@@ -358,7 +358,7 @@ TEST_P(SequencerExperimentalTest, ExceptionHandler)
     SequencerExperimentalTestData::TaskSequencerConfiguration config;
     config.setExceptionCallback(exceptionCallback);
     SequencerExperimentalTestData::TaskSequencer sequencer(getDispatcher(), config);
-    
+
     unsigned int generatedExceptionCount = 0;
     for(SequencerExperimentalTestData::TaskId id = 0; id < taskCount; ++id)
     {
@@ -389,14 +389,14 @@ TEST_P(SequencerExperimentalTest, SequenceKeyStats)
     const int universalTaskFrequency = 11; // every 11th task is universal
     SequencerExperimentalTestData testData;
     std::atomic<bool> blockFlag(true);
-    
+
     SequencerExperimentalTestData::TaskSequencerConfiguration config;
     SequencerExperimentalTestData::TaskSequencer sequencer(getDispatcher(), config);
 
     // enqueue the first half
     for(SequencerExperimentalTestData::TaskId id = 0; id < taskCount / 2; ++id)
     {
-        if ( id % universalTaskFrequency == 0 ) 
+        if ( id % universalTaskFrequency == 0 )
         {
             sequencer.enqueueAll(testData.makeTaskWithBlock(id, &blockFlag));
         }
@@ -475,18 +475,18 @@ TEST_P(SequencerExperimentalTest, TaskOrderWithUniversal)
     SequencerExperimentalTestData testData;
     SequencerExperimentalTestData::SequenceKeyMap sequenceKeys;
     std::vector<SequencerExperimentalTestData::TaskId> universal;
-    
+
     SequencerExperimentalTestData::TaskSequencer sequencer(getDispatcher());
-    
-    for(SequencerExperimentalTestData::TaskId id = 0; id < taskCount; ++id) 
+
+    for(SequencerExperimentalTestData::TaskId id = 0; id < taskCount; ++id)
     {
-        if ( id % universalTaskFrequency == 0 ) 
+        if ( id % universalTaskFrequency == 0 )
         {
             // save the task id as universal
             universal.push_back(id);
             sequencer.enqueueAll(testData.makeTask(id));
         }
-        else 
+        else
         {
             SequencerExperimentalTestData::SequenceKey sequenceKey = id % sequenceKeyCount;
             // save the task id for this sequenceKey
@@ -500,29 +500,29 @@ TEST_P(SequencerExperimentalTest, TaskOrderWithUniversal)
     EXPECT_EQ((int)sequencer.getSequenceKeyCount(), sequenceKeyCount);
 
     // the tasks must be ordered within the same sequenceKey
-    for(auto sequenceKeyData : sequenceKeys) 
+    for(auto sequenceKeyData : sequenceKeys)
     {
-        for(size_t i = 1; i < sequenceKeyData.second.size(); ++i) 
+        for(size_t i = 1; i < sequenceKeyData.second.size(); ++i)
         {
             testData.ensureOrder(sequenceKeyData.second[i-1], sequenceKeyData.second[i]);
         }
     }
     // all tasks enqueued before a universal task must be finished before it starts
-    for (auto universalTaskId : universal) 
+    for (auto universalTaskId : universal)
     {
-        for(SequencerExperimentalTestData::TaskId taskId = 0; taskId < universalTaskId; ++taskId) 
+        for(SequencerExperimentalTestData::TaskId taskId = 0; taskId < universalTaskId; ++taskId)
         {
             testData.ensureOrder(taskId, universalTaskId);
         }
-    }    
+    }
     // all tasks enqueued after a universal task must be started after it finishes
-    for (auto universalTaskId : universal) 
+    for (auto universalTaskId : universal)
     {
-        for(SequencerExperimentalTestData::TaskId taskId = universalTaskId + 1; taskId < taskCount; ++taskId) 
+        for(SequencerExperimentalTestData::TaskId taskId = universalTaskId + 1; taskId < taskCount; ++taskId)
         {
             testData.ensureOrder(universalTaskId, taskId);
         }
-    }    
+    }
 }
 
 TEST_P(SequencerExperimentalTest, MultiSequenceKeyTasks)
@@ -533,22 +533,22 @@ TEST_P(SequencerExperimentalTest, MultiSequenceKeyTasks)
     const int taskCount = (2 << (sequenceKeyCount - 1)) - 1;
     SequencerExperimentalTestData testData;
 
-    // constructs a sequence key collection from the bitmap of an unsigned it, 
+    // constructs a sequence key collection from the bitmap of an unsigned it,
     // e.g. for the taskId = 5, the returned collection will be {0, 2}
     auto getBitVector = [](unsigned int value)->std::vector<SequencerExperimentalTestData::SequenceKey>
     {
         std::vector<SequencerExperimentalTestData::SequenceKey> result;
         int bit = 0;
-        for(; value; ++bit, value = value >> 1) 
+        for(; value; ++bit, value = value >> 1)
         {
-            if ( value % 2 ) 
+            if ( value % 2 )
             {
                 result.push_back(bit);
             }
         }
         return result;
     };
-    
+
     SequencerExperimentalTestData::TaskSequencer sequencer(getDispatcher());
     for(SequencerExperimentalTestData::TaskId id = 1; id <= taskCount; ++id)
     {
@@ -562,17 +562,17 @@ TEST_P(SequencerExperimentalTest, MultiSequenceKeyTasks)
     EXPECT_EQ((int)sequencer.getSequenceKeyCount(), sequenceKeyCount);
 
     // the tasks must be ordered within the sequenceKey set intersection
-    for(SequencerExperimentalTestData::TaskId id = 1; id <= taskCount; ++id) 
+    for(SequencerExperimentalTestData::TaskId id = 1; id <= taskCount; ++id)
     {
-        for(SequencerExperimentalTestData::TaskId refId = 1; refId <= taskCount; ++refId) 
+        for(SequencerExperimentalTestData::TaskId refId = 1; refId <= taskCount; ++refId)
         {
-            if (id != refId and id & refId) 
+            if (id != refId and id & refId)
             {
-                if ( refId < id ) 
+                if ( refId < id )
                 {
                     testData.ensureOrder(refId, id);
-                } 
-                else 
+                }
+                else
                 {
                     testData.ensureOrder(id, refId);
                 }
@@ -600,14 +600,14 @@ TEST_P(SequencerExperimentalTest, CustomHashFunction)
 
     // our custom equal operator will compare the hash values of sequenceKeys
     // this effectively means that the number of sequenceKeys is reduced to
-    // restrictedSequenceKeyCount. So we get a lower memory consumption due to the 
+    // restrictedSequenceKeyCount. So we get a lower memory consumption due to the
     // bound size of the hash table in experimental::Sequencer and hence need not to call
     // trimSequenceKeys from time to time. The price for this is a reduced parallelism:
     // instead of running at most fullSequenceKeyCount tasks in parallel, we can now run at most
     // restrictedSequenceKeyCount
 
     using KeyEqual = std::function<bool(SequencerExperimentalTestData::SequenceKey sequenceKeyId0, SequencerExperimentalTestData::SequenceKey sequenceKeyId1)>;
-    const KeyEqual customEqual = [customHasher](SequencerExperimentalTestData::SequenceKey sequenceKeyId0, SequencerExperimentalTestData::SequenceKey sequenceKeyId1)->bool 
+    const KeyEqual customEqual = [customHasher](SequencerExperimentalTestData::SequenceKey sequenceKeyId0, SequencerExperimentalTestData::SequenceKey sequenceKeyId1)->bool
     {
         return customHasher(sequenceKeyId0) == customHasher(sequenceKeyId1);
     };
@@ -616,11 +616,11 @@ TEST_P(SequencerExperimentalTest, CustomHashFunction)
     config.setBucketCount(0);
     config.setHash(customHasher);
     config.setKeyEqual(customEqual);
-    
+
     experimental::Sequencer<SequencerExperimentalTestData::SequenceKey, Hasher, KeyEqual>
         sequencer(getDispatcher(), config);
-    
-    for(SequencerExperimentalTestData::TaskId id = 0; id < taskCount; ++id) 
+
+    for(SequencerExperimentalTestData::TaskId id = 0; id < taskCount; ++id)
     {
         SequencerExperimentalTestData::SequenceKey sequenceKey = id % fullSequenceKeyCount;
         // save the task id for this sequenceKey
@@ -634,7 +634,7 @@ TEST_P(SequencerExperimentalTest, CustomHashFunction)
     EXPECT_EQ((int)sequencer.getSequenceKeyCount(), restrictedSequenceKeyCount);
 
     // the tasks must be ordered within the same sequenceKey
-    for(auto sequenceKeyData : sequenceKeys) 
+    for(auto sequenceKeyData : sequenceKeys)
     {
         for(size_t i = 1; i < sequenceKeyData.second.size(); ++i)
         {
@@ -677,8 +677,8 @@ TEST_P(SequencerExperimentalTest, CoroSafety)
 
     SequencerExperimentalTestData::TaskSequencer sequencer{ getDispatcher() };
 
-    getDispatcher().post([&sequencer](VoidContextPtr ctx) -> int {
-        sequencer.enqueue(0, [](VoidContextPtr ctx) -> int { return 0; });
+    getDispatcher().post([&sequencer](VoidContextPtr) -> int {
+        sequencer.enqueue(0, [](VoidContextPtr) -> int { return 0; });
         return 0;
     });
 

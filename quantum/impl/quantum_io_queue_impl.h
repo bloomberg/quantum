@@ -42,12 +42,20 @@ IoQueue::IoQueue(const Configuration& config,
     _isEmpty(true),
     _isInterrupted(false),
     _isIdle(true),
-    _terminated(false)
+    _terminated(false),
+    _taskStateConfiguration(config.getTaskStateConfiguration())
 {
     if (_sharedIoQueues) {
         //The shared queue doesn't have its own thread
         _thread = std::make_shared<std::thread>(std::bind(&IoQueue::run, this));
     }
+
+    TaskStateHandler taskStateHandler;
+    if (isIntersection(_taskStateConfiguration.getHandledTaskTypes(), TaskType::IoTask))
+    {
+        taskStateHandler = makeExceptionSafe(_taskStateConfiguration.getTaskStateHandler());
+    }
+    _taskStateConfiguration.setTaskStateHandler(taskStateHandler);
 }
 
 inline
@@ -62,12 +70,14 @@ IoQueue::IoQueue(const IoQueue& other) :
     _isEmpty(true),
     _isInterrupted(false),
     _isIdle(true),
-    _terminated(false)
+    _terminated(false),
+    _taskStateConfiguration(other._taskStateConfiguration)
 {
     if (_sharedIoQueues) {
         //The shared queue doesn't have its own thread
         _thread = std::make_shared<std::thread>(std::bind(&IoQueue::run, this));
     }
+
 }
 
 inline
@@ -110,7 +120,7 @@ void IoQueue::run()
                 //Wait for the queue to have at least one element
                 _notEmptyCond.wait(lock, [this]() -> bool { return !_isEmpty || _isInterrupted; });
             }
-            
+
             if (_isInterrupted)
             {
                 break;
@@ -125,11 +135,13 @@ void IoQueue::run()
                     continue;
                 }
             }
-            
+
             // set the current task
             IQueue::TaskSetterGuard taskSetter(*this, task);
             //========================= START TASK =========================
-            int rc = task->run();
+            int rc = task->run(_taskStateConfiguration.getTaskStateHandler(),
+                               TaskType::IoTask,
+                               _taskStateConfiguration.getHandledTaskStates());
             //========================== END TASK ==========================
 
             if (rc == (int)ITask::RetCode::Success)
@@ -280,7 +292,7 @@ ITask::Ptr IoQueue::tryDequeueFromShared()
     static size_t index = 0;
     ITask::Ptr task;
     size_t size = 0;
-    
+
     for (size_t i = 0; i < (*_sharedIoQueues).size(); ++i)
     {
         IoQueue& queue = (*_sharedIoQueues)[++index % (*_sharedIoQueues).size()];
@@ -383,7 +395,7 @@ ITask::Ptr IoQueue::grabWorkItem()
     static bool grabFromShared = false;
     ITask::Ptr task = nullptr;
     grabFromShared = !grabFromShared;
-    
+
     if (grabFromShared) {
         //========================= LOCKED SCOPE (SHARED QUEUE) =========================
         SpinLock::Guard lock((*_sharedIoQueues)[0].getLock());
@@ -423,7 +435,7 @@ ITask::Ptr IoQueue::grabWorkItemFromAll()
     static bool grabFromShared = false;
     ITask::Ptr task = nullptr;
     grabFromShared = !grabFromShared;
-    
+
     if (grabFromShared)
     {
         task = tryDequeueFromShared();

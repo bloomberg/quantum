@@ -18,6 +18,7 @@
 
 #include <quantum/quantum_thread_traits.h>
 #include <quantum/quantum_macros.h>
+#include <quantum/quantum_task_state_handler.h>
 #include <chrono>
 #include <utility>
 
@@ -34,7 +35,7 @@ struct ConfigurationSchemaProvider
     /// @brief Get the JSON schema corresponding to this configuration object.
     /// @return The draft-04 compatible schema.
     static const std::string& getJsonSchema();
-    
+
     /// @brief Get the schema URI used to resolve remote JSON references '$ref'.
     /// @return The URI.
     static const std::string& getJsonSchemaUri();
@@ -52,25 +53,25 @@ public:
         Linear = QUANTUM_BACKOFF_LINEAR,          ///< Linear backoff
         Exponential = QUANTUM_BACKOFF_EXPONENTIAL ///< Exponential backoff (doubles every time)
     };
-    
+
     /// @brief Set the number of threads running coroutines.
     /// @param[in] num The number of threads. Set to -1 to have one coroutine thread per core.
     ///            Default is -1.
     /// @return A reference to itself
     Configuration& setNumCoroutineThreads(int num);
-    
+
     /// @brief Set the number of threads running IO tasks.
     /// @param[in] num The number of threads. Default is 5.
     /// @return A reference to itself
     Configuration& setNumIoThreads(int num);
-    
+
     /// @brief Indicate if coroutine threads should be pinned to a core.
     /// @param[in] value True or False. Default is False.
     /// @note For best performance, the number of coroutine threads should
     ///       be <= the number of cores in the system.
     /// @return A reference to itself
     Configuration& setPinCoroutineThreadsToCores(bool value);
-    
+
     /// @brief Load balance the shared IO queues.
     /// @param[in] value If set to true, posting to the 'any' IO queue will result in
     ///                  the load being spread among N queues. This mode can provide higher
@@ -79,19 +80,19 @@ public:
     ///       increases CPU usage even when idle.
     /// @return A reference to itself
     Configuration& setLoadBalanceSharedIoQueues(bool value);
-    
+
     /// @brief Set the interval between IO thread polls.
     /// @param[in] interval Interval in milliseconds. Default is 100ms.
     /// @note Setting this to a higher value means it may take longer to react to the first
     ///       IO task posted, and vice-versa if the interval is lower.
     /// @return A reference to itself
     Configuration& setLoadBalancePollIntervalMs(std::chrono::milliseconds interval);
-    
+
     /// @brief Set a backoff policy for the shared queue polling interval.
     /// @param[in] policy The backoff policy to use. Default is 'Linear'.
     /// @return A reference to itself
     Configuration& setLoadBalancePollIntervalBackoffPolicy(BackoffPolicy policy);
-    
+
     /// @brief Set the number of backoffs.
     /// @param[in] numBackoffs The number of backoff increments. Default is 0.
     ///                        When the number of backoffs is reached, the poll interval remains unchanged thereafter.
@@ -108,37 +109,42 @@ public:
 
     /// @brief Enables or disables the shared-coro-queue-for-any settings
     /// @param[in] isSharedCoroQueueForAny sets the shared-coro-queue-for any setting
-    /// @warning When the coroutine sharing feature is enabled, then after each yield 
+    /// @warning When the coroutine sharing feature is enabled, then after each yield
     /// (explicit or implicit) a coroutine sent to the Any queue may be executed by
     /// a different thread. As a result, coroutines using thread-local-storage (e.g., via thread_local),
     /// will _not_ work as expected.
     /// @return A reference to itself
     Configuration& setCoroutineSharingForAny(bool sharing);
-    
+
+    /// @brief Set the task state config.
+    /// @param[in] TaskStateConfiguration The task state config.
+    /// @return A reference to itself
+    Configuration& setTaskStateConfiguration(const TaskStateConfiguration& TaskStateConfiguration);
+
     /// @brief Get the number of coroutine threads.
     /// @return The number of threads.
     int getNumCoroutineThreads() const;
-    
+
     /// @brief Get the number of IO threads.
     /// @return The number of threads.
     int getNumIoThreads() const;
-    
+
     /// @brief Check to see if coroutine threads are pinned to cores or not.
     /// @return True or False.
     bool getPinCoroutineThreadsToCores() const;
-    
+
     /// @brief Check if IO shared queues are load balanced or not.
     /// @return True or False.
     bool getLoadBalanceSharedIoQueues() const;
-    
+
     /// @brief Get load balance shared queue poll interval.
     /// @return The number of milliseconds.
     std::chrono::milliseconds getLoadBalancePollIntervalMs() const;
-    
+
     /// @brief Get the backoff policy in load balance mode.
     /// @return The backoff policy used.
     BackoffPolicy getLoadBalancePollIntervalBackoffPolicy() const;
-    
+
     /// @brief Get the number of backoffs used.
     /// @return The number of backoffs.
     size_t getLoadBalancePollIntervalNumBackoffs() const;
@@ -147,11 +153,15 @@ public:
     /// by the Dispatcher.
     /// @return queueIdRange The range of queueIds that IQueue::QueueId::Any covers
     const std::pair<int, int>& getCoroQueueIdRangeForAny() const;
-    
+
     /// @brief Gets the enablement flag of the shared-coro-queue-for-any
     /// @return the enablement flag for the feature
     bool getCoroutineSharingForAny() const;
-    
+
+    /// @brief Gets the task state config
+    /// @return the task state config
+    const TaskStateConfiguration& getTaskStateConfiguration() const;
+
 private:
     int                         _numCoroutineThreads{-1};
     int                         _numIoThreads{5};
@@ -162,6 +172,7 @@ private:
     size_t                      _loadBalancePollIntervalNumBackoffs{0};
     std::pair<int, int>         _coroQueueIdRangeForAny{-1, -1};
     bool                        _coroutineSharingForAny{false};
+    TaskStateConfiguration      _taskStateConfiguration;
 };
 
 }}

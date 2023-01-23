@@ -20,7 +20,6 @@
 #include <vector>
 
 using namespace Bloomberg::quantum;
-using ms = std::chrono::milliseconds;
 
 TEST(GenericFuture, MakeFutureInCoroutineAndMainThread)
 {

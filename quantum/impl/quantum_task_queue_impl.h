@@ -43,7 +43,7 @@ TaskQueue::ProcessTaskResult::ProcessTaskResult(bool isBlocked,
     _blockedQueueRound(blockedQueueRound)
 {
 }
-    
+
 inline
 TaskQueue::TaskQueue() :
     TaskQueue(Configuration(), nullptr)
@@ -51,7 +51,7 @@ TaskQueue::TaskQueue() :
 }
 
 inline
-TaskQueue::TaskQueue(const Configuration&, std::shared_ptr<TaskQueue> sharedQueue) :
+TaskQueue::TaskQueue(const Configuration& configuration, std::shared_ptr<TaskQueue> sharedQueue) :
     _alloc(Allocator<QueueListAllocator>::instance(AllocatorTraits::queueListAllocSize())),
     _runQueue(_alloc),
     _waitQueue(_alloc),
@@ -67,12 +67,21 @@ TaskQueue::TaskQueue(const Configuration&, std::shared_ptr<TaskQueue> sharedQueu
     _sharedQueue(sharedQueue),
     _queueRound(0),
     _lastSleptQueueRound(std::numeric_limits<unsigned int>::max()),
-    _lastSleptSharedQueueRound(std::numeric_limits<unsigned int>::max())
+    _lastSleptSharedQueueRound(std::numeric_limits<unsigned int>::max()),
+    _taskStateConfiguration(configuration.getTaskStateConfiguration())
 {
+    TaskStateHandler taskStateHandler;
+    if (isIntersection(_taskStateConfiguration.getHandledTaskTypes(), TaskType::Coroutine))
+    {
+        taskStateHandler = makeExceptionSafe(_taskStateConfiguration.getTaskStateHandler());
+    }
+    _taskStateConfiguration.setTaskStateHandler(taskStateHandler);
+
     if (_sharedQueue)
     {
         _sharedQueue->_helpers.push_back(this);
     }
+
     _thread = std::make_shared<std::thread>(std::bind(&TaskQueue::run, this));
 }
 
@@ -165,7 +174,7 @@ void TaskQueue::sleepOnBlockedQueue(const ProcessTaskResult& mainQueueResult,
         mainQueueResult._isBlocked && mainQueueResult._blockedQueueRound != _lastSleptQueueRound;
     const bool isSharedQueueBlocked =
         sharedQueueResult._isBlocked && sharedQueueResult._blockedQueueRound != _lastSleptSharedQueueRound;
-    
+
     if ((isQueueBlocked || _isEmpty) && (isSharedQueueBlocked || _isSharedQueueEmpty))
     {
         _lastSleptQueueRound = mainQueueResult._blockedQueueRound;
@@ -173,7 +182,7 @@ void TaskQueue::sleepOnBlockedQueue(const ProcessTaskResult& mainQueueResult,
         YieldingThread()();
     }
 }
-    
+
 inline
 TaskQueue::ProcessTaskResult TaskQueue::processTask()
 {
@@ -182,22 +191,23 @@ TaskQueue::ProcessTaskResult TaskQueue::processTask()
     {
         //Process a task
         workItem = grabWorkItem();
-        
+
         TaskPtr task = workItem._task;
         if (!task)
         {
             return ProcessTaskResult(workItem._isBlocked, workItem._blockedQueueRound);
         }
 
-        int rc;
+        int rc = 0;
         {
             // set the current task for local-storage queries
             IQueue::TaskSetterGuard taskSetter(*this, task);
             //========================= START/RESUME COROUTINE =========================
-            rc = task->run();
+            rc = task->run(_taskStateConfiguration.getTaskStateHandler(),
+                           TaskType::Coroutine,
+                           _taskStateConfiguration.getHandledTaskStates());
             //=========================== END/YIELD COROUTINE ==========================
         }
-        
         switch (rc)
         {
             case (int)ITask::RetCode::NotCallable:
@@ -526,7 +536,7 @@ bool TaskQueue::isInterrupted()
 inline
 TaskQueue::WorkItem
 TaskQueue::grabWorkItem()
-{    
+{
     //========================= LOCKED SCOPE =========================
     SpinLock::Guard lock(_runQueueLock);
     if ((_queueIt == _runQueue.end()) || (!_isAdvanced && (++_queueIt == _runQueue.end())))
@@ -600,7 +610,7 @@ void TaskQueue::acquireWaiting()
         //rewind by one since we are at end()
         --_queueIt;
     }
-    {        
+    {
         //splice wait queue unto run queue.
         _runQueue.splice(_runQueue.end(), _waitQueue);
     }

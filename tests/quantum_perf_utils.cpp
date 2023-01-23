@@ -67,4 +67,18 @@ ProcStats operator- (const ProcStats& s1, const ProcStats& s2)
     return s;
 }
 
+
+Timer::Timer()
+: _start(std::chrono::steady_clock::now())
+{
+    _elapsed = std::chrono::steady_clock::duration::zero();
+}
+
+Timer::~Timer()
+{
+    _elapsed = std::chrono::steady_clock::now() - _start;
+}
+
+std::chrono::steady_clock::duration Timer::_elapsed;
+
 }}

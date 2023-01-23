@@ -21,6 +21,7 @@
 #include <quantum/interface/quantum_iqueue.h>
 #include <quantum/quantum_spinlock.h>
 #include <quantum/quantum_task.h>
+#include <quantum/quantum_task_state_handler.h>
 #include <quantum/quantum_yielding_thread.h>
 #include <quantum/quantum_queue_statistics.h>
 #include <quantum/quantum_configuration.h>
@@ -48,44 +49,44 @@ class TaskQueue : public IQueue
 public:
     using TaskList = std::list<Task::Ptr, ContiguousPoolManager<ITask::Ptr>>;
     using TaskListIter = TaskList::iterator;
-    
+
     TaskQueue();
-    
-    TaskQueue(const Configuration& config,
+
+    TaskQueue(const Configuration& configuration,
               std::shared_ptr<TaskQueue> sharedQueue);
-    
+
     TaskQueue(const TaskQueue& other);
-    
+
     TaskQueue(TaskQueue&& other) = default;
-    
+
     ~TaskQueue();
-    
+
     void pinToCore(int coreId) final;
-    
+
     void run() final;
-    
+
     void enqueue(ITask::Ptr task) final;
-    
+
     bool tryEnqueue(ITask::Ptr task) final;
-    
+
     ITask::Ptr dequeue(std::atomic_bool& hint) final;
-    
+
     ITask::Ptr tryDequeue(std::atomic_bool& hint) final;
-    
+
     size_t size() const final;
-    
+
     bool empty() const final;
-    
+
     void terminate() final;
-    
+
     IQueueStatistics& stats() final;
-    
+
     SpinLock& getLock() final;
-    
+
     void signalEmptyCondition(bool value) final;
-    
+
     bool isIdle() const final;
-    
+
     const std::shared_ptr<std::thread>& getThread() const final;
 
 private:
@@ -95,7 +96,7 @@ private:
                  TaskListIter iter,
                  bool isBlocked,
                  unsigned int blockedQueueRound);
-        
+
         TaskPtr         _task;              // task pointer
         TaskListIter    _iter;              // task iterator
         bool            _isBlocked;         // true if the entire queue is blocked
@@ -105,7 +106,7 @@ private:
     {
         ProcessTaskResult(bool isBlocked,
                           unsigned int blockedQueueRound);
-            
+
         bool            _isBlocked;         // true if the entire queue is blocked
         unsigned int    _blockedQueueRound; // blocked queue round id
     };
@@ -122,7 +123,7 @@ private:
 
     void onBlockedTask(WorkItem& entry);
     void onActiveTask(WorkItem& entry);
-    
+
     bool isInterrupted();
     void signalSharedQueueEmptyCondition(bool value);
     ProcessTaskResult processTask();
@@ -135,7 +136,7 @@ private:
     void sleepOnBlockedQueue(const ProcessTaskResult& mainQueueResult,
                              const ProcessTaskResult& sharedQueueResult);
 
-    
+
     QueueListAllocator                  _alloc;
     std::shared_ptr<std::thread>        _thread;
     TaskList                            _runQueue;
@@ -159,6 +160,7 @@ private:
     unsigned int                        _queueRound;
     unsigned int                        _lastSleptQueueRound;
     unsigned int                        _lastSleptSharedQueueRound;
+    TaskStateConfiguration              _taskStateConfiguration;
 };
 
 }}

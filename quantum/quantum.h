@@ -41,6 +41,7 @@
 #include <quantum/interface/quantum_ithread_promise.h>
 #include <quantum/quantum_allocator.h>
 #include <quantum/quantum_allocator_traits.h>
+#include <quantum/quantum_auxiliary.h>
 #include <quantum/quantum_buffer.h>
 #include <quantum/quantum_capture.h>
 #include <quantum/quantum_condition_variable.h>
@@ -70,6 +71,7 @@
 #include <quantum/quantum_task.h>
 #include <quantum/quantum_task_id.h>
 #include <quantum/quantum_task_queue.h>
+#include <quantum/quantum_task_state_handler.h>
 #include <quantum/quantum_thread_traits.h>
 #include <quantum/quantum_traits.h>
 #include <quantum/quantum_yielding_thread.h>
@@ -80,8 +82,9 @@
 #include <quantum/util/quantum_sequence_key_statistics.h>
 #include <quantum/util/quantum_sequencer.h>
 #include <quantum/util/quantum_sequencer_configuration.h>
-#include <quantum/util/quantum_sequencer_experimental.h>
 #include <quantum/util/quantum_sequencer_configuration_experimental.h>
+#include <quantum/util/quantum_sequencer_experimental.h>
+#include <quantum/util/quantum_sequencer_task_experimental.h>
 #include <quantum/util/quantum_spinlock_util.h>
 #include <quantum/util/quantum_util.h>
 

@@ -50,7 +50,8 @@ Task::Task(std::false_type,
     _type(type),
     _taskId(CoroContextTag{}),
     _terminated(false),
-    _suspendedState((int)State::Suspended)
+    _suspendedState((int)State::Suspended),
+    _taskState(TaskState::Initialized)
 {}
 
 template <class RET, class FUNC, class ... ARGS>
@@ -69,7 +70,8 @@ Task::Task(std::true_type,
     _type(type),
     _taskId(CoroContextTag{}),
     _terminated(false),
-    _suspendedState((int)State::Suspended)
+    _suspendedState((int)State::Suspended),
+    _taskState(TaskState::Initialized)
 {}
 
 inline
@@ -89,7 +91,9 @@ void Task::terminate()
 }
 
 inline
-int Task::run()
+int Task::run(const TaskStateHandler& stateHandler,
+              TaskType taskHandledType,
+              TaskState taskHandledStates)
 {
     SuspensionGuard guard(_suspendedState);
     if (guard)
@@ -106,9 +110,41 @@ int Task::run()
         {
             return (int)ITask::RetCode::Sleeping;
         }
+
+        if (_taskState == TaskState::Initialized)
+        {
+            handleTaskState(stateHandler, _taskId.id(), _queueId, taskHandledType, taskHandledStates, TaskState::Started, _taskState);
+        }
+        else
+        {
+            handleTaskState(stateHandler, _taskId.id(), _queueId, taskHandledType, taskHandledStates, TaskState::Resumed, _taskState);
+        }
         int rc = (int)ITask::RetCode::Running;
         _taskId.assignCurrentThread();
-        _coro(rc);
+        try {
+            _coro(rc);
+        }
+        catch (...)
+        {
+            handleTaskState(stateHandler, _taskId.id(), _queueId, taskHandledType, taskHandledStates, TaskState::Stopped, _taskState);
+            throw;
+        }
+
+        switch (rc)
+        {
+            case (int)ITask::RetCode::Blocked:
+            case (int)ITask::RetCode::Sleeping:
+            case (int)ITask::RetCode::AlreadyResumed:
+                // Do nothing
+                break;
+            case (int)ITask::RetCode::Running:
+                handleTaskState(stateHandler, _taskId.id(), _queueId, taskHandledType, taskHandledStates, TaskState::Suspended, _taskState);
+                break;
+            default:
+                handleTaskState(stateHandler, _taskId.id(), _queueId, taskHandledType, taskHandledStates, TaskState::Stopped, _taskState);
+                break;
+        }
+
         if (!_coro)
         {
             guard.set((int)State::Terminated);
@@ -231,5 +267,5 @@ void Task::deleter(Task* p)
     delete p;
 #endif
 }
-    
+
 }}

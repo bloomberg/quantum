@@ -18,6 +18,7 @@
 //##############################################################################################
 //#################################### IMPLEMENTATIONS #########################################
 //##############################################################################################
+#include <exception>
 #include <quantum/quantum_allocator.h>
 
 namespace Bloomberg {
@@ -80,11 +81,34 @@ void IoTask::terminate()
 }
 
 inline
-int IoTask::run()
+int IoTask::run(const TaskStateHandler& stateHandler,
+                TaskType taskHandledType,
+                TaskState taskHandledStates)
 {
-    if (_func) {
+    if (_func)
+    {
+        TaskState taskState = TaskState::Initialized;
+        handleTaskState(stateHandler, _taskId.id(), _queueId, taskHandledType, taskHandledStates, TaskState::Started, taskState);
+
         _taskId.assignCurrentThread();
-        return _func();
+        int rc = 0;
+        std::exception_ptr exception;
+        try
+        {
+            rc = _func();
+        }
+        catch (...)
+        {
+            exception = std::current_exception();
+        }
+
+        handleTaskState(stateHandler, _taskId.id(), _queueId, taskHandledType, taskHandledStates, TaskState::Stopped, taskState);
+        if (exception)
+        {
+            std::rethrow_exception(exception);
+        }
+
+        return rc;
     }
     return (int)ITask::RetCode::NotCallable;
 }

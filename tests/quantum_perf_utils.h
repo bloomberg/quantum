@@ -17,6 +17,8 @@
 #ifndef BLOOMBERG_QUANTUM_PERF_UTILS_H
 #define BLOOMBERG_QUANTUM_PERF_UTILS_H
 
+#include <chrono>
+
 namespace Bloomberg {
 namespace quantum {
 
@@ -29,6 +31,27 @@ struct ProcStats
 ProcStats operator-(const ProcStats& s1, const ProcStats& s2);
 
 ProcStats getProcStats();
+
+
+class Timer
+{
+public:
+    Timer();
+    ~Timer();
+
+    template<typename Period>
+    static int elapsed();
+
+private:
+    const std::chrono::steady_clock::time_point _start;
+    static std::chrono::steady_clock::duration _elapsed;
+};
+
+template<typename Period>
+inline int Timer::elapsed()
+{
+    return std::chrono::duration_cast<Period>(_elapsed).count();
+}
 
 }}
 

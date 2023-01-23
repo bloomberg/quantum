@@ -22,6 +22,7 @@
 #include <quantum/interface/quantum_itask_continuation.h>
 #include <quantum/interface/quantum_itask_accessor.h>
 #include <quantum/quantum_traits.h>
+#include <quantum/quantum_task_state_handler.h>
 #include <quantum/util/quantum_util.h>
 #include <iostream>
 #include <memory>
@@ -44,9 +45,9 @@ class Task : public ITaskContinuation,
 public:
     using Ptr = std::shared_ptr<Task>;
     using WeakPtr = std::weak_ptr<Task>;
-    
+
     enum class State : int { Running, Suspended, Terminated };
-    
+
     template <class RET, class FUNC, class ... ARGS>
     Task(std::false_type t,
          std::shared_ptr<Context<RET>> ctx,
@@ -55,7 +56,7 @@ public:
          ITask::Type type,
          FUNC&& func,
          ARGS&&... args);
-    
+
     template <class RET, class FUNC, class ... ARGS>
     Task(std::true_type t,
          std::shared_ptr<Context<RET>> ctx,
@@ -64,19 +65,21 @@ public:
          ITask::Type type,
          FUNC&& func,
          ARGS&&... args);
-    
+
     Task(const Task& task) = delete;
     Task(Task&& task) = default;
     Task& operator=(const Task& task) = delete;
     Task& operator=(Task&& task) = default;
-    
+
     ~Task();
-    
+
     //ITerminate
     void terminate() final;
-    
+
     //ITask
-    int run() final;
+    int run(const TaskStateHandler& handler,
+            TaskType handledTaskTypes,
+            TaskState handledTaskStates) final;
     void setQueueId(int queueId) final;
     int getQueueId() const final;
     Type getType() const final;
@@ -85,18 +88,18 @@ public:
     bool isSleeping(bool updateTimer = false) final;
     bool isHighPriority() const final;
     bool isSuspended() const final;
-    
+
     //ITaskContinuation
     ITaskContinuation::Ptr getNextTask() final;
     void setNextTask(ITaskContinuation::Ptr nextTask) final;
     ITaskContinuation::Ptr getPrevTask() final;
     void setPrevTask(ITaskContinuation::Ptr prevTask) final;
     ITaskContinuation::Ptr getFirstTask() final;
-    
+
     //Returns a final or error handler task in the chain and in the process frees all
     //the subsequent continuation tasks
     ITaskContinuation::Ptr getErrorHandlerOrFinalTask() final;
-    
+
     //Local storage accessors
     LocalStorage& getLocalStorage() final;
     ITaskAccessor::Ptr getTaskAccessor() const;
@@ -107,9 +110,9 @@ public:
     static void* operator new(size_t size);
     static void operator delete(void* p);
     static void deleter(Task* p);
-    
+
 private:
-    
+
     struct SuspensionGuard {
         SuspensionGuard(std::atomic_int& suspendedState) :
             _isLocked(false),
@@ -132,16 +135,16 @@ private:
             _suspendedState.store(newState, std::memory_order::memory_order_acq_rel);
             _isLocked = false;
         }
-               
+
         operator bool() const
         {
             return _isLocked;
         }
-        
+
         bool _isLocked;
         std::atomic_int& _suspendedState;
     };
-    
+
     ITaskAccessor::Ptr          _coroContext; //holds execution context
     Traits::Coroutine           _coro; //the current runnable coroutine
     int                         _queueId;
@@ -153,6 +156,7 @@ private:
     std::atomic_bool            _terminated;
     std::atomic_int             _suspendedState; // stores values of State
     ITask::LocalStorage         _localStorage; // local storage of the coroutine
+    TaskState                   _taskState; // task state
 };
 
 using TaskPtr = Task::Ptr;

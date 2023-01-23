@@ -19,6 +19,8 @@
 //#################################### IMPLEMENTATIONS #########################################
 //##############################################################################################
 
+#include <quantum/quantum_task_state_handler.h>
+
 namespace Bloomberg {
 namespace quantum {
 
@@ -155,6 +157,13 @@ Configuration& Configuration::setCoroutineSharingForAny(bool sharing)
 }
 
 inline
+Configuration& Configuration::setTaskStateConfiguration(const TaskStateConfiguration& TaskStateConfiguration)
+{
+     _taskStateConfiguration = TaskStateConfiguration;
+     return *this;
+}
+
+inline
 int Configuration::getNumCoroutineThreads() const
 {
     return _numCoroutineThreads;
@@ -207,6 +216,12 @@ bool Configuration::getCoroutineSharingForAny() const
 {
     return _coroutineSharingForAny;
 }
-    
+
+inline
+const TaskStateConfiguration& Configuration::getTaskStateConfiguration() const
+{
+    return _taskStateConfiguration;
+}
+
 }
 }
