@@ -18,7 +18,6 @@ addons:
       - valgrind
       - gdb
 env:
-  - CXXSTANDARD=11
   - CXXSTANDARD=14
   - CXXSTANDARD=17
 
