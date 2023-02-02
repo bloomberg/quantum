@@ -47,7 +47,7 @@ namespace quantum {
 class TaskQueue : public IQueue
 {
 public:
-    using TaskList = std::list<Task::Ptr, ContiguousPoolManager<ITask::Ptr>>;
+    using TaskList = std::list<Task::Ptr, ContiguousPoolManager<Task::Ptr>>;
     using TaskListIter = TaskList::iterator;
 
     TaskQueue();

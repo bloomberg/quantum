@@ -29,6 +29,7 @@
 #include <list>
 #include <utility>
 #include <atomic>
+#include <thread>
 
 namespace Bloomberg {
 namespace quantum {
@@ -121,18 +122,18 @@ private:
             int suspended = (int)State::Suspended;
             _isLocked = _suspendedState.compare_exchange_strong(suspended,
                                                                 (int)State::Running,
-                                                                std::memory_order::memory_order_acq_rel);
+                                                                std::memory_order_acq_rel);
         }
         ~SuspensionGuard()
         {
             if (_isLocked)
             {
-                _suspendedState.store((int)State::Suspended, std::memory_order::memory_order_acq_rel);
+                _suspendedState.store((int)State::Suspended, std::memory_order_acq_rel);
             }
         }
         void set(int newState)
         {
-            _suspendedState.store(newState, std::memory_order::memory_order_acq_rel);
+            _suspendedState.store(newState, std::memory_order_acq_rel);
             _isLocked = false;
         }
 

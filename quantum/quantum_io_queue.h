@@ -31,6 +31,16 @@
 namespace Bloomberg {
 namespace quantum {
 
+#ifndef __QUANTUM_USE_DEFAULT_ALLOCATOR
+    #ifdef __QUANTUM_ALLOCATE_POOL_FROM_HEAP
+        using IoQueueListAllocator = HeapAllocator<IoTask::Ptr>;
+    #else
+        using IoQueueListAllocator = StackAllocator<IoTask::Ptr, __QUANTUM_IO_QUEUE_LIST_ALLOC_SIZE>;
+    #endif
+#else
+    using IoQueueListAllocator = StlAllocator<IoTask::Ptr>;
+#endif
+
 //==============================================================================================
 //                                 class IoQueue
 //==============================================================================================
