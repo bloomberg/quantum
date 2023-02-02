@@ -128,14 +128,11 @@ void IQueue::setThreadName(QueueType type,
 #ifndef __QUANTUM_USE_DEFAULT_ALLOCATOR
     #ifdef __QUANTUM_ALLOCATE_POOL_FROM_HEAP
         using QueueListAllocator = HeapAllocator<ITask::Ptr>;
-        using IoQueueListAllocator = HeapAllocator<ITask::Ptr>;
     #else
         using QueueListAllocator = StackAllocator<ITask::Ptr, __QUANTUM_QUEUE_LIST_ALLOC_SIZE>;
-        using IoQueueListAllocator = StackAllocator<ITask::Ptr, __QUANTUM_IO_QUEUE_LIST_ALLOC_SIZE>;
     #endif
 #else
     using QueueListAllocator = StlAllocator<ITask::Ptr>;
-    using IoQueueListAllocator = StlAllocator<ITask::Ptr>;
 #endif
 
 inline
