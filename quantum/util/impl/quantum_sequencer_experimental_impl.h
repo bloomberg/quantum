@@ -24,6 +24,7 @@
 #include <quantum/quantum_promise.h>
 #include <quantum/quantum_traits.h>
 #include <quantum/impl/quantum_stl_impl.h>
+#include <boost/context/detail/exception.hpp>
 #include <stdexcept>
 #include <functional>
 
@@ -187,7 +188,7 @@ Sequencer<SequenceKey, Hash, KeyEqual, Allocator>::executePending(
     {
         rc = task->_func(ctx);
     }
-    catch(const boost::coroutines2::detail::forced_unwind&)
+    catch(const boost::context::detail::forced_unwind&)
     {
         // quantum context switch
         throw;

@@ -48,7 +48,6 @@ struct Traits
     using BoostCoro = boost::coroutines2::coroutine<int&>;
     using Yield     = typename BoostCoro::pull_type;
     using Coroutine = typename BoostCoro::push_type;
-    //NOTE: 'boost::coroutines2::detail::forced_unwind' is deprecated
     using CoroutineStackUnwind = boost::context::detail::forced_unwind;
     
     template <class IT>
