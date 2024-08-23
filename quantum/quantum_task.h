@@ -128,12 +128,12 @@ private:
         {
             if (_isLocked)
             {
-                _suspendedState.store((int)State::Suspended, std::memory_order_acq_rel);
+                _suspendedState.store((int)State::Suspended, std::memory_order_seq_cst);
             }
         }
         void set(int newState)
         {
-            _suspendedState.store(newState, std::memory_order_acq_rel);
+            _suspendedState.store(newState, std::memory_order_seq_cst);
             _isLocked = false;
         }
 
