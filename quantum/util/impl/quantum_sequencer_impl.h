@@ -26,7 +26,7 @@
 
 namespace Bloomberg {
 namespace quantum {
-    
+
 template <class SequenceKey, class Hash, class KeyEqual, class Allocator>
 Sequencer<SequenceKey, Hash, KeyEqual, Allocator>::Sequencer(Dispatcher& dispatcher,
     const typename Sequencer<SequenceKey, Hash, KeyEqual, Allocator>::Configuration& configuration) :
@@ -46,7 +46,7 @@ Sequencer<SequenceKey, Hash, KeyEqual, Allocator>::Sequencer(Dispatcher& dispatc
         throw std::out_of_range("Allowed range is 0 <= controllerQueueId < _dispatcher.getNumCoroutineThreads()");
     }
 }
-    
+
 template <class SequenceKey, class Hash, class KeyEqual, class Allocator>
 template <class FUNC, class ... ARGS>
 void
@@ -101,7 +101,7 @@ Sequencer<SequenceKey, Hash, KeyEqual, Allocator>::enqueue(
                       std::forward<FUNC>(func),
                       std::forward<ARGS>(args)...);
 }
- 
+
 template <class SequenceKey, class Hash, class KeyEqual, class Allocator>
 template <class FUNC, class ... ARGS>
 void
@@ -156,7 +156,7 @@ Sequencer<SequenceKey, Hash, KeyEqual, Allocator>::enqueue(
                       std::forward<FUNC>(func),
                       std::forward<ARGS>(args)...);
 }
- 
+
 template <class SequenceKey, class Hash, class KeyEqual, class Allocator>
 template <class FUNC, class ... ARGS>
 void
@@ -382,7 +382,7 @@ Sequencer<SequenceKey, Hash, KeyEqual, Allocator>::singleSequenceKeyTaskSchedule
     // update task stats
     sequencer._taskStats->incrementPostedTaskCount();
     sequencer._taskStats->incrementPendingTaskCount();
-    
+
     // save the context as the last for this sequenceKey
     contextIt->second._context = ctx->post(
             std::move(queueId),
@@ -411,24 +411,21 @@ Sequencer<SequenceKey, Hash, KeyEqual, Allocator>::multiSequenceKeyTaskScheduler
     ARGS&&... args)
 {
     // construct the dependent collection
+    std::set<SequenceKey>        uniqueKeys{ sequenceKeys.begin(), sequenceKeys.end() };
     std::vector<SequenceKeyData> dependents;
-    dependents.reserve(sequenceKeys.size());
+    dependents.reserve(uniqueKeys.size() + 1);
     dependents.push_back(sequencer._universalContext);
-    for (const SequenceKey& sequenceKey : sequenceKeys)
+    for (const SequenceKey& sequenceKey : uniqueKeys)
     {
-        auto taskIt = sequencer._contexts.find(sequenceKey);
-        if (taskIt != sequencer._contexts.end())
-        {
-            // add the dependent and increment stats
-            taskIt->second._stats->incrementPostedTaskCount();
-            taskIt->second._stats->incrementPendingTaskCount();
-            dependents.emplace_back(taskIt->second);
-        }
+        typename ContextMap::iterator contextIt = sequencer._contexts.emplace(sequenceKey, SequenceKeyData()).first;
+        contextIt->second._stats->incrementPostedTaskCount();
+        contextIt->second._stats->incrementPendingTaskCount();
+        dependents.emplace_back(contextIt->second);
     }
     // update task stats
     sequencer._taskStats->incrementPostedTaskCount();
     sequencer._taskStats->incrementPendingTaskCount();
-    
+
     ICoroContextBasePtr newCtx = ctx->post(
             std::move(queueId),
             std::move(isHighPriority),
@@ -439,9 +436,9 @@ Sequencer<SequenceKey, Hash, KeyEqual, Allocator>::multiSequenceKeyTaskScheduler
             SequenceKeyData(sequencer._universalContext),
             std::forward<FUNC>(func),
             std::forward<ARGS>(args)...);
-    
+
     // save the context as the last for each sequenceKey
-    for (const SequenceKey& sequenceKey : sequenceKeys)
+    for (const SequenceKey& sequenceKey : uniqueKeys)
     {
         sequencer._contexts[sequenceKey]._context = newCtx;
     }
@@ -555,12 +552,12 @@ Sequencer<SequenceKey, Hash, KeyEqual, Allocator>::drain(std::chrono::millisecon
 {
     std::shared_ptr<Promise<int>> promise = std::make_shared<Promise<int>>();
     ThreadFuturePtr<int> future = promise->getIThreadFuture();
-    
+
     //enqueue a universal task and wait
     enqueueAll([promise](VoidContextPtr ctx)->int{
         return promise->set(ctx, 0);
     });
-    
+
     DrainGuard guard(_drain, !isFinal);
     return future->waitFor(timeout) == std::future_status::ready;
 }

@@ -53,14 +53,14 @@ public: // types
      * @Brief checks if a task was started before another task finished
      */
     void ensureOrder(TaskId beforeTaskId, TaskId afterTaskId)
-    {        
+    {
         TaskResultMap::const_iterator beforeTaskIt = _results.find(beforeTaskId);
         ASSERT_NE(beforeTaskIt, _results.end());
         TaskResultMap::const_iterator afterTaskIt = _results.find(afterTaskId);
         ASSERT_NE(afterTaskIt, _results.end());
         EXPECT_LE(beforeTaskIt->second.endTime, afterTaskIt->second.startTime);
     }
-    
+
     std::function<int(VoidContextPtr)> makeTask(TaskId taskId)
     {
         return [this, taskId](VoidContextPtr ctx)->int
@@ -92,12 +92,12 @@ public: // types
     {
         return _results;
     }
-    
+
     void sleep(int periodCount = 1)
     {
         std::this_thread::sleep_for(std::chrono::milliseconds(periodCount*1));
     }
-    
+
 private: // methods
 
     void taskFunc(VoidContextPtr ctx, TaskId id, std::atomic<bool>* blockFlag, std::string error)
@@ -114,7 +114,7 @@ private: // methods
 
         // update the task map with the time stats
         quantum::Mutex::Guard lock(ctx, _resultMutex);
-        
+
         _results[id].startTime = startTime;
         _results[id].endTime = endTime;
     }
@@ -135,11 +135,11 @@ TEST_P(SequencerTest, BasicTaskOrder)
     const int sequenceKeyCount = 3;
     SequencerTestData testData;
     SequencerTestData::SequenceKeyMap sequenceKeys;
-    
+
     SequencerTestData::TaskSequencer sequencer(getDispatcher());
 
     // enqueue the tasks
-    for(SequencerTestData::TaskId id = 0; id < taskCount; ++id) 
+    for(SequencerTestData::TaskId id = 0; id < taskCount; ++id)
     {
         SequencerTestData::SequenceKey sequenceKey = id % sequenceKeyCount;
         // save the task id for this sequenceKey
@@ -151,9 +151,9 @@ TEST_P(SequencerTest, BasicTaskOrder)
     EXPECT_EQ(testData.results().size(), (size_t)taskCount);
 
     // the tasks must be ordered within the same sequenceKey
-    for(auto sequenceKeyData : sequenceKeys) 
+    for(auto sequenceKeyData : sequenceKeys)
     {
-        for(size_t i = 1; i < sequenceKeyData.second.size(); ++i) 
+        for(size_t i = 1; i < sequenceKeyData.second.size(); ++i)
         {
             testData.ensureOrder(sequenceKeyData.second[i-1], sequenceKeyData.second[i]);
         }
@@ -167,7 +167,7 @@ TEST_P(SequencerTest, TrimKeys)
     const int taskCount = 100;
     const int sequenceKeyCount = 3;
     SequencerTestData testData;
-    
+
     SequencerTestData::TaskSequencer sequencer(getDispatcher());
 
     // enqueue the tasks
@@ -195,10 +195,10 @@ TEST_P(SequencerTest, ExceptionHandler)
 
     // generate the sequence of tasks for passing as opaque
     int generateTaskId = 0;
-    std::generate(sequenceKeys.begin(), 
-                  sequenceKeys.end(), 
+    std::generate(sequenceKeys.begin(),
+                  sequenceKeys.end(),
                   [&generateTaskId]() { return generateTaskId++; });
-    
+
     const std::string errorText = "Error";
     // the callback will check that exceptions are generated as expected
     std::atomic<unsigned int> exceptionCallbackCallCount(0);
@@ -208,7 +208,7 @@ TEST_P(SequencerTest, ExceptionHandler)
         ASSERT_NE(exception, nullptr);
         try
         {
-            if (exception) 
+            if (exception)
             {
                 std::rethrow_exception(exception);
             }
@@ -227,11 +227,11 @@ TEST_P(SequencerTest, ExceptionHandler)
             ASSERT_TRUE(false);
         }
     };
-    
+
     SequencerTestData::TaskSequencerConfiguration config;
     config.setExceptionCallback(exceptionCallback);
     SequencerTestData::TaskSequencer sequencer(getDispatcher(), config);
-    
+
     unsigned int generatedExceptionCount = 0;
     for(SequencerTestData::TaskId id = 0; id < taskCount; ++id)
     {
@@ -263,7 +263,7 @@ TEST_P(SequencerTest, SequenceKeyStats)
     SequencerTestData testData;
     std::atomic<bool> blockFlag(true);
     const int controlQueueId = 0;
-    
+
     SequencerTestData::TaskSequencerConfiguration config;
     config.setControlQueueId(controlQueueId);
     SequencerTestData::TaskSequencer sequencer(getDispatcher(), config);
@@ -271,7 +271,7 @@ TEST_P(SequencerTest, SequenceKeyStats)
     // enqueue the first half
     for(SequencerTestData::TaskId id = 0; id < taskCount / 2; ++id)
     {
-        if ( id % universalTaskFrequency == 0 ) 
+        if ( id % universalTaskFrequency == 0 )
         {
             sequencer.enqueueAll(testData.makeTaskWithBlock(id, &blockFlag));
         }
@@ -358,18 +358,18 @@ TEST_P(SequencerTest, TaskOrderWithUniversal)
     SequencerTestData testData;
     SequencerTestData::SequenceKeyMap sequenceKeys;
     std::vector<SequencerTestData::TaskId> universal;
-    
+
     SequencerTestData::TaskSequencer sequencer(getDispatcher());
-    
-    for(SequencerTestData::TaskId id = 0; id < taskCount; ++id) 
+
+    for(SequencerTestData::TaskId id = 0; id < taskCount; ++id)
     {
-        if ( id % universalTaskFrequency == 0 ) 
+        if ( id % universalTaskFrequency == 0 )
         {
             // save the task id as universal
             universal.push_back(id);
             sequencer.enqueueAll(testData.makeTask(id));
         }
-        else 
+        else
         {
             SequencerTestData::SequenceKey sequenceKey = id % sequenceKeyCount;
             // save the task id for this sequenceKey
@@ -383,29 +383,29 @@ TEST_P(SequencerTest, TaskOrderWithUniversal)
     EXPECT_EQ((int)sequencer.getSequenceKeyCount(), sequenceKeyCount);
 
     // the tasks must be ordered within the same sequenceKey
-    for(auto sequenceKeyData : sequenceKeys) 
+    for(auto sequenceKeyData : sequenceKeys)
     {
-        for(size_t i = 1; i < sequenceKeyData.second.size(); ++i) 
+        for(size_t i = 1; i < sequenceKeyData.second.size(); ++i)
         {
             testData.ensureOrder(sequenceKeyData.second[i-1], sequenceKeyData.second[i]);
         }
     }
     // all tasks enqueued before a universal task must be finished before it starts
-    for (auto universalTaskId : universal) 
+    for (auto universalTaskId : universal)
     {
-        for(SequencerTestData::TaskId taskId = 0; taskId < universalTaskId; ++taskId) 
+        for(SequencerTestData::TaskId taskId = 0; taskId < universalTaskId; ++taskId)
         {
             testData.ensureOrder(taskId, universalTaskId);
         }
-    }    
+    }
     // all tasks enqueued after a universal task must be started after it finishes
-    for (auto universalTaskId : universal) 
+    for (auto universalTaskId : universal)
     {
-        for(SequencerTestData::TaskId taskId = universalTaskId + 1; taskId < taskCount; ++taskId) 
+        for(SequencerTestData::TaskId taskId = universalTaskId + 1; taskId < taskCount; ++taskId)
         {
             testData.ensureOrder(universalTaskId, taskId);
         }
-    }    
+    }
 }
 
 TEST_P(SequencerTest, MultiSequenceKeyTasks)
@@ -416,24 +416,24 @@ TEST_P(SequencerTest, MultiSequenceKeyTasks)
     const int taskCount = (2 << (sequenceKeyCount - 1)) - 1;
     SequencerTestData testData;
 
-    // constructs a sequence key collection from the bitmap of an unsigned it, 
+    // constructs a sequence key collection from the bitmap of an unsigned it,
     // e.g. for the taskId = 5, the returned collection will be {0, 2}
     auto getBitVector = [](unsigned int value)->std::vector<SequencerTestData::SequenceKey>
     {
         std::vector<SequencerTestData::SequenceKey> result;
         int bit = 0;
-        for(; value; ++bit, value = value >> 1) 
+        for(; value; ++bit, value = value >> 1)
         {
-            if ( value % 2 ) 
+            if ( value % 2 )
             {
                 result.push_back(bit);
             }
         }
         return result;
     };
-    
-    SequencerTestData::TaskSequencer sequencer(getDispatcher());    
-    for(SequencerTestData::TaskId id = 1; id <= taskCount; ++id) 
+
+    SequencerTestData::TaskSequencer sequencer(getDispatcher());
+    for(SequencerTestData::TaskId id = 1; id <= taskCount; ++id)
     {
         std::vector<SequencerTestData::SequenceKey> sequenceKeys = getBitVector(id);
         // save the task id for this sequenceKey
@@ -445,17 +445,17 @@ TEST_P(SequencerTest, MultiSequenceKeyTasks)
     EXPECT_EQ((int)sequencer.getSequenceKeyCount(), sequenceKeyCount);
 
     // the tasks must be ordered within the sequenceKey set intersection
-    for(SequencerTestData::TaskId id = 1; id <= taskCount; ++id) 
+    for(SequencerTestData::TaskId id = 1; id <= taskCount; ++id)
     {
-        for(SequencerTestData::TaskId refId = 1; refId <= taskCount; ++refId) 
+        for(SequencerTestData::TaskId refId = 1; refId <= taskCount; ++refId)
         {
-            if ( id != refId and id & refId ) 
+            if ( id != refId and id & refId )
             {
-                if ( refId < id ) 
+                if ( refId < id )
                 {
                     testData.ensureOrder(refId, id);
-                } 
-                else 
+                }
+                else
                 {
                     testData.ensureOrder(id, refId);
                 }
@@ -483,14 +483,14 @@ TEST_P(SequencerTest, CustomHashFunction)
 
     // our custom equal operator will compare the hash values of sequenceKeys
     // this effectively means that the number of sequenceKeys is reduced to
-    // restrictedSequenceKeyCount. So we get a lower memory consumption due to the 
+    // restrictedSequenceKeyCount. So we get a lower memory consumption due to the
     // bound size of the hash table in Sequencer and hence need not to call
     // trimSequenceKeys from time to time. The price for this is a reduced parallelism:
     // instead of running at most fullSequenceKeyCount tasks in parallel, we can now run at most
     // restrictedSequenceKeyCount
 
     using KeyEqual = std::function<bool(SequencerTestData::SequenceKey sequenceKeyId0, SequencerTestData::SequenceKey sequenceKeyId1)>;
-    const KeyEqual customEqual = [customHasher](SequencerTestData::SequenceKey sequenceKeyId0, SequencerTestData::SequenceKey sequenceKeyId1)->bool 
+    const KeyEqual customEqual = [customHasher](SequencerTestData::SequenceKey sequenceKeyId0, SequencerTestData::SequenceKey sequenceKeyId1)->bool
     {
         return customHasher(sequenceKeyId0) == customHasher(sequenceKeyId1);
     };
@@ -500,11 +500,11 @@ TEST_P(SequencerTest, CustomHashFunction)
     config.setBucketCount(0);
     config.setHash(customHasher);
     config.setKeyEqual(customEqual);
-    
+
     Sequencer<SequencerTestData::SequenceKey, Hasher, KeyEqual>
         sequencer(getDispatcher(), config);
-    
-    for(SequencerTestData::TaskId id = 0; id < taskCount; ++id) 
+
+    for(SequencerTestData::TaskId id = 0; id < taskCount; ++id)
     {
         SequencerTestData::SequenceKey sequenceKey = id % fullSequenceKeyCount;
         // save the task id for this sequenceKey
@@ -518,7 +518,7 @@ TEST_P(SequencerTest, CustomHashFunction)
     EXPECT_EQ((int)sequencer.getSequenceKeyCount(), restrictedSequenceKeyCount);
 
     // the tasks must be ordered within the same sequenceKey
-    for(auto sequenceKeyData : sequenceKeys) 
+    for(auto sequenceKeyData : sequenceKeys)
     {
         for(size_t i = 1; i < sequenceKeyData.second.size(); ++i)
         {
@@ -553,4 +553,35 @@ TEST_P(SequencerTest, PerformanceTest)
         taskCount,
         0,
         0);
+}
+
+TEST_P(SequencerTest, DuplicateKeys)
+{
+    // This test demonstrates that the Sequencer can handle a job
+    // enqueued with the same key multiple times.
+
+    using namespace std::chrono_literals;
+
+    SequencerTestData::TaskSequencer sequencer{ getDispatcher() };
+
+    int key = 3;
+    std::vector<int> sequenceKeys{ key, key };
+    std::atomic_bool taskRan{false};
+
+    // Enqueue a trivial job with two identical sequence keys
+    sequencer.enqueue(sequenceKeys, [&taskRan](VoidContextPtr) -> int {
+        taskRan = true;
+        return 0;
+    });
+
+    // Drain the sequencer
+    EXPECT_TRUE(sequencer.drain(10ms, true));
+
+    // Confirm the task ran & updated the atomic
+    EXPECT_TRUE(taskRan);
+
+    // Check statistics; we should have one job posted and no jobs pending
+    auto stats = sequencer.getStatistics(key);
+    EXPECT_EQ(1u, stats.getPostedTaskCount());
+    EXPECT_EQ(0u, stats.getPendingTaskCount());
 }

@@ -351,7 +351,8 @@ Sequencer<SequenceKey, Hash, KeyEqual, Allocator>::enqueueMultiple(
     _taskStats->incrementPendingTaskCount();
 
     bool canSchedule = true;
-    for(const SequenceKey& sequenceKey : sequenceKeys)
+    std::set<SequenceKey> uniqueKeys{ sequenceKeys.begin(), sequenceKeys.end() };
+    for(const SequenceKey& sequenceKey : uniqueKeys)
     {
         if (not addPendingTask(sequenceKey, task))
         {
