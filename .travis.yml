@@ -18,7 +18,6 @@ addons:
       - valgrind
       - gdb
 env:
-  - CXXSTANDARD=14
   - CXXSTANDARD=17
 
 after_failure:
