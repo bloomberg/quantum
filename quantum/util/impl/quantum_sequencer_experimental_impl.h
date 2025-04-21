@@ -24,8 +24,10 @@
 #include <quantum/quantum_promise.h>
 #include <quantum/quantum_traits.h>
 #include <quantum/impl/quantum_stl_impl.h>
-#include <stdexcept>
+
 #include <functional>
+#include <stdexcept>
+#include <unordered_set>
 
 namespace Bloomberg {
 namespace quantum {
@@ -351,7 +353,7 @@ Sequencer<SequenceKey, Hash, KeyEqual, Allocator>::enqueueMultiple(
     _taskStats->incrementPendingTaskCount();
 
     bool canSchedule = true;
-    std::set<SequenceKey> uniqueKeys{ sequenceKeys.begin(), sequenceKeys.end() };
+    std::unordered_set<SequenceKey> uniqueKeys{ sequenceKeys.begin(), sequenceKeys.end() };
     for(const SequenceKey& sequenceKey : uniqueKeys)
     {
         if (not addPendingTask(sequenceKey, task))

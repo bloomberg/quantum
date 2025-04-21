@@ -22,7 +22,9 @@
 #include <quantum/util/quantum_drain_guard.h>
 #include <quantum/quantum_promise.h>
 #include <quantum/quantum_traits.h>
+
 #include <stdexcept>
+#include <unordered_set>
 
 namespace Bloomberg {
 namespace quantum {
@@ -411,7 +413,7 @@ Sequencer<SequenceKey, Hash, KeyEqual, Allocator>::multiSequenceKeyTaskScheduler
     ARGS&&... args)
 {
     // construct the dependent collection
-    std::set<SequenceKey>        uniqueKeys{ sequenceKeys.begin(), sequenceKeys.end() };
+    std::unordered_set<SequenceKey>        uniqueKeys{ sequenceKeys.begin(), sequenceKeys.end() };
     std::vector<SequenceKeyData> dependents;
     dependents.reserve(uniqueKeys.size() + 1);
     dependents.push_back(sequencer._universalContext);
