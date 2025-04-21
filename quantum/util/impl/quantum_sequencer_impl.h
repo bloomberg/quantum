@@ -413,7 +413,8 @@ Sequencer<SequenceKey, Hash, KeyEqual, Allocator>::multiSequenceKeyTaskScheduler
     ARGS&&... args)
 {
     // construct the dependent collection
-    std::unordered_set<SequenceKey>        uniqueKeys{ sequenceKeys.begin(), sequenceKeys.end() };
+    std::unordered_set<SequenceKey, Hash, KeyEqual> uniqueKeys{ sequenceKeys.begin(),
+                                                                sequenceKeys.end() };
     std::vector<SequenceKeyData> dependents;
     dependents.reserve(uniqueKeys.size() + 1);
     dependents.push_back(sequencer._universalContext);
