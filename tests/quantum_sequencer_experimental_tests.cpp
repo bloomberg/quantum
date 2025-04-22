@@ -685,4 +685,35 @@ TEST_P(SequencerExperimentalTest, CoroSafety)
     getDispatcher().drain();
 }
 
-#endif // BLOOMBERG_QUANTUM_SEQUENCER_LITE_SUPPORT
+TEST_P(SequencerExperimentalTest, DuplicateKeys)
+{
+    // This test demonstrates that the experimental::Sequencer can handle a job
+    // enqueued with the same key multiple times.
+
+    using namespace std::chrono_literals;
+
+    SequencerExperimentalTestData::TaskSequencer sequencer{ getDispatcher() };
+
+    int key = 3;
+    std::vector<int> sequenceKeys{ key, key };
+    std::atomic_bool taskRan{false};
+
+    // Enqueue a trivial job with two identical sequence keys
+    sequencer.enqueue(sequenceKeys, [&taskRan](VoidContextPtr) -> int {
+        taskRan = true;
+        return 0;
+    });
+
+    // Drain the sequencer
+    EXPECT_TRUE(sequencer.drain(10ms, true));
+
+    // Confirm the task ran & updated the atomic
+    EXPECT_TRUE(taskRan);
+
+    // Check statistics; we should have one job posted and no jobs pending
+    auto stats = sequencer.getStatistics(key);
+    EXPECT_EQ(1u, stats.getPostedTaskCount());
+    EXPECT_EQ(0u, stats.getPendingTaskCount());
+}
+
+#endif // BLOOMBERG_QUANTUM_SEQUENCER_SUPPORT

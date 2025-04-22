@@ -122,7 +122,8 @@ public:
     ///          (@see Dispatcher::post for more details).
     /// @tparam FUNC Callable object type which will be wrapped in a coroutine with signature 'int(VoidContextPtr, Args...)'
     /// @tparam ARGS Argument types passed to FUNC (@see Dispatcher::post for more details).
-    /// @param[in] sequenceKeys A collection of sequenceKey objects that the posted task is associated with
+    /// @param[in] sequenceKeys A collection of sequenceKey objects that the posted task is associated with.
+    ///            sequenceKeys will be de-duped internally to prevent double-dependency errors.
     /// @param[in] func Callable object.
     /// @param[in] args Variable list of arguments passed to the callable object.
     /// @note This function is non-blocking and returns immediately.
@@ -146,7 +147,8 @@ public:
     ///                           after the currently executing coroutine on 'queueId'.
     /// @param[in] opaque pointer to opaque data that is passed to the exception handler (if provided)
     ///            if an unhandled exception is thrown in func
-    /// @param[in] sequenceKeys A collection of sequenceKey objects that the posted task is associated with
+    /// @param[in] sequenceKeys A collection of sequenceKey objects that the posted task is associated with.
+    ///            sequenceKeys will be de-duped internally to prevent double-dependency errors.
     /// @param[in] func Callable object.
     /// @param[in] args Variable list of arguments passed to the callable object.
     /// @note This function is non-blocking and returns immediately.

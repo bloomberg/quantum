@@ -22,10 +22,10 @@
 #include <quantum/util/quantum_sequence_key_statistics.h>
 #include <vector>
 #include <unordered_map>
- 
+
 namespace Bloomberg {
 namespace quantum {
- 
+
 //==============================================================================================
 //                                      class Sequencer
 //==============================================================================================
@@ -36,17 +36,17 @@ namespace quantum {
 /// @tparam KeyEqual The equal-function used for storing instances of SequenceKey in hash maps
 /// @tparam Allocator The allocator used for storing instances of SequenceKey in hash maps
 /// @note quantum::Sequencer heavily relies on quantum::Dispatcher to track task interdependence
-/// and finding pending tasks ready to be executed (i.e. those having no pending dependents). Because 
+/// and finding pending tasks ready to be executed (i.e. those having no pending dependents). Because
 /// quantum::Dispatcher is not optimized for this particular task, the performance of task scheduling
 /// via quantum::Sequencer and the overall CPU usage may be suboptimal. In particular, this may become
-/// noticable when quantum::Dispatcher has a lot of coroutine threads configured and long chains of dependent tasks 
-/// are enqueued to quantum::Sequencer. If this becomes an issue, it's suggested to use quantum::experimental::Sequencer 
+/// noticable when quantum::Dispatcher has a lot of coroutine threads configured and long chains of dependent tasks
+/// are enqueued to quantum::Sequencer. If this becomes an issue, it's suggested to use quantum::experimental::Sequencer
 /// instead. quantum::experimenetal::Sequencer manages task ordering ourside of quantum::Dispatcher.
 /// @note Due to the fact that tasks enqueued to Sequencer do not get sent to quantum::Dispatcher right away,
-/// no enqueue/enqueueAll method of Sequencer returns an instance of ThreadContextPtr. An important goal 
-/// of ThreadContextPtr returned by quantum::Dispather::post(...) calls is exception marshalling i.e. 
-/// notifing the caller of an exception thrown in a coroutine. Sequencer uses the exception-callback 
-/// mechanism instead. A user can specify an exception callback (see SequencerConfiguration<...>::getExceptionCallback) 
+/// no enqueue/enqueueAll method of Sequencer returns an instance of ThreadContextPtr. An important goal
+/// of ThreadContextPtr returned by quantum::Dispather::post(...) calls is exception marshalling i.e.
+/// notifing the caller of an exception thrown in a coroutine. Sequencer uses the exception-callback
+/// mechanism instead. A user can specify an exception callback (see SequencerConfiguration<...>::getExceptionCallback)
 /// that will be called whenever a task posted to Sequencer::enqueue/enqueueAll throws an exception. The opaque
 /// parameter can be used to distinguish one task from another.
 
@@ -94,7 +94,7 @@ public:
     ///                    specify IQueue::QueueId::Any as a value, which is equivalent to running
     ///                    the simpler version of post() above. Valid range is [0, numCoroutineThreads) or
     ///                    IQueue::QueueId::Any.
-    /// @param[in] isHighPriority If set to true, the sequencer coroutine will be scheduled right 
+    /// @param[in] isHighPriority If set to true, the sequencer coroutine will be scheduled right
     ///                           after the currently executing coroutine on 'queueId'.
     /// @param[in] opaque pointer to opaque data that is passed to the exception handler (if provided)
     ///            if an unhandled exception is thrown in func
@@ -119,7 +119,8 @@ public:
     ///          (@see Dispatcher::post for more details).
     /// @tparam FUNC Callable object type which will be wrapped in a coroutine with signature 'int(VoidContextPtr, Args...)'
     /// @tparam ARGS Argument types passed to FUNC (@see Dispatcher::post for more details).
-    /// @param[in] sequenceKeys A collection of sequenceKey objects that the posted task is associated with
+    /// @param[in] sequenceKeys A collection of sequenceKey objects that the posted task is associated with.
+    ///            sequenceKeys will be de-duped internally to prevent double-dependency errors.
     /// @param[in] func Callable object.
     /// @param[in] args Variable list of arguments passed to the callable object.
     /// @note This function is non-blocking and returns immediately.
@@ -138,15 +139,16 @@ public:
     ///          (@see Dispatcher::post for more details).
     /// @tparam FUNC Callable object type which will be wrapped in a coroutine with signature 'int(VoidContextPtr, Args...)'
     /// @tparam ARGS Argument types passed to FUNC (@see Dispatcher::post for more details).
-    /// @param[in] queueId Id of the queue where this coroutine should run. Note that the user 
-    ///                    can specify IQueue::QueueId::Any as a value, which is equivalent to running 
-    ///                    the simpler version of post() above. Valid range is [0, numCoroutineThreads) or 
+    /// @param[in] queueId Id of the queue where this coroutine should run. Note that the user
+    ///                    can specify IQueue::QueueId::Any as a value, which is equivalent to running
+    ///                    the simpler version of post() above. Valid range is [0, numCoroutineThreads) or
     ///                    IQueue::QueueId::Any.
-    /// @param[in] isHighPriority If set to true, the sequencer coroutine will be scheduled right 
+    /// @param[in] isHighPriority If set to true, the sequencer coroutine will be scheduled right
     ///                           after the currently executing coroutine on 'queueId'.
     /// @param[in] opaque pointer to opaque data that is passed to the exception handler (if provided)
     ///            if an unhandled exception is thrown in func
-    /// @param[in] sequenceKeys A collection of sequenceKey objects that the posted task is associated with
+    /// @param[in] sequenceKeys A collection of sequenceKey objects that the posted task is associated with.
+    ///            sequenceKeys will be de-duped internally to prevent double-dependency errors.
     /// @param[in] func Callable object.
     /// @param[in] args Variable list of arguments passed to the callable object.
     /// @note This function is non-blocking and returns immediately.
@@ -190,11 +192,11 @@ public:
     ///          until all tasks complete. This task can be considered as having a 'universal' key.
     /// @tparam FUNC Callable object type which will be wrapped in a coroutine with signature 'int(VoidContextPtr, Args...)'
     /// @tparam ARGS Argument types passed to FUNC (@see Dispatcher::post for more details).
-    /// @param[in] queueId Id of the queue where this coroutine should run. Note that the user 
-    ///                    can specify IQueue::QueueId::Any as a value, which is equivalent to running 
-    ///                    the simpler version of post() above. Valid range is [0, numCoroutineThreads) or 
+    /// @param[in] queueId Id of the queue where this coroutine should run. Note that the user
+    ///                    can specify IQueue::QueueId::Any as a value, which is equivalent to running
+    ///                    the simpler version of post() above. Valid range is [0, numCoroutineThreads) or
     ///                    IQueue::QueueId::Any.
-    /// @param[in] isHighPriority If set to true, the sequencer coroutine will be scheduled right 
+    /// @param[in] isHighPriority If set to true, the sequencer coroutine will be scheduled right
     ///                           after the currently executing coroutine on 'queueId'.
     /// @param[in] opaque pointer to opaque data that is passed to the exception handler (if provided)
     ///            if an unhandled exception is thrown in func
@@ -214,7 +216,7 @@ public:
 
     /// @brief Trims the sequence keys not used by the sequencer anymore.
     /// @details It's recommended to call this function periodically to clean up state sequence keys.
-    /// @remark This call clears all the statistics for trimmed keys. 
+    /// @remark This call clears all the statistics for trimmed keys.
     /// @return The number of sequenceKeys after the trimming.
     /// @note This function blocks until the trimming job posted to the dispatcher is finished
     size_t trimSequenceKeys();
@@ -225,7 +227,7 @@ public:
     size_t getSequenceKeyCount();
 
     /// @brief Gets the sequencer statistics for a specific sequence key
-    /// @param sequenceKey the key 
+    /// @param sequenceKey the key
     /// @return the statistics objects for the specified key
     /// @note This function blocks until the statistics computation job posted to the dispatcher is finished.
     SequenceKeyStatistics getStatistics(const SequenceKey& sequenceKey);
@@ -234,13 +236,13 @@ public:
     /// @return the statistics objects
     /// @note This function blocks until the statistics computation job posted to the dispatcher is finished.
     SequenceKeyStatistics getStatistics();
-    
+
     /// @brief Gets the sequencer statistics for all jobs.
     /// @return the statistics objects
     /// @note The difference with the previous two statistics methods is that it aggregates stats on a per-task basis,
     ///       not on per-key basis.
     SequenceKeyStatistics getTaskStatistics();
-    
+
     /// @brief Drains all sequenced tasks.
     /// @param[in] timeout Maximum time for this function to wait. Set to -1 to wait indefinitely until all sequences drain.
     /// @param[in] isFinal If set to true, the sequencer will not allow any more processing after the drain completes.
