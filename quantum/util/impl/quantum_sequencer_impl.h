@@ -59,7 +59,7 @@ Sequencer<SequenceKey, Hash, KeyEqual, Allocator>::enqueue(
 {
     if (_drain)
     {
-        throw std::runtime_error("Sequencer is disabled");
+        throw SequencerDrainingException{};
     }
     _dispatcher.post(_controllerQueueId,
                       false,
@@ -86,7 +86,7 @@ Sequencer<SequenceKey, Hash, KeyEqual, Allocator>::enqueue(
 {
     if (_drain)
     {
-        throw std::runtime_error("Sequencer is disabled");
+        throw SequencerDrainingException{};
     }
     if (queueId < (int)IQueue::QueueId::Any)
     {
@@ -114,7 +114,7 @@ Sequencer<SequenceKey, Hash, KeyEqual, Allocator>::enqueue(
 {
     if (_drain)
     {
-        throw std::runtime_error("Sequencer is disabled");
+        throw SequencerDrainingException{};
     }
     _dispatcher.post(_controllerQueueId,
                       false,
@@ -141,7 +141,7 @@ Sequencer<SequenceKey, Hash, KeyEqual, Allocator>::enqueue(
 {
     if (_drain)
     {
-        throw std::runtime_error("Sequencer is disabled");
+        throw SequencerDrainingException{};
     }
     if (queueId < (int)IQueue::QueueId::Any)
     {
@@ -166,7 +166,7 @@ Sequencer<SequenceKey, Hash, KeyEqual, Allocator>::enqueueAll(FUNC&& func, ARGS&
 {
     if (_drain)
     {
-        throw std::runtime_error("Sequencer is disabled");
+        throw SequencerDrainingException{};
     }
     _dispatcher.post(_controllerQueueId,
                       false,
@@ -191,7 +191,7 @@ Sequencer<SequenceKey, Hash, KeyEqual, Allocator>::enqueueAll(
 {
     if (_drain)
     {
-        throw std::runtime_error("Sequencer is disabled");
+        throw SequencerDrainingException{};
     }
     if (queueId < (int)IQueue::QueueId::Any)
     {

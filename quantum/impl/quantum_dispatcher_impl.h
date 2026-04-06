@@ -19,6 +19,7 @@
 //#################################### IMPLEMENTATIONS #########################################
 //##############################################################################################
 
+#include <quantum/quantum_exceptions.h>
 #include <quantum/util/quantum_util.h>
 
 namespace Bloomberg {
@@ -366,15 +367,15 @@ bool Dispatcher::drain(std::chrono::milliseconds timeout,
     {
         return true; //skip draining
     }
-    
+
     auto start = std::chrono::steady_clock::now();
-    
+
     //wait until all queues have completed their work
     YieldingThread yield;
     while (!empty())
     {
         yield();
-        
+
         //check remaining time
         if (timeout != std::chrono::milliseconds(-1))
         {
@@ -386,7 +387,7 @@ bool Dispatcher::drain(std::chrono::milliseconds timeout,
             }
         }
     }
-    
+
 #ifdef __QUANTUM_PRINT_DEBUG
     std::lock_guard<std::mutex> guard(Util::LogMutex());
     std::cout << "All queues have drained." << std::endl;
@@ -436,7 +437,7 @@ Dispatcher::postImpl(int queueId,
     using FirstArg = decltype(firstArgOf(func));
     if (_drain || _terminated)
     {
-        throw std::runtime_error("Posting is disabled");
+        throw DispatcherDrainingException{};
     }
     if (queueId < (int)IQueue::QueueId::Any)
     {
@@ -470,7 +471,7 @@ Dispatcher::postAsyncIoImpl(int queueId,
     using FirstArg = decltype(firstArgOf(func));
     if (_drain || _terminated)
     {
-        throw std::runtime_error("Posting is disabled");
+        throw DispatcherDrainingException{};
     }
     if (queueId < (int)IQueue::QueueId::Any)
     {
