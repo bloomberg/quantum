@@ -21,6 +21,7 @@ jobs:
         sudo apt-get update
         sudo apt-get -y install libboost-dev \
           libboost-context-dev \
+          libboost-coroutines-dev \
           valgrind \
           gdb
         git clone https://github.com/google/googletest.git
