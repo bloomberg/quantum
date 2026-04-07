@@ -35,7 +35,8 @@ jobs:
         -DCMAKE_BUILD_TYPE=${{env.BUILD_TYPE}} \
         -DGTEST_ROOT=googletest/install . \
         -DQUANTUM_ENABLE_TESTS=ON \
-        -DQUANTUM_BOOST_USE_VALGRIND=ON
+        -DQUANTUM_BOOST_USE_VALGRIND=ON \
+        -DCMAKE_CXX_STANDARD=$CXXSTANDARD=17
 
     - name: Build
       # Build your program with the given configuration
