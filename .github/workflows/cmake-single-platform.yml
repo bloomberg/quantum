@@ -18,8 +18,8 @@ jobs:
 
     - name: Install Dependencies
       run: |
-        sudo apt-get update -t bionic
-        sudo apt-get -t bionic -y install libboost1.70-dev \
+        sudo apt-get update
+        sudo apt-get -y install libboost-dev \
           valgrind \
           gdb
         git clone https://github.com/google/googletest.git
