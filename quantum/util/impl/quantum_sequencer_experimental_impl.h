@@ -189,7 +189,7 @@ Sequencer<SequenceKey, Hash, KeyEqual, Allocator>::executePending(
     {
         rc = task->_func(ctx);
     }
-    catch(const boost::coroutines2::detail::forced_unwind&)
+    catch(const boost::coroutines2::detail::forced_unwind& e)
     {
         // quantum context switch
         throw;
