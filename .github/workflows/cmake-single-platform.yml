@@ -1,0 +1,49 @@
+name: Build & Test on Linux
+
+on:
+  push:
+    branches: [ "master" ]
+  pull_request:
+    branches: [ "master" ]
+
+env:
+  BUILD_TYPE: RelWithDebInfo
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+    - uses: actions/checkout@v4
+
+    - name: Install Dependencies
+      run: |
+        sudo apt-get update
+        sudo apt-get -y install libboost-dev \
+          libboost-context-dev \
+          libboost-coroutine-dev \
+          valgrind \
+          gdb
+        git clone https://github.com/google/googletest.git
+        cd googletest && cmake -DCMAKE_INSTALL_PREFIX=install .
+        make install
+        cd ..
+
+    - name: Configure CMake
+      run: |
+        cmake -B ${{github.workspace}}/build \
+        -DCMAKE_BUILD_TYPE=${{env.BUILD_TYPE}} \
+        -DGTEST_ROOT=googletest/install . \
+        -DQUANTUM_ENABLE_TESTS=ON \
+        -DQUANTUM_BOOST_USE_VALGRIND=ON \
+        -DCMAKE_CXX_STANDARD=17
+
+    - name: Build
+      # Build your program with the given configuration
+      run: cmake --build ${{github.workspace}}/build --config ${{env.BUILD_TYPE}}
+
+    - name: Test
+      working-directory: ${{github.workspace}}/build
+      # Execute tests defined by the CMake configuration.
+      # See https://cmake.org/cmake/help/latest/manual/ctest.1.html for more detail
+      run: ctest -C ${{env.BUILD_TYPE}}
