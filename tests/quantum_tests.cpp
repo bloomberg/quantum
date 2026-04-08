@@ -14,6 +14,7 @@
 ** limitations under the License.
 */
 #include <gtest/gtest.h>
+#include <quantum/quantum_exceptions.h>
 #include <quantum_fixture.h>
 #include <stdexcept>
 #include <vector>
@@ -549,6 +550,22 @@ TEST_P(ExecutionTest, DrainAllTasks)
     dispatcher.drain();
     EXPECT_EQ((size_t)0, dispatcher.size(IQueue::QueueType::Coro));
     EXPECT_EQ((size_t)0, dispatcher.size());
+}
+
+TEST_P(ExecutionTest, PostAfterDrainThrows)
+{
+    Dispatcher& dispatcher = getDispatcher();
+    dispatcher.drain(std::chrono::milliseconds(-1), true);
+
+    // Demonstrate that posting throws an exception,
+    // and that it is both a std::runtime_error and the dedicated exception
+    EXPECT_THROW(dispatcher.post(DummyCoro), std::runtime_error);
+    EXPECT_THROW(dispatcher.post2(DummyCoro), std::runtime_error);
+    EXPECT_THROW(dispatcher.postAsyncIo(DummyIoTask), std::runtime_error);
+
+    EXPECT_THROW(dispatcher.post(DummyCoro), DispatcherDrainingException);
+    EXPECT_THROW(dispatcher.post2(DummyCoro), DispatcherDrainingException);
+    EXPECT_THROW(dispatcher.postAsyncIo(DummyIoTask), DispatcherDrainingException);
 }
 
 TEST_P(ExecutionTest, YieldingBetweenTwoCoroutines)

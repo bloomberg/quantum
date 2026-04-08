@@ -716,4 +716,28 @@ TEST_P(SequencerExperimentalTest, DuplicateKeys)
     EXPECT_EQ(0u, stats.getPendingTaskCount());
 }
 
+TEST_P(SequencerExperimentalTest, EnqueueAfterDrainThrows)
+{
+    using namespace std::chrono_literals;
+
+    SequencerExperimentalTestData::TaskSequencer sequencer{ getDispatcher() };
+
+    // Drain the sequencer
+    EXPECT_TRUE(sequencer.drain(10ms, true));
+
+    SequencerExperimentalTestData testData;
+    SequencerExperimentalTestData::TaskId id = 0;
+    SequencerExperimentalTestData::SequenceKey sequenceKey = 0;
+
+    // Demonstrate that enqueueing throws an exception,
+    // and that it is both a std::runtime_error and the dedicated exception
+    EXPECT_THROW(sequencer.enqueue(sequenceKey, testData.makeTask(id)), std::runtime_error);
+    EXPECT_THROW(sequencer.enqueue(std::vector<int>{sequenceKey}, testData.makeTask(id)), std::runtime_error);
+    EXPECT_THROW(sequencer.enqueueAll(testData.makeTask(id)), std::runtime_error);
+
+    EXPECT_THROW(sequencer.enqueue(sequenceKey, testData.makeTask(id)), SequencerDrainingException);
+    EXPECT_THROW(sequencer.enqueue(std::vector<int>{sequenceKey}, testData.makeTask(id)), SequencerDrainingException);
+    EXPECT_THROW(sequencer.enqueueAll(testData.makeTask(id)), SequencerDrainingException);
+}
+
 #endif // BLOOMBERG_QUANTUM_SEQUENCER_SUPPORT

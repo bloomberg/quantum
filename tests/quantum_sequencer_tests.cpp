@@ -585,3 +585,27 @@ TEST_P(SequencerTest, DuplicateKeys)
     EXPECT_EQ(1u, stats.getPostedTaskCount());
     EXPECT_EQ(0u, stats.getPendingTaskCount());
 }
+
+TEST_P(SequencerTest, EnqueueAfterDrainThrows)
+{
+    using namespace std::chrono_literals;
+
+    SequencerTestData::TaskSequencer sequencer{ getDispatcher() };
+
+    // Drain the sequencer
+    EXPECT_TRUE(sequencer.drain(10ms, true));
+
+    SequencerTestData testData;
+    SequencerTestData::TaskId id = 0;
+    SequencerTestData::SequenceKey sequenceKey = 0;
+
+    // Demonstrate that enqueueing throws an exception,
+    // and that it is both a std::runtime_error and the dedicated exception
+    EXPECT_THROW(sequencer.enqueue(sequenceKey, testData.makeTask(id)), std::runtime_error);
+    EXPECT_THROW(sequencer.enqueue(std::vector<int>{sequenceKey}, testData.makeTask(id)), std::runtime_error);
+    EXPECT_THROW(sequencer.enqueueAll(testData.makeTask(id)), std::runtime_error);
+
+    EXPECT_THROW(sequencer.enqueue(sequenceKey, testData.makeTask(id)), SequencerDrainingException);
+    EXPECT_THROW(sequencer.enqueue(std::vector<int>{sequenceKey}, testData.makeTask(id)), SequencerDrainingException);
+    EXPECT_THROW(sequencer.enqueueAll(testData.makeTask(id)), SequencerDrainingException);
+}

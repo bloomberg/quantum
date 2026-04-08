@@ -269,7 +269,7 @@ Sequencer<SequenceKey, Hash, KeyEqual, Allocator>::enqueueSingle(
 {
     if (_drain)
     {
-        throw std::runtime_error("Sequencer is disabled");
+        throw SequencerDrainingException{};
     }
 
     if (queueId < (int)IQueue::QueueId::Any)
@@ -333,7 +333,7 @@ Sequencer<SequenceKey, Hash, KeyEqual, Allocator>::enqueueMultiple(
 {
     if (_drain)
     {
-        throw std::runtime_error("Sequencer is disabled");
+        throw SequencerDrainingException{};
     }
     if (queueId < (int)IQueue::QueueId::Any)
     {
@@ -401,7 +401,7 @@ Sequencer<SequenceKey, Hash, KeyEqual, Allocator>::enqueueAllImpl(
 {
     if (_drain)
     {
-        throw std::runtime_error("Sequencer is disabled");
+        throw SequencerDrainingException{};
     }
     if (queueId < (int)IQueue::QueueId::Any)
     {
