@@ -119,7 +119,7 @@ Various **CMake** options can be used to configure the output:
 * `QUANTUM_PKGCONFIG_DIR`    : Specify custom install path for the `quantum.pc` file. Default is `${QUANTUM_INSTALL_ROOT}/share/pkgconfig`.
                                To specify a relative path from `QUANTUM_INSTALL_ROOT`, omit leading `/`. 
 * `QUANTUM_EXPORT_PKGCONFIG` : Generate `quantum.pc` file. Default `ON`.
-* `QUANTUM_CMAKE_CONFIG_DIR` : Specify a different install directory for the project's config, target and version files. Default is `${QUANTUM_INSTALL_ROOT}/share/cmake`.
+* `QUANTUM_CMAKE_CONFIG_DIR` : Specify a different install directory for the project's config, target and version files. Default is `${QUANTUM_INSTALL_ROOT}/share/cmake/Quantum`.
 * `QUANTUM_EXPORT_CMAKE_CONFIG` : Generate CMake config, target and version files. Default `ON`.
 * `BOOST_ROOT`               : Specify a different Boost install directory.
 * `GTEST_ROOT`               : Specify a different GTest install directory.
